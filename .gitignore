@@ -29,6 +29,7 @@ yarn-error.*
 *.pem
 
 .idea
+.idea/**
 
 # local env files
 .env*.local
