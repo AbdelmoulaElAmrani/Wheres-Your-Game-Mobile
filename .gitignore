@@ -8,6 +8,9 @@ node_modules/
 dist/
 web-build/
 
+.idea
+**/sport-app.iml
+
 # Native
 *.orig.*
 *.jks
@@ -28,8 +31,6 @@ yarn-error.*
 .DS_Store
 *.pem
 
-.idea
-.idea/**
 
 # local env files
 .env*.local
