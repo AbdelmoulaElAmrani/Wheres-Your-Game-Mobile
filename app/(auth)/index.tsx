@@ -6,6 +6,7 @@ import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-nativ
 import Carousel from 'react-native-reanimated-carousel';
 import LocalStorageService from "@/services/LocalStorageService";
 import {router} from "expo-router";
+import CustomButton from "@/components/CustomButton";
 
 
 const windowWidth = Dimensions.get('window').width;
@@ -37,12 +38,14 @@ const Intro = () => {
         <>
             <StatusBar backgroundColor={"red"} style="dark"/>
             <SafeAreaView style={{flex: 1, backgroundColor: styles.container.backgroundColor}}>
-                <ScrollView>
+                <ScrollView bounces={false}>
                     <View style={styles.container}>
                         <View style={styles.headerContainer}>
                             <Image style={styles.logoContainer}
                                    source={require('../../assets/images/ballwithoutText.png')}/>
-                            <TouchableOpacity style={styles.skipButton}>
+                            <TouchableOpacity
+                                onPress={_navigateToLoginPage}
+                                style={styles.skipButton}>
                                 <Text style={styles.skipText}>Skip</Text>
                             </TouchableOpacity>
                         </View>
@@ -80,13 +83,11 @@ const Intro = () => {
                                 ))}
                             </View>
                         </View>
-                        <TouchableOpacity
-                            onPress={_navigateToLoginPage}
-                            style={styles.nextBtn}>
-                            <Text style={{fontSize: 20, color: 'white', textAlign: 'center'}}>Next</Text>
-                        </TouchableOpacity>
+                        <CustomButton text={"Next"} onPress={_navigateToLoginPage}/>
                         <View style={{alignSelf: 'center', marginTop: 20}}>
-                            <TouchableOpacity style={{alignSelf: 'center'}}>
+                            <TouchableOpacity
+                                onPress={() => router.replace('/Register')}
+                                style={{alignSelf: 'center'}}>
                                 <Text style={{color: '#3E4FEF', fontSize: 18}}>Create Account</Text>
                             </TouchableOpacity>
                             <View style={{
@@ -96,10 +97,9 @@ const Intro = () => {
                                 alignItems: 'center'
                             }}>
                                 <Text style={{textAlign: 'center', fontSize: 18}}>
-                                    Already have an account?
+                                    Already have an account ?
                                 </Text>
-                                <TouchableOpacity onPress={() => {/* Handle login navigation */
-                                }}>
+                                <TouchableOpacity onPress={_navigateToLoginPage}>
                                     <Text style={{color: '#3E4FEF', fontSize: 18, marginLeft: 5}}>
                                         Login
                                     </Text>
@@ -118,14 +118,13 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#FFFFFF',
-        minWidth: wp('100'),
-        minHeight: hp('100'),
     },
     headerContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
         height: 60,
+        marginTop: 4
     },
     logoContainer: {
         height: 70,
@@ -161,14 +160,13 @@ const styles = StyleSheet.create({
         width: windowWidth,
     },
     text: {
-        fontSize: 24,
+        fontSize: 20,
         color: 'black',
     },
     dotContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 20,
     },
     dot: {
         height: 10,
