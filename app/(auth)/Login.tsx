@@ -16,7 +16,7 @@ const Login = () => {
         console.log('Sign in with Google');
     }
     const _handleLogin = () => {
-        if (_isLoginFormValid())
+        if (_isLoginFormNotValid())
         {
             setErrorMessages(['Please enter username and password']);
             setTimeout(() => {
@@ -24,7 +24,6 @@ const Login = () => {
             }, 5000);
             return;
         }
-        console.log('Login'+userName+" "+ password );
     }
     const _handleForgotPassword = () => {
         console.log('Forgot Password');
@@ -34,13 +33,7 @@ const Login = () => {
         router.navigate('Register');
     }
 
-    const _isLoginFormValid = () : boolean => {
-        if(userName.trim() === '' || password.trim() === ''){
-            return true;
-        }
-        return false;
-         
-    }
+    const _isLoginFormNotValid = () : boolean => (userName.trim() === '' || password.trim() === '');
 
     const [userName, setUserName] = useState('');
     const [password, setPassword] = useState('');
@@ -88,7 +81,7 @@ const Login = () => {
                                     />
                                 </View>
                                 <View style={styles.mgTop}>
-                                    <CustomButton text="Login" onPress={_handleLogin} disabled={_isLoginFormValid()}/>
+                                    <CustomButton text="Login" onPress={_handleLogin} disabled={_isLoginFormNotValid()}/>
                                 </View>
                                 {/* forgot password ? */}
                                 <View style={styles.mgTop}>
