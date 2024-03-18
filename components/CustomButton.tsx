@@ -1,14 +1,14 @@
-import {StyleSheet, Text, TouchableOpacity} from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import React from "react";
-import {widthPercentageToDP as wp} from "react-native-responsive-screen";
-import {StyleProp} from "react-native/Libraries/StyleSheet/StyleSheet";
-import {ViewStyle} from "react-native/Libraries/StyleSheet/StyleSheetTypes";
+import { widthPercentageToDP as wp } from "react-native-responsive-screen";
+import { StyleProp } from "react-native/Libraries/StyleSheet/StyleSheet";
+import { ViewStyle } from "react-native/Libraries/StyleSheet/StyleSheetTypes";
 
-const CustomButton = ({text, onPress, style}: { text: string, onPress: () => void, style?: StyleProp<ViewStyle> }) => {
+const CustomButton = ({ text, onPress, style }: { text: string, onPress: () => void, style?: StyleProp<ViewStyle> }) => {
     return <TouchableOpacity
         onPress={onPress}
         style={[styles.nextBtn, style]}>
-        <Text style={{fontSize: 20, color: 'white', textAlign: 'center'}}>{text}</Text>
+        <Text style={{ fontSize: 20, color: 'white', textAlign: 'center' }}>{text}</Text>
     </TouchableOpacity>;
 }
 
