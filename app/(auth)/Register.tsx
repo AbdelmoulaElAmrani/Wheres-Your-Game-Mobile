@@ -22,7 +22,7 @@ const Register = () => {
     const [userData, setUserData] = useState<any>();
 
     const _handleOnNext = (): void => {
-        //router.navigate()
+        router.navigate("/TermsPolicies");
     }
 
     return <>
@@ -44,7 +44,6 @@ const Register = () => {
                             <TextInput
                                 style={styles.inputStyle}
                                 placeholder={'First name'}
-                                //cursorColor='black'
                                 placeholderTextColor={'grey'}
                             />
                         </View>
@@ -53,7 +52,6 @@ const Register = () => {
                             <TextInput
                                 style={styles.inputStyle}
                                 placeholder={'Last name'}
-                                cursorColor='black'
                                 placeholderTextColor={'grey'}
                             />
                         </View>
@@ -62,7 +60,6 @@ const Register = () => {
                             <TextInput
                                 style={styles.inputStyle}
                                 placeholder={'Email'}
-                                cursorColor='black'
                                 placeholderTextColor={'grey'}
                             />
                         </View>
@@ -72,7 +69,6 @@ const Register = () => {
                                 style={styles.inputStyle}
                                 placeholder={'Password'}
                                 secureTextEntry={true}
-                                cursorColor='black'
                                 placeholderTextColor={'grey'}
                             />
                         </View>
