@@ -32,86 +32,84 @@ const Register = () => {
             source={require('../../assets/images/signupBackGround.jpg')}
         >
             <SafeAreaView style={{height: hp(100)}}>
-                <ScrollView bounces={false}>
-                    <View style={styles.container}>
-                        <View style={styles.headerContainer}>
-                            <Image style={styles.logoContainer}
-                                   source={require('../../assets/images/logoBall.png')}/>
+                <View style={styles.container}>
+                    <View style={styles.headerContainer}>
+                        <Image style={styles.logoContainer}
+                               source={require('../../assets/images/logoBall.png')}/>
+                    </View>
+                    <Text style={styles.headerTitle}>Sports For Every Age</Text>
+                    <View style={styles.formContainer}>
+                        <View>
+                            <Text style={styles.textLabel}>First Name</Text>
+                            <TextInput
+                                style={styles.inputStyle}
+                                placeholder={'First name'}
+                                //cursorColor='black'
+                                placeholderTextColor={'grey'}
+                            />
                         </View>
-                        <Text style={styles.headerTitle}>Sports For Every Age</Text>
-                        <View style={styles.formContainer}>
-                            <View>
-                                <Text style={styles.textLabel}>First Name</Text>
-                                <TextInput
-                                    style={styles.inputStyle}
-                                    placeholder={'First name'}
-                                    //cursorColor='black'
-                                    placeholderTextColor={'grey'}
+                        <View style={styles.mgTop}>
+                            <Text style={styles.textLabel}>Last Name</Text>
+                            <TextInput
+                                style={styles.inputStyle}
+                                placeholder={'Last name'}
+                                cursorColor='black'
+                                placeholderTextColor={'grey'}
+                            />
+                        </View>
+                        <View style={styles.mgTop}>
+                            <Text style={styles.textLabel}>Email</Text>
+                            <TextInput
+                                style={styles.inputStyle}
+                                placeholder={'Email'}
+                                cursorColor='black'
+                                placeholderTextColor={'grey'}
+                            />
+                        </View>
+                        <View style={styles.mgTop}>
+                            <Text style={styles.textLabel}>Password</Text>
+                            <TextInput
+                                style={styles.inputStyle}
+                                placeholder={'Password'}
+                                secureTextEntry={true}
+                                cursorColor='black'
+                                placeholderTextColor={'grey'}
+                            />
+                        </View>
+                        <View style={styles.mgTop}>
+                            <Text style={styles.textLabel}>Phone number</Text>
+                            <View style={{flexDirection: 'row', justifyContent: "space-between"}}>
+                                <SelectList
+                                    setSelected={setSelectedCountry}
+                                    data={countries.map(({key, value}) => ({key, value}))}
+                                    boxStyles={styles.selectBox}
+                                    dropdownStyles={styles.dropdownStyle}
                                 />
-                            </View>
-                            <View style={styles.mgTop}>
-                                <Text style={styles.textLabel}>Last Name</Text>
+                                {selectedCountryData && (
+                                    <Image source={{uri: selectedCountryData.flagUri}} style={styles.flag}/>
+                                )}
                                 <TextInput
-                                    style={styles.inputStyle}
-                                    placeholder={'Last name'}
+                                    style={[styles.inputStyle, {flex: 2,}]}
+                                    placeholder={'+1 202 xxx xxxx'}
                                     cursorColor='black'
+                                    keyboardType="phone-pad"
                                     placeholderTextColor={'grey'}
                                 />
-                            </View>
-                            <View style={styles.mgTop}>
-                                <Text style={styles.textLabel}>Email</Text>
-                                <TextInput
-                                    style={styles.inputStyle}
-                                    placeholder={'Email'}
-                                    cursorColor='black'
-                                    placeholderTextColor={'grey'}
-                                />
-                            </View>
-                            <View style={styles.mgTop}>
-                                <Text style={styles.textLabel}>Password</Text>
-                                <TextInput
-                                    style={styles.inputStyle}
-                                    placeholder={'Password'}
-                                    secureTextEntry={true}
-                                    cursorColor='black'
-                                    placeholderTextColor={'grey'}
-                                />
-                            </View>
-                            <View style={styles.mgTop}>
-                                <Text style={styles.textLabel}>Phone number</Text>
-                                <View style={{flexDirection: 'row', justifyContent: "space-between"}}>
-                                    <SelectList
-                                        setSelected={setSelectedCountry}
-                                        data={countries.map(({key, value}) => ({key, value}))}
-                                        boxStyles={styles.selectBox}
-                                        dropdownStyles={styles.dropdownStyle}
-                                    />
-                                    {selectedCountryData && (
-                                        <Image source={{uri: selectedCountryData.flagUri}} style={styles.flag}/>
-                                    )}
-                                    <TextInput
-                                        style={[styles.inputStyle, {flex: 2,}]}
-                                        placeholder={'+1 202 xxx xxxx'}
-                                        cursorColor='black'
-                                        keyboardType="phone-pad"
-                                        placeholderTextColor={'grey'}
-                                    />
-                                </View>
                             </View>
                         </View>
-                        <View style={styles.nextBottom}>
-                            <Image source={require('../../assets/images/groupPeople.png')}/>
-                            {/*<View style={{
+                    </View>
+                    <View style={styles.nextBottom}>
+                        <Image source={require('../../assets/images/groupPeople.png')}/>
+                        {/*<View style={{
                                 backgroundColor: 'white',
                                 height: 10,
                                 borderTopEndRadius: 25,
                                 borderTopStartRadius: 25
                             }}></View>*/}
 
-                            <CustomButton style={{marginTop: 5}} text={"Next"} onPress={_handleOnNext}/>
-                        </View>
+                        <CustomButton style={{marginTop: 5}} text={"Next"} onPress={_handleOnNext}/>
                     </View>
-                </ScrollView>
+                </View>
             </SafeAreaView>
         </ImageBackground>
 
@@ -183,10 +181,10 @@ const styles = StyleSheet.create({
         resizeMode: 'contain',
     },
     nextBottom: {
-        /* position: "absolute",
+        position: "absolute",
          bottom: 0,
          left: 0,
-         right: 0,*/
+        right: 0,
     }
 });
 export default Register;
