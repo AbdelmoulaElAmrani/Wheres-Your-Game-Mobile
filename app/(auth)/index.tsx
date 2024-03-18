@@ -23,7 +23,7 @@ const Intro = () => {
         const checkIntroViewed = async () => {
             const isIntroViewed = await LocalStorageService.getItem<boolean>('intro');
             if (isIntroViewed !== null) {
-                router.replace("/Login");
+                //router.replace("/Login");
             }
         };
         checkIntroViewed();
@@ -83,7 +83,7 @@ const Intro = () => {
                                 ))}
                             </View>
                         </View>
-                        <CustomButton text={"Next"} onPress={_navigateToLoginPage}/>
+                        <CustomButton style={{marginTop: 10}} text={"Next"} onPress={_navigateToLoginPage}/>
                         <View style={{alignSelf: 'center', marginTop: 20}}>
                             <TouchableOpacity
                                 onPress={() => router.replace('/Register')}
