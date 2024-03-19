@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import Checkbox from 'expo-checkbox';
 import { useState } from "react";
+import { router } from "expo-router";
 
 
 const TermsPolicies = () => {
@@ -13,7 +14,15 @@ const TermsPolicies = () => {
         privacy: false
     })
     const _handleSkip = (): void => {
-        
+        router.navigate('/UserStepForm');
+    }
+
+    const _handlerAccept = () => {
+        router.navigate('/UserStepForm');
+    }
+
+    const _handleDecline = () => {
+        router.replace('/Register');
     }
 
     return (
@@ -150,14 +159,18 @@ const TermsPolicies = () => {
                             </View>
                         </View>
                         <View style={styles.btnGroup}>
-                            <TouchableOpacity style={[styles.btnStyle, {
-                                backgroundColor: 'white',
-                                borderColor: 'grey',
-                                borderWidth: 1
-                            }]}>
+                            <TouchableOpacity
+                                onPress={_handleDecline}
+                                style={[styles.btnStyle, {
+                                    backgroundColor: 'white',
+                                    borderColor: 'grey',
+                                    borderWidth: 1
+                                }]}>
                                 <Text style={[styles.btnText, { color: 'grey' }]}>Decline</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.btnStyle, { backgroundColor: '#2757CB' }]}>
+                            <TouchableOpacity
+                                onPress={_handlerAccept}
+                                style={[styles.btnStyle, { backgroundColor: '#2757CB' }]}>
                                 <Text style={[styles.btnText, { color: 'white' }]}>Accept</Text>
                             </TouchableOpacity>
                         </View>

@@ -36,7 +36,7 @@ const Intro = () => {
 
     return (
         <>
-            <StatusBar backgroundColor={"red"} style="dark"/>
+            <StatusBar style="dark"/>
             <SafeAreaView style={{flex: 1, backgroundColor: styles.container.backgroundColor}}>
                 <ScrollView bounces={false}>
                     <View style={styles.container}>

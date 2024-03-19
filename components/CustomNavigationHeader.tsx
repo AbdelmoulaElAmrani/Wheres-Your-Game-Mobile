@@ -1,27 +1,32 @@
-import {Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {Ionicons} from '@expo/vector-icons';
-import {router} from "expo-router";
+import { Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Ionicons } from '@expo/vector-icons';
+import { router } from "expo-router";
 
-const CustomNavigationHeader = ({text, showSkip, skipNavigation, showLogo = false}: {
+const CustomNavigationHeader = ({ text, showSkip = false, skipNavigation, showLogo = false, goBackFunction }: {
     text?: string,
     showSkip?: boolean,
     skipNavigation?: () => void,
-    showLogo?: boolean
+    showLogo?: boolean,
+    goBackFunction?: () => void | undefined
 }) => {
 
     const _handleGoBack = (): void => {
-        if (router.canGoBack())
-            router.back();
+        if (goBackFunction != null && goBackFunction != undefined) {
+            goBackFunction();
+        } else {
+            if (router.canGoBack())
+                router.back();
+        }
     }
 
     return (
         <View style={styles.container}>
             <TouchableOpacity onPress={_handleGoBack}>
-                <Ionicons name="chevron-back" size={35} color="white"/>
+                <Ionicons name="chevron-back" size={35} color="white" />
             </TouchableOpacity>
             <View>
                 {showLogo ?
-                    <Image source={require('../assets/images/ballwithoutText.png')}/>
+                    <Image source={require('../assets/images/ballwithoutText.png')} />
                     :
                     <Text style={styles.text}>{text}</Text>
                 }

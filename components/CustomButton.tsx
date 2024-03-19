@@ -5,11 +5,15 @@ import { StyleProp } from "react-native/Libraries/StyleSheet/StyleSheet";
 import { ViewStyle } from "react-native/Libraries/StyleSheet/StyleSheetTypes";
 
 
-const CustomButton = ({text, onPress, style, disabled = false}: { text: string, onPress: () => void, style?: StyleProp<ViewStyle> ,disabled?: boolean}) => {
+const CustomButton = ({ text, onPress, style, disabled = false }: { text: string, onPress: () => void, style?: StyleProp<ViewStyle>, disabled?: boolean }) => {
+
+    const _handleClick = () => {
+        onPress();
+    }
 
     return <TouchableOpacity
         disabled={disabled}
-        onPress={onPress}
+        onPress={_handleClick}
         style={[styles.nextBtn, style]}>
         <Text style={{ fontSize: 20, color: 'white', textAlign: 'center' }}>{text}</Text>
     </TouchableOpacity>;
