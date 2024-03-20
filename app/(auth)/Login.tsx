@@ -24,6 +24,7 @@ const Login = () => {
             }, 5000);
             return;
         }
+        router.navigate('Welcome');
     }
     const _handleForgotPassword = () => {
         console.log('Forgot Password');
