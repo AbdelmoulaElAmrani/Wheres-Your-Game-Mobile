@@ -1,15 +1,20 @@
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
 import { ImageBackground, StyleSheet, Text, Image, View, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Modal, Portal, PaperProvider } from 'react-native-paper';
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import { useEffect, useState } from "react";
 import CustomButton from "@/components/CustomButton";
 import { AntDesign } from "@expo/vector-icons";
 import UserType from "@/models/UserType";
+import ParentIcon from "../../assets/images/svg/ParentIcon";
+import CoachIcon from "../../assets/images/svg/CoachIcon";
+import BusinessIcon from "../../assets/images/svg/BusinessIcon";
+import PlayerIcon from "../../assets/images/svg/PlayerIcon";
 
 
 const UserStepForm = () => {
-
+    const [visible, setVisible] = useState<number>(false);
     const [currentStep, setCurrentStep] = useState<number>(1);
     //const [userData, setUserData] = useState<any>({});
     const [selectedType, setSelectedType] = useState<UserType>();
@@ -24,6 +29,8 @@ const UserStepForm = () => {
 
     const buttonText = ['Continue', 'Verify'];
 
+    const showModal = () => setVisible(true);
+    const hideModal = () => setVisible(false)
 
     const goToNextStep = () => {
         setCurrentStep(oldValue => Math.max(2, oldValue - 1));
@@ -46,48 +53,48 @@ const UserStepForm = () => {
 
     const _verifySelectedType = (type: UserType): boolean => selectedType == type;
 
-    const StepOne = () => (
+    const UserTypeForm = () => (
         <>
             <View style={styles.rowContainer}>
-                <TouchableOpacity onPress={() => setSelectedType(UserType.PARENT)} style={[styles.squareContainer, {backgroundColor: _verifySelectedType(UserType.PARENT) ? '#2757CB': 'white'} ]}>
+                <TouchableOpacity onPress={() => setSelectedType(UserType.PARENT)} style={[styles.squareContainer, { backgroundColor: _verifySelectedType(UserType.PARENT) ? '#2757CB' : 'white' }]}>
                     {_verifySelectedType(UserType.PARENT) && <View style={styles.checkIcon}>
                         <AntDesign name="checkcircle" size={20} color="white" />
                     </View>}
                     <View>
-                        <Image style={{ justifyContent: "center", alignSelf: "center" }} source={require('../../assets/images/parentIcon.png')} />
-                        <Text style={styles.userTypeTitle}>Parents</Text>
+                        <ParentIcon style={styles.userTypeIcon} fill={_verifySelectedType(UserType.PARENT) ? '#FFF' : '#000'} />
+                        <Text style={[styles.userTypeTitle, { color: _verifySelectedType(UserType.PARENT) ? 'white' : 'black' }]}>Parents</Text>
                     </View>
-                    <Text style={{ color: 'white', textAlign: "center", fontSize: 18, marginTop: 15 }}>I am creating a parent profile</Text>
+                    <Text style={[styles.userTypeDescIcon, { color: _verifySelectedType(UserType.PARENT) ? 'white' : 'black' }]}>I am creating a parent profile</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setSelectedType(UserType.PLAYER)} style={[styles.squareContainer, {backgroundColor: _verifySelectedType(UserType.PLAYER) ? '#2757CB': 'white'} ]}>
+                <TouchableOpacity onPress={() => setSelectedType(UserType.PLAYER)} style={[styles.squareContainer, { backgroundColor: _verifySelectedType(UserType.PLAYER) ? '#2757CB' : 'white' }]}>
                     {_verifySelectedType(UserType.PLAYER) && <View style={styles.checkIcon}>
                         <AntDesign name="checkcircle" size={20} color="white" />
                     </View>}
                     <View>
-                        <Image style={{ justifyContent: "center", alignSelf: "center" }} source={require('../../assets/images/playerIcon.png')} />
-                        <Text style={styles.userTypeTitle}>Player</Text>
+                        <PlayerIcon style={styles.userTypeIcon} fill={_verifySelectedType(UserType.PLAYER) ? '#FFF' : '#000'} />
+                        <Text style={[styles.userTypeTitle, { color: _verifySelectedType(UserType.PLAYER) ? 'white' : 'black' }]}>Player</Text>
                     </View>
-                    <Text style={{ color: 'black', textAlign: "center", fontSize: 18, marginTop: 15 }}>I am creating a parent profile</Text>
+                    <Text style={[styles.userTypeDescIcon, { color: _verifySelectedType(UserType.PLAYER) ? 'white' : 'black' }]}>I am creating a parent profile</Text>
                 </TouchableOpacity>
             </View>
             <View style={styles.rowContainer}>
-                <TouchableOpacity onPress={() => setSelectedType(UserType.COACH)} style={[styles.squareContainer, {backgroundColor: _verifySelectedType(UserType.COACH) ? '#2757CB': 'white'} ]}>
+                <TouchableOpacity onPress={() => setSelectedType(UserType.COACH)} style={[styles.squareContainer, { backgroundColor: _verifySelectedType(UserType.COACH) ? '#2757CB' : 'white' }]}>
                     {_verifySelectedType(UserType.COACH) && <View style={styles.checkIcon}>
                         <AntDesign name="checkcircle" size={20} color="white" />
                     </View>}
                     <View>
-                        <Image style={{ justifyContent: "center", alignSelf: "center" }} source={require('../../assets/images/coachIcon.png')} />
-                        <Text style={styles.userTypeTitle}>Coach/Trainer</Text>
+                        <CoachIcon style={styles.userTypeIcon} fill={_verifySelectedType(UserType.COACH) ? '#FFF' : '#000'} />
+                        <Text style={[styles.userTypeTitle, { color: _verifySelectedType(UserType.COACH) ? 'white' : 'black' }]}>Coach/Trainer</Text>
                     </View>
-                    <Text style={{ color: 'black', textAlign: "center", fontSize: 18, marginTop: 15 }}>Camps/Games Leagues Officiating Organization</Text>
+                    <Text style={[styles.userTypeDescIcon, { color: _verifySelectedType(UserType.COACH) ? 'white' : 'black' }]}>Camps/Games Leagues Officiating Organization</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setSelectedType(UserType.BUSINESS)} style={[styles.squareContainer, {backgroundColor: _verifySelectedType(UserType.BUSINESS) ? '#2757CB': 'white'} ]}>
+                <TouchableOpacity onPress={() => setSelectedType(UserType.BUSINESS)} style={[styles.squareContainer, { backgroundColor: _verifySelectedType(UserType.BUSINESS) ? '#2757CB' : 'white' }]}>
                     {_verifySelectedType(UserType.BUSINESS) && <View style={styles.checkIcon}>
                         <AntDesign name="checkcircle" size={20} color="white" />
                     </View>}
                     <View>
-                        <Image style={{ justifyContent: "center", alignSelf: "center" }} source={require('../../assets/images/advertiserIcon.png')} />
-                        <Text style={styles.userTypeTitle}>Business/Advertising Consultant</Text>
+                        <BusinessIcon style={styles.userTypeIcon} fill={_verifySelectedType(UserType.BUSINESS) ? '#FFF' : '#000'} />
+                        <Text style={[styles.userTypeTitle, { color: _verifySelectedType(UserType.BUSINESS) ? 'white' : 'black' }]}>Business/Advertising Consultant</Text>
                     </View>
                     <Text style={{ marginTop: 15 }}></Text>
                 </TouchableOpacity>
@@ -95,7 +102,7 @@ const UserStepForm = () => {
         </>
     );
 
-    const StepTwo = () => (
+    const NumberVerification = () => (
         <View>
 
         </View>
@@ -107,21 +114,30 @@ const UserStepForm = () => {
             source={require('../../assets/images/signupBackGround.jpg')}
         >
             <SafeAreaView>
-                <CustomNavigationHeader text={"User"} goBackFunction={goBackFunc()} />
-                <View style={styles.container}>
-                    <Text style={styles.stepText}>Step {currentStep}/2</Text>
-                    <View style={styles.mainContainer}>
-                        <View style={styles.titleContainer}>
-                            <Text style={styles.title}>{_stepTitles[currentStep - 1].title}</Text>
-                            <Text style={styles.subTitle}>{_stepTitles[currentStep - 1].subTitle}</Text>
+                <PaperProvider>
+                    <CustomNavigationHeader text={"User"} goBackFunction={goBackFunc()} />
+                    <View style={styles.container}>
+                        <Text style={styles.stepText}>Step {currentStep}/2</Text>
+                        <View style={styles.mainContainer}>
+                            <View style={styles.titleContainer}>
+                                <Text style={styles.title}>{_stepTitles[currentStep - 1].title}</Text>
+                                <Text style={styles.subTitle}>{_stepTitles[currentStep - 1].subTitle}</Text>
+                            </View>
+                            <View style={{ justifyContent: 'center', alignContent: "center", marginTop: 25, marginBottom: 25 }}>
+                                <Portal>
+                                    <Modal children={false} visible={false} onDismiss={hideModal} contentContainerStyle={styles.containerStyle}>
+                                        <Text style={{ textAlign: "center", position: "absolute", top: 20, fontWeight: '900', letterSpacing: 1, fontSize: 18, marginHorizontal: 20 }}>Verification code send to your phone number</Text>
+                                        <Text style={{ textAlign: 'center', color: 'grey', letterSpacing: 0.2, fontSize: 16, marginHorizontal: 40 }} >A verification code will be sent to your mobile to verify the account and create your profile.</Text>
+                                        <CustomButton style={{ position: "absolute", bottom: 25 }} text={"OK"} onPress={_onNext()} />
+                                    </Modal>
+                                </Portal>
+                                {currentStep === 1 && <UserTypeForm />}
+                                {currentStep === 2 && <NumberVerification />}
+                            </View>
+                            <CustomButton text={buttonText[currentStep - 1]} onPress={_onNext()} />
                         </View>
-                        <View style={{ justifyContent: 'center', alignContent: "center", marginTop: 25, marginBottom: 25 }}>
-                            {currentStep === 1 && <StepOne />}
-                            {currentStep === 2 && <StepTwo />}
-                        </View>
-                        <CustomButton text={buttonText[currentStep - 1]} onPress={_onNext()} />
                     </View>
-                </View>
+                </PaperProvider>
             </SafeAreaView>
         </ImageBackground>
     );
@@ -196,6 +212,25 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginTop: 5,
         textAlign: "center"
+    },
+    userTypeIcon: {
+        justifyContent: "center",
+        alignSelf: "center"
+    },
+    userTypeDescIcon: {
+        color: 'black',
+        textAlign: "center",
+        fontSize: 16,
+        marginTop: 15
+    },
+    containerStyle: {
+        backgroundColor: 'white',
+        height: 270,
+        width: 350,
+        borderRadius: 20,
+        alignSelf: "center",
+        position: "absolute",
+        top: hp(48)
     }
 });
 
