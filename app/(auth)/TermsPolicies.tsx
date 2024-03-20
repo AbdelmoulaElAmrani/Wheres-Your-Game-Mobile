@@ -4,17 +4,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import Checkbox from 'expo-checkbox';
 import { useState } from "react";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 
 const TermsPolicies = () => {
+    const params = useLocalSearchParams();
 
     const [userData, setUserData] = useState<any>({
         terms: false,
         privacy: false
     })
     const _handleSkip = (): void => {
-        router.navigate('/UserStepForm');
+        router.setParams(userData);
+        router.push('/UserStepForm');
     }
 
     const _handlerAccept = () => {
