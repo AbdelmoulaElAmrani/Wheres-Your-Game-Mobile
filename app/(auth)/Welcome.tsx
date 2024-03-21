@@ -2,10 +2,12 @@ import { StatusBar } from 'expo-status-bar'
 import { ImageBackground, StyleSheet, Text, View,Image } from 'react-native'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import CustomButton from '@/components/CustomButton';
+import {router} from "expo-router";
 
 const Welcome = () => {
     const _handleGetStarted = () => {
         console.log('Get Started');
+        router.navigate('Profile');
     }
   return (
     <>
