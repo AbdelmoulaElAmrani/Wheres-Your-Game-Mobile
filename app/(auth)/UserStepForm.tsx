@@ -1,20 +1,22 @@
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
-import { ImageBackground, StyleSheet, Text, Image, View, TouchableOpacity } from "react-native";
+import { ImageBackground, StyleSheet, Text, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Modal, Portal, PaperProvider } from 'react-native-paper';
-import CustomNavigationHeader from "@/components/CustomNavigationHeader";
+import Modal from "react-native-modal";
 import { useEffect, useState } from "react";
 import CustomButton from "@/components/CustomButton";
 import { AntDesign } from "@expo/vector-icons";
+import { OtpInput } from "react-native-otp-entry";
+import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import UserType from "@/models/UserType";
 import ParentIcon from "../../assets/images/svg/ParentIcon";
 import CoachIcon from "../../assets/images/svg/CoachIcon";
 import BusinessIcon from "../../assets/images/svg/BusinessIcon";
 import PlayerIcon from "../../assets/images/svg/PlayerIcon";
+import { router } from "expo-router";
 
 
 const UserStepForm = () => {
-    const [visible, setVisible] = useState<number>(false);
+    const [visible, setVisible] = useState<boolean>(false);
     const [currentStep, setCurrentStep] = useState<number>(1);
     //const [userData, setUserData] = useState<any>({});
     const [selectedType, setSelectedType] = useState<UserType>();
@@ -29,16 +31,16 @@ const UserStepForm = () => {
 
     const buttonText = ['Continue', 'Verify'];
 
-    const showModal = () => setVisible(true);
-    const hideModal = () => setVisible(false)
+    const _showModal = () => setVisible(true);
+    const _hideModal = () => setVisible(false)
 
     const goToNextStep = () => {
         setCurrentStep(oldValue => Math.max(2, oldValue - 1));
     };
 
     const _onNext = () => {
-        return currentStep === 1 ? goToNextStep : handleSubmit;
-
+        _hideModal();
+        currentStep === 1 ? goToNextStep() : handleSubmit();
     }
     const goBackFunc = () => {
         return currentStep === 1 ? undefined : goToPreviousStep;
@@ -49,9 +51,14 @@ const UserStepForm = () => {
         setCurrentStep(oldValue => Math.max(1, oldValue - 1));
     };
     const handleSubmit = () => {
+        router.navigate('../Login')
     };
 
     const _verifySelectedType = (type: UserType): boolean => selectedType == type;
+
+    const _onResentOTPCode = () => {
+
+    }
 
     const UserTypeForm = () => (
         <>
@@ -102,42 +109,84 @@ const UserStepForm = () => {
         </>
     );
 
-    const NumberVerification = () => (
-        <View>
+    const OTPVerification = () => (
+        <TouchableWithoutFeedback onPress={ Keyboard.dismiss}>
+            <View style={{
+                alignItems: 'center',
+                marginTop: 50,
+                height: hp(45)
+            }}>
+                <Text style={{
+                    marginBottom: 20,
+                    fontSize: 20,
+                    fontWeight: '500'
+                }}>Verification Code</Text>
+                <OtpInput
+                    numberOfDigits={4}
+                    onTextChange={(text) => console.log(text)}
+                    focusColor={'#2757CB'}
+                    focusStickBlinkingDuration={400}
+                    theme={{
+                        pinCodeContainerStyle: {
+                            width: 58,
+                            height: 58,
+                            borderColor: 'black'
+                        }
+                    }}
 
-        </View>
+                />
+                <View style={{
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    alignContent: 'center',
+                    marginTop: 30
+                }}>
+                    <Text style={{
+                        fontSize: 18,
+                        color: 'grey'
+                    }}>Don't recerive your code?
+                    </Text>
+                    <TouchableOpacity
+                        onPress={_onResentOTPCode}
+                    >
+                        <Text style={{
+                            fontSize: 18,
+                            color: '#3E4FEF'
+                        }}> Resend</Text>
+                    </TouchableOpacity>
+
+                </View>
+            </View>
+        </TouchableWithoutFeedback>
     );
 
     return (
         <ImageBackground
             style={{ height: hp(100) }}
-            source={require('../../assets/images/signupBackGround.jpg')}
-        >
+            source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                <PaperProvider>
-                    <CustomNavigationHeader text={"User"} goBackFunction={goBackFunc()} />
-                    <View style={styles.container}>
-                        <Text style={styles.stepText}>Step {currentStep}/2</Text>
-                        <View style={styles.mainContainer}>
-                            <View style={styles.titleContainer}>
-                                <Text style={styles.title}>{_stepTitles[currentStep - 1].title}</Text>
-                                <Text style={styles.subTitle}>{_stepTitles[currentStep - 1].subTitle}</Text>
-                            </View>
-                            <View style={{ justifyContent: 'center', alignContent: "center", marginTop: 25, marginBottom: 25 }}>
-                                <Portal>
-                                    <Modal children={false} visible={false} onDismiss={hideModal} contentContainerStyle={styles.containerStyle}>
-                                        <Text style={{ textAlign: "center", position: "absolute", top: 20, fontWeight: '900', letterSpacing: 1, fontSize: 18, marginHorizontal: 20 }}>Verification code send to your phone number</Text>
-                                        <Text style={{ textAlign: 'center', color: 'grey', letterSpacing: 0.2, fontSize: 16, marginHorizontal: 40 }} >A verification code will be sent to your mobile to verify the account and create your profile.</Text>
-                                        <CustomButton style={{ position: "absolute", bottom: 25 }} text={"OK"} onPress={_onNext()} />
-                                    </Modal>
-                                </Portal>
-                                {currentStep === 1 && <UserTypeForm />}
-                                {currentStep === 2 && <NumberVerification />}
-                            </View>
-                            <CustomButton text={buttonText[currentStep - 1]} onPress={_onNext()} />
+                <CustomNavigationHeader text={"User"} goBackFunction={goBackFunc()} />
+                <View style={styles.container}>
+                    <Text style={styles.stepText}>Step {currentStep}/2</Text>
+                    <View style={styles.mainContainer}>
+                        <View style={styles.titleContainer}>
+                            <Text style={styles.title}>{_stepTitles[currentStep - 1].title}</Text>
+                            <Text style={styles.subTitle}>{_stepTitles[currentStep - 1].subTitle}</Text>
                         </View>
+                        <View style={{ justifyContent: 'center', alignContent: "center", marginTop: 25, marginBottom: 25 }}>
+
+                            {currentStep === 1 && <UserTypeForm />}
+                            {currentStep === 2 && <OTPVerification />}
+                        </View>
+                        <CustomButton text={buttonText[currentStep - 1]} onPress={_showModal} />
                     </View>
-                </PaperProvider>
+                </View>
+                <Modal onDismiss={_hideModal} isVisible={visible} style={styles.containerStyle}>
+                    <Text style={{ textAlign: "center", position: "absolute", top: 20, fontWeight: '900', letterSpacing: 1, fontSize: 20, marginHorizontal: 20 }}>Verification code send to your phone number</Text>
+                    <Text style={{ textAlign: 'center', color: 'grey', letterSpacing: 0.2, fontSize: 16, marginHorizontal: 40 }} >A verification code will be sent to your mobile to verify the account and create your profile.</Text>
+                    <CustomButton style={{ position: "absolute", bottom: 25 }} text={"OK"} onPress={() => _onNext()} />
+                </Modal>
             </SafeAreaView>
         </ImageBackground>
     );
@@ -225,12 +274,12 @@ const styles = StyleSheet.create({
     },
     containerStyle: {
         backgroundColor: 'white',
-        height: 270,
-        width: 350,
+        maxHeight: 270,
+        minHeight: hp(32),
         borderRadius: 20,
         alignSelf: "center",
         position: "absolute",
-        top: hp(48)
+        bottom: hp(8)
     }
 });
 

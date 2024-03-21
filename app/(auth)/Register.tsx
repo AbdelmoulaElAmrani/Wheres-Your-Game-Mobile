@@ -1,41 +1,114 @@
-import {StatusBar} from "expo-status-bar";
-import {SafeAreaView} from "react-native-safe-area-context";
-import {Image, ImageBackground, ScrollView, StyleSheet, Text, View} from "react-native";
-import React, {useState} from "react";
-import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Image, ImageBackground, StyleSheet, Modal, Text, TouchableOpacity, View, TouchableWithoutFeedback, FlatList } from "react-native";
+import React, { useState } from "react";
+//import Modal from "react-native-modal";
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
 import CustomButton from "@/components/CustomButton";
-import {TextInput} from "react-native-paper";
-import {SelectList} from "react-native-dropdown-select-list";
-import {router} from "expo-router";
+import { TextInput } from "react-native-paper";
+import { router } from "expo-router";
+import { AntDesign } from '@expo/vector-icons';
 
 
 const countries = [
-    {key: 'US', value: '+1', flagUri: 'https://flagcdn.com/us.svg'},
-    {key: 'CA', value: '+1', flagUri: 'https://flagcdn.com/ca.svg'},
-    {key: 'AU', value: '+61', flagUri: 'https://flagcdn.com/au.svg'},
+    { key: 'United State', value: '+1', flag: require('../../assets/images/flags/US-flag.png') },
+    { key: 'Canada', value: '+1', flag: require('../../assets/images/flags/CA-flag.png') },
+    { key: 'United Kingdom', value: '+44', flag: require('../../assets/images/flags/UK-flag.png') },
 ];
 
 
 const Register = () => {
-    const [selectedCountry, setSelectedCountry] = useState('US');
-    const selectedCountryData = countries.find(country => country.value === selectedCountry);
+    const [selectedCountry, setSelectedCountry] = useState(countries[0]);
     const [userData, setUserData] = useState<any>();
+    const [modalVisible, setModalVisible] = useState<boolean>(false);
 
     const _handleOnNext = (): void => {
         router.navigate("/TermsPolicies");
     }
 
+    const _renderFlagModal = () => {
+        const renderItem = ({ item }: { item: any }) => {
+            return (
+                <TouchableOpacity
+                    onPress={() => {
+                        setSelectedCountry(item)
+                        setModalVisible(false)
+                    }}
+                    style={{ flexDirection: 'row', padding: 10, alignItems: 'center' }}>
+                    <Image
+                        source={item.flag}
+                        resizeMode="contain"
+                        style={{ height: 30, width: 30, marginRight: 10 }}
+                    />
+                    <Text style={{
+                        color: 'white',
+                        fontSize: 16,
+                        fontWeight: 'bold'
+                    }}>{'(' + item.value + ') ' + item.key}</Text>
+                </TouchableOpacity>
+            )
+        }
+        return (
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+            >
+                <TouchableWithoutFeedback
+                    onPress={() => setModalVisible(false)}
+                >
+                    <View style={{
+                        flex: 1,
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <View style={{
+                            height: hp(100),
+                            width: wp(100),
+                            backgroundColor: '#160076'
+                        }}>
+                            <TouchableOpacity
+                                onPress={() => setModalVisible(false)}
+                                style={{
+                                    position: 'absolute',
+                                    top: 60,
+                                    right: 22,
+                                    width: 42,
+                                    height: 42,
+                                    backgroundColor: 'white',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderRadius: 999
+                                }}>
+                                <AntDesign name="close" size={24} color="black" />
+
+                            </TouchableOpacity>
+                            <FlatList
+                                data={countries}
+                                renderItem={renderItem}
+                                horizontal={false}
+                                keyExtractor={item => item.key}
+                                style={{ padding: 20, marginBottom: 20, marginTop: hp(12) }}
+                            />
+                        </View>
+                    </View>
+                </TouchableWithoutFeedback>
+
+            </Modal>
+        );
+    }
+
     return <>
-        <StatusBar style="light"/>
+        <StatusBar style="light" />
         <ImageBackground
-            style={{height: hp(100)}}
+            style={{ height: hp(100) }}
             source={require('../../assets/images/signupBackGround.jpg')}
         >
-            <SafeAreaView style={{height: hp(100)}}>
+            <SafeAreaView style={{ height: hp(100) }}>
                 <View style={styles.container}>
                     <View style={styles.headerContainer}>
                         <Image style={styles.logoContainer}
-                               source={require('../../assets/images/logoBall.png')}/>
+                            source={require('../../assets/images/logoBall.png')} />
                     </View>
                     <Text style={styles.headerTitle}>Sports For Every Age</Text>
                     <View style={styles.formContainer}>
@@ -74,19 +147,22 @@ const Register = () => {
                         </View>
                         <View style={styles.mgTop}>
                             <Text style={styles.textLabel}>Phone number</Text>
-                            <View style={{flexDirection: 'row', justifyContent: "space-between"}}>
-                                <SelectList
-                                    setSelected={setSelectedCountry}
-                                    data={countries.map(({key, value}) => ({key, value}))}
-                                    boxStyles={styles.selectBox}
-                                    dropdownStyles={styles.dropdownStyle}
-                                />
-                                {selectedCountryData && (
-                                    <Image source={{uri: selectedCountryData.flagUri}} style={styles.flag}/>
-                                )}
+                            <View style={{ flexDirection: 'row', justifyContent: "space-between", alignItems: "center" }}>
+                                <TouchableOpacity style={styles.selectedFlagContainer}
+                                    onPress={() => setModalVisible(true)}>
+
+                                    <View style={{ justifyContent: 'center', marginLeft: 5 }}>
+                                        <Image source={selectedCountry.flag}
+                                            style={styles.flagIcon}
+                                        />
+                                    </View>
+                                    <View>
+                                        <AntDesign style={{ marginLeft: 3 }} name="down" size={16} color="grey" />
+                                    </View>
+                                </TouchableOpacity>
                                 <TextInput
-                                    style={[styles.inputStyle, {flex: 2,}]}
-                                    placeholder={'+1 202 xxx xxxx'}
+                                    style={[styles.inputStyle, { flex: 2, }]}
+                                    placeholder={'Enter your phone number'}
                                     cursorColor='black'
                                     keyboardType="phone-pad"
                                     placeholderTextColor={'grey'}
@@ -95,7 +171,7 @@ const Register = () => {
                         </View>
                     </View>
                     <View style={styles.nextBottom}>
-                        <Image source={require('../../assets/images/groupPeople.png')}/>
+                        <Image source={require('../../assets/images/groupPeople.png')} />
                         {/*<View style={{
                                 backgroundColor: 'white',
                                 height: 10,
@@ -103,9 +179,10 @@ const Register = () => {
                                 borderTopStartRadius: 25
                             }}></View>*/}
 
-                        <CustomButton style={{marginTop: 5}} text={"Next"} onPress={_handleOnNext}/>
+                        <CustomButton style={{ marginTop: 5 }} text={"Next"} onPress={_handleOnNext} />
                     </View>
                 </View>
+                {_renderFlagModal()}
             </SafeAreaView>
         </ImageBackground>
 
@@ -171,16 +248,25 @@ const styles = StyleSheet.create({
     dropdownStyle: {
         backgroundColor: 'white'
     },
-    flag: {
-        width: 32,
-        height: 20,
+    flagIcon: {
+        width: 30,
+        height: 30,
         resizeMode: 'contain',
     },
     nextBottom: {
         position: "absolute",
-         bottom: 0,
-         left: 0,
+        bottom: 0,
+        left: 0,
         right: 0,
+    },
+    selectedFlagContainer: {
+        backgroundColor: 'white',
+        flexDirection: "row",
+        alignItems: "center",
+        alignContent: "center",
+        borderRadius: 10,
+        marginRight: 5,
+        height: 45,
     }
 });
 export default Register;

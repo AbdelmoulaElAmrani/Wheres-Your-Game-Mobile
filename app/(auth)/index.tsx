@@ -23,6 +23,7 @@ const Intro = () => {
         const checkIntroViewed = async () => {
             const isIntroViewed = await LocalStorageService.getItem<boolean>('intro');
             if (isIntroViewed !== null) {
+                //TODO:: Remove the comment later
                 //router.replace("/Login");
             }
         };
