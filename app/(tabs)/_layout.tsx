@@ -6,7 +6,8 @@ import {AntDesign, Feather, Ionicons, Octicons} from '@expo/vector-icons';
 const Layout = () => {
     return (<Tabs
         screenOptions={{
-            tabBarActiveTintColor: Colors.light.tabIconSelected
+            tabBarActiveTintColor: Colors.light.tabIconSelected,
+            headerShown: false
         }}>
         <Tabs.Screen name="index" options={{
             title: '', tabBarLabel: 'Home',
