@@ -33,7 +33,7 @@ const TermsPolicies = () => {
             source={require('../../assets/images/signupBackGround.jpg')}
         >
             <SafeAreaView>
-                <CustomNavigationHeader showLogo={true} showSkip={true} skipNavigation={_handleSkip} />
+                <CustomNavigationHeader showLogo={true} />
                 <View style={styles.card}>
                     <Text style={styles.cardTitle}>Terms of Services</Text>
                     <View style={{ height: hp(56), paddingTop: 10 }}>
@@ -200,7 +200,6 @@ const styles = StyleSheet.create({
         fontSize: 25
     },
     cardFooter: {
-        //backgroundColor: 'red',
     },
     btnGroup: {
         flexDirection: "row",

@@ -1,19 +1,19 @@
-import {Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {SafeAreaView} from 'react-native-safe-area-context';
-import React, {useEffect, useState} from "react";
-import {StatusBar} from 'expo-status-bar';
-import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
+import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect, useState } from "react";
+import { StatusBar } from 'expo-status-bar';
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
 import Carousel from 'react-native-reanimated-carousel';
 import LocalStorageService from "@/services/LocalStorageService";
-import {router} from "expo-router";
+import { router } from "expo-router";
 import CustomButton from "@/components/CustomButton";
 
 
 const windowWidth = Dimensions.get('window').width;
 const data = [
-    {first: "All About sports", second: "SIGN UP FOR FREE ACCESS", third: "locate your next game"},
-    {first: "explore new adventures", second: "JOIN THE COMMUNITY NOW", third: "discover your passion"},
-    {first: "master your skills", second: "GET STARTED WITH OUR TUTORIALS", third: "find your next challenge"}];
+    { img: require('../../assets/images/introIcon.png'), title: 'Discover', first: "All About sports", second: "SIGN UP FOR FREE ACCESS", third: "locate your next game" },
+    { img: require('../../assets/images/introIcon2.png'), title: 'Sign Up', first: "explore new adventures", second: "GET STARTED WITH OUR TUTORIALS", third: "discover your passion" },
+    { img: require('../../assets/images/introIcon3.png'), title: 'Enroll', first: "Enroll yourself/child/both to stay ", second: "JOIN THE COMMUNITY NOW", third: "find your next challenge" }];
 
 
 const Intro = () => {
@@ -37,35 +37,36 @@ const Intro = () => {
 
     return (
         <>
-            <StatusBar style="dark"/>
-            <SafeAreaView style={{flex: 1, backgroundColor: styles.container.backgroundColor}}>
+            <StatusBar style="dark" />
+            <SafeAreaView style={{ flex: 1, backgroundColor: styles.container.backgroundColor }}>
                 <ScrollView bounces={false}>
                     <View style={styles.container}>
                         <View style={styles.headerContainer}>
                             <Image style={styles.logoContainer}
-                                   source={require('../../assets/images/ballwithoutText.png')}/>
+                                source={require('../../assets/images/ballwithoutText.png')} />
                             <TouchableOpacity
                                 onPress={_navigateToLoginPage}
                                 style={styles.skipButton}>
                                 <Text style={styles.skipText}>Skip</Text>
                             </TouchableOpacity>
                         </View>
-                        <View style={styles.introIconContainer}>
-                            <Image source={require('../../assets/images/introIcon.png')}/>
-                        </View>
-                        <Text style={{fontWeight: 'bold', fontSize: 50, alignSelf: 'center'}}>Discover</Text>
+
                         <View>
                             <Carousel
                                 loop={true}
                                 width={windowWidth}
-                                height={100}
+                                height={500}
                                 autoPlay={true}
                                 autoPlayInterval={2000}
                                 onSnapToItem={index => setCurrentIndex(index)}
                                 data={data}
                                 scrollAnimationDuration={1000}
-                                renderItem={({item}) => (
+                                renderItem={({ item }) => (
                                     <View style={styles.slide}>
+                                        <View style={styles.introIconContainer}>
+                                            <Image source={item.img} />
+                                        </View>
+                                        <Text style={{ fontWeight: 'bold', fontSize: 50, alignSelf: 'center' }}>{item.title}</Text>
                                         <Text style={styles.text}>{item.first}</Text>
                                         <Text style={styles.text}>{item.second}</Text>
                                         <Text style={styles.text}>{item.third}</Text>
@@ -84,12 +85,12 @@ const Intro = () => {
                                 ))}
                             </View>
                         </View>
-                        <CustomButton style={{marginTop: 10}} text={"Next"} onPress={_navigateToLoginPage}/>
-                        <View style={{alignSelf: 'center', marginTop: 20}}>
+                        <CustomButton style={{ marginTop: 10 }} text={"Next"} onPress={_navigateToLoginPage} />
+                        <View style={{ alignSelf: 'center', marginTop: 20 }}>
                             <TouchableOpacity
                                 onPress={() => router.replace('/Register')}
-                                style={{alignSelf: 'center'}}>
-                                <Text style={{color: '#3E4FEF', fontSize: 18}}>Create Account</Text>
+                                style={{ alignSelf: 'center' }}>
+                                <Text style={{ color: '#3E4FEF', fontSize: 18 }}>Create Account</Text>
                             </TouchableOpacity>
                             <View style={{
                                 flexDirection: 'row',
@@ -97,11 +98,11 @@ const Intro = () => {
                                 marginTop: 10,
                                 alignItems: 'center'
                             }}>
-                                <Text style={{textAlign: 'center', fontSize: 18}}>
+                                <Text style={{ textAlign: 'center', fontSize: 18 }}>
                                     Already have an account ?
                                 </Text>
                                 <TouchableOpacity onPress={_navigateToLoginPage}>
-                                    <Text style={{color: '#3E4FEF', fontSize: 18, marginLeft: 5}}>
+                                    <Text style={{ color: '#3E4FEF', fontSize: 18, marginLeft: 5 }}>
                                         Login
                                     </Text>
                                 </TouchableOpacity>
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         right: 20,
         top: '30%',
-        transform: [{translateY: -0.5}],
+        transform: [{ translateY: -0.5 }],
     },
     skipText: {
         fontWeight: "bold",
@@ -168,6 +169,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
+        marginTop: 20
     },
     dot: {
         height: 10,

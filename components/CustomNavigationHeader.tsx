@@ -19,6 +19,11 @@ const CustomNavigationHeader = ({ text, showSkip = false, skipNavigation, showLo
         }
     }
 
+    const _handleSkip = (): void => {
+        if (skipNavigation != null && skipNavigation != undefined)
+            _handleSkip();
+    }
+
     return (
         <View style={styles.container}>
             <TouchableOpacity onPress={_handleGoBack}>
@@ -32,7 +37,9 @@ const CustomNavigationHeader = ({ text, showSkip = false, skipNavigation, showLo
                 }
             </View>
             {showSkip ?
-                <TouchableOpacity>
+                <TouchableOpacity
+                    onPress={_handleSkip}
+                >
                     <Text style={styles.textSkip}>Skip</Text>
                 </TouchableOpacity>
                 :
