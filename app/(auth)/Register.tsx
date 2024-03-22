@@ -1,8 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Image, ImageBackground, StyleSheet, Modal, Text, TouchableOpacity, View, TouchableWithoutFeedback, FlatList } from "react-native";
+import { Image, ImageBackground, StyleSheet, Modal, Text, TouchableOpacity, View, TouchableWithoutFeedback, FlatList, Keyboard, ScrollView } from "react-native";
 import React, { useState } from "react";
-//import Modal from "react-native-modal";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
 import CustomButton from "@/components/CustomButton";
 import { TextInput } from "react-native-paper";
@@ -104,84 +103,82 @@ const Register = () => {
             style={{ height: hp(100) }}
             source={require('../../assets/images/signupBackGround.jpg')}
         >
-            <SafeAreaView style={{ height: hp(100) }}>
-                <View style={styles.container}>
-                    <View style={styles.headerContainer}>
-                        <Image style={styles.logoContainer}
-                            source={require('../../assets/images/logoBall.png')} />
-                    </View>
-                    <Text style={styles.headerTitle}>Sports For Every Age</Text>
-                    <View style={styles.formContainer}>
-                        <View>
-                            <Text style={styles.textLabel}>First Name</Text>
-                            <TextInput
-                                style={styles.inputStyle}
-                                placeholder={'First name'}
-                                placeholderTextColor={'grey'}
-                            />
-                        </View>
-                        <View style={styles.mgTop}>
-                            <Text style={styles.textLabel}>Last Name</Text>
-                            <TextInput
-                                style={styles.inputStyle}
-                                placeholder={'Last name'}
-                                placeholderTextColor={'grey'}
-                            />
-                        </View>
-                        <View style={styles.mgTop}>
-                            <Text style={styles.textLabel}>Email</Text>
-                            <TextInput
-                                style={styles.inputStyle}
-                                placeholder={'Email'}
-                                placeholderTextColor={'grey'}
-                            />
-                        </View>
-                        <View style={styles.mgTop}>
-                            <Text style={styles.textLabel}>Password</Text>
-                            <TextInput
-                                style={styles.inputStyle}
-                                placeholder={'Password'}
-                                secureTextEntry={true}
-                                placeholderTextColor={'grey'}
-                            />
-                        </View>
-                        <View style={styles.mgTop}>
-                            <Text style={styles.textLabel}>Phone number</Text>
-                            <View style={{ flexDirection: 'row', justifyContent: "space-between", alignItems: "center" }}>
-                                <TouchableOpacity style={styles.selectedFlagContainer}
-                                    onPress={() => setModalVisible(true)}>
 
-                                    <View style={{ justifyContent: 'center', marginLeft: 5 }}>
-                                        <Image source={selectedCountry.flag}
-                                            style={styles.flagIcon}
+            <SafeAreaView style={{ height: hp(100) }}>
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                    <View style={styles.container}>
+                        <View style={styles.headerContainer}>
+                            <Image style={styles.logoContainer}
+                                source={require('../../assets/images/logoBall.png')} />
+                        </View>
+                        <Text style={styles.headerTitle}>Sports For Every Age</Text>
+                        <ScrollView automaticallyAdjustKeyboardInsets={true}>
+                            <View style={styles.formContainer}>
+                                <View>
+                                    <Text style={styles.textLabel}>First Name</Text>
+                                    <TextInput
+                                        style={styles.inputStyle}
+                                        placeholder={'First name'}
+                                        placeholderTextColor={'grey'}
+                                    />
+                                </View>
+                                <View style={styles.mgTop}>
+                                    <Text style={styles.textLabel}>Last Name</Text>
+                                    <TextInput
+                                        style={styles.inputStyle}
+                                        placeholder={'Last name'}
+                                        placeholderTextColor={'grey'}
+                                    />
+                                </View>
+                                <View style={styles.mgTop}>
+                                    <Text style={styles.textLabel}>Email</Text>
+                                    <TextInput
+                                        style={styles.inputStyle}
+                                        placeholder={'Email'}
+                                        placeholderTextColor={'grey'}
+                                    />
+                                </View>
+                                <View style={styles.mgTop}>
+                                    <Text style={styles.textLabel}>Password</Text>
+                                    <TextInput
+                                        style={styles.inputStyle}
+                                        placeholder={'Password'}
+                                        secureTextEntry={true}
+                                        placeholderTextColor={'grey'}
+                                    />
+                                </View>
+                                <View style={styles.mgTop}>
+                                    <Text style={styles.textLabel}>Phone number</Text>
+                                    <View style={{ flexDirection: 'row', justifyContent: "space-between", alignItems: "center" }}>
+                                        <TouchableOpacity style={styles.selectedFlagContainer}
+                                            onPress={() => setModalVisible(true)}>
+
+                                            <View style={{ justifyContent: 'center', marginLeft: 5 }}>
+                                                <Image source={selectedCountry.flag}
+                                                    style={styles.flagIcon}
+                                                />
+                                            </View>
+                                            <View>
+                                                <AntDesign style={{ marginLeft: 3 }} name="down" size={16} color="grey" />
+                                            </View>
+                                        </TouchableOpacity>
+                                        <TextInput
+                                            style={[styles.inputStyle, { flex: 2, }]}
+                                            placeholder={'Enter your phone number'}
+                                            cursorColor='black'
+                                            keyboardType="phone-pad"
+                                            placeholderTextColor={'grey'}
                                         />
                                     </View>
-                                    <View>
-                                        <AntDesign style={{ marginLeft: 3 }} name="down" size={16} color="grey" />
-                                    </View>
-                                </TouchableOpacity>
-                                <TextInput
-                                    style={[styles.inputStyle, { flex: 2, }]}
-                                    placeholder={'Enter your phone number'}
-                                    cursorColor='black'
-                                    keyboardType="phone-pad"
-                                    placeholderTextColor={'grey'}
-                                />
+                                </View>
                             </View>
+                        </ScrollView>
+                        <View style={styles.nextBottom}>
+                            <Image source={require('../../assets/images/groupPeople.png')} />
+                            <CustomButton style={{ marginTop: 5 }} text={"Next"} onPress={_handleOnNext} />
                         </View>
                     </View>
-                    <View style={styles.nextBottom}>
-                        <Image source={require('../../assets/images/groupPeople.png')} />
-                        {/*<View style={{
-                                backgroundColor: 'white',
-                                height: 10,
-                                borderTopEndRadius: 25,
-                                borderTopStartRadius: 25
-                            }}></View>*/}
-
-                        <CustomButton style={{ marginTop: 5 }} text={"Next"} onPress={_handleOnNext} />
-                    </View>
-                </View>
+                </TouchableWithoutFeedback>
                 {_renderFlagModal()}
             </SafeAreaView>
         </ImageBackground>
@@ -218,7 +215,7 @@ const styles = StyleSheet.create({
         width: wp(90),
         borderRadius: 20,
         padding: 20,
-        marginTop: 30
+        marginTop: 30,
     }
     ,
     textLabel: {

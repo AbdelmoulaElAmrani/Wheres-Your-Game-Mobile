@@ -110,7 +110,7 @@ const UserStepForm = () => {
     );
 
     const OTPVerification = () => (
-        <TouchableWithoutFeedback onPress={ Keyboard.dismiss}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={{
                 alignItems: 'center',
                 marginTop: 50,
@@ -167,6 +167,7 @@ const UserStepForm = () => {
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
                 <CustomNavigationHeader text={"User"} goBackFunction={goBackFunc()} />
+
                 <View style={styles.container}>
                     <Text style={styles.stepText}>Step {currentStep}/2</Text>
                     <View style={styles.mainContainer}>
