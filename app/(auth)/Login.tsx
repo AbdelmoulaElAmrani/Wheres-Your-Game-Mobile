@@ -47,8 +47,8 @@ const Login = () => {
                 source={require('../../assets/images/signupBackGround.jpg')}
             >
                 {/* Card Component */}
-                <View style={styles.cardContainer}>
-                    <SafeAreaView style={styles.container}>
+                <SafeAreaView style={styles.container}>
+                    <View style={styles.cardContainer}>
                         <View style={styles.headerContainer}>
                             <Image style={styles.logoContainer}
                                 source={require('../../assets/images/logoBall.png')} />
@@ -123,8 +123,8 @@ const Login = () => {
                                 </TouchableOpacity>
                             </View>
                         </View>
-                    </SafeAreaView>
-                </View>
+                    </View>
+                </SafeAreaView>
             </ImageBackground>
         </>
     );
@@ -140,11 +140,11 @@ const styles = StyleSheet.create({
     },
     headerContainer: {
         alignItems: 'center',
-        marginTop: hp(20),
+        marginTop: hp(5),
     },
     logoContainer: {
         width: wp(85),
-        height: hp(20),
+        height: hp(25),
         alignContent: 'center',
         marginTop: hp(-30),
 
