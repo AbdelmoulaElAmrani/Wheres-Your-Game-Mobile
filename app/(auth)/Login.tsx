@@ -3,12 +3,12 @@ import { Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import {TextInput} from "react-native-paper";
+import { TextInput } from "react-native-paper";
 import { AntDesign } from '@expo/vector-icons';
 import CustomButton from '@/components/CustomButton';
-import {Divider} from "react-native-paper";
+import { Divider } from "react-native-paper";
 import { FontAwesome5 } from '@expo/vector-icons';
-import {router} from "expo-router";
+import { router } from "expo-router";
 
 const Login = () => {
 
@@ -16,8 +16,7 @@ const Login = () => {
         console.log('Sign in with Google');
     }
     const _handleLogin = () => {
-        if (_isLoginFormNotValid())
-        {
+        if (_isLoginFormNotValid()) {
             setErrorMessages(['Please enter username and password']);
             setTimeout(() => {
                 setErrorMessages([]);
@@ -34,7 +33,7 @@ const Login = () => {
         router.navigate('Register');
     }
 
-    const _isLoginFormNotValid = () : boolean => (userName.trim() === '' || password.trim() === '');
+    const _isLoginFormNotValid = (): boolean => (userName.trim() === '' || password.trim() === '');
 
     const [userName, setUserName] = useState('');
     const [password, setPassword] = useState('');
@@ -50,80 +49,80 @@ const Login = () => {
                 {/* Card Component */}
                 <View style={styles.cardContainer}>
                     <SafeAreaView style={styles.container}>
-                            <View style={styles.headerContainer}>
-                                <Image style={styles.logoContainer}
-                                    source={require('../../assets/images/logoBall.png')} />
+                        <View style={styles.headerContainer}>
+                            <Image style={styles.logoContainer}
+                                source={require('../../assets/images/logoBall.png')} />
+                        </View>
+                        <View style={styles.formContainer}>
+                            <View>
+                                <Text style={styles.textLabel}>User Name</Text>
+                                <TextInput
+                                    style={styles.inputStyle}
+                                    placeholder={'User Name'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
+                                    value={userName}
+                                    onChangeText={setUserName}
+                                    underlineColor={"transparent"}
+                                />
                             </View>
-                            <View style={styles.formContainer}>
-                                <View>
-                                    <Text style={styles.textLabel}>User Name</Text>
-                                    <TextInput
-                                        style={styles.inputStyle}
-                                        placeholder={'User Name'}
-                                        cursorColor='black'
-                                        placeholderTextColor={'grey'}
-                                        left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
-                                        value={userName}
-                                        onChangeText={setUserName}
-                                        underlineColor={"transparent"}
-                                    />
-                                </View>
-                                <View style={styles.mgTop}>
-                                    <Text style={styles.textLabel}>Password</Text>
-                                    <TextInput
-                                        style={styles.inputStyle}
-                                        placeholder={'Password'}
-                                        placeholderTextColor={'grey'}
-                                        secureTextEntry={true}
-                                        left={<TextInput.Icon color={'#D3D3D3'} icon='lock-outline' size={30} />}
-                                        value={password}
-                                        onChangeText={setPassword}
-                                        underlineColor={"transparent"}
-                                    />
-                                </View>
-                                <View style={styles.mgTop}>
-                                    <CustomButton text="Login" onPress={_handleLogin} disabled={_isLoginFormNotValid()}/>
-                                </View>
-                                {/* forgot password ? */}
-                                <View style={styles.mgTop}>
-                                    <TouchableOpacity onPress={_handleForgotPassword}>
-                                        <Text style={{ color: 'blue', textAlign: 'center',fontSize:16 }}>Forgot Password ?</Text>
-                                    </TouchableOpacity>
-                                </View>
-                                
-                                {/* Sign in with */}
-                                <View style={styles.dividerContainerSigninUp}>
-                                    <Divider style={styles.dividerStyle}/>
-                                    <Text style={styles.signinTextStyle}>Sign in with</Text>
-                                    <Divider style={styles.dividerStyle} />
-                                </View>
-
-                                {/* Social Media Icons */}
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 30 }}>
-                                    <TouchableOpacity disabled={true}>
-                                        <FontAwesome5 name="facebook" size={40} color="blue" />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={_handleSignInWithGoogle}>
-                                        <AntDesign name="google" size={40} color="blue" />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity disabled={true}>
-                                        <AntDesign name="twitter" size={40} color="blue" />
-                                    </TouchableOpacity>
-                                </View>
-
-                                {errorMessages.map((message, index) => (
-                                    <Text key={index} style={{ color: 'red', textAlign: 'center',fontSize:16,marginTop :30 }}>{message}</Text>
-                                ))}
-
-                                {/* Dont have an account ? Sign Up */}
-                                <View style={styles.dontHaveAccountText}>
-                                    <Text style={{ color:'black',  textAlign: 'center',fontSize:16 }}>Don't have an account ? 
-                                        <TouchableOpacity onPress={_handleSignUp}>
-                                            <Text style={{ color: 'blue', textAlign: 'center',fontSize:16 }}> Sign Up</Text>
-                                        </TouchableOpacity>
-                                    </Text>
-                                </View>
+                            <View style={styles.mgTop}>
+                                <Text style={styles.textLabel}>Password</Text>
+                                <TextInput
+                                    style={styles.inputStyle}
+                                    placeholder={'Password'}
+                                    placeholderTextColor={'grey'}
+                                    secureTextEntry={true}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='lock-outline' size={30} />}
+                                    value={password}
+                                    onChangeText={setPassword}
+                                    underlineColor={"transparent"}
+                                />
                             </View>
+                            <View style={styles.mgTop}>
+                                <CustomButton text="Login" onPress={_handleLogin} disabled={_isLoginFormNotValid()} />
+                            </View>
+                            {/* forgot password ? */}
+                            <View style={styles.mgTop}>
+                                <TouchableOpacity onPress={_handleForgotPassword}>
+                                    <Text style={{ color: 'blue', textAlign: 'center', fontSize: 18 }}>Forgot Password ?</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Sign in with */}
+                            <View style={styles.dividerContainerSigninUp}>
+                                <Divider style={styles.dividerStyle} />
+                                <Text style={styles.signinTextStyle}>Sign in with</Text>
+                                <Divider style={styles.dividerStyle} />
+                            </View>
+
+                            {/* Social Media Icons */}
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 30 }}>
+                                <TouchableOpacity disabled={true}>
+                                    <FontAwesome5 name="facebook" size={40} color="blue" />
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={_handleSignInWithGoogle}>
+                                    <AntDesign name="google" size={40} color="blue" />
+                                </TouchableOpacity>
+                                <TouchableOpacity disabled={true}>
+                                    <AntDesign name="twitter" size={40} color="blue" />
+                                </TouchableOpacity>
+                            </View>
+
+                            {errorMessages.map((message, index) => (
+                                <Text key={index} style={{ color: 'red', textAlign: 'center', fontSize: 16, marginTop: 30 }}>{message}</Text>
+                            ))}
+
+                            {/* Dont have an account ? Sign Up */}
+                            <View style={styles.dontHaveAccountText}>
+                                <Text style={{ color: 'black', textAlign: 'center', fontSize: 16 }}>Don't have an account ?
+                                </Text>
+                                <TouchableOpacity onPress={_handleSignUp}>
+                                    <Text style={{ color: 'blue', textAlign: 'center', fontSize: 16 }}> Sign Up</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </SafeAreaView>
                 </View>
             </ImageBackground>
@@ -147,7 +146,7 @@ const styles = StyleSheet.create({
         width: wp(85),
         height: hp(20),
         alignContent: 'center',
-        marginTop : hp(-30),
+        marginTop: hp(-30),
 
     },
     headerTitle: {
@@ -181,10 +180,10 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 20,
         borderColor: '#D3D3D3',
         borderWidth: 1
-        
+
     },
     mgTop: {
-        marginTop: 15,
+        marginTop: 20,
     },
     cardContainer: {
         width: wp('100'),
@@ -218,14 +217,17 @@ const styles = StyleSheet.create({
         height: 2,
         width: 100,
         backgroundColor: '#D3D3D3',
-        
+
     },
     signinTextStyle: {
         fontSize: 18,
         marginHorizontal: 20
     },
     dontHaveAccountText: {
-        marginTop: hp(20)
+        marginTop: 150,
+        flexDirection: 'row',
+        justifyContent: 'center'
+
     },
 });
 
