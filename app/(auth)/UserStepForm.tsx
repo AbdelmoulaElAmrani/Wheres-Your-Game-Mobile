@@ -23,10 +23,14 @@ const UserStepForm = () => {
     const _stepTitles = [
         {
             title: 'Choose a user type',
-            subTitle: 'Please select the user'
+            subTitle: 'Please select the user',
+            modalTitle: 'Verification code send to your phone number',
+            modalSubTitle: 'A verification code will be sent to your mobile to verify the account and create your profile.'
         }, {
             title: 'Verification Number',
-            subTitle: 'You will got a OTP via SMS'
+            subTitle: 'You will got a OTP via SMS',
+            modalTitle: 'Your account has been sucessfully verified',
+            modalSubTitle: 'Now you can start to create your profile.'
         }];
 
     const buttonText = ['Continue', 'Verify'];
@@ -184,8 +188,8 @@ const UserStepForm = () => {
                     </View>
                 </View>
                 <Modal onDismiss={_hideModal} isVisible={visible} style={styles.containerStyle}>
-                    <Text style={{ textAlign: "center", position: "absolute", top: 20, fontWeight: '900', letterSpacing: 1, fontSize: 20, marginHorizontal: 20 }}>Verification code send to your phone number</Text>
-                    <Text style={{ textAlign: 'center', color: 'grey', letterSpacing: 0.2, fontSize: 16, marginHorizontal: 40 }} >A verification code will be sent to your mobile to verify the account and create your profile.</Text>
+                    <Text style={{ textAlign: "center", position: "absolute", top: 20, fontWeight: '900', letterSpacing: 1, fontSize: 20, marginHorizontal: 20, width: 300 }}>{_stepTitles[currentStep - 1].modalTitle}</Text>
+                    <Text style={{ textAlign: 'center', color: 'grey', letterSpacing: 0.2, fontSize: 16, marginHorizontal: 40 }}>{_stepTitles[currentStep - 1].modalSubTitle}</Text>
                     <CustomButton style={{ position: "absolute", bottom: 25 }} text={"OK"} onPress={() => _onNext()} />
                 </Modal>
             </SafeAreaView>

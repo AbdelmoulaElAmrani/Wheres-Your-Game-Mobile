@@ -4,11 +4,11 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect } from 'react';
 
-import { useColorScheme } from '@/components/useColorScheme';
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Provider } from 'react-redux';
 import { persistor, store } from '@/redux/ReduxConfig';
 import { PersistGate } from 'redux-persist/integration/react';
+import { I18nManager } from 'react-native';
 
 export {
     // Catch any errors thrown by the Layout component.
@@ -58,18 +58,17 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-    //const colorScheme = useColorScheme();
+    I18nManager.allowRTL(false);
+    I18nManager.forceRTL(false);
     return (
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
-                {/* <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}> */}
                 <SafeAreaProvider>
                     <Stack initialRouteName="auth">
                         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                     </Stack>
                 </SafeAreaProvider>
-                {/* </ThemeProvider> */}
             </PersistGate>
         </Provider>
     );
