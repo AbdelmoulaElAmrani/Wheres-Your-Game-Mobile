@@ -1,11 +1,14 @@
-import {DarkTheme, DefaultTheme, ThemeProvider} from '@react-navigation/native';
-import {useFonts} from 'expo-font';
-import {Stack} from 'expo-router';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
+import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import React, {useEffect} from 'react';
+import React, { useEffect } from 'react';
 
-import {useColorScheme} from '@/components/useColorScheme';
-import {SafeAreaProvider, SafeAreaView} from "react-native-safe-area-context";
+import { useColorScheme } from '@/components/useColorScheme';
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { Provider } from 'react-redux';
+import { persistor, store } from '@/redux/ReduxConfig';
+import { PersistGate } from 'redux-persist/integration/react';
 
 export {
     // Catch any errors thrown by the Layout component.
@@ -51,19 +54,23 @@ export default function RootLayout() {
         return null;
     }
 
-    return <RootLayoutNav/>;
+    return <RootLayoutNav />;
 }
 
 function RootLayoutNav() {
     //const colorScheme = useColorScheme();
     return (
-        /*<ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>*/
-        <SafeAreaProvider>
-            <Stack initialRouteName="auth">
-                <Stack.Screen name="(auth)" options={{headerShown: false}}/>
-                <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
-            </Stack>
-        </SafeAreaProvider>
-        /*</ThemeProvider>*/
+        <Provider store={store}>
+            <PersistGate loading={null} persistor={persistor}>
+                {/* <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}> */}
+                <SafeAreaProvider>
+                    <Stack initialRouteName="auth">
+                        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                    </Stack>
+                </SafeAreaProvider>
+                {/* </ThemeProvider> */}
+            </PersistGate>
+        </Provider>
     );
 }
