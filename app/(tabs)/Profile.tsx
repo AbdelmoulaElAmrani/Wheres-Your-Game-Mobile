@@ -4,9 +4,20 @@ import { ImageBackground, Text, View, StyleSheet, TouchableOpacity, ScrollView }
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { Avatar } from 'react-native-paper';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign,MaterialCommunityIcons,Octicons } from '@expo/vector-icons';
+
+import {router} from "expo-router";
 
 const Profile = () => {
+
+    const _handleEditProfile = (id: number) => {
+        console.log('Edit Profile');
+        router.navigate('EditProfile');
+    }
+
+
+
+
     const [user, setUser] = useState({
         name: 'John Doe',
         age: 25,
@@ -25,13 +36,20 @@ const Profile = () => {
             <SafeAreaView>
 
                 <View style={styles.userInfoContainer}>
-                    
-                    {user.imageUrl ? <Avatar.Image size={100} source={{ uri: user.imageUrl }} /> 
-                    :<Avatar.Text size={100} label={user.name ? user.name[0] : ''} />}
+
+                    {user.imageUrl ? <Avatar.Image size={100} source={{ uri: user.imageUrl }} />
+                        : <Avatar.Text size={100} label={user.name ? user.name[0] : ''} />}
 
 
-                <View style={styles.userTextInfoContainer}>
-                        <Text style={styles.userName}>{user.name}</Text>
+                    <View style={styles.userTextInfoContainer}>
+                        <View style={styles.userInfoRow}> 
+                            <Text style={styles.userName}>{user.name}</Text>
+                            <TouchableOpacity onPress={() => _handleEditProfile(12555)}>
+                            <Octicons name="pencil" size={24} color="white" style={styles.editIcon} />
+
+                            {/* <MaterialCommunityIcons name="pencil-outline" size={30} color="white" style={styles.editIcon} /> */}
+                            </TouchableOpacity>
+                        </View>
                         <Text style={styles.userInfo}>Age: {user.age}</Text>
                         <Text style={styles.userInfo}>Gender: {user.gender}</Text>
                     </View>
@@ -154,6 +172,14 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: 'black',
         fontWeight: '600'
+    },
+    userInfoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+    },
+    editIcon: {
+        marginLeft: wp(5)
     }
 });
 
