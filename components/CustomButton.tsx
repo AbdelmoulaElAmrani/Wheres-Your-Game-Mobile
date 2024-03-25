@@ -2,10 +2,10 @@ import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import React from "react";
 import { widthPercentageToDP as wp } from "react-native-responsive-screen";
 import { StyleProp } from "react-native/Libraries/StyleSheet/StyleSheet";
-import { ViewStyle } from "react-native/Libraries/StyleSheet/StyleSheetTypes";
+import { TextStyle, ViewStyle } from "react-native/Libraries/StyleSheet/StyleSheetTypes";
 
 
-const CustomButton = ({ text, onPress, style, disabled = false }: { text: string, onPress: () => void, style?: StyleProp<ViewStyle>, disabled?: boolean }) => {
+const CustomButton = ({ text, onPress, style, disabled = false, textStyle }: { text: string, onPress: () => void, style?: StyleProp<ViewStyle>, disabled?: boolean, textStyle?: StyleProp<TextStyle> }) => {
 
     const _handleClick = () => {
         onPress();
@@ -15,7 +15,7 @@ const CustomButton = ({ text, onPress, style, disabled = false }: { text: string
         disabled={disabled}
         onPress={_handleClick}
         style={[styles.nextBtn, style]}>
-        <Text style={{ fontSize: 20, color: 'white', textAlign: 'center' }}>{text}</Text>
+        <Text style={[styles.buttonText, textStyle]}>{text}</Text>
     </TouchableOpacity>;
 }
 
@@ -27,6 +27,11 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         alignSelf: "center",
         justifyContent: "center",
+    },
+    buttonText: {
+        fontSize: 20,
+        color: 'white',
+        textAlign: 'center'
     },
 });
 
