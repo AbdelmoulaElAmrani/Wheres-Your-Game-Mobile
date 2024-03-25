@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Image, ImageBackground, StyleSheet, Modal, Text, TouchableOpacity, View, TouchableWithoutFeedback, FlatList, Keyboard, ScrollView } from "react-native";
+import { Image, ImageBackground, StyleSheet, Modal, Text, TouchableOpacity, View, TouchableWithoutFeedback, FlatList, Keyboard, ScrollView, Alert } from "react-native";
 import React, { useState } from "react";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
 import CustomButton from "@/components/CustomButton";
@@ -22,7 +22,15 @@ const Register = () => {
     const [modalVisible, setModalVisible] = useState<boolean>(false);
 
     const _handleOnNext = (): void => {
-        router.navigate("/TermsPolicies");
+        if (_verifyRequiredData())
+            router.navigate("/TermsPolicies");
+        else
+            Alert.alert('Complete the required data');
+
+    }
+
+    const _verifyRequiredData = () => {
+        return true;
     }
 
     const _renderFlagModal = () => {
@@ -175,7 +183,8 @@ const Register = () => {
                         </ScrollView>
                         <View style={styles.nextBottom}>
                             <Image source={require('../../assets/images/groupPeople.png')} />
-                            <CustomButton style={{ marginTop: 5 }} text={"Next"} onPress={_handleOnNext} />
+                            <CustomButton
+                                style={{ marginTop: 5 }} text={"Next"} onPress={_handleOnNext} />
                         </View>
                     </View>
                 </TouchableWithoutFeedback>

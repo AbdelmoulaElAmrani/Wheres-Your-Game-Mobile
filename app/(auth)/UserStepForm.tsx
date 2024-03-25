@@ -1,5 +1,5 @@
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
-import { ImageBackground, StyleSheet, Text, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard } from "react-native";
+import { ImageBackground, StyleSheet, Text, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Modal from "react-native-modal";
 import { useEffect, useState } from "react";
@@ -18,8 +18,8 @@ import { router } from "expo-router";
 const UserStepForm = () => {
     const [visible, setVisible] = useState<boolean>(false);
     const [currentStep, setCurrentStep] = useState<number>(1);
-    //const [userData, setUserData] = useState<any>({});
     const [selectedType, setSelectedType] = useState<UserType>();
+    //const [userData, setUserData] = useState<any>({});
     const _stepTitles = [
         {
             title: 'Choose a user type',
@@ -35,9 +35,18 @@ const UserStepForm = () => {
 
     const buttonText = ['Continue', 'Verify'];
 
-    const _showModal = () => setVisible(true);
-    const _hideModal = () => setVisible(false)
+    const _showModal = () => {
+        if (_verifyUserStepDate(currentStep))
+            setVisible(true)
 
+    }
+    const _hideModal = () => setVisible(false)
+    const _verifyUserStepDate = (step: number): boolean => {
+        let verify = true;
+        if (!verify)
+            Alert.alert('Please Select a type');
+        return verify;
+    }
     const goToNextStep = () => {
         setCurrentStep(oldValue => Math.max(2, oldValue - 1));
     };
@@ -55,7 +64,10 @@ const UserStepForm = () => {
         setCurrentStep(oldValue => Math.max(1, oldValue - 1));
     };
     const handleSubmit = () => {
-        router.navigate('../Login')
+        if (_verifyUserStepDate(currentStep))
+            router.replace('/EditProfile')
+        //router.replace("/Login");
+
     };
 
     const _verifySelectedType = (type: UserType): boolean => selectedType == type;

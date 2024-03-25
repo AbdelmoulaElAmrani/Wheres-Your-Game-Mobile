@@ -1,17 +1,17 @@
-import {Stack} from "expo-router";
+import { Stack } from "expo-router";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 
 const AuthLayout = () => {
-    return (<Stack initialRouteName={'UserStepForm'}
+    return (<Stack
         screenOptions={{
-        headerShown: false
-    }}>
-        <Stack.Screen name="index" options={{headerShown: false}}/>
-        <Stack.Screen name="Login" options={{headerShown: false}}/>
-        <Stack.Screen name="Register" options={{headerShown: false}}/>
-        <Stack.Screen name="TermsPolicies" options={{headerShown: false}}/>
-        <Stack.Screen name="UserStepForm" options={{headerShown: false}}/>
-        <Stack.Screen name="Welcome" options={{headerShown: false}}/>
+            headerShown: false
+        }}>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="Login" options={{ headerShown: false }} />
+        <Stack.Screen name="Register" options={{ headerShown: false }} />
+        <Stack.Screen name="TermsPolicies" options={{ headerShown: false }} />
+        <Stack.Screen name="UserStepForm" options={{ headerShown: false }} />
+        <Stack.Screen name="Welcome" options={{ headerShown: false }} />
     </Stack>);
 }
 

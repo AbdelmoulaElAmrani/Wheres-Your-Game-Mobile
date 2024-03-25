@@ -64,9 +64,10 @@ function RootLayoutNav() {
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
                 <SafeAreaProvider>
-                    <Stack initialRouteName="auth">
+                    <Stack>
                         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                        <Stack.Screen name="(user)" options={{ headerShown: false }} />
                     </Stack>
                 </SafeAreaProvider>
             </PersistGate>

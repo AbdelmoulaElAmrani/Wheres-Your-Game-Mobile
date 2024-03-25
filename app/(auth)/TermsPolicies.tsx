@@ -1,5 +1,5 @@
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
-import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import Checkbox from 'expo-checkbox';
@@ -14,13 +14,16 @@ const TermsPolicies = () => {
         terms: false,
         privacy: false
     })
-    const _handleSkip = (): void => {
-        router.setParams(userData);
-        router.push('/UserStepForm');
+
+    const _verifyUserInput = (): boolean => {
+        return true;
     }
 
     const _handlerAccept = () => {
-        router.navigate('/UserStepForm');
+        if (_verifyUserInput())
+            router.navigate('/UserStepForm');
+        else
+            Alert.alert('You need to accepte the term and policy');
     }
 
     const _handleDecline = () => {

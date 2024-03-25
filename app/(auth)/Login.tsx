@@ -23,14 +23,14 @@ const Login = () => {
             }, 5000);
             return;
         }
-        router.navigate('Welcome');
+        router.replace('/Welcome');
     }
     const _handleForgotPassword = () => {
         console.log('Forgot Password');
     }
 
     const _handleSignUp = () => {
-        router.navigate('Register');
+        router.replace('/Register');
     }
 
     const _isLoginFormNotValid = (): boolean => (userName.trim() === '' || password.trim() === '');
