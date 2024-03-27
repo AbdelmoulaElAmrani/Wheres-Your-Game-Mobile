@@ -1,7 +1,7 @@
 import CustomButton from "@/components/CustomButton";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import { useRef, useState } from "react";
-import { ImageBackground, StyleSheet, TouchableOpacity, View } from "react-native"
+import { FlatList, ImageBackground, Keyboard, StyleSheet, TouchableOpacity, View, TouchableWithoutFeedback } from "react-native"
 import { Avatar, Text, TextInput } from "react-native-paper";
 import PhoneInput from "react-native-phone-number-input";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
@@ -187,9 +187,7 @@ const EditProfile = () => {
                 <Text style={styles.textSecond}>
                     This will help us create personalized plan
                 </Text>
-
                 <View style={styles.ageList}>
-
                     <ScrollPicker
                         ref={refAge}
                         dataSource={ages}
@@ -205,9 +203,6 @@ const EditProfile = () => {
                     />
 
                 </View>
-
-
-
                 <View style={styles.sideBySideButtons}>
                     <CustomButton text="Back" onPress={goToPreviousStep} style={styles.backButton} textStyle={styles.buttonText} />
                     <CustomButton text="Continue" onPress={_handleContinue} style={styles.continueButton} />
@@ -252,26 +247,20 @@ const EditProfile = () => {
             style={{ height: hp(100) }}
             source={require('../../assets/images/signupBackGround.jpg')}
         >
-            <SafeAreaView>
-                <CustomNavigationHeader text={_getCurrentStepTitle()}
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 
-                    goBackFunction={goBackFunc()} />
+                <SafeAreaView>
+                    <CustomNavigationHeader text={_getCurrentStepTitle()} goBackFunction={goBackFunc()} />
 
-                <Text style={styles.stepText}>Step {currentStep}/3</Text>
+                    <Text style={styles.stepText}>Step {currentStep}/3</Text>
 
-                <View style={styles.cardContainer}>
-
-                    {currentStep === 1 && <UserInfoEdit />}
-                    {currentStep === 2 && <UserGenderEdit />}
-                    {currentStep === 3 && <UserAgeEdit />}
-
-
-
-
-                </View>
-
-
-            </SafeAreaView>
+                    <View style={styles.cardContainer}>
+                        {currentStep === 1 && <UserInfoEdit />}
+                        {currentStep === 2 && <UserGenderEdit />}
+                        {currentStep === 3 && <UserAgeEdit />}
+                    </View>
+                </SafeAreaView>
+            </TouchableWithoutFeedback>
         </ImageBackground>
     )
 }

@@ -65,7 +65,7 @@ const UserStepForm = () => {
     };
     const handleSubmit = () => {
         if (_verifyUserStepDate(currentStep))
-            router.replace('/EditProfile')
+            router.navigate('/EditProfile')
         //router.replace("/Login");
 
     };

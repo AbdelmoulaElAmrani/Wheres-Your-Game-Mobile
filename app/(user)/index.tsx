@@ -12,7 +12,7 @@ import SportLevel from "@/models/SportLevel";
 
 const SportIntressed = () => {
 
-    const [currentStep, setCurrentStep] = useState<number>(2);
+    const [currentStep, setCurrentStep] = useState<number>(1);
     const [selectedType, setSelectedType] = useState<Gender>();
     const [selectedSports, setSelectedSports] = useState<Map<string, Sport>>(new Map([
         ['1', { id: '1', name: 'American Football' }],
@@ -120,44 +120,52 @@ const SportIntressed = () => {
         };
 
         return (
-            <>
-                <TextInput
-                    placeholder="Search Sports"
-                    style={styles.credentialInput}
-                    textColor='black'
-                    placeholderTextColor='#9BA0AB'
-                    error={false}
-                    underlineColor="transparent"
-                    left={<TextInput.Icon size={50} color='#9BA0AB' icon="magnify" />}
-                    right={<TextInput.Icon size={50} color='#9BA0AB' icon="tune-vertical" />}
-                />
-                <ScrollView>
-                    <View style={styles.sportContainer}>
-                        {sports.map(sport => {
-                            const isSelected = isSportSelected(sport.id);
-                            return (<Chip
-                                key={sport.id}
-                                icon={() => (
-                                    isSelected && <AntDesign name="check" size={16} color="white" />
-                                )}
-                                mode="outlined"
-                                style={[styles.sportItem, { backgroundColor: isSelected ? '#2757CB' : 'white' }]}
-                                onPress={() => toggleSport(sport)}
-                            >
-                                <Text style={[styles.sportText, { color: isSelected ? 'white' : 'black' }]}>{sport.name}</Text>
-                            </Chip>)
-                        })}
-                    </View>
-                </ScrollView>
-            </>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View>
+                    <TextInput
+                        placeholder="Search Sports"
+                        style={styles.credentialInput}
+                        textColor='black'
+                        placeholderTextColor='#9BA0AB'
+                        error={false}
+                        underlineColor="transparent"
+                        left={<TextInput.Icon size={50} color='#9BA0AB' icon="magnify" />}
+                        right={<TextInput.Icon size={50} color='#9BA0AB' icon="tune-vertical" />}
+                    />
+                    <ScrollView>
+                        <View style={styles.sportContainer}>
+                            {sports.map(sport => {
+                                const isSelected = isSportSelected(sport.id);
+                                return (<Chip
+                                    key={sport.id}
+                                    icon={() => (
+                                        isSelected && <AntDesign name="check" size={16} color="white" />
+                                    )}
+                                    mode="outlined"
+                                    style={[styles.sportItem, { backgroundColor: isSelected ? '#2757CB' : 'white' }]}
+                                    onPress={() => toggleSport(sport)}
+                                >
+                                    <Text style={[styles.sportText, { color: isSelected ? 'white' : 'black' }]}>{sport.name}</Text>
+                                </Chip>)
+                            })}
+                        </View>
+                    </ScrollView>
+                </View>
+            </TouchableWithoutFeedback>
 
         );
     }
 
 
     const _RenderUserSportLevel = () => {
-
+        function _onSelecteSportLevel(id: string | undefined, value: string | SportLevel): void {
+            console.log(id, value);
+        }
+        function _checkIfSelected(id: string | undefined, value: string | SportLevel): boolean {
+            return true;
+        }
         const _RenderItem = ({ item }: { item: Sport }) => {
+
             return (
                 <View style={styles.lvlContainer}>
                     <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{item.name}</Text>
@@ -167,7 +175,8 @@ const SportIntressed = () => {
                                 key={key}
                                 style={{ flexDirection: 'row', marginTop: 10 }}>
                                 <Checkbox
-
+                                    value={_checkIfSelected(item.id, value)}
+                                    onValueChange={() => _onSelecteSportLevel(item.id, value)}
                                 />
                                 <Text style={{ fontSize: 16, marginLeft: 10 }}>{value}</Text>
                             </View>
@@ -184,10 +193,10 @@ const SportIntressed = () => {
                     <Text style={{ fontSize: 15, marginVertical: 3 }}><Text style={styles.headInfoText}>Intermediate: </Text> Solid Understanding Of Rules, Refine Techniques, Level Up Competitive Experience</Text>
                     <Text style={{ fontSize: 15, marginVertical: 3 }}><Text style={styles.headInfoText}>Advance: </Text>Mastery Of Rules And Skills, High Level Competition</Text>
                 </View>
-                <View style={{ height: hp(45) }}>
+                <View style={{ height: hp(45), marginTop: 3 }}>
                     <FlatList
                         nestedScrollEnabled
-                        style={{ backgroundColor: 'red' }}
+                        style={{}}
                         showsVerticalScrollIndicator={true}
                         data={[...selectedSports.values()]}
                         renderItem={({ item }) => <_RenderItem item={item} />}
@@ -203,39 +212,36 @@ const SportIntressed = () => {
         <ImageBackground
             style={{ height: hp(100) }}
             source={require('../../assets/images/signupBackGround.jpg')}>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <SafeAreaView>
-                    <CustomNavigationHeader text={"Sport"} goBackFunction={_handleGoBack()} />
-                    <View style={styles.container}>
-                        <Text style={styles.stepText}>Step {currentStep}/2</Text>
-                        <View style={styles.mainContainer}>
-                            <View style={styles.titleContainer}>
-                                <Text style={styles.title}>{_stepTitles[currentStep - 1].title}</Text>
-                            </View>
-                            <View style={{ justifyContent: 'center', alignContent: "center", marginTop: 20 }}>
-                                <View>
-                                    {/* {currentStep === 1 && <_RenderSportCatalog />}
-                                    {currentStep === 2 && <_RenderUserSportLevel />} */}
-                                    <_RenderUserSportLevel />
-                                </View>
-                            </View>
-
-                            <View style={styles.btnConainter}>
-                                <TouchableOpacity
-                                    onPress={() => _handleContinue()}
-                                    style={styles.btn}>
-                                    <Text style={{ textAlign: 'center', fontSize: 18, color: '#2757CB' }}>Back</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    onPress={_handleGoBack}
-                                    style={[styles.btn, { backgroundColor: '#2757CB' }]}>
-                                    <Text style={{ textAlign: 'center', fontSize: 18, color: 'white' }}>Continue</Text>
-                                </TouchableOpacity>
+            <SafeAreaView>
+                <CustomNavigationHeader text={"Sport"} goBackFunction={_handleGoBack()} />
+                <View style={styles.container}>
+                    <Text style={styles.stepText}>Step {currentStep}/2</Text>
+                    <View style={styles.mainContainer}>
+                        <View style={styles.titleContainer}>
+                            <Text style={styles.title}>{_stepTitles[currentStep - 1].title}</Text>
+                        </View>
+                        <View style={{ justifyContent: 'center', alignContent: "center", marginTop: 20 }}>
+                            <View>
+                                {currentStep === 1 && <_RenderSportCatalog />}
+                                {currentStep === 2 && <_RenderUserSportLevel />}
                             </View>
                         </View>
+
+                        <View style={styles.btnConainter}>
+                            <TouchableOpacity
+                                onPress={() => _handleContinue()}
+                                style={styles.btn}>
+                                <Text style={{ textAlign: 'center', fontSize: 18, color: '#2757CB' }}>Back</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={_handleGoBack}
+                                style={[styles.btn, { backgroundColor: '#2757CB' }]}>
+                                <Text style={{ textAlign: 'center', fontSize: 18, color: 'white' }}>Continue</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
-                </SafeAreaView>
-            </TouchableWithoutFeedback>
+                </View>
+            </SafeAreaView>
         </ImageBackground>
     );
 

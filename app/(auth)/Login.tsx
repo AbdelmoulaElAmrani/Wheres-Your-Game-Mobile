@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ImageBackground, Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
@@ -9,6 +9,7 @@ import CustomButton from '@/components/CustomButton';
 import { Divider } from "react-native-paper";
 import { FontAwesome5 } from '@expo/vector-icons';
 import { router } from "expo-router";
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 
 const Login = () => {
 
@@ -47,84 +48,87 @@ const Login = () => {
                 source={require('../../assets/images/signupBackGround.jpg')}
             >
                 {/* Card Component */}
-                <SafeAreaView style={styles.container}>
-                    <View style={styles.cardContainer}>
-                        <View style={styles.headerContainer}>
-                            <Image style={styles.logoContainer}
-                                source={require('../../assets/images/logoBall.png')} />
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                    <SafeAreaView style={styles.container}>
+                        <View style={styles.cardContainer}>
+                            <View style={styles.headerContainer}>
+                                <Image style={styles.logoContainer}
+                                    source={require('../../assets/images/logoBall.png')} />
+                            </View>
+                            <View style={styles.formContainer}>
+                                <View>
+                                    <Text style={styles.textLabel}>User Name</Text>
+                                    <TextInput
+                                        style={styles.inputStyle}
+                                        placeholder={'Email'}
+                                        cursorColor='black'
+                                        placeholderTextColor={'grey'}
+                                        left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
+                                        value={userName}
+                                        onChangeText={setUserName}
+                                        underlineColor={"transparent"}
+                                    />
+                                </View>
+                                <View style={styles.mgTop}>
+                                    <Text style={styles.textLabel}>Password</Text>
+                                    <TextInput
+                                        style={styles.inputStyle}
+                                        placeholder={'Password'}
+                                        placeholderTextColor={'grey'}
+                                        secureTextEntry={true}
+                                        left={<TextInput.Icon color={'#D3D3D3'} icon='lock-outline' size={30} />}
+                                        value={password}
+                                        onChangeText={setPassword}
+                                        underlineColor={"transparent"}
+                                    />
+                                </View>
+                                <View style={styles.mgTop}>
+                                    <CustomButton text="Login" onPress={_handleLogin} disabled={_isLoginFormNotValid()} />
+                                </View>
+                                {/* forgot password ? */}
+                                <View style={styles.mgTop}>
+                                    <TouchableOpacity onPress={_handleForgotPassword}>
+                                        <Text style={{ color: 'blue', textAlign: 'center', fontSize: 18 }}>Forgot Password ?</Text>
+                                    </TouchableOpacity>
+                                </View>
+
+                                {/* Sign in with */}
+                                <View style={styles.dividerContainerSigninUp}>
+                                    <Divider style={styles.dividerStyle} />
+                                    <Text style={styles.signinTextStyle}>Sign in with</Text>
+                                    <Divider style={styles.dividerStyle} />
+                                </View>
+
+                                {/* Social Media Icons */}
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 30 }}>
+                                    <TouchableOpacity disabled={true}>
+                                        <FontAwesome5 name="facebook" size={40} color="blue" />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={_handleSignInWithGoogle}>
+                                        <AntDesign name="google" size={40} color="blue" />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity disabled={true}>
+                                        <AntDesign name="twitter" size={40} color="blue" />
+                                    </TouchableOpacity>
+                                </View>
+
+                                {errorMessages.map((message, index) => (
+                                    <Text key={index} style={{ color: 'red', textAlign: 'center', fontSize: 16, marginTop: 30 }}>{message}</Text>
+                                ))}
+
+                                {/* Dont have an account ? Sign Up */}
+                                <View style={styles.dontHaveAccountText}>
+                                    <Text style={{ color: 'black', textAlign: 'center', fontSize: 16 }}>Don't have an account ?
+                                    </Text>
+                                    <TouchableOpacity onPress={_handleSignUp}>
+                                        <Text style={{ color: 'blue', textAlign: 'center', fontSize: 16 }}> Sign Up</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
                         </View>
-                        <View style={styles.formContainer}>
-                            <View>
-                                <Text style={styles.textLabel}>User Name</Text>
-                                <TextInput
-                                    style={styles.inputStyle}
-                                    placeholder={'User Name'}
-                                    cursorColor='black'
-                                    placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
-                                    value={userName}
-                                    onChangeText={setUserName}
-                                    underlineColor={"transparent"}
-                                />
-                            </View>
-                            <View style={styles.mgTop}>
-                                <Text style={styles.textLabel}>Password</Text>
-                                <TextInput
-                                    style={styles.inputStyle}
-                                    placeholder={'Password'}
-                                    placeholderTextColor={'grey'}
-                                    secureTextEntry={true}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='lock-outline' size={30} />}
-                                    value={password}
-                                    onChangeText={setPassword}
-                                    underlineColor={"transparent"}
-                                />
-                            </View>
-                            <View style={styles.mgTop}>
-                                <CustomButton text="Login" onPress={_handleLogin} disabled={_isLoginFormNotValid()} />
-                            </View>
-                            {/* forgot password ? */}
-                            <View style={styles.mgTop}>
-                                <TouchableOpacity onPress={_handleForgotPassword}>
-                                    <Text style={{ color: 'blue', textAlign: 'center', fontSize: 18 }}>Forgot Password ?</Text>
-                                </TouchableOpacity>
-                            </View>
+                    </SafeAreaView>
+                </TouchableWithoutFeedback>
 
-                            {/* Sign in with */}
-                            <View style={styles.dividerContainerSigninUp}>
-                                <Divider style={styles.dividerStyle} />
-                                <Text style={styles.signinTextStyle}>Sign in with</Text>
-                                <Divider style={styles.dividerStyle} />
-                            </View>
-
-                            {/* Social Media Icons */}
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 30 }}>
-                                <TouchableOpacity disabled={true}>
-                                    <FontAwesome5 name="facebook" size={40} color="blue" />
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={_handleSignInWithGoogle}>
-                                    <AntDesign name="google" size={40} color="blue" />
-                                </TouchableOpacity>
-                                <TouchableOpacity disabled={true}>
-                                    <AntDesign name="twitter" size={40} color="blue" />
-                                </TouchableOpacity>
-                            </View>
-
-                            {errorMessages.map((message, index) => (
-                                <Text key={index} style={{ color: 'red', textAlign: 'center', fontSize: 16, marginTop: 30 }}>{message}</Text>
-                            ))}
-
-                            {/* Dont have an account ? Sign Up */}
-                            <View style={styles.dontHaveAccountText}>
-                                <Text style={{ color: 'black', textAlign: 'center', fontSize: 16 }}>Don't have an account ?
-                                </Text>
-                                <TouchableOpacity onPress={_handleSignUp}>
-                                    <Text style={{ color: 'blue', textAlign: 'center', fontSize: 16 }}> Sign Up</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    </View>
-                </SafeAreaView>
             </ImageBackground>
         </>
     );
