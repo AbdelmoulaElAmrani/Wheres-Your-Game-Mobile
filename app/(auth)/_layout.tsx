@@ -1,5 +1,4 @@
 import { Stack } from "expo-router";
-import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 
 const AuthLayout = () => {
     return (<Stack
@@ -12,6 +11,7 @@ const AuthLayout = () => {
         <Stack.Screen name="TermsPolicies" options={{ headerShown: false }} />
         <Stack.Screen name="UserStepForm" options={{ headerShown: false }} />
         <Stack.Screen name="Welcome" options={{ headerShown: false }} />
+
     </Stack>);
 }
 

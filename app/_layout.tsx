@@ -57,20 +57,23 @@ export default function RootLayout() {
     return <RootLayoutNav />;
 }
 
+
+{/* <Provider store={store}>
+             <PersistGate loading={null} persistor={persistor}>
+
+             </PersistGate>
+        </Provider> */}
 function RootLayoutNav() {
     I18nManager.allowRTL(false);
     I18nManager.forceRTL(false);
     return (
-        <Provider store={store}>
-            <PersistGate loading={null} persistor={persistor}>
-                <SafeAreaProvider>
-                    <Stack>
-                        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                        <Stack.Screen name="(user)" options={{ headerShown: false }} />
-                    </Stack>
-                </SafeAreaProvider>
-            </PersistGate>
-        </Provider>
+        <SafeAreaProvider >
+            <Stack
+            >
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="(user)" options={{ headerShown: false }} />
+            </Stack>
+        </SafeAreaProvider >
     );
 }
