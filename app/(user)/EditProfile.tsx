@@ -7,6 +7,8 @@ import PhoneInput from "react-native-phone-number-input";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Fontisto, Octicons } from '@expo/vector-icons';
+import ScrollPicker, { ScrollPickerHandle } from "react-native-wheel-scrollview-picker";
+
 
 
 const EditProfile = () => {
@@ -35,6 +37,7 @@ const EditProfile = () => {
                 return 'Age';
         }
     }
+
 
 
     const UserInfoEdit = () => (
@@ -179,12 +182,27 @@ const EditProfile = () => {
         <>
             <View style={styles.topTextContainer}>
                 <Text style={styles.textFirst}>
-                    How old are you?
+                    How old are you ?
                 </Text>
                 <Text style={styles.textSecond}>
                     This will help us create personalized plan
                 </Text>
+                <View style={styles.ageList}>
+                    <ScrollPicker
+                        ref={refAge}
+                        dataSource={ages}
+                        selectedIndex={selectedAgeIndex}
+                        onValueChange={(selectedIndex) => _onAgeChange(selectedIndex)}
+                        wrapperHeight={180}
+                        wrapperBackground={'#ffffff'}
+                        itemHeight={70}
+                        highlightColor={'#2757cb'}
+                        highlightBorderWidth={5}
+                        itemTextStyle={{ color: '#ccc', fontSize: 25 }}
+                        activeItemTextStyle={{ color: '#2757cb', fontSize: 50, fontWeight: 'bold' }}
+                    />
 
+                </View>
                 <View style={styles.sideBySideButtons}>
                     <CustomButton text="Back" onPress={goToPreviousStep} style={styles.backButton} textStyle={styles.buttonText} />
                     <CustomButton text="Continue" onPress={_handleContinue} style={styles.continueButton} />
@@ -207,32 +225,22 @@ const EditProfile = () => {
         address: '1234, Street, City, Country',
         zipCode: '1111135'
     });
+    const ages = Array.from({ length: 100 }, (_, i) => i + 1);
 
     const [selectedGender, setSelectedGender] = useState<string>("male");
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [formattedPhoneNumber, setFormattedPhoneNumber] = useState<string>('');
     const phoneInput = useRef<PhoneInput>(null);
 
-    const [selectedAge, setSelectedAge] = useState(18);
-    const ages = Array.from({ length: 100 }, (_, i) => i + 1); // Create an array of ages from 1 to 100
-    const visibleAges = ages.slice(selectedAge - 3, selectedAge + 4);
+    const [selectedAgeIndex, setSelectedAgeIndex] = useState(user?.age - 1);
 
-    const renderAgeItem = ({ item: item }: { item: number }) => (
-        <TouchableOpacity
-            style={[styles.ageItem, item === selectedAge && styles.selectedAgeItem]}
-            onPress={() => setSelectedAge(item)}
-        >
-            <Text style={[styles.itemAgeText, item === selectedAge && styles.selectedAgeItemText]}>
-                {item}
-            </Text>
-        </TouchableOpacity>
-    );
+    const refAge = useRef<ScrollPickerHandle>(null);
 
 
-    const onAgeChange = (age: number) => {
-        setSelectedAge(age);
+    const _onAgeChange = (index: number) => {
+        setSelectedAgeIndex(index - 1);
+        setUser({ ...user, age: ages[index - 1] });
     };
-
 
     return (
         <ImageBackground
@@ -433,12 +441,11 @@ const styles = StyleSheet.create({
         textAlign: 'center'
     },
     ageList: {
-        flexGrow: 1,
-        justifyContent: 'center',
         alignItems: 'center',
-        marginTop: hp(20),
-        marginBottom: hp(50),
-
+        marginTop: hp(9),
+        marginBottom: hp(2),
+        height: hp(35),
+        width: wp(80),
     },
     ageItem: {
         paddingVertical: 10,
