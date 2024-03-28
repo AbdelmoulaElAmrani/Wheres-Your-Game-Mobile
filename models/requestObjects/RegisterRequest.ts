@@ -1,6 +1,6 @@
 import UserType from "../UserType";
 
-interface RegisterRequest 
+export interface RegisterRequest 
 {
     email: string;
     password: string;

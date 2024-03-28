@@ -13,13 +13,26 @@ import CoachIcon from "../../assets/images/svg/CoachIcon";
 import BusinessIcon from "../../assets/images/svg/BusinessIcon";
 import PlayerIcon from "../../assets/images/svg/PlayerIcon";
 import { router } from "expo-router";
+import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
 
 
 const UserStepForm = () => {
     const [visible, setVisible] = useState<boolean>(false);
     const [currentStep, setCurrentStep] = useState<number>(1);
-    const [selectedType, setSelectedType] = useState<UserType>();
-    //const [userData, setUserData] = useState<any>({});
+    // TODO:: replace it with redux or get user data from localstorage
+    const [userData, setUserData] = useState<RegisterRequest>({
+        email: '',
+        password: '',
+        firstName: '',
+        lastName: '',
+        phoneNumber: '',
+        address: '',
+        zipCode: '',
+        bio: '',
+        createdAt: new Date(),
+        verified: false,
+        role: UserType.DEFAULT,
+    });
     const _stepTitles = [
         {
             title: 'Choose a user type',
@@ -70,7 +83,7 @@ const UserStepForm = () => {
 
     };
 
-    const _verifySelectedType = (type: UserType): boolean => selectedType == type;
+    const _verifySelectedType = (type: UserType): boolean => userData.role == type;
 
     const _onResentOTPCode = () => {
 
@@ -79,7 +92,7 @@ const UserStepForm = () => {
     const UserTypeForm = () => (
         <>
             <View style={styles.rowContainer}>
-                <TouchableOpacity onPress={() => setSelectedType(UserType.PARENT)} style={[styles.squareContainer, { backgroundColor: _verifySelectedType(UserType.PARENT) ? '#2757CB' : 'white' }]}>
+                <TouchableOpacity onPress={() => setUserData(oldValue => ({ ...oldValue, role: UserType.PARENT }))} style={[styles.squareContainer, { backgroundColor: _verifySelectedType(UserType.PARENT) ? '#2757CB' : 'white' }]}>
                     {_verifySelectedType(UserType.PARENT) && <View style={styles.checkIcon}>
                         <AntDesign name="checkcircle" size={20} color="white" />
                     </View>}
@@ -89,7 +102,7 @@ const UserStepForm = () => {
                     </View>
                     <Text style={[styles.userTypeDescIcon, { color: _verifySelectedType(UserType.PARENT) ? 'white' : 'black' }]}>I am creating a parent profile</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setSelectedType(UserType.PLAYER)} style={[styles.squareContainer, { backgroundColor: _verifySelectedType(UserType.PLAYER) ? '#2757CB' : 'white' }]}>
+                <TouchableOpacity onPress={() => setUserData(oldValue => ({ ...oldValue, role: UserType.PLAYER }))} style={[styles.squareContainer, { backgroundColor: _verifySelectedType(UserType.PLAYER) ? '#2757CB' : 'white' }]}>
                     {_verifySelectedType(UserType.PLAYER) && <View style={styles.checkIcon}>
                         <AntDesign name="checkcircle" size={20} color="white" />
                     </View>}
@@ -101,7 +114,7 @@ const UserStepForm = () => {
                 </TouchableOpacity>
             </View>
             <View style={styles.rowContainer}>
-                <TouchableOpacity onPress={() => setSelectedType(UserType.COACH)} style={[styles.squareContainer, { backgroundColor: _verifySelectedType(UserType.COACH) ? '#2757CB' : 'white' }]}>
+                <TouchableOpacity onPress={() => setUserData(oldValue => ({ ...oldValue, role: UserType.COACH }))} style={[styles.squareContainer, { backgroundColor: _verifySelectedType(UserType.COACH) ? '#2757CB' : 'white' }]}>
                     {_verifySelectedType(UserType.COACH) && <View style={styles.checkIcon}>
                         <AntDesign name="checkcircle" size={20} color="white" />
                     </View>}
@@ -111,7 +124,7 @@ const UserStepForm = () => {
                     </View>
                     <Text style={[styles.userTypeDescIcon, { color: _verifySelectedType(UserType.COACH) ? 'white' : 'black' }]}>Camps/Games Leagues Officiating Organization</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setSelectedType(UserType.BUSINESS)} style={[styles.squareContainer, { backgroundColor: _verifySelectedType(UserType.BUSINESS) ? '#2757CB' : 'white' }]}>
+                <TouchableOpacity onPress={() => setUserData(oldValue => ({ ...oldValue, role: UserType.BUSINESS }))} style={[styles.squareContainer, { backgroundColor: _verifySelectedType(UserType.BUSINESS) ? '#2757CB' : 'white' }]}>
                     {_verifySelectedType(UserType.BUSINESS) && <View style={styles.checkIcon}>
                         <AntDesign name="checkcircle" size={20} color="white" />
                     </View>}

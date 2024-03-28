@@ -2,7 +2,8 @@ enum UserType {
     PARENT,
     PLAYER,
     COACH,
-    BUSINESS
+    BUSINESS,
+    DEFAULT
 }
 
 export default UserType;

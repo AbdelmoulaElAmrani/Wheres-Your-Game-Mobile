@@ -7,16 +7,21 @@ import { useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 
 
+interface TermsPolicy {
+    terms: boolean,
+    privacy: boolean
+}
+
 const TermsPolicies = () => {
     const params = useLocalSearchParams();
 
-    const [userData, setUserData] = useState<any>({
+    const [userAgrements, setUserAgrements] = useState<TermsPolicy>({
         terms: false,
         privacy: false
     })
 
     const _verifyUserInput = (): boolean => {
-        return true;
+        return userAgrements.terms && userAgrements.privacy;
     }
 
     const _handlerAccept = () => {
@@ -144,8 +149,8 @@ const TermsPolicies = () => {
                         <View>
                             <View style={styles.checkBoxZone}>
                                 <Checkbox
-                                    onValueChange={(value) => setUserData({ ...userData, terms: value })}
-                                    value={userData.terms}
+                                    onValueChange={(value) => setUserAgrements({ ...userAgrements, terms: value })}
+                                    value={userAgrements.terms}
                                     style={styles.checkBox} />
                                 <View style={styles.termsPolicyAgreement}>
                                     <Text style={styles.text}>I accept with the </Text>
@@ -154,8 +159,8 @@ const TermsPolicies = () => {
                             </View>
                             <View style={styles.checkBoxZone}>
                                 <Checkbox
-                                    onValueChange={(value) => setUserData({ ...userData, privacy: value })}
-                                    value={userData.privacy}
+                                    onValueChange={(value) => setUserAgrements({ ...userAgrements, privacy: value })}
+                                    value={userAgrements.privacy}
                                     style={styles.checkBox} />
                                 <View style={styles.termsPolicyAgreement}>
                                     <Text style={styles.text}>I agree with the </Text>

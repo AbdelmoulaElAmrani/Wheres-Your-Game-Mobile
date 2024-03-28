@@ -7,6 +7,8 @@ import CustomButton from "@/components/CustomButton";
 import { TextInput } from "react-native-paper";
 import { router } from "expo-router";
 import { AntDesign } from '@expo/vector-icons';
+import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
+import UserType from "@/models/UserType";
 
 
 const countries = [
@@ -18,10 +20,23 @@ const countries = [
 
 const Register = () => {
     const [selectedCountry, setSelectedCountry] = useState(countries[0]);
-    const [userData, setUserData] = useState<any>();
+    const [userData, setUserData] = useState<RegisterRequest>({
+        email: '',
+        password: '',
+        firstName: '',
+        lastName: '',
+        phoneNumber: '',
+        address: '',
+        zipCode: '',
+        bio: '',
+        createdAt: new Date(),
+        verified: false,
+        role: UserType.DEFAULT,
+    });
     const [modalVisible, setModalVisible] = useState<boolean>(false);
 
     const _handleOnNext = (): void => {
+        //TODO:: Use Redux to save userData
         if (_verifyRequiredData())
             router.navigate("/TermsPolicies");
         else
@@ -128,6 +143,10 @@ const Register = () => {
                                         style={styles.inputStyle}
                                         placeholder={'First name'}
                                         placeholderTextColor={'grey'}
+                                        value={userData.firstName}
+                                        onChangeText={(value) => {
+                                            setUserData(oldValue => ({ ...oldValue, firstName: value }))
+                                        }}
                                     />
                                 </View>
                                 <View style={styles.mgTop}>
@@ -136,6 +155,10 @@ const Register = () => {
                                         style={styles.inputStyle}
                                         placeholder={'Last name'}
                                         placeholderTextColor={'grey'}
+                                        value={userData.lastName}
+                                        onChangeText={(value) => {
+                                            setUserData(oldValue => ({ ...oldValue, lastName: value }))
+                                        }}
                                     />
                                 </View>
                                 <View style={styles.mgTop}>
@@ -144,6 +167,10 @@ const Register = () => {
                                         style={styles.inputStyle}
                                         placeholder={'Email'}
                                         placeholderTextColor={'grey'}
+                                        value={userData.email}
+                                        onChangeText={(value) => {
+                                            setUserData(oldValue => ({ ...oldValue, email: value }))
+                                        }}
                                     />
                                 </View>
                                 <View style={styles.mgTop}>
@@ -153,6 +180,10 @@ const Register = () => {
                                         placeholder={'Password'}
                                         secureTextEntry={true}
                                         placeholderTextColor={'grey'}
+                                        value={userData.password}
+                                        onChangeText={(value) => {
+                                            setUserData(oldValue => ({ ...oldValue, password: value }))
+                                        }}
                                     />
                                 </View>
                                 <View style={styles.mgTop}>
@@ -176,6 +207,10 @@ const Register = () => {
                                             cursorColor='black'
                                             keyboardType="phone-pad"
                                             placeholderTextColor={'grey'}
+                                            value={userData.phoneNumber}
+                                            onChangeText={(value) => {
+                                                setUserData(oldValue => ({ ...oldValue, phoneNumber: selectedCountry.value + value }))
+                                            }}
                                         />
                                     </View>
                                 </View>
