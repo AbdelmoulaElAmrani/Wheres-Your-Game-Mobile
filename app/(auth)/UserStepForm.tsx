@@ -60,7 +60,12 @@ const UserStepForm = () => {
             Alert.alert('Please Select a type');
         return verify;
     }
+
+    const createUser = (): void => {
+        
+    }
     const goToNextStep = () => {
+        createUser();
         setCurrentStep(oldValue => Math.max(2, oldValue - 1));
     };
 
@@ -74,7 +79,7 @@ const UserStepForm = () => {
 
 
     const goToPreviousStep = () => {
-        setCurrentStep(oldValue => Math.max(1, oldValue - 1));
+        //setCurrentStep(oldValue => Math.max(1, oldValue - 1));
     };
     const handleSubmit = () => {
         if (_verifyUserStepDate(currentStep))

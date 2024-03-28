@@ -1,4 +1,4 @@
-import { getAccessToken, refreshToken } from '@/services/AuthService';
+import { AuthService } from '@/services/AuthService';
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { router } from 'expo-router';
 
@@ -11,7 +11,7 @@ const axiosInstance = axios.create({
 // Request Interceptor
 axiosInstance.interceptors.request.use(
   async (config: AxiosRequestConfig) => {
-    const token = getAccessToken();
+    const token = AuthService.getAccessToken();
     if (token) {
       config.headers = { ...config.headers, Authorization: `Bearer ${token}` };
     }
@@ -28,7 +28,7 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest?._retry) {
       originalRequest?._retry = true;
       try {
-        const newAccessToken = await refreshToken();
+        const newAccessToken = await AuthService.refreshToken();
         if (originalRequest?.headers) {
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         }
