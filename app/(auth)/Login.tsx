@@ -27,19 +27,16 @@ const Login = () => {
             }, 5000);
             return;
         }
-    
-
-        const data = await AuthService.logIn({ email: email, password: password });
-        if (data !== null && data !== undefined) {
+        // const data = await AuthService.logIn({ email: email, password: password });
+        // if (data !== null && data !== undefined) {
             router.replace('/Welcome');
-        } 
-        else {
-            setErrorMessages(['Invalid email or password']);
-            setTimeout(() => {
-                setErrorMessages([]);
-            }, 5000);
-        }
-
+        // } 
+        // else {
+        //     setErrorMessages(['Invalid email or password']);
+        //     setTimeout(() => {
+        //         setErrorMessages([]);
+        //     }, 5000);
+        // }
     }
 
 

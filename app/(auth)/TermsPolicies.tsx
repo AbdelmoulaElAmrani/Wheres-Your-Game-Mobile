@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     card: {
         backgroundColor: 'white',
         width: wp(100),
-        //height: hp(100) - 100,
+        height: hp(100),
         borderTopRightRadius: 40,
         borderTopLeftRadius: 40,
         paddingTop: 30,

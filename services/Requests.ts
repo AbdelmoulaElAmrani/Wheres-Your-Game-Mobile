@@ -57,14 +57,6 @@ const Requests = {
             return handleErrors(error);
         }
     },
-
-
-
-
-
-
-
-
 };
 
 export default Requests;

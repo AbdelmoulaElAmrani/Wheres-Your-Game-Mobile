@@ -48,20 +48,18 @@ export class AuthService {
     }
 
     static logIn = async (request: AuthenticationRequest): Promise<AuthenticationResponse | undefined> => {
-        
-            
-            const res = await Requests.post('auth/login', request);
-            
-            if(res.status !== 200){
-                return undefined;
-            }
+        const res = await Requests.post('auth/login', request);
 
-            if(res.data){
+        if (res.status !== 200) {
+            return undefined;
+        }
+
+        if (res.data) {
             AuthService.setAuthTokens(res.data);
-            }
+        }
 
-            return res.data; 
-        
+        return res.data;
+
     }
 
 

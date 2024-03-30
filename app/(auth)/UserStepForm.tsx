@@ -49,6 +49,7 @@ const UserStepForm = () => {
 
     const buttonText = ['Continue', 'Verify'];
 
+
     const _showModal = () => {
         if (_verifyUserStepDate(currentStep))
             setVisible(true)
@@ -60,6 +61,13 @@ const UserStepForm = () => {
         if (!verify)
             Alert.alert('Please Select a type');
         return verify;
+    }
+
+    const _verifyOTP = (otpNumber : string) => {
+        Keyboard.dismiss();
+        if (otpNumber.trim().length !== 0) {
+            console.log('verify');
+        }
     }
 
     const createUser = async () => {
@@ -92,6 +100,7 @@ const UserStepForm = () => {
         //router.replace("/Login");
 
     };
+
 
     const _verifySelectedType = (type: UserType): boolean => userData.role == type;
 
@@ -162,8 +171,8 @@ const UserStepForm = () => {
                 }}>Verification Code</Text>
                 <OtpInput
                     numberOfDigits={4}
-                    onTextChange={(text) => console.log(text)}
                     focusColor={'#2757CB'}
+                    onFilled={(value) => _verifyOTP(value)}
                     focusStickBlinkingDuration={400}
                     theme={{
                         pinCodeContainerStyle: {
@@ -316,6 +325,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         maxHeight: 270,
         minHeight: hp(32),
+        maxWidth: 350,
+        minWidth: wp(90),
         borderRadius: 20,
         alignSelf: "center",
         position: "absolute",
