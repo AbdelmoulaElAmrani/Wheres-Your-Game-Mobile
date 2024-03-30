@@ -9,22 +9,40 @@ import CustomButton from '@/components/CustomButton';
 import { Divider } from "react-native-paper";
 import { FontAwesome5 } from '@expo/vector-icons';
 import { router } from "expo-router";
+import { AuthService } from '@/services/AuthService';
+
 
 const Login = () => {
 
     const _handleSignInWithGoogle = () => {
         console.log('Sign in with Google');
     }
-    const _handleLogin = () => {
+
+
+    const _handleLogin = async () => {
         if (_isLoginFormNotValid()) {
-            setErrorMessages(['Please enter username and password']);
+            setErrorMessages(['Please enter email and password']);
             setTimeout(() => {
                 setErrorMessages([]);
             }, 5000);
             return;
         }
-        router.replace('/Welcome');
+    
+
+        const data = await AuthService.logIn({ email: email, password: password });
+        if (data !== null && data !== undefined) {
+            router.replace('/Welcome');
+        } 
+        else {
+            setErrorMessages(['Invalid email or password']);
+            setTimeout(() => {
+                setErrorMessages([]);
+            }, 5000);
+        }
+
     }
+
+
     const _handleForgotPassword = () => {
         console.log('Forgot Password');
     }
@@ -33,9 +51,9 @@ const Login = () => {
         router.replace('/Register');
     }
 
-    const _isLoginFormNotValid = (): boolean => (userName.trim() === '' || password.trim() === '');
+    const _isLoginFormNotValid = (): boolean => (email.trim() === '' || password.trim() === '');
 
-    const [userName, setUserName] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessages, setErrorMessages] = useState([] as string[]);
 
@@ -63,8 +81,8 @@ const Login = () => {
                                         cursorColor='black'
                                         placeholderTextColor={'grey'}
                                         left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
-                                        value={userName}
-                                        onChangeText={setUserName}
+                                        value={email}
+                                        onChangeText={setEmail}
                                         underlineColor={"transparent"}
                                     />
                                 </View>
@@ -82,7 +100,8 @@ const Login = () => {
                                     />
                                 </View>
                                 <View style={styles.mgTop}>
-                                    <CustomButton text="Login" onPress={_handleLogin} disabled={_isLoginFormNotValid()} />
+                                    <CustomButton text="Login" onPress={_handleLogin} 
+                                    disabled={_isLoginFormNotValid()} />
                                 </View>
                                 {/* forgot password ? */}
                                 <View style={styles.mgTop}>
