@@ -1,4 +1,6 @@
+import { AuthenticationRequest } from "@/models/requestObjects/AuthenticationRequest";
 import LocalStorageService from "./LocalStorageService";
+import Requests from "./Requests";
 
 
 export class AuthService {
@@ -39,6 +41,23 @@ export class AuthService {
     static  refreshToken = (): string => {
          const token = '';
         return token;
+    }
+
+    static logIn = async (request: AuthenticationRequest): Promise<AuthenticationResponse | undefined> => {
+        
+            
+            const res = await Requests.post('auth/login', request);
+            
+            if(res.status !== 200){
+                return undefined;
+            }
+
+            if(res.data){
+            AuthService.setAuthTokens(res.data);
+            }
+
+            return res.data; 
+        
     }
 
 
