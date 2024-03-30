@@ -8,6 +8,7 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Fontisto, Octicons } from '@expo/vector-icons';
 import ScrollPicker, { ScrollPickerHandle } from "react-native-wheel-scrollview-picker";
+import { router } from "expo-router";
 
 
 
@@ -16,6 +17,8 @@ const EditProfile = () => {
     const _handleContinue = () => {
         console.log({ ...user, phone: formattedPhoneNumber });
         setCurrentStep(oldValue => Math.min(3, oldValue + 1));
+        if(currentStep >= 3)
+        router.navigate('/SportIntressed');
     }
 
     const goBackFunc = () => {

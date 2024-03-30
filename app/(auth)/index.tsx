@@ -24,15 +24,15 @@ const Intro = () => {
             const isIntroViewed = await LocalStorageService.getItem<boolean>('intro');
             if (isIntroViewed !== null) {
                 //TODO:: Remove the comment later
-                //router.replace("/Login");
+                //router.navigate("/Login");
             }
         };
         checkIntroViewed();
     }, []);
 
     const _navigateToLoginPage = (): void => {
-        LocalStorageService.storeItem<boolean>("intro", true);
-        router.replace("/Login");
+        //LocalStorageService.storeItem<boolean>("intro", true);
+        router.navigate("/Login");
     }
 
     return (
