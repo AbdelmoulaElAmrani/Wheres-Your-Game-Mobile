@@ -14,6 +14,7 @@ import BusinessIcon from "../../assets/images/svg/BusinessIcon";
 import PlayerIcon from "../../assets/images/svg/PlayerIcon";
 import { router } from "expo-router";
 import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
+import { AuthService } from "@/services/AuthService";
 
 
 const UserStepForm = () => {
@@ -61,8 +62,12 @@ const UserStepForm = () => {
         return verify;
     }
 
-    const createUser = (): void => {
-        
+    const createUser = async () => {
+        try {
+            await AuthService.signUp(userData);
+        } catch (error) {
+            console.log(error);
+        }
     }
     const goToNextStep = () => {
         createUser();

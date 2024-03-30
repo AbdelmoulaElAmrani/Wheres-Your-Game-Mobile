@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Image, ImageBackground, Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ImageBackground, Keyboard, StyleSheet, Text, TouchableOpacity, View, TouchableWithoutFeedback} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
@@ -9,7 +9,6 @@ import CustomButton from '@/components/CustomButton';
 import { Divider } from "react-native-paper";
 import { FontAwesome5 } from '@expo/vector-icons';
 import { router } from "expo-router";
-import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 
 const Login = () => {
 
