@@ -2,7 +2,7 @@
 import axios, { AxiosError } from 'axios';
 
 
-export const API_URI = 'https://dressing-of-attend-ministers.trycloudflare.com/api/'
+export const API_URI = 'https://matrix-beneath-aspects-bill.trycloudflare.com/api/'
 
 const axiosInstance = axios.create({
     baseURL: API_URI,

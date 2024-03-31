@@ -14,7 +14,7 @@ import BusinessIcon from "../../assets/images/svg/BusinessIcon";
 import PlayerIcon from "../../assets/images/svg/PlayerIcon";
 import { router } from "expo-router";
 import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
-import {useDispatch} from 'react-redux'
+import {useDispatch,useSelector} from 'react-redux'
 import { updateUerData } from "@/redux/UserRegisterSlice";
 import { AuthService } from "@/services/AuthService";
 
@@ -24,18 +24,9 @@ const UserStepForm = () => {
     const [visible, setVisible] = useState<boolean>(false);
     const [currentStep, setCurrentStep] = useState<number>(1);
     // TODO:: replace it with redux or get user data from localstorage
-    const [userData, setUserData] = useState<RegisterRequest>({
-        email: '',
-        password: '',
-        firstName: '',
-        lastName: '',
-        phoneNumber: '',
-        address: '',
-        zipCode: '',
-        bio: '',
-        verified: false,
-        role: UserType.DEFAULT,
-    });
+    const userRegister = useSelector((state: any) => state.userRegister);
+
+    const [userData, setUserData] = useState<RegisterRequest>(userRegister);
     const _stepTitles = [
         {
             title: 'Choose a user type',
@@ -55,6 +46,7 @@ const UserStepForm = () => {
         if (_verifyUserStepDate(currentStep)){
             setVisible(true)
             dispatch(updateUerData(userData));
+            
         }
 
 
@@ -69,9 +61,10 @@ const UserStepForm = () => {
 
     const createUser = async () => {
         try {
-            await AuthService.signUp(userData);
+            await AuthService.register(userData);
+            
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
     }
     const goToNextStep = () => {

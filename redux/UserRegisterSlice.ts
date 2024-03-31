@@ -22,8 +22,6 @@ const userRegisterSlice = createSlice({
     initialState,
     reducers: {
         updateUerData: (state, action) => {
-            console.log('action.payload', action.payload);
-            console.log('state', state);
             return {
                 ...state,
                 ...action.payload
