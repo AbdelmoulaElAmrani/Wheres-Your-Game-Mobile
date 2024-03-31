@@ -1,4 +1,5 @@
 import { AuthenticationRequest } from "@/models/requestObjects/AuthenticationRequest";
+import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
 import LocalStorageService from "./LocalStorageService";
 import Requests from "./Requests";
 import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
@@ -6,30 +7,33 @@ import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
 
 export class AuthService {
 
-    static  getAccessToken = async (): Promise<string | null> => {
+    static getAccessToken = async (): Promise<string | null> => {
         try {
-             const token = await LocalStorageService.getItem<string>('accessToken');
+            const token = await LocalStorageService.getItem<string>('accessToken');
             return token;
         } catch (err) {
             return null;
         }
     }
 
-    static  getRefreshToken = async (): Promise<string | null> => {
+    static getRefreshToken = async (): Promise<string | null> => {
         try {
-             const token = await LocalStorageService.getItem<string>('refreshToken');
+            const token = await LocalStorageService.getItem<string>('refreshToken');
             return token;
         } catch (err) {
             return null;
         }
     }
 
+    static signUp = (userData: RegisterRequest): void => {
 
-    static  setAccessToken = (token: string): void => {
+    }
+
+    static setAccessToken = (token: string): void => {
         LocalStorageService.storeItem<string>('accessToken', token);
     }
 
-    static  setRefreshToken = (token: string): void => {
+    static setRefreshToken = (token: string): void => {
         LocalStorageService.storeItem<string>('refreshToken', token);
     }
 
@@ -39,8 +43,8 @@ export class AuthService {
         AuthService.setRefreshToken(tokens.refreshToken);
     }
 
-    static  refreshToken = (): string => {
-         const token = '';
+    static refreshToken = (): string => {
+        const token = '';
         return token;
     }
 

@@ -229,12 +229,12 @@ const SportIntressed = () => {
 
                         <View style={styles.btnConainter}>
                             <TouchableOpacity
-                                onPress={() => _handleContinue()}
+                                onPress={_handleGoBack}
                                 style={styles.btn}>
                                 <Text style={{ textAlign: 'center', fontSize: 18, color: '#2757CB' }}>Back</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                onPress={_handleGoBack}
+                                onPress={() => _handleContinue()}
                                 style={[styles.btn, { backgroundColor: '#2757CB' }]}>
                                 <Text style={{ textAlign: 'center', fontSize: 18, color: 'white' }}>Continue</Text>
                             </TouchableOpacity>

@@ -16,6 +16,7 @@ import { router } from "expo-router";
 import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
 import {useDispatch} from 'react-redux'
 import { updateUerData } from "@/redux/UserRegisterSlice";
+import { AuthService } from "@/services/AuthService";
 
 
 const UserStepForm = () => {
@@ -66,8 +67,12 @@ const UserStepForm = () => {
         return verify;
     }
 
-    const createUser = (): void => {
-        
+    const createUser = async () => {
+        try {
+            await AuthService.signUp(userData);
+        } catch (error) {
+            console.log(error);
+        }
     }
     const goToNextStep = () => {
         createUser();
