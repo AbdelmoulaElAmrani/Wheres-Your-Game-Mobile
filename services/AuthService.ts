@@ -64,6 +64,20 @@ export class AuthService {
         
     }
 
+    static register = async (request: RegisterRequest): Promise<AuthenticationResponse | undefined> => {
+            
+                const res = await Requests.post('auth/register', request);
+                if(res.status !== 200){
+                    return undefined;
+                }
+                if(res.data){
+                    AuthService.setAuthTokens(res.data);
+                }
+    
+                return res.data; 
+            
+        }
+
 
 
 }
