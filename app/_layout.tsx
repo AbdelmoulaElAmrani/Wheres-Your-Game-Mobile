@@ -58,15 +58,14 @@ export default function RootLayout() {
 }
 
 
-{/* <Provider store={store}>
-             <PersistGate loading={null} persistor={persistor}>
 
-             </PersistGate>
-        </Provider> */}
 function RootLayoutNav() {
     I18nManager.allowRTL(false);
     I18nManager.forceRTL(false);
     return (
+        <Provider store={store}>
+             <PersistGate loading={null} persistor={persistor}>
+
         <SafeAreaProvider >
             <Stack
             >
@@ -75,5 +74,7 @@ function RootLayoutNav() {
                 <Stack.Screen name="(user)" options={{ headerShown: false }} />
             </Stack>
         </SafeAreaProvider >
+        </PersistGate>
+        </Provider>
     );
 }

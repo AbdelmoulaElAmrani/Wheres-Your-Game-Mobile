@@ -9,6 +9,8 @@ import { router } from "expo-router";
 import { AntDesign } from '@expo/vector-icons';
 import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
 import UserType from "@/models/UserType";
+import {useDispatch} from 'react-redux'
+import { updateUerData } from "@/redux/UserRegisterSlice";
 
 
 const countries = [
@@ -19,6 +21,7 @@ const countries = [
 
 
 const Register = () => {
+    const dispatch = useDispatch()
     const [selectedCountry, setSelectedCountry] = useState(countries[0]);
     const [userData, setUserData] = useState<RegisterRequest>({
         email: '',
@@ -29,25 +32,61 @@ const Register = () => {
         address: '',
         zipCode: '',
         bio: '',
-        createdAt: new Date(),
         verified: false,
         role: UserType.DEFAULT,
     });
     const [modalVisible, setModalVisible] = useState<boolean>(false);
 
     const _handleOnNext = (): void => {
-        //TODO:: Use Redux to save userData
-        if (_verifyRequiredData())
+        const errors = _verifyRequiredData(userData);
+        if (errors.length === 0) {
+            dispatch(updateUerData(userData));
             router.navigate("/TermsPolicies");
-        else
-            Alert.alert('Complete the required data');
-
+        } else {
+            Alert.alert(errors.join('\n'));
+        }
     }
-
-    const _verifyRequiredData = () => {
-        return true;
+    
+    const _verifyRequiredData = (userData: RegisterRequest): string[] => {
+        const errors: string[] = [];
+    
+        if (userData.email.trim() === '') {
+            errors.push('Email is required');
+        } else if (!_isEmailValid(userData.email)) {
+            errors.push('Invalid email format');
+        }
+    
+        if (userData.password.trim() === '') {
+            errors.push('Password is required');
+        } else if (!_isPasswordValid(userData.password)) {
+            errors.push('Password must be 6-20 characters long and contain at least one uppercase letter, one lowercase letter, and one number');
+        }
+    
+        if (userData.firstName.trim() === '') {
+            errors.push('First name is required');
+        }
+    
+        if (userData.lastName.trim() === '') {
+            errors.push('Last name is required');
+        }
+    
+        if (userData.phoneNumber.trim() === '') {
+            errors.push('Phone number is required');
+        }
+    
+        return errors;
     }
-
+    
+    const _isEmailValid = (email: string): boolean => {
+        const re = /\S+@\S+\.\S+/;
+        return re.test(email);
+    }
+    
+    const _isPasswordValid = (password: string): boolean => {
+        const re = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/;
+        return re.test(password);
+    }
+    
     const _renderFlagModal = () => {
         const renderItem = ({ item }: { item: any }) => {
             return (

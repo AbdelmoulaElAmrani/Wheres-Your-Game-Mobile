@@ -14,9 +14,12 @@ import BusinessIcon from "../../assets/images/svg/BusinessIcon";
 import PlayerIcon from "../../assets/images/svg/PlayerIcon";
 import { router } from "expo-router";
 import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
+import {useDispatch} from 'react-redux'
+import { updateUerData } from "@/redux/UserRegisterSlice";
 
 
 const UserStepForm = () => {
+    const dispatch = useDispatch();
     const [visible, setVisible] = useState<boolean>(false);
     const [currentStep, setCurrentStep] = useState<number>(1);
     // TODO:: replace it with redux or get user data from localstorage
@@ -29,7 +32,6 @@ const UserStepForm = () => {
         address: '',
         zipCode: '',
         bio: '',
-        createdAt: new Date(),
         verified: false,
         role: UserType.DEFAULT,
     });
@@ -49,8 +51,11 @@ const UserStepForm = () => {
     const buttonText = ['Continue', 'Verify'];
 
     const _showModal = () => {
-        if (_verifyUserStepDate(currentStep))
+        if (_verifyUserStepDate(currentStep)){
             setVisible(true)
+            dispatch(updateUerData(userData));
+        }
+
 
     }
     const _hideModal = () => setVisible(false)

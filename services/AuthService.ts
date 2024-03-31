@@ -1,6 +1,7 @@
 import { AuthenticationRequest } from "@/models/requestObjects/AuthenticationRequest";
 import LocalStorageService from "./LocalStorageService";
 import Requests from "./Requests";
+import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
 
 
 export class AuthService {
@@ -59,6 +60,19 @@ export class AuthService {
             return res.data; 
         
     }
+
+    static register = async (request: RegisterRequest): Promise<AuthenticationResponse | undefined> => {
+            
+                
+                const res = await Requests.post('auth/register', request);
+                
+                if(res.status !== 200){
+                    return undefined;
+                }
+    
+                return res.data; 
+            
+        }
 
 
 

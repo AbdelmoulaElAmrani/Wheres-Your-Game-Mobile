@@ -10,7 +10,6 @@ export interface RegisterRequest
     address: string;
     zipCode: string;
     bio: string;
-    createdAt: Date;
     verified: boolean;
     role: UserType;
 
