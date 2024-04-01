@@ -1,5 +1,4 @@
 import * as React from "react"
-import { OpaqueColorValue } from 'react-native';
 import Svg, { SvgProps, Path } from "react-native-svg"
 const BusinessIcon = (props: SvgProps) => {
   return <Svg

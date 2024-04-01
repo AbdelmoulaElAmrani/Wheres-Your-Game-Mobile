@@ -3,22 +3,22 @@ import { ImageBackground, StyleSheet, Text, View, TouchableOpacity, TouchableWit
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useState } from "react";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import { Chip, TextInput } from "react-native-paper";
+import { Chip, RadioButton, TextInput } from "react-native-paper";
 import { AntDesign } from '@expo/vector-icons';
 import Sport from "@/models/Sport";
 import Gender from "@/models/Gender";
 import Checkbox from "expo-checkbox";
-import SportLevel from "@/models/SportLevel";
+import SportLevel, { convertStringToEnumValue } from "@/models/SportLevel";
+import { UserInteresstedSport } from "@/models/UserInterestedSport";
 
 const SportIntressed = () => {
 
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [selectedType, setSelectedType] = useState<Gender>();
-    const [selectedSports, setSelectedSports] = useState<Map<string, Sport>>(new Map([
-        ['1', { id: '1', name: 'American Football' }],
-        ['2', { id: '2', name: 'Archery' }],
-        ['3', { id: '3', name: 'Badminton' }],
-        ['4', { id: '4', name: 'test' }]
+    const [selectedSports, setSelectedSports] = useState<Map<string, UserInteresstedSport>>(new Map([
+        // ['1', { sportId: '1', sportName: 'American Football', sportLevel: undefined }],
+        // ['2', { sportId: '2', sportName: 'Archery', sportLevel: undefined }],
+        // ['3', { sportId: '3', sportName: 'Badminton', sportLevel: undefined }],
     ]));
 
     useEffect(() => {
@@ -112,7 +112,13 @@ const SportIntressed = () => {
                     if (newSelectedSports.has(sport.id)) {
                         newSelectedSports.delete(sport.id);
                     } else {
-                        newSelectedSports.set(sport.id, sport);
+                        newSelectedSports.set(sport.id, {
+                            score: 0,
+                            createAt: new Date(),
+                            sportId: sport.id,
+                            sportName: sport.name,
+                            sportLevel: undefined
+                        });
                     }
                 }
                 return newSelectedSports;
@@ -158,25 +164,47 @@ const SportIntressed = () => {
 
 
     const _RenderUserSportLevel = () => {
-        function _onSelecteSportLevel(id: string | undefined, value: string | SportLevel): void {
+
+        const _onSelectSportLevel = (id?: string, value?: string | SportLevel): void => {
+            if (id === undefined) return;
+            if (value === undefined) return;
+            const v = convertStringToEnumValue(SportLevel, value);
+            if (v === null) return;
+            setSelectedSports((prevSelectedSports) => {
+                const updatedSports = new Map(prevSelectedSports);
+                if (updatedSports.has(id)) {
+                    const sport = updatedSports.get(id);
+                    updatedSports.set(id, { ...sport, sportLevel: v });
+                }
+                return updatedSports;
+            });
             console.log(id, value);
         }
-        function _checkIfSelected(id: string | undefined, value: string | SportLevel): boolean {
-            return true;
+
+        const _checkIfSelected = (id: string | undefined, value: string | SportLevel): boolean => {
+            if (!id) return false;
+
+            const sport = selectedSports.get(id);
+            if (!sport) return false;
+
+            return sport.sportLevel === value;
         }
-        const _RenderItem = ({ item }: { item: Sport }) => {
+
+
+        const _RenderItem = ({ item }: { item: UserInteresstedSport }) => {
 
             return (
                 <View style={styles.lvlContainer}>
-                    <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{item.name}</Text>
+                    <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{item.sportName}</Text>
                     <View>
                         {Object.values(SportLevel).filter((value) => typeof value === 'string').map((value, key) => (
                             <View
                                 key={key}
-                                style={{ flexDirection: 'row', marginTop: 10 }}>
-                                <Checkbox
-                                    value={_checkIfSelected(item.id, value)}
-                                    onValueChange={() => _onSelecteSportLevel(item.id, value)}
+                                style={{ flexDirection: 'row', marginTop: 10, alignItems: 'center', justifyContent: 'flex-start' }}>
+                                <RadioButton
+                                    value={value.toString()}
+                                    status={_checkIfSelected(item.sportId, value) ? 'checked' : 'unchecked'}
+                                    onPress={() => _onSelectSportLevel(item.sportId, value)}
                                 />
                                 <Text style={{ fontSize: 16, marginLeft: 10 }}>{value}</Text>
                             </View>
@@ -196,11 +224,10 @@ const SportIntressed = () => {
                 <View style={{ height: hp(45), marginTop: 3 }}>
                     <FlatList
                         nestedScrollEnabled
-                        style={{}}
                         showsVerticalScrollIndicator={true}
                         data={[...selectedSports.values()]}
                         renderItem={({ item }) => <_RenderItem item={item} />}
-                        keyExtractor={item => item.name}
+                        keyExtractor={item => item.sportName + ' 1'}
                     />
                 </View>
             </View>

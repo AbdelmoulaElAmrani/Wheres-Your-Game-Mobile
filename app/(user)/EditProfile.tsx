@@ -1,15 +1,17 @@
 import CustomButton from "@/components/CustomButton";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import { useRef, useState } from "react";
-import { FlatList, ImageBackground, Keyboard, StyleSheet, TouchableOpacity, View, TouchableWithoutFeedback } from "react-native"
+import { ImageBackground, Keyboard, StyleSheet, TouchableOpacity, View, TouchableWithoutFeedback, ScrollView, KeyboardAvoidingView, Platform } from "react-native"
 import { Avatar, Text, TextInput } from "react-native-paper";
 import PhoneInput from "react-native-phone-number-input";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Fontisto, Octicons } from '@expo/vector-icons';
+import { Octicons } from '@expo/vector-icons';
 import ScrollPicker, { ScrollPickerHandle } from "react-native-wheel-scrollview-picker";
 import { router } from "expo-router";
-
+import Gender from "@/models/Gender";
+import MaleIcon from "@/assets/images/svg/MaleIcon";
+import FemaleIcon from "@/assets/images/svg/FemaleIcon";
 
 
 const EditProfile = () => {
@@ -17,8 +19,8 @@ const EditProfile = () => {
     const _handleContinue = () => {
         console.log({ ...user, phone: formattedPhoneNumber });
         setCurrentStep(oldValue => Math.min(3, oldValue + 1));
-        if(currentStep >= 3)
-        router.navigate('/SportIntressed');
+        if (currentStep >= 3)
+            router.navigate('/SportIntressed');
     }
 
     const goBackFunc = () => {
@@ -44,90 +46,91 @@ const EditProfile = () => {
 
 
     const UserInfoEdit = () => (
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <>
+                <View style={{ alignItems: 'center', position: 'absolute', left: wp(30), right: wp(30), top: -55 }}>
+                    <TouchableOpacity onPress={_handlePofilePhotoEdit}>
+                        <Octicons name="pencil" size={24} color={'white'} style={styles.editIcon} />
+                    </TouchableOpacity>
+                    {user.imageUrl ? <Avatar.Image size={100} source={{ uri: user.imageUrl }} />
+                        : <Avatar.Text size={100} label={user.name ? user.name[0] : ''} />}
+                </View>
+                <ScrollView automaticallyAdjustKeyboardInsets={true}>
+                    <View style={styles.formContainer}>
+                        <View style={styles.mgTop}>
+                            <Text style={styles.textLabel}>Full Name</Text>
+                            <TextInput
+                                style={styles.inputStyle}
+                                placeholder={'Full Name'}
+                                cursorColor='black'
+                                placeholderTextColor={'grey'}
+                                left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
+                                value={user.name}
+                                // make the change of the state of the user object at the end of key stroke
+                                onChangeText={(text) => setUser({ ...user, name: text })}
+                                underlineColor={"transparent"}
+                            />
+                            <Text style={styles.textLabel}>Email</Text>
+                            <TextInput
+                                style={styles.inputStyle}
+                                focusable={false}
+                                placeholder={'Email'}
+                                cursorColor='black'
+                                placeholderTextColor={'grey'}
+                                left={<TextInput.Icon color={'#D3D3D3'} icon='email-outline' size={30} />}
+                                value={user.email}
+                                onChangeText={(text) => setUser({ ...user, email: text })}
+                                underlineColor={"transparent"}
+                            />
 
-        <>
-            <View style={styles.userInfoContainer}>
-                <TouchableOpacity onPress={_handlePofilePhotoEdit}>
-                    <Octicons name="pencil" size={24} color="white" style={styles.editIcon} />
+                            <Text style={styles.textLabel}>Phone number</Text>
+                            <View style={styles.mgTop}>
+                                <PhoneInput
+                                    ref={phoneInput}
+                                    defaultCode={user.phoneContryCode}
+                                    layout="first"
+                                    withDarkTheme
+                                    placeholder="Enter phone number"
+                                    value={user.phone}
+                                    onChangeText={(text) => setUser({ ...user, phone: text })}
+                                    containerStyle={styles.phoneInputContainer}
+                                    textContainerStyle={styles.textPhoneInputContainer}
+                                    onChangeFormattedText={(text) => setFormattedPhoneNumber(text)}
 
-                </TouchableOpacity>
-                {user.imageUrl ? <Avatar.Image size={100} source={{ uri: user.imageUrl }} />
-                    : <Avatar.Text size={100} label={user.name ? user.name[0] : ''} />}
-            </View>
-            <View style={styles.formContainer}>
-                <View style={styles.mgTop}>
-                    <Text style={styles.textLabel}>Full Name</Text>
-                    <TextInput
-                        style={styles.inputStyle}
-                        placeholder={'Full Name'}
-                        cursorColor='black'
-                        placeholderTextColor={'grey'}
-                        left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
-                        value={user.name}
-                        // make the change of the state of the user object at the end of key stroke
-                        onChangeText={(text) => setUser({ ...user, name: text })}
-                        underlineColor={"transparent"}
-                    />
-                    <Text style={styles.textLabel}>Email</Text>
-                    <TextInput
-                        style={styles.inputStyle}
-                        focusable={false}
-                        placeholder={'Email'}
-                        cursorColor='black'
-                        placeholderTextColor={'grey'}
-                        left={<TextInput.Icon color={'#D3D3D3'} icon='email-outline' size={30} />}
-                        value={user.email}
-                        onChangeText={(text) => setUser({ ...user, email: text })}
-                        underlineColor={"transparent"}
-                    />
+                                />
+                                <Text style={styles.textLabel}>Address</Text>
+                                <TextInput
+                                    style={styles.inputStyle}
+                                    placeholder={'Address'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30} />}
+                                    value={user.address}
+                                    onChangeText={(text) => setUser({ ...user, address: text })}
+                                    underlineColor={"transparent"}
+                                />
 
-                    <Text style={styles.textLabel}>Phone number</Text>
-                    <View style={styles.mgTop}>
-                        <PhoneInput
-                            ref={phoneInput}
-                            defaultCode={user.phoneContryCode}
-                            layout="first"
-                            withDarkTheme
-                            placeholder="Enter phone number"
-                            value={user.phone}
-                            onChangeText={(text) => setUser({ ...user, phone: text })}
-                            containerStyle={styles.phoneInputContainer}
-                            textContainerStyle={styles.textPhoneInputContainer}
-                            onChangeFormattedText={(text) => setFormattedPhoneNumber(text)}
-
-                        />
-                        <Text style={styles.textLabel}>Address</Text>
-                        <TextInput
-                            style={styles.inputStyle}
-                            placeholder={'Address'}
-                            cursorColor='black'
-                            placeholderTextColor={'grey'}
-                            left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30} />}
-                            value={user.address}
-                            onChangeText={(text) => setUser({ ...user, address: text })}
-                            underlineColor={"transparent"}
-                        />
-
-                        {/* zip code */}
-                        <Text style={styles.textLabel}>Zip Code</Text>
-                        <TextInput
-                            style={styles.inputStyle}
-                            placeholder={'Zip Code'}
-                            cursorColor='black'
-                            placeholderTextColor={'grey'}
-                            left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30} />}
-                            value={user.zipCode}
-                            onChangeText={(text) => setUser({ ...user, zipCode: text })}
-                            underlineColor={"transparent"}
-                        />
-                        <View style={styles.buttonContainer}>
-                            <CustomButton text="Continue" onPress={_handleContinue} />
+                                {/* zip code */}
+                                <Text style={styles.textLabel}>Zip Code</Text>
+                                <TextInput
+                                    style={styles.inputStyle}
+                                    placeholder={'Zip Code'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30} />}
+                                    value={user.zipCode}
+                                    onChangeText={(text) => setUser({ ...user, zipCode: text })}
+                                    underlineColor={"transparent"}
+                                />
+                                <View style={styles.buttonContainer}>
+                                    <CustomButton text="Continue" onPress={_handleContinue} />
+                                </View>
+                            </View>
                         </View>
                     </View>
-                </View>
-            </View>
-
-        </>
+                </ScrollView>
+            </>
+        </TouchableWithoutFeedback>
     )
     const UserGenderEdit = () => (
         <>
@@ -143,14 +146,14 @@ const EditProfile = () => {
                     <TouchableOpacity
                         style={[
                             styles.genderOption,
-                            selectedGender === 'male' && { backgroundColor: '#2757cb' },
+                            selectedGender === Gender.MALE && { backgroundColor: '#2757cb' },
                         ]}
-                        onPress={() => setSelectedGender('male')}
+                        onPress={() => setSelectedGender(Gender.MALE)}
                     >
-                        <Fontisto name="male" size={60} color={selectedGender === 'male' ? 'white' : 'black'} />
+                        <MaleIcon fill={selectedGender === Gender.MALE ? 'white' : 'black'} />
                         <Text style={[
                             styles.genderLabel,
-                            selectedGender === 'male' ? { color: 'white' } : { color: 'black' }
+                            selectedGender === Gender.MALE ? { color: 'white' } : { color: 'black' }
                         ]
                         }
                         >Male</Text>
@@ -158,14 +161,14 @@ const EditProfile = () => {
                     <TouchableOpacity
                         style={[
                             styles.genderOption,
-                            selectedGender === 'female' && { backgroundColor: '#2757cb' },
+                            selectedGender === Gender.FEMALE && { backgroundColor: '#2757cb' },
                         ]}
-                        onPress={() => setSelectedGender('female')}
+                        onPress={() => setSelectedGender(Gender.FEMALE)}
                     >
-                        <Fontisto name="female" size={60} color={selectedGender === 'female' ? 'white' : 'black'} />
+                        <FemaleIcon fill={selectedGender === Gender.FEMALE ? 'white' : 'black'} />
                         <Text style={[
                             styles.genderLabel,
-                            selectedGender === 'female' ? { color: 'white' } : { color: 'black' }
+                            selectedGender === Gender.FEMALE ? { color: 'white' } : { color: 'black' }
                         ]
                         }>Female</Text>
                     </TouchableOpacity>
@@ -230,7 +233,7 @@ const EditProfile = () => {
     });
     const ages = Array.from({ length: 100 }, (_, i) => i + 1);
 
-    const [selectedGender, setSelectedGender] = useState<string>("male");
+    const [selectedGender, setSelectedGender] = useState<Gender>();
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [formattedPhoneNumber, setFormattedPhoneNumber] = useState<string>('');
     const phoneInput = useRef<PhoneInput>(null);
@@ -250,20 +253,18 @@ const EditProfile = () => {
             style={{ height: hp(100) }}
             source={require('../../assets/images/signupBackGround.jpg')}
         >
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 
-                <SafeAreaView>
+            <SafeAreaView>
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                     <CustomNavigationHeader text={_getCurrentStepTitle()} goBackFunction={goBackFunc()} />
-
-                    <Text style={styles.stepText}>Step {currentStep}/3</Text>
-
-                    <View style={styles.cardContainer}>
-                        {currentStep === 1 && <UserInfoEdit />}
-                        {currentStep === 2 && <UserGenderEdit />}
-                        {currentStep === 3 && <UserAgeEdit />}
-                    </View>
-                </SafeAreaView>
-            </TouchableWithoutFeedback>
+                </TouchableWithoutFeedback>
+                <Text style={styles.stepText}>Step {currentStep}/3</Text>
+                <View style={styles.cardContainer}>
+                    {currentStep === 1 && <UserInfoEdit />}
+                    {currentStep === 2 && <UserGenderEdit />}
+                    {currentStep === 3 && <UserAgeEdit />}
+                </View>
+            </SafeAreaView>
         </ImageBackground>
     )
 }
@@ -280,11 +281,7 @@ const styles = StyleSheet.create({
         position: 'absolute'
     },
     userInfoContainer: {
-
-        justifyContent: 'center',
-        alignItems: 'center',
-        position: 'relative',
-        marginTop: hp(10),
+        backgroundColor: 'red'
     },
     editIcon: {
         top: hp(2),
@@ -346,7 +343,7 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 20,
         borderBottomLeftRadius: 20,
         borderColor: '#D3D3D3',
-        borderWidth: 1
+        borderWidth: 1,
     },
     textPhoneInputContainer: {
         color: 'black',
@@ -394,6 +391,7 @@ const styles = StyleSheet.create({
     genderOption: {
         width: 120,
         height: 120,
+        backgroundColor: 'white',
         borderRadius: 60,
         justifyContent: 'center',
         alignItems: 'center',

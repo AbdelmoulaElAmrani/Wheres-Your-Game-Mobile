@@ -19,6 +19,7 @@ import { AuthService } from "@/services/AuthService";
 
 const UserStepForm = () => {
     const [visible, setVisible] = useState<boolean>(false);
+    const [otpCodeNotEmpty, setOtpCodeNotEmpty] = useState<boolean>(false);
     const [currentStep, setCurrentStep] = useState<number>(1);
     // TODO:: replace it with redux or get user data from localstorage
     const [userData, setUserData] = useState<RegisterRequest>({
@@ -49,6 +50,10 @@ const UserStepForm = () => {
 
     const buttonText = ['Continue', 'Verify'];
 
+    const _onCheckOTPCode = (): boolean => {
+        return false;
+    }
+
 
     const _showModal = () => {
         if (_verifyUserStepDate(currentStep))
@@ -66,6 +71,7 @@ const UserStepForm = () => {
     const _verifyOTP = (otpNumber : string) => {
         Keyboard.dismiss();
         if (otpNumber.trim().length !== 0) {
+            setOtpCodeNotEmpty(true);
             console.log('verify');
         }
     }
@@ -97,8 +103,6 @@ const UserStepForm = () => {
     const handleSubmit = () => {
         if (_verifyUserStepDate(currentStep))
             router.navigate('/EditProfile')
-        //router.replace("/Login");
-
     };
 
 
@@ -228,7 +232,7 @@ const UserStepForm = () => {
                             {currentStep === 1 && <UserTypeForm />}
                             {currentStep === 2 && <OTPVerification />}
                         </View>
-                        <CustomButton text={buttonText[currentStep - 1]} onPress={_showModal} />
+                        <CustomButton disabled={!otpCodeNotEmpty && currentStep === 2} text={buttonText[currentStep - 1]} onPress={_showModal} />
                     </View>
                 </View>
                 <Modal onDismiss={_hideModal} isVisible={visible} style={styles.containerStyle}>
