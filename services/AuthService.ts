@@ -24,10 +24,6 @@ export class AuthService {
         }
     }
 
-    static signUp = (userData: RegisterRequest): void => {
-
-    }
-
     static setAccessToken = (token: string): void => {
         LocalStorageService.storeItem<string>('accessToken', token);
     }
@@ -63,20 +59,32 @@ export class AuthService {
     }
 
     static register = async (request: RegisterRequest): Promise<AuthenticationResponse | undefined> => {
-            
-                const res = await Requests.post('auth/register', request);
-                if(res.status !== 200){
-                    return undefined;
-                }
-                if(res.data){
-                    AuthService.setAuthTokens(res.data);
-                }
-    
-                return res.data; 
-            
+
+        const res = await Requests.post('auth/register', request);
+        if (res.status !== 200) {
+            return undefined;
+        }
+        if (res.data) {
+            AuthService.setAuthTokens(res.data);
         }
 
+        return res.data;
 
+    }
+
+    static sendOTP = async (): Promise<string> => {
+        const res = await Requests.get('auth/generateOTP')
+        return "";
+    }
+
+    static verifyOTP = async (code: string): Promise<boolean | undefined> => {
+        const res = await Requests.get(`auth/verifyOTP?otp=${code}`)
+        if (res.status !== 200) {
+            return false;
+        }
+
+        res.data;
+    }
 
 }
 

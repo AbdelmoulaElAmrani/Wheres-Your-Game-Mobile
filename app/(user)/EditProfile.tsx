@@ -20,7 +20,7 @@ const EditProfile = () => {
         console.log({ ...user, phone: formattedPhoneNumber });
         setCurrentStep(oldValue => Math.min(3, oldValue + 1));
         if (currentStep >= 3)
-            router.navigate('/SportIntressed');
+            router.navigate('/SportInterested');
     }
 
     const goBackFunc = () => {
@@ -89,6 +89,7 @@ const EditProfile = () => {
                                     ref={phoneInput}
                                     defaultCode={user.phoneContryCode}
                                     layout="first"
+                                    defaultValue="usa"
                                     withDarkTheme
                                     placeholder="Enter phone number"
                                     value={user.phone}
@@ -256,7 +257,7 @@ const EditProfile = () => {
 
             <SafeAreaView>
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <CustomNavigationHeader text={_getCurrentStepTitle()} goBackFunction={goBackFunc()} />
+                    <CustomNavigationHeader text={_getCurrentStepTitle()} goBackFunction={goBackFunc()}  showBackArrow/>
                 </TouchableWithoutFeedback>
                 <Text style={styles.stepText}>Step {currentStep}/3</Text>
                 <View style={styles.cardContainer}>

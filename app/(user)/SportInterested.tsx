@@ -6,73 +6,83 @@ import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import { Chip, RadioButton, TextInput } from "react-native-paper";
 import { AntDesign } from '@expo/vector-icons';
 import Sport from "@/models/Sport";
-import Gender from "@/models/Gender";
-import Checkbox from "expo-checkbox";
 import SportLevel, { convertStringToEnumValue } from "@/models/SportLevel";
 import { UserInteresstedSport } from "@/models/UserInterestedSport";
+import { SportService } from "@/services/SportService";
+import {router} from "expo-router";
 
-const SportIntressed = () => {
+const SportInterested = () => {
 
     const [currentStep, setCurrentStep] = useState<number>(1);
-    const [selectedType, setSelectedType] = useState<Gender>();
     const [selectedSports, setSelectedSports] = useState<Map<string, UserInteresstedSport>>(new Map([
         // ['1', { sportId: '1', sportName: 'American Football', sportLevel: undefined }],
         // ['2', { sportId: '2', sportName: 'Archery', sportLevel: undefined }],
         // ['3', { sportId: '3', sportName: 'Badminton', sportLevel: undefined }],
     ]));
+    
+    const [sports, setSports] = useState<Sport[] | undefined>([
+        // { id: '1', name: 'American Football' },
+        // { id: '2', name: 'Archery' },
+        // { id: '3', name: 'Badminton' },
+        // { id: '4', name: 'Baseball' },
+        // { id: '5', name: 'Basketball' },
+        // { id: '6', name: 'Bowling' },
+        // { id: '7', name: 'Boxing' },
+        // { id: '8', name: 'Cheerleading' },
+        // { id: '9', name: 'Climbing' },
+        // { id: '10', name: 'Cricket' },
+        // { id: '11', name: 'Cross Country' },
+        // { id: '12', name: 'Cross Fit' },
+        // { id: '13', name: 'Cycling' },
+        // { id: '14', name: 'Darts' },
+        // { id: '15', name: 'Dance' },
+        // { id: '16', name: 'Equestrian' },
+        // { id: '17', name: 'Extreme Sports' },
+        // { id: '18', name: 'Fencing' },
+        // { id: '19', name: 'Fishing' },
+        // { id: '20', name: 'Flag Football' },
+        // { id: '21', name: 'Golf' },
+        // { id: '22', name: 'Gymnastics' },
+        // { id: '23', name: 'Hockey' },
+        // { id: '24', name: 'Karate' },
+        // { id: '25', name: 'Lacrosse' },
+        // { id: '26', name: 'Martial Arts' },
+        // { id: '27', name: 'Motor Racing' },
+        // { id: '28', name: 'Pickleball' },
+        // { id: '29', name: 'Pool' },
+        // { id: '30', name: 'Powerlifting' },
+        // { id: '31', name: 'Rifle Shooting' },
+        // { id: '32', name: 'Rowing' },
+        // { id: '33', name: 'Rugby' },
+        // { id: '34', name: 'Skiing' },
+        // { id: '35', name: 'Soccer' },
+        // { id: '36', name: 'Softball' },
+        // { id: '37', name: 'Swimming' },
+        // { id: '38', name: 'Track and Field' },
+        // { id: '39', name: 'T-Ball/Baseball' },
+        // { id: '40', name: 'Tennis' },
+        // { id: '41', name: 'Ultimate Frisbee' },
+        // { id: '42', name: 'Volleyball' },
+        // { id: '43', name: 'Water Polo' },
+        // { id: '44', name: 'Wrestling' },
+        // { id: '45', name: 'Yoga' },
+    ]);
+
 
     useEffect(() => {
+        const fetchSport = async () => {
+            try {
+                const data = await SportService.getAllSports();
+                setSports(data);
+            } catch (ex) {
+                console.log(ex);
+            }
+        }
 
+        fetchSport();
     }, []);
 
 
-    const [sports, setSports] = useState<Sport[]>([
-        { id: '1', name: 'American Football' },
-        { id: '2', name: 'Archery' },
-        { id: '3', name: 'Badminton' },
-        { id: '4', name: 'Baseball' },
-        { id: '5', name: 'Basketball' },
-        { id: '6', name: 'Bowling' },
-        { id: '7', name: 'Boxing' },
-        { id: '8', name: 'Cheerleading' },
-        { id: '9', name: 'Climbing' },
-        { id: '10', name: 'Cricket' },
-        { id: '11', name: 'Cross Country' },
-        { id: '12', name: 'Cross Fit' },
-        { id: '13', name: 'Cycling' },
-        { id: '14', name: 'Darts' },
-        { id: '15', name: 'Dance' },
-        { id: '16', name: 'Equestrian' },
-        { id: '17', name: 'Extreme Sports' },
-        { id: '18', name: 'Fencing' },
-        { id: '19', name: 'Fishing' },
-        { id: '20', name: 'Flag Football' },
-        { id: '21', name: 'Golf' },
-        { id: '22', name: 'Gymnastics' },
-        { id: '23', name: 'Hockey' },
-        { id: '24', name: 'Karate' },
-        { id: '25', name: 'Lacrosse' },
-        { id: '26', name: 'Martial Arts' },
-        { id: '27', name: 'Motor Racing' },
-        { id: '28', name: 'Pickleball' },
-        { id: '29', name: 'Pool' },
-        { id: '30', name: 'Powerlifting' },
-        { id: '31', name: 'Rifle Shooting' },
-        { id: '32', name: 'Rowing' },
-        { id: '33', name: 'Rugby' },
-        { id: '34', name: 'Skiing' },
-        { id: '35', name: 'Soccer' },
-        { id: '36', name: 'Softball' },
-        { id: '37', name: 'Swimming' },
-        { id: '38', name: 'Track and Field' },
-        { id: '39', name: 'T-Ball/Baseball' },
-        { id: '40', name: 'Tennis' },
-        { id: '41', name: 'Ultimate Frisbee' },
-        { id: '42', name: 'Volleyball' },
-        { id: '43', name: 'Water Polo' },
-        { id: '44', name: 'Wrestling' },
-        { id: '45', name: 'Yoga' },
-    ]);
 
     const _stepTitles = [
         {
@@ -91,13 +101,18 @@ const SportIntressed = () => {
         currentStep === 1 ? _handleContinue() : handleSubmit();
     }
     const _handleGoBack = () => {
-        return currentStep === 1 ? undefined : goToPreviousStep;
+        if (currentStep === 1){
+            return router.canGoBack() ? router.back : undefined;
+        }else {
+            return goToPreviousStep;
+        }
     }
 
     const goToPreviousStep = () => {
         setCurrentStep(oldValue => Math.max(1, oldValue - 1));
     };
     const handleSubmit = () => {
+        console.log(selectedSports)
     };
 
     const isSportSelected = (sportId?: string) => { return sportId ? selectedSports.has(sportId) : false; }
@@ -140,7 +155,7 @@ const SportIntressed = () => {
                     />
                     <ScrollView>
                         <View style={styles.sportContainer}>
-                            {sports.map(sport => {
+                            {sports?.map(sport => {
                                 const isSelected = isSportSelected(sport.id);
                                 return (<Chip
                                     key={sport.id}
@@ -240,7 +255,7 @@ const SportIntressed = () => {
             style={{ height: hp(100) }}
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                <CustomNavigationHeader text={"Sport"} goBackFunction={_handleGoBack()} />
+                <CustomNavigationHeader text={"Sport"} goBackFunction={_handleGoBack()}  showBackArrow/>
                 <View style={styles.container}>
                     <Text style={styles.stepText}>Step {currentStep}/2</Text>
                     <View style={styles.mainContainer}>
@@ -256,12 +271,12 @@ const SportIntressed = () => {
 
                         <View style={styles.btnConainter}>
                             <TouchableOpacity
-                                onPress={_handleGoBack}
+                                onPress={ _handleGoBack()}
                                 style={styles.btn}>
                                 <Text style={{ textAlign: 'center', fontSize: 18, color: '#2757CB' }}>Back</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                onPress={() => _handleContinue()}
+                                onPress={() => _onNext()}
                                 style={[styles.btn, { backgroundColor: '#2757CB' }]}>
                                 <Text style={{ textAlign: 'center', fontSize: 18, color: 'white' }}>Continue</Text>
                             </TouchableOpacity>
@@ -369,4 +384,4 @@ const styles = StyleSheet.create({
 });
 
 
-export default SportIntressed;
+export default SportInterested;

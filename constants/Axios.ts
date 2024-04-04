@@ -1,45 +1,45 @@
-import { AuthService } from '@/services/AuthService';
-import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
-import { router } from 'expo-router';
+import axios, {AxiosRequestConfig, AxiosResponse, AxiosError} from 'axios';
+import {AuthService} from '@/services/AuthService';
 
 
-// Create an Axios instance
-const axiosInstance = axios.create({
-  baseURL: 'https://your.api/base/url',
+export const API_URI = 'https://colour-american-arabia-bond.trycloudflare.com/api/'
+
+const api = axios.create({
+    baseURL: API_URI,
 });
 
-// Request Interceptor
-axiosInstance.interceptors.request.use(
-  async (config: AxiosRequestConfig) => {
-    const token = AuthService.getAccessToken();
-    if (token) {
-      config.headers = { ...config.headers, Authorization: `Bearer ${token}` };
-    }
-    return config;
-  },
-  (error: AxiosError) => Promise.reject(error)
-);
 
-// Response Interceptor
-axiosInstance.interceptors.response.use(
-  (response: AxiosResponse) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest?._retry) {
-      originalRequest?._retry = true;
-      try {
-        const newAccessToken = await AuthService.refreshToken();
-        if (originalRequest?.headers) {
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+api.interceptors.request.use(
+    // @ts-ignore
+    async (config: AxiosRequestConfig) => {
+        const token = await AuthService.getAccessToken();
+        if (token) {
+            config.headers = {...config.headers, Authorizations: `Bearer ${token}`};
         }
-        return axiosInstance(originalRequest);
-      } catch (refreshError) {
-        //navigate('Login'); // Use your login screen's route name
-        return Promise.reject(refreshError);
-      }
+        return config;
+    },
+    (error: AxiosError) => {
+        return Promise.reject(error);
     }
-    return Promise.reject(error);
-  }
 );
 
-export default axiosInstance;
+// Response interceptor to handle token refresh logic
+api.interceptors.response.use(
+    (response: AxiosResponse) => response,
+    async (error: AxiosError) => {
+        const originalRequest = error.config;
+        // Check if the error is due to a 401 Unauthorized response
+        // @ts-ignore
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            // @ts-ignore
+            originalRequest._retry = true; // marking so we don't get into an infinite loop
+            const accessToken = await AuthService.getRefreshToken();
+            axios.defaults.headers.common['Authorizations'] = `Bearer ${accessToken}`;
+            // @ts-ignore
+            return api(originalRequest);
+        }
+        return Promise.reject(error);
+    }
+);
+
+export default api;

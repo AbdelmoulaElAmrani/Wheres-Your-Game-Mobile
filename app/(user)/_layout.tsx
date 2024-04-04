@@ -6,7 +6,7 @@ const UserLayout = () => {
             headerShown: false
         }}>
         <Stack.Screen name="EditProfile" options={{ headerShown: false }} />
-        <Stack.Screen name="SportIntressed" options={{ headerShown: false }} />
+        <Stack.Screen name="SportInterested" options={{ headerShown: false }} />
     </Stack>);
 }
 

@@ -4,11 +4,13 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect } from 'react';
 
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from 'react-redux';
 import { persistor, store } from '@/redux/ReduxConfig';
 import { PersistGate } from 'redux-persist/integration/react';
 import { I18nManager } from 'react-native';
+import { LogBox } from 'react-native';
+
 
 export {
     // Catch any errors thrown by the Layout component.
@@ -45,6 +47,8 @@ export default function RootLayout() {
     }, [error]);
 
     useEffect(() => {
+        LogBox.ignoreLogs(['Require cycle:']);
+
         if (loaded) {
             SplashScreen.hideAsync();
         }
@@ -64,16 +68,16 @@ function RootLayoutNav() {
     I18nManager.forceRTL(false);
     return (
         <Provider store={store}>
-             <PersistGate loading={null} persistor={persistor}>
+            <PersistGate loading={null} persistor={persistor}>
 
-        <SafeAreaProvider >
-            <Stack>
-                <Stack.Screen name="(user)" options={{ headerShown: false }} />
-                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            </Stack>
-        </SafeAreaProvider >
-        </PersistGate>
+                <SafeAreaProvider >
+                    <Stack>
+                        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                        <Stack.Screen name="(user)" options={{ headerShown: false }} />
+                    </Stack>
+                </SafeAreaProvider >
+            </PersistGate>
         </Provider>
     );
 }
