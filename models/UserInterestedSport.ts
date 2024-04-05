@@ -1,6 +1,6 @@
 import SportLevel from "./SportLevel";
 
-export interface UserInteresstedSport {
+export interface UserInterestedSport {
     score?: number;
     createAt?: Date;
     sportLevel?: SportLevel;
