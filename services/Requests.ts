@@ -42,7 +42,6 @@ axiosInstance.interceptors.response.use(
                 }
             }
             catch (err) {
-                await AuthService.logOut();
                 router.replace("/Login");
             }
         }
@@ -56,7 +55,6 @@ axiosInstance.interceptors.response.use(
 
 const handleErrors = async (err: AxiosError) => {
     if (err && err.response && err.response.status === 401) {
-        await AuthService.logOut();
         //router.replace("/Login");
     }
     return err;
