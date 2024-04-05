@@ -12,19 +12,20 @@ import { router } from "expo-router";
 import Gender from "@/models/Gender";
 import MaleIcon from "@/assets/images/svg/MaleIcon";
 import FemaleIcon from "@/assets/images/svg/FemaleIcon";
-import { useEffect } from "react";
 import {UserService} from "@/services/UserService";
 import { UserResponse } from "@/models/responseObjects/UserResponse";
+import {UserRequest} from "@/models/requestObjects/UserRequest";
 
 
 
 const EditProfile = () => {
 
     const [user, setUser] = useState({
-        name: 'John Doe',
+        firstName: 'John',
+        lastName: 'Doe',
         age: 25,
         email: 'jhon@gmail.com',
-        phone: '1234567890',
+        phoneNumber: '1234567890',
         phoneCountryCode: 'FR',
         gender: Gender.MALE,
         imageUrl: null,//'http://www.cecyteo.edu.mx/Nova/App_themes/Nova2016/assets/pages/media/profile/profile_user.jpg'
@@ -33,14 +34,32 @@ const EditProfile = () => {
     });
 
     const [currentStep, setCurrentStep] = useState<number>(1);
-    const [formattedPhoneNumber, setFormattedPhoneNumber] = useState<string>('');
-    const phoneInput = useRef<PhoneInput>(null);
 
-    const _handleContinue = () => {
-        console.log({ ...user, phone: formattedPhoneNumber });
+
+    useEffect(() => {
+        UserService.getUser().then((res) => {
+            if (res) {
+                console.log(res);
+                // @ts-ignore
+                setUser(res);
+                //setFormattedPhoneNumber(res.phoneNumber);
+            }
+        });
+    }, []);
+
+
+    const _handleContinue = async () => {
+        console.log({...user});
         setCurrentStep(oldValue => Math.min(3, oldValue + 1));
-        if (currentStep >= 3)
-            router.navigate('/SportInterested');
+        if (currentStep >= 3) {
+            try {
+                //TODO:: test this method
+                //const res = await UserService.updateUser(user as UserRequest);
+                router.navigate('/SportInterested');
+            } catch (e) {
+                console.log('update user page', e);
+            }
+        }
     }
 
     const goBackFunc = () => {
@@ -66,9 +85,12 @@ const EditProfile = () => {
 
     const UserInfoEdit = () => {
         const [editUser, setEditUser] = useState<any>(user)
+        const phoneInput = useRef<PhoneInput>(null);
+        const [formattedPhoneNumber, setFormattedPhoneNumber] = useState<string>('');
 
         const _handleContinueUserInfo = () => {
             setUser(oldValue => ({...editUser}));
+            _handleContinue();
         }
 
         return (<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -78,7 +100,7 @@ const EditProfile = () => {
                         <Octicons name="pencil" size={24} color={'white'} style={styles.editIcon}/>
                     </TouchableOpacity>
                     {user.imageUrl ? <Avatar.Image size={100} source={{uri: editUser.imageUrl}}/>
-                        : <Avatar.Text size={100} label={user.name ? user.name[0] : ''}/>}
+                        : <Avatar.Text size={100} label={user.firstName ? user.firstName[0] : ''}/>}
                 </View>
                 <ScrollView automaticallyAdjustKeyboardInsets={true}>
                     <View style={styles.formContainer}>
@@ -91,7 +113,7 @@ const EditProfile = () => {
                                 placeholderTextColor={'grey'}
                                 left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
                                 value={editUser.firstName}
-                                onChangeText={(text) => setEditUser({...editUser, name: text})}
+                                onChangeText={(text) => setEditUser({...editUser, firstName: text})}
                                 underlineColor={"transparent"}
                             />
 
@@ -102,8 +124,8 @@ const EditProfile = () => {
                                 cursorColor='black'
                                 placeholderTextColor={'grey'}
                                 left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
-                                value={user.lastName}
-                                onChangeText={(text) => setUser({ ...user, lastName: text })}
+                                value={editUser.lastName}
+                                onChangeText={(text) => setEditUser({...editUser, lastName: text})}
                                 underlineColor={"transparent"}
 
                             />
@@ -131,7 +153,7 @@ const EditProfile = () => {
                                     withDarkTheme
                                     placeholder="Enter phone number"
                                     value={editUser.phoneNumber}
-                                    onChangeText={(text) => setUser({ ...user, phoneNumber: text })}
+                                    onChangeText={(text) => setEditUser({...editUser, phoneNumber: text})}
                                     containerStyle={styles.phoneInputContainer}
                                     textContainerStyle={styles.textPhoneInputContainer}
                                     onChangeFormattedText={(text) => setFormattedPhoneNumber(text)}
@@ -144,7 +166,7 @@ const EditProfile = () => {
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
                                     left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30}/>}
-                                    value={user.address}
+                                    value={editUser.address}
                                     onChangeText={(text) => setEditUser({...editUser, address: text})}
                                     underlineColor={"transparent"}
                                 />
@@ -171,7 +193,12 @@ const EditProfile = () => {
         </TouchableWithoutFeedback>);
     }
     const UserGenderEdit = () => {
-        const [selectedGender, setSelectedGender] = useState<Gender>();
+        const [selectedGender, setSelectedGender] = useState<Gender>(user?.gender);
+
+        const _handleContinueGenderEdit = () => {
+            setUser({...user, gender: selectedGender});
+            _handleContinue();
+        }
 
         return (
         <>
@@ -216,9 +243,8 @@ const EditProfile = () => {
                 </View>
                 <View style={styles.sideBySideButtons}>
                     <CustomButton text="Back" onPress={goToPreviousStep} style={styles.backButton} textStyle={styles.buttonText} />
-                    <CustomButton text="Continue" onPress={_handleContinue} style={styles.continueButton} />
+                    <CustomButton text="Continue" onPress={_handleContinueGenderEdit} style={styles.continueButton}/>
                 </View>
-
             </View>
         </>
         );
@@ -227,6 +253,7 @@ const EditProfile = () => {
         const refAge = useRef<ScrollPickerHandle>(null);
         const [selectedAgeIndex, setSelectedAgeIndex] = useState(user?.age - 1);
         const ages = Array.from({length: 100}, (_, i) => i + 1);
+
         const _onAgeChange = (index: number) => {
             setSelectedAgeIndex(index - 1);
             setUser({...user, age: ages[index - 1]});
@@ -264,22 +291,6 @@ const EditProfile = () => {
         </>
         );
     }
-
-
-
-    useEffect(() => {
-        UserService.getUser().then((res) => {
-            if (res) {
-                console.log(res);
-                setUser(res);
-                setSelectedGender(res.gender);
-                setSelectedAgeIndex(res.age - 1);
-                setFormattedPhoneNumber(res.phoneNumber);
-            }
-        });
-    }, []);
-
-
 
 
     return (
@@ -336,7 +347,8 @@ const styles = StyleSheet.create({
         color: 'black',
         fontSize: 18,
         fontWeight: "500",
-        marginTop: 10
+        marginTop: 10,
+        textAlign: 'center'
     },
     inputStyle: {
         backgroundColor: 'white',

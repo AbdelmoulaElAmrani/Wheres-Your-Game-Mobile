@@ -3,7 +3,7 @@ import { AuthService } from './AuthService';
 import { router } from 'expo-router';
 
 
-export const API_URI = 'https://flows-portugal-whatever-el.trycloudflare.com/api/'
+export const API_URI = 'https://greater-siemens-goods-chosen.trycloudflare.com/api/'
 
 const axiosInstance = axios.create({
     baseURL: API_URI,
@@ -44,9 +44,6 @@ axiosInstance.interceptors.response.use(
                 router.replace("/Login");
             }
         }
-    
-        
-        
     }
 );
 
@@ -64,7 +61,7 @@ const Requests = {
 
     get: async (url: string) : Promise<any> => {
         try {
-            const response = await api.get(url);
+            const response = await axiosInstance.get(url);
             return response;
         } catch (error : any) {
             return handleErrors(error);
@@ -73,7 +70,7 @@ const Requests = {
 
     post: async (url: string, body: any): Promise<any> => {
         try {
-            const response = await api.post(url, body);
+            const response = await axiosInstance.post(url, body);
             return response;
         } catch (error : any) {
             return handleErrors(error);
@@ -82,7 +79,7 @@ const Requests = {
 
     put: async (url: string, body: any) : Promise<any> => {
         try {
-            const response = await api.put(url, body);
+            const response = await axiosInstance.put(url, body);
             return response
         } catch (error : any) {
             return handleErrors(error);
@@ -91,7 +88,7 @@ const Requests = {
 
     delete: async (url: string)  : Promise<any> => {
         try {
-            const response = await api.delete(url);
+            const response = await axiosInstance.delete(url);
             return response;
         } catch (error : any) {
             return handleErrors(error);
