@@ -2,12 +2,13 @@ import { Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from
 import { Ionicons } from '@expo/vector-icons';
 import { router } from "expo-router";
 
-const CustomNavigationHeader = ({ text, showSkip = false, skipNavigation, showLogo = false, goBackFunction }: {
+const CustomNavigationHeader = ({ text, showBackArrow = true, showSkip = false, skipNavigation, showLogo = false, goBackFunction }: {
     text?: string,
     showSkip?: boolean,
     skipNavigation?: () => void,
     showLogo?: boolean,
-    goBackFunction?: () => void | undefined
+    goBackFunction?: () => void | undefined,
+    showBackArrow: boolean
 }) => {
 
     const _handleGoBack = (): void => {
@@ -26,9 +27,9 @@ const CustomNavigationHeader = ({ text, showSkip = false, skipNavigation, showLo
 
     return (
         <View style={styles.container}>
-            <TouchableOpacity onPress={_handleGoBack}>
+            {showBackArrow ?   <TouchableOpacity onPress={_handleGoBack}>
                 <Ionicons name="chevron-back" size={35} color="white" />
-            </TouchableOpacity>
+            </TouchableOpacity> : <View></View>}
             <View>
                 {showLogo ?
                     <Image source={require('../assets/images/ballwithoutText.png')} />

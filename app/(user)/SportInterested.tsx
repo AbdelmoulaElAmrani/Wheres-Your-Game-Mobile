@@ -1,79 +1,28 @@
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
-import { ImageBackground, StyleSheet, Text, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, ScrollView, FlatList } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useEffect, useState } from "react";
+import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
+import {
+    ImageBackground,
+    StyleSheet,
+    Text,
+    View,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    Keyboard,
+    ScrollView,
+    FlatList
+} from "react-native";
+import {SafeAreaView} from "react-native-safe-area-context";
+import {useEffect, useState} from "react";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import { Chip, RadioButton, TextInput } from "react-native-paper";
-import { AntDesign } from '@expo/vector-icons';
+import {Chip, RadioButton, TextInput} from "react-native-paper";
+import {AntDesign} from '@expo/vector-icons';
 import Sport from "@/models/Sport";
-import Gender from "@/models/Gender";
-import Checkbox from "expo-checkbox";
-import SportLevel, { convertStringToEnumValue } from "@/models/SportLevel";
-import { UserInteresstedSport } from "@/models/UserInterestedSport";
+import SportLevel, {convertStringToEnumValue} from "@/models/SportLevel";
+import {UserInterestedSport} from "@/models/UserInterestedSport";
+import {SportService} from "@/services/SportService";
+import {router} from "expo-router";
+import {useSelector} from "react-redux";
 
-const SportIntressed = () => {
-
-    const [currentStep, setCurrentStep] = useState<number>(1);
-    const [selectedType, setSelectedType] = useState<Gender>();
-    const [selectedSports, setSelectedSports] = useState<Map<string, UserInteresstedSport>>(new Map([
-        // ['1', { sportId: '1', sportName: 'American Football', sportLevel: undefined }],
-        // ['2', { sportId: '2', sportName: 'Archery', sportLevel: undefined }],
-        // ['3', { sportId: '3', sportName: 'Badminton', sportLevel: undefined }],
-    ]));
-
-    useEffect(() => {
-
-    }, []);
-
-
-    const [sports, setSports] = useState<Sport[]>([
-        { id: '1', name: 'American Football' },
-        { id: '2', name: 'Archery' },
-        { id: '3', name: 'Badminton' },
-        { id: '4', name: 'Baseball' },
-        { id: '5', name: 'Basketball' },
-        { id: '6', name: 'Bowling' },
-        { id: '7', name: 'Boxing' },
-        { id: '8', name: 'Cheerleading' },
-        { id: '9', name: 'Climbing' },
-        { id: '10', name: 'Cricket' },
-        { id: '11', name: 'Cross Country' },
-        { id: '12', name: 'Cross Fit' },
-        { id: '13', name: 'Cycling' },
-        { id: '14', name: 'Darts' },
-        { id: '15', name: 'Dance' },
-        { id: '16', name: 'Equestrian' },
-        { id: '17', name: 'Extreme Sports' },
-        { id: '18', name: 'Fencing' },
-        { id: '19', name: 'Fishing' },
-        { id: '20', name: 'Flag Football' },
-        { id: '21', name: 'Golf' },
-        { id: '22', name: 'Gymnastics' },
-        { id: '23', name: 'Hockey' },
-        { id: '24', name: 'Karate' },
-        { id: '25', name: 'Lacrosse' },
-        { id: '26', name: 'Martial Arts' },
-        { id: '27', name: 'Motor Racing' },
-        { id: '28', name: 'Pickleball' },
-        { id: '29', name: 'Pool' },
-        { id: '30', name: 'Powerlifting' },
-        { id: '31', name: 'Rifle Shooting' },
-        { id: '32', name: 'Rowing' },
-        { id: '33', name: 'Rugby' },
-        { id: '34', name: 'Skiing' },
-        { id: '35', name: 'Soccer' },
-        { id: '36', name: 'Softball' },
-        { id: '37', name: 'Swimming' },
-        { id: '38', name: 'Track and Field' },
-        { id: '39', name: 'T-Ball/Baseball' },
-        { id: '40', name: 'Tennis' },
-        { id: '41', name: 'Ultimate Frisbee' },
-        { id: '42', name: 'Volleyball' },
-        { id: '43', name: 'Water Polo' },
-        { id: '44', name: 'Wrestling' },
-        { id: '45', name: 'Yoga' },
-    ]);
-
+const SportInterested = () => {
     const _stepTitles = [
         {
             title: 'Choose your sports',
@@ -82,6 +31,74 @@ const SportIntressed = () => {
             title: 'Choose a level for sports',
             Header: 'Sports Level'
         }];
+    const [currentStep, setCurrentStep] = useState<number>(1);
+    const [selectedSports, setSelectedSports] = useState<Map<string, UserInterestedSport>>(new Map([
+        // ['1', { sportId: '1', sportName: 'American Football', sportLevel: undefined }],
+        // ['2', { sportId: '2', sportName: 'Archery', sportLevel: undefined }],
+        // ['3', { sportId: '3', sportName: 'Badminton', sportLevel: undefined }],
+    ]));
+    const [sports, setSports] = useState<Sport[] | undefined>([
+        // { id: '1', name: 'American Football' },
+        // { id: '2', name: 'Archery' },
+        // { id: '3', name: 'Badminton' },
+        // { id: '4', name: 'Baseball' },
+        // { id: '5', name: 'Basketball' },
+        // { id: '6', name: 'Bowling' },
+        // { id: '7', name: 'Boxing' },
+        // { id: '8', name: 'Cheerleading' },
+        // { id: '9', name: 'Climbing' },
+        // { id: '10', name: 'Cricket' },
+        // { id: '11', name: 'Cross Country' },
+        // { id: '12', name: 'Cross Fit' },
+        // { id: '13', name: 'Cycling' },
+        // { id: '14', name: 'Darts' },
+        // { id: '15', name: 'Dance' },
+        // { id: '16', name: 'Equestrian' },
+        // { id: '17', name: 'Extreme Sports' },
+        // { id: '18', name: 'Fencing' },
+        // { id: '19', name: 'Fishing' },
+        // { id: '20', name: 'Flag Football' },
+        // { id: '21', name: 'Golf' },
+        // { id: '22', name: 'Gymnastics' },
+        // { id: '23', name: 'Hockey' },
+        // { id: '24', name: 'Karate' },
+        // { id: '25', name: 'Lacrosse' },
+        // { id: '26', name: 'Martial Arts' },
+        // { id: '27', name: 'Motor Racing' },
+        // { id: '28', name: 'Pickleball' },
+        // { id: '29', name: 'Pool' },
+        // { id: '30', name: 'Powerlifting' },
+        // { id: '31', name: 'Rifle Shooting' },
+        // { id: '32', name: 'Rowing' },
+        // { id: '33', name: 'Rugby' },
+        // { id: '34', name: 'Skiing' },
+        // { id: '35', name: 'Soccer' },
+        // { id: '36', name: 'Softball' },
+        // { id: '37', name: 'Swimming' },
+        // { id: '38', name: 'Track and Field' },
+        // { id: '39', name: 'T-Ball/Baseball' },
+        // { id: '40', name: 'Tennis' },
+        // { id: '41', name: 'Ultimate Frisbee' },
+        // { id: '42', name: 'Volleyball' },
+        // { id: '43', name: 'Water Polo' },
+        // { id: '44', name: 'Wrestling' },
+        // { id: '45', name: 'Yoga' },
+    ]);
+
+
+    useEffect(() => {
+        const fetchSport = async () => {
+            try {
+                const data = await SportService.getAllSports();
+                setSports(data);
+            } catch (ex) {
+                console.log(ex);
+            }
+        }
+
+        fetchSport();
+    }, []);
+
 
     const _handleContinue = () => {
         setCurrentStep(oldValue => Math.max(2, oldValue - 1));
@@ -91,18 +108,32 @@ const SportIntressed = () => {
         currentStep === 1 ? _handleContinue() : handleSubmit();
     }
     const _handleGoBack = () => {
-        return currentStep === 1 ? undefined : goToPreviousStep;
+        if (currentStep === 1) {
+            return router.canGoBack() ? router.back : undefined;
+        } else {
+            return goToPreviousStep;
+        }
     }
 
     const goToPreviousStep = () => {
         setCurrentStep(oldValue => Math.max(1, oldValue - 1));
     };
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
+        console.log(selectedSports)
+        try {
+            const response = await SportService.registerUserToSport([...selectedSports.values()], 'userId')
+            router.replace('/Welcome');
+        } catch (e) {
+            console.log(e);
+        }
     };
 
-    const isSportSelected = (sportId?: string) => { return sportId ? selectedSports.has(sportId) : false; }
+    const isSportSelected = (sportId?: string) => {
+        return sportId ? selectedSports.has(sportId) : false;
+    }
 
     const _RenderSportCatalog = () => {
+        const [query, setQuery] = useState<string>('');
 
         const toggleSport = (sport: Sport) => {
             setSelectedSports((prevSelectedSports) => {
@@ -132,26 +163,29 @@ const SportIntressed = () => {
                         placeholder="Search Sports"
                         style={styles.credentialInput}
                         textColor='black'
+                        onChangeText={(value) => setQuery(value.toLowerCase())}
+                        value={query}
                         placeholderTextColor='#9BA0AB'
                         error={false}
                         underlineColor="transparent"
-                        left={<TextInput.Icon size={50} color='#9BA0AB' icon="magnify" />}
-                        right={<TextInput.Icon size={50} color='#9BA0AB' icon="tune-vertical" />}
+                        left={<TextInput.Icon size={50} color='#9BA0AB' icon="magnify"/>}
+                        right={<TextInput.Icon size={50} color='#9BA0AB' icon="tune-vertical"/>}
                     />
                     <ScrollView>
                         <View style={styles.sportContainer}>
-                            {sports.map(sport => {
+                            {sports?.filter(x => x.name.toLowerCase().includes(query)).map(sport => {
                                 const isSelected = isSportSelected(sport.id);
                                 return (<Chip
                                     key={sport.id}
                                     icon={() => (
-                                        isSelected && <AntDesign name="check" size={16} color="white" />
+                                        isSelected && <AntDesign name="check" size={16} color="white"/>
                                     )}
                                     mode="outlined"
-                                    style={[styles.sportItem, { backgroundColor: isSelected ? '#2757CB' : 'white' }]}
+                                    style={[styles.sportItem, {backgroundColor: isSelected ? '#2757CB' : 'white'}]}
                                     onPress={() => toggleSport(sport)}
                                 >
-                                    <Text style={[styles.sportText, { color: isSelected ? 'white' : 'black' }]}>{sport.name}</Text>
+                                    <Text
+                                        style={[styles.sportText, {color: isSelected ? 'white' : 'black'}]}>{sport.name}</Text>
                                 </Chip>)
                             })}
                         </View>
@@ -174,7 +208,7 @@ const SportIntressed = () => {
                 const updatedSports = new Map(prevSelectedSports);
                 if (updatedSports.has(id)) {
                     const sport = updatedSports.get(id);
-                    updatedSports.set(id, { ...sport, sportLevel: v });
+                    updatedSports.set(id, {...sport, sportLevel: v});
                 }
                 return updatedSports;
             });
@@ -191,22 +225,27 @@ const SportIntressed = () => {
         }
 
 
-        const _RenderItem = ({ item }: { item: UserInteresstedSport }) => {
+        const _RenderItem = ({item}: { item: UserInterestedSport }) => {
 
             return (
                 <View style={styles.lvlContainer}>
-                    <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{item.sportName}</Text>
+                    <Text style={{fontWeight: 'bold', fontSize: 16}}>{item.sportName}</Text>
                     <View>
                         {Object.values(SportLevel).filter((value) => typeof value === 'string').map((value, key) => (
                             <View
                                 key={key}
-                                style={{ flexDirection: 'row', marginTop: 10, alignItems: 'center', justifyContent: 'flex-start' }}>
+                                style={{
+                                    flexDirection: 'row',
+                                    marginTop: 10,
+                                    alignItems: 'center',
+                                    justifyContent: 'flex-start'
+                                }}>
                                 <RadioButton
                                     value={value.toString()}
                                     status={_checkIfSelected(item.sportId, value) ? 'checked' : 'unchecked'}
                                     onPress={() => _onSelectSportLevel(item.sportId, value)}
                                 />
-                                <Text style={{ fontSize: 16, marginLeft: 10 }}>{value}</Text>
+                                <Text style={{fontSize: 16, marginLeft: 10}}>{value}</Text>
                             </View>
                         ))}
                     </View>
@@ -217,16 +256,20 @@ const SportIntressed = () => {
         return (
             <View>
                 <View>
-                    <Text style={{ fontSize: 15, marginVertical: 3 }}><Text style={styles.headInfoText}>Beginner: </Text>New To Sport, Learning Basic Rules Or Skills Or Social League</Text>
-                    <Text style={{ fontSize: 15, marginVertical: 3 }}><Text style={styles.headInfoText}>Intermediate: </Text> Solid Understanding Of Rules, Refine Techniques, Level Up Competitive Experience</Text>
-                    <Text style={{ fontSize: 15, marginVertical: 3 }}><Text style={styles.headInfoText}>Advance: </Text>Mastery Of Rules And Skills, High Level Competition</Text>
+                    <Text style={{fontSize: 15, marginVertical: 3}}><Text style={styles.headInfoText}>Beginner: </Text>New
+                        To Sport, Learning Basic Rules Or Skills Or Social League</Text>
+                    <Text style={{fontSize: 15, marginVertical: 3}}><Text
+                        style={styles.headInfoText}>Intermediate: </Text> Solid Understanding Of Rules, Refine
+                        Techniques, Level Up Competitive Experience</Text>
+                    <Text style={{fontSize: 15, marginVertical: 3}}><Text style={styles.headInfoText}>Advance: </Text>Mastery
+                        Of Rules And Skills, High Level Competition</Text>
                 </View>
-                <View style={{ height: hp(45), marginTop: 3 }}>
+                <View style={{height: hp(45), marginTop: 3}}>
                     <FlatList
                         nestedScrollEnabled
                         showsVerticalScrollIndicator={true}
                         data={[...selectedSports.values()]}
-                        renderItem={({ item }) => <_RenderItem item={item} />}
+                        renderItem={({item}) => <_RenderItem item={item}/>}
                         keyExtractor={item => item.sportName + ' 1'}
                     />
                 </View>
@@ -237,33 +280,33 @@ const SportIntressed = () => {
 
     return (
         <ImageBackground
-            style={{ height: hp(100) }}
+            style={{height: hp(100)}}
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                <CustomNavigationHeader text={"Sport"} goBackFunction={_handleGoBack()} />
+                <CustomNavigationHeader text={"Sport"} goBackFunction={_handleGoBack()} showBackArrow/>
                 <View style={styles.container}>
                     <Text style={styles.stepText}>Step {currentStep}/2</Text>
                     <View style={styles.mainContainer}>
                         <View style={styles.titleContainer}>
                             <Text style={styles.title}>{_stepTitles[currentStep - 1].title}</Text>
                         </View>
-                        <View style={{ justifyContent: 'center', alignContent: "center", marginTop: 20 }}>
+                        <View style={{justifyContent: 'center', alignContent: "center", marginTop: 20}}>
                             <View>
-                                {currentStep === 1 && <_RenderSportCatalog />}
-                                {currentStep === 2 && <_RenderUserSportLevel />}
+                                {currentStep === 1 && <_RenderSportCatalog/>}
+                                {currentStep === 2 && <_RenderUserSportLevel/>}
                             </View>
                         </View>
 
                         <View style={styles.btnConainter}>
                             <TouchableOpacity
-                                onPress={_handleGoBack}
+                                onPress={_handleGoBack()}
                                 style={styles.btn}>
-                                <Text style={{ textAlign: 'center', fontSize: 18, color: '#2757CB' }}>Back</Text>
+                                <Text style={{textAlign: 'center', fontSize: 18, color: '#2757CB'}}>Back</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                onPress={() => _handleContinue()}
-                                style={[styles.btn, { backgroundColor: '#2757CB' }]}>
-                                <Text style={{ textAlign: 'center', fontSize: 18, color: 'white' }}>Continue</Text>
+                                onPress={() => _onNext()}
+                                style={[styles.btn, {backgroundColor: '#2757CB'}]}>
+                                <Text style={{textAlign: 'center', fontSize: 18, color: 'white'}}>Continue</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -357,7 +400,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 15,
         shadowColor: 'grey',
-        shadowOffset: { width: 8, height: 8 },
+        shadowOffset: {width: 8, height: 8},
         shadowOpacity: 0.1,
         shadowRadius: 8,
         elevation: 5,
@@ -369,4 +412,4 @@ const styles = StyleSheet.create({
 });
 
 
-export default SportIntressed;
+export default SportInterested;

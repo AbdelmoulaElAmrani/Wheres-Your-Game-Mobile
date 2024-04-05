@@ -1,11 +1,20 @@
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
-import { ImageBackground, StyleSheet, Text, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Alert } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
+import {
+    ImageBackground,
+    StyleSheet,
+    Text,
+    View,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    Keyboard,
+    Alert
+} from "react-native";
+import {SafeAreaView} from "react-native-safe-area-context";
 import Modal from "react-native-modal";
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 import CustomButton from "@/components/CustomButton";
-import { AntDesign } from "@expo/vector-icons";
-import { OtpInput } from "react-native-otp-entry";
+import {AntDesign} from "@expo/vector-icons";
+import {OtpInput} from "react-native-otp-entry";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import UserType from "@/models/UserType";
 import ParentIcon from "../../assets/images/svg/ParentIcon";
@@ -49,23 +58,21 @@ const UserStepForm = () => {
 
 
     const _showModal = () => {
-        if (_verifyUserStepDate(currentStep)){
+        if (_verifyUserStepDate(currentStep)) {
             setVisible(true)
             dispatch(updateUserRegisterData(userData));
-            
         }
-
-
     }
+
     const _hideModal = () => setVisible(false)
     const _verifyUserStepDate = (step: number): boolean => {
-        let verify = true;
-        if (!verify)
-            Alert.alert('Please Select a type');
-        return verify;
+        if (step === 1)
+            return _verifyUserSelectedHisRule();
+        else
+            return  true;
     }
 
-    const _verifyOTP = (otpNumber : string) => {
+    const _verifyOTP = (otpNumber: string) => {
         Keyboard.dismiss();
         if (otpNumber.trim().length !== 0) {
             setOtpCodeNotEmpty(true);
@@ -76,11 +83,18 @@ const UserStepForm = () => {
     const createUser = async () => {
         try {
             await AuthService.register(userData);
-            
+
         } catch (error) {
             console.error(error);
         }
     }
+
+    const _verifyUserSelectedHisRule = () => {
+        const res = userData.role !== UserType.DEFAULT;
+        if (!res) Alert.alert("You need to select a type");
+        return res;
+    }
+
     const goToNextStep = () => {
         createUser();
         setCurrentStep(oldValue => Math.max(2, oldValue - 1));
@@ -88,7 +102,14 @@ const UserStepForm = () => {
 
     const _onNext = () => {
         _hideModal();
-        currentStep === 1 ? goToNextStep() : handleSubmit();
+        if (currentStep === 1) {
+            if (!_verifyUserSelectedHisRule()) {
+                return;
+            }
+            goToNextStep();
+        } else {
+            handleSubmit();
+        }
     }
     const goBackFunc = () => {
         return currentStep === 1 ? undefined : goToPreviousStep;
@@ -96,7 +117,7 @@ const UserStepForm = () => {
 
 
     const goToPreviousStep = () => {
-        //setCurrentStep(oldValue => Math.max(1, oldValue - 1));
+        setCurrentStep(oldValue => Math.max(1, oldValue - 1));
     };
     const handleSubmit = () => {
         if (_verifyUserStepDate(currentStep))
@@ -113,47 +134,66 @@ const UserStepForm = () => {
     const UserTypeForm = () => (
         <>
             <View style={styles.rowContainer}>
-                <TouchableOpacity onPress={() => setUserData(oldValue => ({ ...oldValue, role: UserType.PARENT }))} style={[styles.squareContainer, { backgroundColor: _verifySelectedType(UserType.PARENT) ? '#2757CB' : 'white' }]}>
+                <TouchableOpacity onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.PARENT}))}
+                                  style={[styles.squareContainer, {backgroundColor: _verifySelectedType(UserType.PARENT) ? '#2757CB' : 'white'}]}>
                     {_verifySelectedType(UserType.PARENT) && <View style={styles.checkIcon}>
-                        <AntDesign name="checkcircle" size={20} color="white" />
+                        <AntDesign name="checkcircle" size={20} color="white"/>
                     </View>}
                     <View>
-                        <ParentIcon style={styles.userTypeIcon} fill={_verifySelectedType(UserType.PARENT) ? '#FFF' : '#000'} />
-                        <Text style={[styles.userTypeTitle, { color: _verifySelectedType(UserType.PARENT) ? 'white' : 'black' }]}>Parents</Text>
+                        <ParentIcon style={styles.userTypeIcon}
+                                    fill={_verifySelectedType(UserType.PARENT) ? '#FFF' : '#000'}/>
+                        <Text
+                            style={[styles.userTypeTitle, {color: _verifySelectedType(UserType.PARENT) ? 'white' : 'black'}]}>Parents</Text>
                     </View>
-                    <Text style={[styles.userTypeDescIcon, { color: _verifySelectedType(UserType.PARENT) ? 'white' : 'black' }]}>I am creating a parent profile</Text>
+                    <Text
+                        style={[styles.userTypeDescIcon, {color: _verifySelectedType(UserType.PARENT) ? 'white' : 'black'}]}>I
+                        am creating a parent profile</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setUserData(oldValue => ({ ...oldValue, role: UserType.PLAYER }))} style={[styles.squareContainer, { backgroundColor: _verifySelectedType(UserType.PLAYER) ? '#2757CB' : 'white' }]}>
+                <TouchableOpacity onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.PLAYER}))}
+                                  style={[styles.squareContainer, {backgroundColor: _verifySelectedType(UserType.PLAYER) ? '#2757CB' : 'white'}]}>
                     {_verifySelectedType(UserType.PLAYER) && <View style={styles.checkIcon}>
-                        <AntDesign name="checkcircle" size={20} color="white" />
+                        <AntDesign name="checkcircle" size={20} color="white"/>
                     </View>}
                     <View>
-                        <PlayerIcon style={styles.userTypeIcon} fill={_verifySelectedType(UserType.PLAYER) ? '#FFF' : '#000'} />
-                        <Text style={[styles.userTypeTitle, { color: _verifySelectedType(UserType.PLAYER) ? 'white' : 'black' }]}>Player</Text>
+                        <PlayerIcon style={styles.userTypeIcon}
+                                    fill={_verifySelectedType(UserType.PLAYER) ? '#FFF' : '#000'}/>
+                        <Text
+                            style={[styles.userTypeTitle, {color: _verifySelectedType(UserType.PLAYER) ? 'white' : 'black'}]}>Player</Text>
                     </View>
-                    <Text style={[styles.userTypeDescIcon, { color: _verifySelectedType(UserType.PLAYER) ? 'white' : 'black' }]}>I am creating a parent profile</Text>
+                    <Text
+                        style={[styles.userTypeDescIcon, {color: _verifySelectedType(UserType.PLAYER) ? 'white' : 'black'}]}>I
+                        am creating a parent profile</Text>
                 </TouchableOpacity>
             </View>
             <View style={styles.rowContainer}>
-                <TouchableOpacity onPress={() => setUserData(oldValue => ({ ...oldValue, role: UserType.COACH }))} style={[styles.squareContainer, { backgroundColor: _verifySelectedType(UserType.COACH) ? '#2757CB' : 'white' }]}>
+                <TouchableOpacity onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.COACH}))}
+                                  style={[styles.squareContainer, {backgroundColor: _verifySelectedType(UserType.COACH) ? '#2757CB' : 'white'}]}>
                     {_verifySelectedType(UserType.COACH) && <View style={styles.checkIcon}>
-                        <AntDesign name="checkcircle" size={20} color="white" />
+                        <AntDesign name="checkcircle" size={20} color="white"/>
                     </View>}
                     <View>
-                        <CoachIcon style={styles.userTypeIcon} fill={_verifySelectedType(UserType.COACH) ? '#FFF' : '#000'} />
-                        <Text style={[styles.userTypeTitle, { color: _verifySelectedType(UserType.COACH) ? 'white' : 'black' }]}>Coach/Trainer</Text>
+                        <CoachIcon style={styles.userTypeIcon}
+                                   fill={_verifySelectedType(UserType.COACH) ? '#FFF' : '#000'}/>
+                        <Text
+                            style={[styles.userTypeTitle, {color: _verifySelectedType(UserType.COACH) ? 'white' : 'black'}]}>Coach/Trainer</Text>
                     </View>
-                    <Text style={[styles.userTypeDescIcon, { color: _verifySelectedType(UserType.COACH) ? 'white' : 'black' }]}>Camps/Games Leagues Officiating Organization</Text>
+                    <Text
+                        style={[styles.userTypeDescIcon, {color: _verifySelectedType(UserType.COACH) ? 'white' : 'black'}]}>Camps/Games
+                        Leagues Officiating Organization</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setUserData(oldValue => ({ ...oldValue, role: UserType.BUSINESS }))} style={[styles.squareContainer, { backgroundColor: _verifySelectedType(UserType.BUSINESS) ? '#2757CB' : 'white' }]}>
+                <TouchableOpacity onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.BUSINESS}))}
+                                  style={[styles.squareContainer, {backgroundColor: _verifySelectedType(UserType.BUSINESS) ? '#2757CB' : 'white'}]}>
                     {_verifySelectedType(UserType.BUSINESS) && <View style={styles.checkIcon}>
-                        <AntDesign name="checkcircle" size={20} color="white" />
+                        <AntDesign name="checkcircle" size={20} color="white"/>
                     </View>}
                     <View>
-                        <BusinessIcon style={styles.userTypeIcon} fill={_verifySelectedType(UserType.BUSINESS) ? '#FFF' : '#000'} />
-                        <Text style={[styles.userTypeTitle, { color: _verifySelectedType(UserType.BUSINESS) ? 'white' : 'black' }]}>Business/Advertising Consultant</Text>
+                        <BusinessIcon style={styles.userTypeIcon}
+                                      fill={_verifySelectedType(UserType.BUSINESS) ? '#FFF' : '#000'}/>
+                        <Text
+                            style={[styles.userTypeTitle, {color: _verifySelectedType(UserType.BUSINESS) ? 'white' : 'black'}]}>Business/Advertising
+                            Consultant</Text>
                     </View>
-                    <Text style={{ marginTop: 15 }}></Text>
+                    <Text style={{marginTop: 15}}></Text>
                 </TouchableOpacity>
             </View>
         </>
@@ -213,10 +253,10 @@ const UserStepForm = () => {
 
     return (
         <ImageBackground
-            style={{ height: hp(100) }}
+            style={{height: hp(100)}}
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                <CustomNavigationHeader text={"User"} goBackFunction={goBackFunc()} />
+                <CustomNavigationHeader showBackArrow={currentStep === 1} text={"User"}/>
 
                 <View style={styles.container}>
                     <Text style={styles.stepText}>Step {currentStep}/2</Text>
@@ -225,18 +265,35 @@ const UserStepForm = () => {
                             <Text style={styles.title}>{_stepTitles[currentStep - 1].title}</Text>
                             <Text style={styles.subTitle}>{_stepTitles[currentStep - 1].subTitle}</Text>
                         </View>
-                        <View style={{ justifyContent: 'center', alignContent: "center", marginTop: 25, marginBottom: 25 }}>
+                        <View
+                            style={{justifyContent: 'center', alignContent: "center", marginTop: 25, marginBottom: 25}}>
 
-                            {currentStep === 1 && <UserTypeForm />}
-                            {currentStep === 2 && <OTPVerification />}
+                            {currentStep === 1 && <UserTypeForm/>}
+                            {currentStep === 2 && <OTPVerification/>}
                         </View>
-                        <CustomButton disabled={!otpCodeNotEmpty && currentStep === 2} text={buttonText[currentStep - 1]} onPress={_showModal} />
+                        <CustomButton disabled={!otpCodeNotEmpty && currentStep === 2}
+                                      text={buttonText[currentStep - 1]} onPress={_showModal}/>
                     </View>
                 </View>
                 <Modal onDismiss={_hideModal} isVisible={visible} style={styles.containerStyle}>
-                    <Text style={{ textAlign: "center", position: "absolute", top: 20, fontWeight: '900', letterSpacing: 1, fontSize: 20, marginHorizontal: 20, width: 300 }}>{_stepTitles[currentStep - 1].modalTitle}</Text>
-                    <Text style={{ textAlign: 'center', color: 'grey', letterSpacing: 0.2, fontSize: 16, marginHorizontal: 40 }}>{_stepTitles[currentStep - 1].modalSubTitle}</Text>
-                    <CustomButton style={{ position: "absolute", bottom: 25 }} text={"OK"} onPress={() => _onNext()} />
+                    <Text style={{
+                        textAlign: "center",
+                        position: "absolute",
+                        top: 20,
+                        fontWeight: '900',
+                        letterSpacing: 1,
+                        fontSize: 20,
+                        marginHorizontal: 20,
+                        width: 300
+                    }}>{_stepTitles[currentStep - 1].modalTitle}</Text>
+                    <Text style={{
+                        textAlign: 'center',
+                        color: 'grey',
+                        letterSpacing: 0.2,
+                        fontSize: 16,
+                        marginHorizontal: 40
+                    }}>{_stepTitles[currentStep - 1].modalSubTitle}</Text>
+                    <CustomButton style={{position: "absolute", bottom: 25}} text={"OK"} onPress={() => _onNext()}/>
                 </Modal>
             </SafeAreaView>
         </ImageBackground>
@@ -297,7 +354,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
+        shadowOffset: {width: 0, height: 10},
         shadowOpacity: 0.2,
         shadowRadius: 8,
         elevation: 5

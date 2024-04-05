@@ -1,6 +1,6 @@
 import CustomButton from "@/components/CustomButton";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import { useRef, useState } from "react";
+import {useEffect, useRef, useState} from "react";
 import { ImageBackground, Keyboard, StyleSheet, TouchableOpacity, View, TouchableWithoutFeedback, ScrollView, KeyboardAvoidingView, Platform } from "react-native"
 import { Avatar, Text, TextInput } from "react-native-paper";
 import PhoneInput from "react-native-phone-number-input";
@@ -20,17 +20,33 @@ import { UserResponse } from "@/models/responseObjects/UserResponse";
 
 const EditProfile = () => {
 
+    const [user, setUser] = useState({
+        name: 'John Doe',
+        age: 25,
+        email: 'jhon@gmail.com',
+        phone: '1234567890',
+        phoneCountryCode: 'FR',
+        gender: Gender.MALE,
+        imageUrl: null,//'http://www.cecyteo.edu.mx/Nova/App_themes/Nova2016/assets/pages/media/profile/profile_user.jpg'
+        address: '1234, Street, City, Country',
+        zipCode: '1111135'
+    });
+
+    const [currentStep, setCurrentStep] = useState<number>(1);
+    const [formattedPhoneNumber, setFormattedPhoneNumber] = useState<string>('');
+    const phoneInput = useRef<PhoneInput>(null);
+
     const _handleContinue = () => {
         console.log({ ...user, phone: formattedPhoneNumber });
         setCurrentStep(oldValue => Math.min(3, oldValue + 1));
         if (currentStep >= 3)
-            router.navigate('/SportIntressed');
+            router.navigate('/SportInterested');
     }
 
     const goBackFunc = () => {
         return currentStep === 1 ? undefined : goToPreviousStep;
     }
-    const _handlePofilePhotoEdit = () => {
+    const _handleProfilePhotoEdit = () => {
         console.log('Edit Profile Photo');
     }
     const goToPreviousStep = () => {
@@ -48,16 +64,21 @@ const EditProfile = () => {
     }
 
 
+    const UserInfoEdit = () => {
+        const [editUser, setEditUser] = useState<any>(user)
 
-    const UserInfoEdit = () => (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        const _handleContinueUserInfo = () => {
+            setUser(oldValue => ({...editUser}));
+        }
+
+        return (<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <>
-                <View style={{ alignItems: 'center', position: 'absolute', left: wp(30), right: wp(30), top: -55 }}>
-                    <TouchableOpacity onPress={_handlePofilePhotoEdit}>
-                        <Octicons name="pencil" size={24} color={'white'} style={styles.editIcon} />
+                <View style={{alignItems: 'center', position: 'absolute', left: wp(30), right: wp(30), top: -55}}>
+                    <TouchableOpacity onPress={_handleProfilePhotoEdit}>
+                        <Octicons name="pencil" size={24} color={'white'} style={styles.editIcon}/>
                     </TouchableOpacity>
-                    {user.imageUrl ? <Avatar.Image size={100} source={{ uri: user.imageUrl }} />
-                        : <Avatar.Text size={100} label={user.firstName ? user.firstName[0] : ''} />}
+                    {user.imageUrl ? <Avatar.Image size={100} source={{uri: editUser.imageUrl}}/>
+                        : <Avatar.Text size={100} label={user.name ? user.name[0] : ''}/>}
                 </View>
                 <ScrollView automaticallyAdjustKeyboardInsets={true}>
                     <View style={styles.formContainer}>
@@ -68,10 +89,9 @@ const EditProfile = () => {
                                 placeholder={'First Name'}
                                 cursorColor='black'
                                 placeholderTextColor={'grey'}
-                                left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
-                                value={user.firstName}
-                                // make the change of the state of the user object at the end of key stroke
-                                onChangeText={(text) => setUser({ ...user, firstName: text })}
+                                left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
+                                value={editUser.firstName}
+                                onChangeText={(text) => setEditUser({...editUser, name: text})}
                                 underlineColor={"transparent"}
                             />
 
@@ -95,9 +115,9 @@ const EditProfile = () => {
                                 placeholder={'Email'}
                                 cursorColor='black'
                                 placeholderTextColor={'grey'}
-                                left={<TextInput.Icon color={'#D3D3D3'} icon='email-outline' size={30} />}
-                                value={user.email}
-                                onChangeText={(text) => setUser({ ...user, email: text })}
+                                left={<TextInput.Icon color={'#D3D3D3'} icon='email-outline' size={30}/>}
+                                value={editUser.email}
+                                onChangeText={(text) => setEditUser({...editUser, email: text})}
                                 underlineColor={"transparent"}
                             />
 
@@ -107,9 +127,10 @@ const EditProfile = () => {
                                     ref={phoneInput}
                                     defaultCode={phoneInput?.current?.getCountryCode() || 'US'}
                                     layout="first"
+                                    defaultValue="US"
                                     withDarkTheme
                                     placeholder="Enter phone number"
-                                    value={user.phoneNumber}
+                                    value={editUser.phoneNumber}
                                     onChangeText={(text) => setUser({ ...user, phoneNumber: text })}
                                     containerStyle={styles.phoneInputContainer}
                                     textContainerStyle={styles.textPhoneInputContainer}
@@ -122,35 +143,37 @@ const EditProfile = () => {
                                     placeholder={'Address'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30} />}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30}/>}
                                     value={user.address}
-                                    onChangeText={(text) => setUser({ ...user, address: text })}
+                                    onChangeText={(text) => setEditUser({...editUser, address: text})}
                                     underlineColor={"transparent"}
                                 />
 
-                                {/* zip code */}
                                 <Text style={styles.textLabel}>Zip Code</Text>
                                 <TextInput
                                     style={styles.inputStyle}
                                     placeholder={'Zip Code'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30} />}
-                                    value={user.zipCode}
-                                    onChangeText={(text) => setUser({ ...user, zipCode: text })}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30}/>}
+                                    value={editUser.zipCode}
+                                    onChangeText={(text) => setEditUser({...editUser, zipCode: text})}
                                     underlineColor={"transparent"}
                                 />
                                 <View style={styles.buttonContainer}>
-                                    <CustomButton text="Continue" onPress={_handleContinue} />
+                                    <CustomButton text="Continue" onPress={_handleContinueUserInfo}/>
                                 </View>
                             </View>
                         </View>
                     </View>
                 </ScrollView>
             </>
-        </TouchableWithoutFeedback>
-    )
-    const UserGenderEdit = () => (
+        </TouchableWithoutFeedback>);
+    }
+    const UserGenderEdit = () => {
+        const [selectedGender, setSelectedGender] = useState<Gender>();
+
+        return (
         <>
             <View style={styles.topTextContainer}>
                 <Text style={styles.textFirst}>
@@ -197,13 +220,19 @@ const EditProfile = () => {
                 </View>
 
             </View>
-
-
-
         </>
-    )
-    const UserAgeEdit = () => (
-        <>
+        );
+    }
+    const UserAgeEdit = () => {
+        const refAge = useRef<ScrollPickerHandle>(null);
+        const [selectedAgeIndex, setSelectedAgeIndex] = useState(user?.age - 1);
+        const ages = Array.from({length: 100}, (_, i) => i + 1);
+        const _onAgeChange = (index: number) => {
+            setSelectedAgeIndex(index - 1);
+            setUser({...user, age: ages[index - 1]});
+        };
+
+        return (<>
             <View style={styles.topTextContainer}>
                 <Text style={styles.textFirst}>
                     How old are you ?
@@ -233,28 +262,10 @@ const EditProfile = () => {
                 </View>
             </View>
         </>
-    )
+        );
+    }
 
 
-
-
-    const [user, setUser] = useState<UserResponse>({} as UserResponse);
-    const ages = Array.from({ length: 100 }, (_, i) => i + 1);
-
-    const [selectedGender, setSelectedGender] = useState<Gender>();
-    const [currentStep, setCurrentStep] = useState<number>(1);
-    const [formattedPhoneNumber, setFormattedPhoneNumber] = useState<string>('');
-    const phoneInput = useRef<PhoneInput>(null);
-
-    const [selectedAgeIndex, setSelectedAgeIndex] = useState(user?.age - 1);
-
-    const refAge = useRef<ScrollPickerHandle>(null);
-
-
-    const _onAgeChange = (index: number) => {
-        setSelectedAgeIndex(index - 1);
-        setUser({ ...user, age: ages[index - 1] });
-    };
 
     useEffect(() => {
         UserService.getUser().then((res) => {
@@ -279,7 +290,7 @@ const EditProfile = () => {
 
             <SafeAreaView>
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <CustomNavigationHeader text={_getCurrentStepTitle()} goBackFunction={goBackFunc()} />
+                    <CustomNavigationHeader text={_getCurrentStepTitle()} goBackFunction={goBackFunc()}  showBackArrow/>
                 </TouchableWithoutFeedback>
                 <Text style={styles.stepText}>Step {currentStep}/3</Text>
                 <View style={styles.cardContainer}>

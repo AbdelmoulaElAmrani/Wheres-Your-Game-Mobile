@@ -1,4 +1,3 @@
-
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { AuthService } from './AuthService';
 import { router } from 'expo-router';
@@ -65,7 +64,7 @@ const Requests = {
 
     get: async (url: string) : Promise<any> => {
         try {
-            const response = await axiosInstance.get(url);
+            const response = await api.get(url);
             return response;
         } catch (error : any) {
             return handleErrors(error);
@@ -74,7 +73,7 @@ const Requests = {
 
     post: async (url: string, body: any): Promise<any> => {
         try {
-            const response = await axiosInstance.post(url, body);
+            const response = await api.post(url, body);
             return response;
         } catch (error : any) {
             return handleErrors(error);
@@ -83,7 +82,7 @@ const Requests = {
 
     put: async (url: string, body: any) : Promise<any> => {
         try {
-            const response = await axiosInstance.put(url, body);
+            const response = await api.put(url, body);
             return response
         } catch (error : any) {
             return handleErrors(error);
@@ -92,7 +91,7 @@ const Requests = {
 
     delete: async (url: string)  : Promise<any> => {
         try {
-            const response = await axiosInstance.delete(url);
+            const response = await api.delete(url);
             return response;
         } catch (error : any) {
             return handleErrors(error);
