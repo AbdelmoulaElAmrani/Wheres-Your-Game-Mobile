@@ -21,11 +21,11 @@ import ParentIcon from "../../assets/images/svg/ParentIcon";
 import CoachIcon from "../../assets/images/svg/CoachIcon";
 import BusinessIcon from "../../assets/images/svg/BusinessIcon";
 import PlayerIcon from "../../assets/images/svg/PlayerIcon";
-import {router} from "expo-router";
-import {RegisterRequest} from "@/models/requestObjects/RegisterRequest";
+import { router } from "expo-router";
+import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
 import {useDispatch, useSelector} from 'react-redux'
-import {AuthService} from "@/services/AuthService";
 import { updateUserRegisterData } from "@/redux/UserSlice";
+import { AuthService } from "@/services/AuthService";
 
 
 const UserStepForm = () => {

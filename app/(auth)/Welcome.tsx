@@ -6,8 +6,7 @@ import {router} from "expo-router";
 
 const Welcome = () => {
     const _handleGetStarted = () => {
-        console.log('Get Started');
-        router.navigate('Profile');
+        router.navigate('/(tabs)');
     }
   return (
     <>

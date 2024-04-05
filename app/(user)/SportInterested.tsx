@@ -95,7 +95,6 @@ const SportInterested = () => {
                 console.log(ex);
             }
         }
-
         fetchSport();
     }, []);
 
@@ -121,7 +120,7 @@ const SportInterested = () => {
     const handleSubmit = async () => {
         console.log(selectedSports)
         try {
-            const response = await SportService.registerUserToSport([...selectedSports.values()], 'userId')
+            //const response = await SportService.registerUserToSport([...selectedSports.values()], 'userId')
             router.replace('/Welcome');
         } catch (e) {
             console.log(e);
@@ -169,7 +168,6 @@ const SportInterested = () => {
                         error={false}
                         underlineColor="transparent"
                         left={<TextInput.Icon size={50} color='#9BA0AB' icon="magnify"/>}
-                        right={<TextInput.Icon size={50} color='#9BA0AB' icon="tune-vertical"/>}
                     />
                     <ScrollView>
                         <View style={styles.sportContainer}>

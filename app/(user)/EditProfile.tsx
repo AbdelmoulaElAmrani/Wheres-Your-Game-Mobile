@@ -12,36 +12,41 @@ import { router } from "expo-router";
 import Gender from "@/models/Gender";
 import MaleIcon from "@/assets/images/svg/MaleIcon";
 import FemaleIcon from "@/assets/images/svg/FemaleIcon";
+import {UserService} from "@/services/UserService";
 import { UserResponse } from "@/models/responseObjects/UserResponse";
-import { UserService } from "@/services/UserService";
+import {UserRequest} from "@/models/requestObjects/UserRequest";
+
+
 
 
 const EditProfile = () => {
 
     const [user, setUser] = useState<UserResponse>({} as UserResponse);
-
-
     const [currentStep, setCurrentStep] = useState<number>(1);
-    const [formattedPhoneNumber, setFormattedPhoneNumber] = useState<string>('');
-    const phoneInput = useRef<PhoneInput>(null);
 
 
     useEffect(() => {
         UserService.getUser().then((res) => {
             if (res) {
                 setUser(res);
-                // setSelectedGender(res.gender);
-                // setSelectedAgeIndex(res.age - 1);
                 setFormattedPhoneNumber(res.phoneNumber);
             }
-        });
-    }, []);
+        }).catch(e => console.log(e));
+}, []);
 
-    const _handleContinue = () => {
-        console.log({ ...user, phone: formattedPhoneNumber });
+
+    const _handleContinue = async () => {
+        console.log({...user});
         setCurrentStep(oldValue => Math.min(3, oldValue + 1));
-        if (currentStep >= 3)
-            router.navigate('/SportInterested');
+        if (currentStep >= 3) {
+            try {
+                //TODO:: test this method
+                //const res = await UserService.updateUser(user as UserRequest);
+                router.navigate('/SportInterested');
+            } catch (e) {
+                console.log('update user page', e);
+            }
+        }
     }
 
     const goBackFunc = () => {
@@ -66,10 +71,13 @@ const EditProfile = () => {
 
 
     const UserInfoEdit = () => {
-        const [editUser, setEditUser] = useState<UserResponse>(user)
+        const [editUser, setEditUser] = useState<any>(user)
+        const phoneInput = useRef<PhoneInput>(null);
+        const [formattedPhoneNumber, setFormattedPhoneNumber] = useState<string>('');
 
         const _handleContinueUserInfo = () => {
             setUser(oldValue => ({...editUser}));
+            _handleContinue();
         }
 
         return (<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -95,17 +103,19 @@ const EditProfile = () => {
                                 onChangeText={(text) => setEditUser({...editUser, firstName: text})}
                                 underlineColor={"transparent"}
                             />
-                             <Text style={styles.textLabel}>Last Name</Text>
+                            <Text style={styles.textLabel}>Last Name</Text>
                             <TextInput
                                 style={styles.inputStyle}
                                 placeholder={'Last Name'}
                                 cursorColor='black'
                                 placeholderTextColor={'grey'}
-                                left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
+                                left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
                                 value={editUser.lastName}
                                 onChangeText={(text) => setEditUser({...editUser, lastName: text})}
                                 underlineColor={"transparent"}
+
                             />
+
                             <Text style={styles.textLabel}>Email</Text>
                             <TextInput
                                 style={styles.inputStyle}
@@ -123,7 +133,7 @@ const EditProfile = () => {
                             <View style={styles.mgTop}>
                                 <PhoneInput
                                     ref={phoneInput}
-                                    defaultCode={phoneInput.current?.getCountryCode() || 'US'}
+                                    defaultCode={phoneInput?.current?.getCountryCode() || 'US'}
                                     layout="first"
                                     defaultValue="US"
                                     withDarkTheme
@@ -142,7 +152,7 @@ const EditProfile = () => {
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
                                     left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30}/>}
-                                    value={user.address}
+                                    value={editUser.address}
                                     onChangeText={(text) => setEditUser({...editUser, address: text})}
                                     underlineColor={"transparent"}
                                 />
@@ -169,7 +179,12 @@ const EditProfile = () => {
         </TouchableWithoutFeedback>);
     }
     const UserGenderEdit = () => {
-        const [selectedGender, setSelectedGender] = useState<Gender>();
+        const [selectedGender, setSelectedGender] = useState<Gender>(user?.gender);
+
+        const _handleContinueGenderEdit = () => {
+            setUser({...user, gender: selectedGender});
+            _handleContinue();
+        }
 
         return (
         <>
@@ -214,9 +229,8 @@ const EditProfile = () => {
                 </View>
                 <View style={styles.sideBySideButtons}>
                     <CustomButton text="Back" onPress={goToPreviousStep} style={styles.backButton} textStyle={styles.buttonText} />
-                    <CustomButton text="Continue" onPress={_handleContinue} style={styles.continueButton} />
+                    <CustomButton text="Continue" onPress={_handleContinueGenderEdit} style={styles.continueButton}/>
                 </View>
-
             </View>
         </>
         );
@@ -225,6 +239,7 @@ const EditProfile = () => {
         const refAge = useRef<ScrollPickerHandle>(null);
         const [selectedAgeIndex, setSelectedAgeIndex] = useState(user?.age - 1);
         const ages = Array.from({length: 100}, (_, i) => i + 1);
+
         const _onAgeChange = (index: number) => {
             setSelectedAgeIndex(index - 1);
             setUser({...user, age: ages[index - 1]});
@@ -262,7 +277,6 @@ const EditProfile = () => {
         </>
         );
     }
-
 
 
     return (
@@ -319,7 +333,8 @@ const styles = StyleSheet.create({
         color: 'black',
         fontSize: 18,
         fontWeight: "500",
-        marginTop: 10
+        marginTop: 10,
+        textAlign: 'center'
     },
     inputStyle: {
         backgroundColor: 'white',

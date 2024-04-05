@@ -6,6 +6,11 @@ import Requests from "./Requests";
 
 export class AuthService {
 
+    static logOut = async (): Promise<void> => {
+        await LocalStorageService.removeItem('accessToken');
+        await LocalStorageService.removeItem('refreshToken');
+    }
+
     static getAccessToken = async (): Promise<string | null> => {
         try {
             const token = await LocalStorageService.getItem<string>('accessToken');

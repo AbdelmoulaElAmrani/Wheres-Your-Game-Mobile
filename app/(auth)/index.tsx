@@ -55,7 +55,7 @@ const Intro = () => {
                             <Carousel
                                 loop={true}
                                 width={windowWidth}
-                                height={500}
+                                height={540}
                                 autoPlay={true}
                                 autoPlayInterval={2000}
                                 onSnapToItem={index => setCurrentIndex(index)}
