@@ -12,6 +12,10 @@ import { router } from "expo-router";
 import Gender from "@/models/Gender";
 import MaleIcon from "@/assets/images/svg/MaleIcon";
 import FemaleIcon from "@/assets/images/svg/FemaleIcon";
+import { useEffect } from "react";
+import {UserService} from "@/services/UserService";
+import { UserResponse } from "@/models/responseObjects/UserResponse";
+
 
 
 const EditProfile = () => {
@@ -53,7 +57,7 @@ const EditProfile = () => {
                         <Octicons name="pencil" size={24} color={'white'} style={styles.editIcon} />
                     </TouchableOpacity>
                     {user.imageUrl ? <Avatar.Image size={100} source={{ uri: user.imageUrl }} />
-                        : <Avatar.Text size={100} label={user.name ? user.name[0] : ''} />}
+                        : <Avatar.Text size={100} label={user.firstName ? user.firstName[0] : ''} />}
                 </View>
                 <ScrollView automaticallyAdjustKeyboardInsets={true}>
                     <View style={styles.formContainer}>
@@ -61,15 +65,29 @@ const EditProfile = () => {
                             <Text style={styles.textLabel}>Full Name</Text>
                             <TextInput
                                 style={styles.inputStyle}
-                                placeholder={'Full Name'}
+                                placeholder={'First Name'}
                                 cursorColor='black'
                                 placeholderTextColor={'grey'}
                                 left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
-                                value={user.name}
+                                value={user.firstName}
                                 // make the change of the state of the user object at the end of key stroke
-                                onChangeText={(text) => setUser({ ...user, name: text })}
+                                onChangeText={(text) => setUser({ ...user, firstName: text })}
                                 underlineColor={"transparent"}
                             />
+
+                            <Text style={styles.textLabel}>Last Name</Text>
+                            <TextInput
+                                style={styles.inputStyle}
+                                placeholder={'Last Name'}
+                                cursorColor='black'
+                                placeholderTextColor={'grey'}
+                                left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
+                                value={user.lastName}
+                                onChangeText={(text) => setUser({ ...user, lastName: text })}
+                                underlineColor={"transparent"}
+
+                            />
+
                             <Text style={styles.textLabel}>Email</Text>
                             <TextInput
                                 style={styles.inputStyle}
@@ -87,12 +105,12 @@ const EditProfile = () => {
                             <View style={styles.mgTop}>
                                 <PhoneInput
                                     ref={phoneInput}
-                                    defaultCode={user.phoneContryCode}
+                                    defaultCode={phoneInput?.current?.getCountryCode() || 'US'}
                                     layout="first"
                                     withDarkTheme
                                     placeholder="Enter phone number"
-                                    value={user.phone}
-                                    onChangeText={(text) => setUser({ ...user, phone: text })}
+                                    value={user.phoneNumber}
+                                    onChangeText={(text) => setUser({ ...user, phoneNumber: text })}
                                     containerStyle={styles.phoneInputContainer}
                                     textContainerStyle={styles.textPhoneInputContainer}
                                     onChangeFormattedText={(text) => setFormattedPhoneNumber(text)}
@@ -220,17 +238,7 @@ const EditProfile = () => {
 
 
 
-    const [user, setUser] = useState({
-        name: 'John Doe',
-        age: 25,
-        email: 'jhon@gmail.com',
-        phone: '1234567890',
-        phoneContryCode: 'FR',
-        gender: 'Male',
-        imageUrl: null,//'http://www.cecyteo.edu.mx/Nova/App_themes/Nova2016/assets/pages/media/profile/profile_user.jpg'
-        address: '1234, Street, City, Country',
-        zipCode: '1111135'
-    });
+    const [user, setUser] = useState<UserResponse>({} as UserResponse);
     const ages = Array.from({ length: 100 }, (_, i) => i + 1);
 
     const [selectedGender, setSelectedGender] = useState<Gender>();
@@ -247,6 +255,21 @@ const EditProfile = () => {
         setSelectedAgeIndex(index - 1);
         setUser({ ...user, age: ages[index - 1] });
     };
+
+    useEffect(() => {
+        UserService.getUser().then((res) => {
+            if (res) {
+                console.log(res);
+                setUser(res);
+                setSelectedGender(res.gender);
+                setSelectedAgeIndex(res.age - 1);
+                setFormattedPhoneNumber(res.phoneNumber);
+            }
+        });
+    }, []);
+
+
+
 
     return (
         <ImageBackground

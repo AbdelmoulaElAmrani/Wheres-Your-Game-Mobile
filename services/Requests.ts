@@ -1,8 +1,10 @@
 
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
+import { AuthService } from './AuthService';
+import { router } from 'expo-router';
 
 
-export const API_URI = 'https://matrix-beneath-aspects-bill.trycloudflare.com/api/'
+export const API_URI = 'https://flows-portugal-whatever-el.trycloudflare.com/api/'
 
 const axiosInstance = axios.create({
     baseURL: API_URI,
@@ -10,12 +12,53 @@ const axiosInstance = axios.create({
         'Content-Type': 'application/json',
     },
 });
-
-const handleErrors = (err: AxiosError) => {
-    if (err && err.response && err.response.status === 401) {
-        // AuthService.logout();
+// Request Interceptor
+axiosInstance.interceptors.request.use(
+    async (config) => {
+        const accessToken = await AuthService.getAccessToken();
+        if (accessToken) {
+            config.headers.Authorizations = `Bearer ${accessToken}`;
+            config.headers = { ...config.headers, Authorizations: `Bearer ${accessToken}` } as any;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
     }
+);
+
+// Response Interceptor
+axiosInstance.interceptors.response.use(
+    (response : AxiosResponse) => response,
+    async (error : AxiosError) => {
+        if (error.response && error.response.status === 401) {
+            try {
+                const newAccessToken = await AuthService.refreshToken();
+                if (newAccessToken) {
+                    if (error.config && error.config.headers) {
+                        error.config.headers['Authorizations'] = `Bearer ${newAccessToken}`;
+                        return axiosInstance.request(error.config);
+                    }
+                }
+            }
+            catch (err) {
+                await AuthService.logOut();
+                router.replace("/Login");
+            }
+        }
+    
         
+        
+    }
+);
+
+
+
+const handleErrors = async (err: AxiosError) => {
+    if (err && err.response && err.response.status === 401) {
+        await AuthService.logOut();
+        //router.replace("/Login");
+    }
     return err;
 };
 

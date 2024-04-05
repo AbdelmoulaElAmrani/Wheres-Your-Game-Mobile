@@ -14,8 +14,8 @@ import BusinessIcon from "../../assets/images/svg/BusinessIcon";
 import PlayerIcon from "../../assets/images/svg/PlayerIcon";
 import { router } from "expo-router";
 import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
-import {useDispatch,useSelector} from 'react-redux'
-import { updateUerData } from "@/redux/UserRegisterSlice";
+import {useDispatch, useSelector} from 'react-redux'
+import { updateUserRegisterData } from "@/redux/UserSlice";
 import { AuthService } from "@/services/AuthService";
 
 
@@ -25,7 +25,7 @@ const UserStepForm = () => {
     const [otpCodeNotEmpty, setOtpCodeNotEmpty] = useState<boolean>(false);
     const [currentStep, setCurrentStep] = useState<number>(1);
     // TODO:: replace it with redux or get user data from localstorage
-    const userRegister = useSelector((state: any) => state.userRegister);
+    const userRegister = useSelector((state: any) => state.user.userRegister);
 
     const [userData, setUserData] = useState<RegisterRequest>(userRegister);
     const _stepTitles = [
@@ -51,7 +51,7 @@ const UserStepForm = () => {
     const _showModal = () => {
         if (_verifyUserStepDate(currentStep)){
             setVisible(true)
-            dispatch(updateUerData(userData));
+            dispatch(updateUserRegisterData(userData));
             
         }
 

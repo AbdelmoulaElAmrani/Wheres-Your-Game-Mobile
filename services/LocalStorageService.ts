@@ -19,4 +19,11 @@ export default class LocalStorageService {
             return null;
         }
     }
+    static async removeItem(key: string): Promise<void> {
+        try {
+            await AsyncStorage.removeItem(key);
+        } catch (error) {
+            console.error(error);
+        }
+    }
 }
