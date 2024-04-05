@@ -12,6 +12,10 @@ import { router } from "expo-router";
 import Gender from "@/models/Gender";
 import MaleIcon from "@/assets/images/svg/MaleIcon";
 import FemaleIcon from "@/assets/images/svg/FemaleIcon";
+import { useEffect } from "react";
+import {UserService} from "@/services/UserService";
+import { UserResponse } from "@/models/responseObjects/UserResponse";
+
 
 
 const EditProfile = () => {
@@ -82,14 +86,28 @@ const EditProfile = () => {
                             <Text style={styles.textLabel}>Full Name</Text>
                             <TextInput
                                 style={styles.inputStyle}
-                                placeholder={'Full Name'}
+                                placeholder={'First Name'}
                                 cursorColor='black'
                                 placeholderTextColor={'grey'}
                                 left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
-                                value={editUser.name}
+                                value={editUser.firstName}
                                 onChangeText={(text) => setEditUser({...editUser, name: text})}
                                 underlineColor={"transparent"}
                             />
+
+                            <Text style={styles.textLabel}>Last Name</Text>
+                            <TextInput
+                                style={styles.inputStyle}
+                                placeholder={'Last Name'}
+                                cursorColor='black'
+                                placeholderTextColor={'grey'}
+                                left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
+                                value={user.lastName}
+                                onChangeText={(text) => setUser({ ...user, lastName: text })}
+                                underlineColor={"transparent"}
+
+                            />
+
                             <Text style={styles.textLabel}>Email</Text>
                             <TextInput
                                 style={styles.inputStyle}
@@ -107,13 +125,13 @@ const EditProfile = () => {
                             <View style={styles.mgTop}>
                                 <PhoneInput
                                     ref={phoneInput}
-                                    defaultCode={editUser.phoneCountryCode}
+                                    defaultCode={phoneInput?.current?.getCountryCode() || 'US'}
                                     layout="first"
                                     defaultValue="US"
                                     withDarkTheme
                                     placeholder="Enter phone number"
-                                    value={editUser.phone}
-                                    onChangeText={(text) => setEditUser({...editUser, phone: text})}
+                                    value={editUser.phoneNumber}
+                                    onChangeText={(text) => setUser({ ...user, phoneNumber: text })}
                                     containerStyle={styles.phoneInputContainer}
                                     textContainerStyle={styles.textPhoneInputContainer}
                                     onChangeFormattedText={(text) => setFormattedPhoneNumber(text)}
@@ -246,6 +264,21 @@ const EditProfile = () => {
         </>
         );
     }
+
+
+
+    useEffect(() => {
+        UserService.getUser().then((res) => {
+            if (res) {
+                console.log(res);
+                setUser(res);
+                setSelectedGender(res.gender);
+                setSelectedAgeIndex(res.age - 1);
+                setFormattedPhoneNumber(res.phoneNumber);
+            }
+        });
+    }, []);
+
 
 
 
