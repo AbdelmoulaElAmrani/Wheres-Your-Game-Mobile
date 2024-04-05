@@ -12,25 +12,30 @@ import { router } from "expo-router";
 import Gender from "@/models/Gender";
 import MaleIcon from "@/assets/images/svg/MaleIcon";
 import FemaleIcon from "@/assets/images/svg/FemaleIcon";
+import { UserResponse } from "@/models/responseObjects/UserResponse";
+import { UserService } from "@/services/UserService";
 
 
 const EditProfile = () => {
 
-    const [user, setUser] = useState({
-        name: 'John Doe',
-        age: 25,
-        email: 'jhon@gmail.com',
-        phone: '1234567890',
-        phoneCountryCode: 'FR',
-        gender: Gender.MALE,
-        imageUrl: null,//'http://www.cecyteo.edu.mx/Nova/App_themes/Nova2016/assets/pages/media/profile/profile_user.jpg'
-        address: '1234, Street, City, Country',
-        zipCode: '1111135'
-    });
+    const [user, setUser] = useState<UserResponse>({} as UserResponse);
+
 
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [formattedPhoneNumber, setFormattedPhoneNumber] = useState<string>('');
     const phoneInput = useRef<PhoneInput>(null);
+
+
+    useEffect(() => {
+        UserService.getUser().then((res) => {
+            if (res) {
+                setUser(res);
+                // setSelectedGender(res.gender);
+                // setSelectedAgeIndex(res.age - 1);
+                setFormattedPhoneNumber(res.phoneNumber);
+            }
+        });
+    }, []);
 
     const _handleContinue = () => {
         console.log({ ...user, phone: formattedPhoneNumber });
@@ -61,7 +66,7 @@ const EditProfile = () => {
 
 
     const UserInfoEdit = () => {
-        const [editUser, setEditUser] = useState<any>(user)
+        const [editUser, setEditUser] = useState<UserResponse>(user)
 
         const _handleContinueUserInfo = () => {
             setUser(oldValue => ({...editUser}));
@@ -74,20 +79,31 @@ const EditProfile = () => {
                         <Octicons name="pencil" size={24} color={'white'} style={styles.editIcon}/>
                     </TouchableOpacity>
                     {user.imageUrl ? <Avatar.Image size={100} source={{uri: editUser.imageUrl}}/>
-                        : <Avatar.Text size={100} label={user.name ? user.name[0] : ''}/>}
+                        : <Avatar.Text size={100} label={editUser.firstName[0] + editUser.lastName[0]}/>}
                 </View>
                 <ScrollView automaticallyAdjustKeyboardInsets={true}>
                     <View style={styles.formContainer}>
                         <View style={styles.mgTop}>
-                            <Text style={styles.textLabel}>Full Name</Text>
+                            <Text style={styles.textLabel}>First Name</Text>
                             <TextInput
                                 style={styles.inputStyle}
-                                placeholder={'Full Name'}
+                                placeholder={'First Name'}
                                 cursorColor='black'
                                 placeholderTextColor={'grey'}
                                 left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
-                                value={editUser.name}
-                                onChangeText={(text) => setEditUser({...editUser, name: text})}
+                                value={editUser.firstName}
+                                onChangeText={(text) => setEditUser({...editUser, firstName: text})}
+                                underlineColor={"transparent"}
+                            />
+                             <Text style={styles.textLabel}>Last Name</Text>
+                            <TextInput
+                                style={styles.inputStyle}
+                                placeholder={'Last Name'}
+                                cursorColor='black'
+                                placeholderTextColor={'grey'}
+                                left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
+                                value={editUser.lastName}
+                                onChangeText={(text) => setEditUser({...editUser, lastName: text})}
                                 underlineColor={"transparent"}
                             />
                             <Text style={styles.textLabel}>Email</Text>
@@ -107,13 +123,13 @@ const EditProfile = () => {
                             <View style={styles.mgTop}>
                                 <PhoneInput
                                     ref={phoneInput}
-                                    defaultCode={editUser.phoneCountryCode}
+                                    defaultCode={phoneInput.current?.getCountryCode() || 'US'}
                                     layout="first"
                                     defaultValue="US"
                                     withDarkTheme
                                     placeholder="Enter phone number"
-                                    value={editUser.phone}
-                                    onChangeText={(text) => setEditUser({...editUser, phone: text})}
+                                    value={editUser.phoneNumber}
+                                    onChangeText={(text) => setEditUser({...editUser, phoneNumber: text})}
                                     containerStyle={styles.phoneInputContainer}
                                     textContainerStyle={styles.textPhoneInputContainer}
                                     onChangeFormattedText={(text) => setFormattedPhoneNumber(text)}

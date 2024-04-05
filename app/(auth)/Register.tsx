@@ -9,8 +9,8 @@ import { router } from "expo-router";
 import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
 import UserType from "@/models/UserType";
 import { useDispatch } from 'react-redux'
-import { updateUerData } from "@/redux/UserRegisterSlice";
 import PhoneInput from "react-native-phone-number-input";
+import { updateUserRegisterData } from "@/redux/UserSlice";
 
 
 
@@ -36,7 +36,7 @@ const Register = () => {
     const _handleOnNext = (): void => {
         const errors = _verifyRequiredData(userData);
         if (errors.length === 0) {
-            dispatch(updateUerData({ ...userData, phoneNumber: formattedPhoneNumber }))
+            dispatch(updateUserRegisterData({ ...userData, phoneNumber: formattedPhoneNumber }))
             router.navigate("/TermsPolicies");
         } else {
             Alert.alert(errors.join('\n'));
