@@ -28,6 +28,7 @@ export class UserService {
         if (res.data) {
             return res.data;
         }
+
         return undefined;
     }
 
