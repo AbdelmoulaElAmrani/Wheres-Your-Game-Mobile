@@ -9,8 +9,8 @@ import { router } from "expo-router";
 import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
 import UserType from "@/models/UserType";
 import { useDispatch } from 'react-redux'
-import { updateUserRegisterData } from "@/redux/UserSlice";
 import PhoneInput from "react-native-phone-number-input";
+import { updateUserRegisterData } from "@/redux/UserSlice";
 
 
 

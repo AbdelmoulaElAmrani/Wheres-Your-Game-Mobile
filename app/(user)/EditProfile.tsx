@@ -18,34 +18,21 @@ import {UserRequest} from "@/models/requestObjects/UserRequest";
 
 
 
+
 const EditProfile = () => {
 
-    const [user, setUser] = useState({
-        firstName: 'John',
-        lastName: 'Doe',
-        age: 25,
-        email: 'jhon@gmail.com',
-        phoneNumber: '1234567890',
-        phoneCountryCode: 'FR',
-        gender: Gender.MALE,
-        imageUrl: null,//'http://www.cecyteo.edu.mx/Nova/App_themes/Nova2016/assets/pages/media/profile/profile_user.jpg'
-        address: '1234, Street, City, Country',
-        zipCode: '1111135'
-    });
-
+    const [user, setUser] = useState<UserResponse>({} as UserResponse);
     const [currentStep, setCurrentStep] = useState<number>(1);
 
 
     useEffect(() => {
         UserService.getUser().then((res) => {
             if (res) {
-                console.log(res);
-                // @ts-ignore
                 setUser(res);
-                //setFormattedPhoneNumber(res.phoneNumber);
+                setFormattedPhoneNumber(res.phoneNumber);
             }
-        });
-    }, []);
+        }).catch(e => console.log(e));
+}, []);
 
 
     const _handleContinue = async () => {
@@ -100,12 +87,12 @@ const EditProfile = () => {
                         <Octicons name="pencil" size={24} color={'white'} style={styles.editIcon}/>
                     </TouchableOpacity>
                     {user.imageUrl ? <Avatar.Image size={100} source={{uri: editUser.imageUrl}}/>
-                        : <Avatar.Text size={100} label={user.firstName ? user.firstName[0] : ''}/>}
+                        : <Avatar.Text size={100} label={editUser.firstName[0] + editUser.lastName[0]}/>}
                 </View>
                 <ScrollView automaticallyAdjustKeyboardInsets={true}>
                     <View style={styles.formContainer}>
                         <View style={styles.mgTop}>
-                            <Text style={styles.textLabel}>Full Name</Text>
+                            <Text style={styles.textLabel}>First Name</Text>
                             <TextInput
                                 style={styles.inputStyle}
                                 placeholder={'First Name'}
@@ -116,7 +103,6 @@ const EditProfile = () => {
                                 onChangeText={(text) => setEditUser({...editUser, firstName: text})}
                                 underlineColor={"transparent"}
                             />
-
                             <Text style={styles.textLabel}>Last Name</Text>
                             <TextInput
                                 style={styles.inputStyle}

@@ -2,7 +2,7 @@ import axios, {AxiosRequestConfig, AxiosResponse, AxiosError} from 'axios';
 import {AuthService} from '@/services/AuthService';
 
 
-export const API_URI = 'https://colour-american-arabia-bond.trycloudflare.com/api/'
+export const API_URI = 'https://flows-portugal-whatever-el.trycloudflare.com/api/'
 
 const api = axios.create({
     baseURL: API_URI,

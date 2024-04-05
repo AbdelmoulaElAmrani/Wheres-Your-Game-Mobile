@@ -27,6 +27,7 @@ const Login = () => {
             }, 5000);
             return;
         }
+
         const data = await AuthService.logIn({email: email, password: password});
         if (data !== null && data !== undefined) {
             router.replace('/Welcome');
