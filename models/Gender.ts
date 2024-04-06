@@ -1,6 +1,7 @@
 enum Gender {
     MALE,
-    FEMALE
+    FEMALE,
+    DEFAULT
 }
 
 

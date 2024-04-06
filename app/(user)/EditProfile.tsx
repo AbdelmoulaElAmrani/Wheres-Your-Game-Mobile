@@ -1,38 +1,56 @@
 import CustomButton from "@/components/CustomButton";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {useEffect, useRef, useState} from "react";
-import { ImageBackground, Keyboard, StyleSheet, TouchableOpacity, View, TouchableWithoutFeedback, ScrollView, KeyboardAvoidingView, Platform } from "react-native"
-import { Avatar, Text, TextInput } from "react-native-paper";
+import {
+    ImageBackground,
+    Keyboard,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View
+} from "react-native"
+import {Avatar, Text, TextInput} from "react-native-paper";
 import PhoneInput from "react-native-phone-number-input";
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Octicons } from '@expo/vector-icons';
-import ScrollPicker, { ScrollPickerHandle } from "react-native-wheel-scrollview-picker";
-import { router } from "expo-router";
+import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
+import {SafeAreaView} from "react-native-safe-area-context";
+import {Octicons} from '@expo/vector-icons';
+import ScrollPicker, {ScrollPickerHandle} from "react-native-wheel-scrollview-picker";
+import {router} from "expo-router";
 import Gender from "@/models/Gender";
 import MaleIcon from "@/assets/images/svg/MaleIcon";
 import FemaleIcon from "@/assets/images/svg/FemaleIcon";
 import {UserService} from "@/services/UserService";
-import { UserResponse } from "@/models/responseObjects/UserResponse";
-import {UserRequest} from "@/models/requestObjects/UserRequest";
-
-
+import {UserResponse} from "@/models/responseObjects/UserResponse";
 
 
 const EditProfile = () => {
 
-    const [user, setUser] = useState<UserResponse>({} as UserResponse);
+    const [user, setUser] = useState<UserResponse>({
+        address: "",
+        age: 0,
+        bio: "",
+        email: "",
+        firstName: "",
+        gender: Gender.DEFAULT,
+        imageUrl: "",
+        lastName: "",
+        phoneCountryCode: "",
+        phoneNumber: "",
+        role: "",
+        zipCode: ""
+    });
     const [currentStep, setCurrentStep] = useState<number>(1);
 
 
     useEffect(() => {
         UserService.getUser().then((res) => {
+            console.log(res);
             if (res) {
                 setUser(res);
-                setFormattedPhoneNumber(res.phoneNumber);
             }
         }).catch(e => console.log(e));
-}, []);
+    }, []);
 
 
     const _handleContinue = async () => {
@@ -75,14 +93,21 @@ const EditProfile = () => {
         const phoneInput = useRef<PhoneInput>(null);
         const [formattedPhoneNumber, setFormattedPhoneNumber] = useState<string>('');
 
-        const _handleContinueUserInfo = () => {
+        const _handleContinueUserInfo = async () => {
             setUser(oldValue => ({...editUser}));
-            _handleContinue();
+            await _handleContinue();
         }
 
         return (<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <>
-                <View style={{alignItems: 'center', position: 'absolute', left: wp(30), right: wp(30), top: -55}}>
+                <View style={{
+                    alignItems: 'center',
+                    position: 'absolute',
+                    left: wp(30),
+                    right: wp(30),
+                    top: -55,
+                    zIndex: 999
+                }}>
                     <TouchableOpacity onPress={_handleProfilePhotoEdit}>
                         <Octicons name="pencil" size={24} color={'white'} style={styles.editIcon}/>
                     </TouchableOpacity>
@@ -100,7 +125,7 @@ const EditProfile = () => {
                                 placeholderTextColor={'grey'}
                                 left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
                                 value={editUser.firstName}
-                                onChangeText={(text) => setEditUser({...editUser, firstName: text})}
+                                onChangeText={(text) => setEditUser({...editUser, L: text})}
                                 underlineColor={"transparent"}
                             />
                             <Text style={styles.textLabel}>Last Name</Text>
@@ -109,7 +134,7 @@ const EditProfile = () => {
                                 placeholder={'Last Name'}
                                 cursorColor='black'
                                 placeholderTextColor={'grey'}
-                                left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
+                                left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
                                 value={editUser.lastName}
                                 onChangeText={(text) => setEditUser({...editUser, lastName: text})}
                                 underlineColor={"transparent"}
@@ -181,58 +206,66 @@ const EditProfile = () => {
     const UserGenderEdit = () => {
         const [selectedGender, setSelectedGender] = useState<Gender>(user?.gender);
 
-        const _handleContinueGenderEdit = () => {
+        const _handleContinueGenderEdit = async () => {
             setUser({...user, gender: selectedGender});
-            _handleContinue();
+            await _handleContinue();
         }
 
-        return (
-        <>
-            <View style={styles.topTextContainer}>
-                <Text style={styles.textFirst}>
-                    Tell us about your self
-                </Text>
-                <Text style={styles.textSecond}>
-                    To give you better experience and results, we need to know your gender
-                </Text>
+        useEffect(() => {
+            console.log(selectedGender === null || selectedGender === Gender.DEFAULT);
+            console.log(selectedGender);
+        }, [selectedGender]);
 
-                <View style={styles.genderSelection}>
-                    <TouchableOpacity
-                        style={[
-                            styles.genderOption,
-                            selectedGender === Gender.MALE && { backgroundColor: '#2757cb' },
-                        ]}
-                        onPress={() => setSelectedGender(Gender.MALE)}
-                    >
-                        <MaleIcon fill={selectedGender === Gender.MALE ? 'white' : 'black'} />
-                        <Text style={[
-                            styles.genderLabel,
-                            selectedGender === Gender.MALE ? { color: 'white' } : { color: 'black' }
-                        ]
-                        }
-                        >Male</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[
-                            styles.genderOption,
-                            selectedGender === Gender.FEMALE && { backgroundColor: '#2757cb' },
-                        ]}
-                        onPress={() => setSelectedGender(Gender.FEMALE)}
-                    >
-                        <FemaleIcon fill={selectedGender === Gender.FEMALE ? 'white' : 'black'} />
-                        <Text style={[
-                            styles.genderLabel,
-                            selectedGender === Gender.FEMALE ? { color: 'white' } : { color: 'black' }
-                        ]
-                        }>Female</Text>
-                    </TouchableOpacity>
+        return (
+            <>
+                <View style={styles.topTextContainer}>
+                    <Text style={styles.textFirst}>
+                        Tell us about your self
+                    </Text>
+                    <Text style={styles.textSecond}>
+                        To give you better experience and results, we need to know your gender
+                    </Text>
+
+                    <View style={styles.genderSelection}>
+                        <TouchableOpacity
+                            style={[
+                                styles.genderOption,
+                                selectedGender === Gender.MALE && {backgroundColor: '#2757cb'},
+                            ]}
+                            onPress={() => setSelectedGender(Gender.MALE)}
+                        >
+                            <MaleIcon fill={selectedGender === Gender.MALE ? 'white' : 'black'}/>
+                            <Text style={[
+                                styles.genderLabel,
+                                selectedGender === Gender.MALE ? {color: 'white'} : {color: 'black'}
+                            ]
+                            }
+                            >Male</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[
+                                styles.genderOption,
+                                selectedGender === Gender.FEMALE && {backgroundColor: '#2757cb'},
+                            ]}
+                            onPress={() => setSelectedGender(Gender.FEMALE)}
+                        >
+                            <FemaleIcon fill={selectedGender === Gender.FEMALE ? 'white' : 'black'}/>
+                            <Text style={[
+                                styles.genderLabel,
+                                selectedGender === Gender.FEMALE ? {color: 'white'} : {color: 'black'}
+                            ]
+                            }>Female</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <View style={styles.sideBySideButtons}>
+                        <CustomButton text="Back" onPress={goToPreviousStep} style={styles.backButton}
+                                      textStyle={styles.buttonText}/>
+                        <CustomButton disabled={selectedGender === null || selectedGender === Gender.DEFAULT}
+                                      text="Continue" onPress={_handleContinueGenderEdit}
+                                      style={styles.continueButton}/>
+                    </View>
                 </View>
-                <View style={styles.sideBySideButtons}>
-                    <CustomButton text="Back" onPress={goToPreviousStep} style={styles.backButton} textStyle={styles.buttonText} />
-                    <CustomButton text="Continue" onPress={_handleContinueGenderEdit} style={styles.continueButton}/>
-                </View>
-            </View>
-        </>
+            </>
         );
     }
     const UserAgeEdit = () => {
@@ -246,54 +279,54 @@ const EditProfile = () => {
         };
 
         return (<>
-            <View style={styles.topTextContainer}>
-                <Text style={styles.textFirst}>
-                    How old are you ?
-                </Text>
-                <Text style={styles.textSecond}>
-                    This will help us create personalized plan
-                </Text>
-                <View style={styles.ageList}>
-                    <ScrollPicker
-                        ref={refAge}
-                        dataSource={ages}
-                        selectedIndex={selectedAgeIndex}
-                        onValueChange={(selectedIndex) => _onAgeChange(selectedIndex)}
-                        wrapperHeight={180}
-                        wrapperBackground={'#ffffff'}
-                        itemHeight={70}
-                        highlightColor={'#2757cb'}
-                        highlightBorderWidth={5}
-                        itemTextStyle={{ color: '#ccc', fontSize: 25 }}
-                        activeItemTextStyle={{ color: '#2757cb', fontSize: 50, fontWeight: 'bold' }}
-                    />
+                <View style={styles.topTextContainer}>
+                    <Text style={styles.textFirst}>
+                        How old are you ?
+                    </Text>
+                    <Text style={styles.textSecond}>
+                        This will help us create personalized plan
+                    </Text>
+                    <View style={styles.ageList}>
+                        <ScrollPicker
+                            ref={refAge}
+                            dataSource={ages}
+                            selectedIndex={selectedAgeIndex}
+                            onValueChange={(selectedIndex) => _onAgeChange(selectedIndex)}
+                            wrapperHeight={180}
+                            wrapperBackground={'#ffffff'}
+                            itemHeight={70}
+                            highlightColor={'#2757cb'}
+                            highlightBorderWidth={5}
+                            itemTextStyle={{color: '#ccc', fontSize: 25}}
+                            activeItemTextStyle={{color: '#2757cb', fontSize: 50, fontWeight: 'bold'}}
+                        />
 
+                    </View>
+                    <View style={styles.sideBySideButtons}>
+                        <CustomButton text="Back" onPress={goToPreviousStep} style={styles.backButton}
+                                      textStyle={styles.buttonText}/>
+                        <CustomButton text="Continue" onPress={_handleContinue} style={styles.continueButton}/>
+                    </View>
                 </View>
-                <View style={styles.sideBySideButtons}>
-                    <CustomButton text="Back" onPress={goToPreviousStep} style={styles.backButton} textStyle={styles.buttonText} />
-                    <CustomButton text="Continue" onPress={_handleContinue} style={styles.continueButton} />
-                </View>
-            </View>
-        </>
+            </>
         );
     }
 
 
     return (
         <ImageBackground
-            style={{ height: hp(100) }}
+            style={{height: hp(100)}}
             source={require('../../assets/images/signupBackGround.jpg')}
         >
-
             <SafeAreaView>
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <CustomNavigationHeader text={_getCurrentStepTitle()} goBackFunction={goBackFunc()}  showBackArrow/>
+                    <CustomNavigationHeader text={_getCurrentStepTitle()} goBackFunction={goBackFunc()} showBackArrow/>
                 </TouchableWithoutFeedback>
                 <Text style={styles.stepText}>Step {currentStep}/3</Text>
                 <View style={styles.cardContainer}>
-                    {currentStep === 1 && <UserInfoEdit />}
-                    {currentStep === 2 && <UserGenderEdit />}
-                    {currentStep === 3 && <UserAgeEdit />}
+                    {currentStep === 1 && <UserInfoEdit/>}
+                    {currentStep === 2 && <UserGenderEdit/>}
+                    {currentStep === 3 && <UserAgeEdit/>}
                 </View>
             </SafeAreaView>
         </ImageBackground>
@@ -331,10 +364,8 @@ const styles = StyleSheet.create({
     },
     textLabel: {
         color: 'black',
-        fontSize: 18,
-        fontWeight: "500",
+        fontSize: 16,
         marginTop: 10,
-        textAlign: 'center'
     },
     inputStyle: {
         backgroundColor: 'white',
@@ -386,7 +417,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white'
     },
     buttonContainer: {
-        marginTop: hp(5)
+        marginTop: 15
     },
     stepText: {
         color: 'white',
@@ -430,7 +461,7 @@ const styles = StyleSheet.create({
         borderWidth: 0.5,
         borderColor: '#f2f4fb',
         shadowColor: '#dcddde',
-        shadowOffset: { width: 0, height: 5 },
+        shadowOffset: {width: 0, height: 5},
         shadowOpacity: 0.7,
         shadowRadius: 4,
         elevation: 6,

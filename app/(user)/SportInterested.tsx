@@ -1,14 +1,14 @@
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {
+    FlatList,
     ImageBackground,
-    StyleSheet,
-    Text,
-    View,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
     Keyboard,
     ScrollView,
-    FlatList
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View
 } from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {useEffect, useState} from "react";
@@ -20,7 +20,6 @@ import SportLevel, {convertStringToEnumValue} from "@/models/SportLevel";
 import {UserInterestedSport} from "@/models/UserInterestedSport";
 import {SportService} from "@/services/SportService";
 import {router} from "expo-router";
-import {useSelector} from "react-redux";
 
 const SportInterested = () => {
     const _stepTitles = [
@@ -32,58 +31,8 @@ const SportInterested = () => {
             Header: 'Sports Level'
         }];
     const [currentStep, setCurrentStep] = useState<number>(1);
-    const [selectedSports, setSelectedSports] = useState<Map<string, UserInterestedSport>>(new Map([
-        // ['1', { sportId: '1', sportName: 'American Football', sportLevel: undefined }],
-        // ['2', { sportId: '2', sportName: 'Archery', sportLevel: undefined }],
-        // ['3', { sportId: '3', sportName: 'Badminton', sportLevel: undefined }],
-    ]));
-    const [sports, setSports] = useState<Sport[] | undefined>([
-        // { id: '1', name: 'American Football' },
-        // { id: '2', name: 'Archery' },
-        // { id: '3', name: 'Badminton' },
-        // { id: '4', name: 'Baseball' },
-        // { id: '5', name: 'Basketball' },
-        // { id: '6', name: 'Bowling' },
-        // { id: '7', name: 'Boxing' },
-        // { id: '8', name: 'Cheerleading' },
-        // { id: '9', name: 'Climbing' },
-        // { id: '10', name: 'Cricket' },
-        // { id: '11', name: 'Cross Country' },
-        // { id: '12', name: 'Cross Fit' },
-        // { id: '13', name: 'Cycling' },
-        // { id: '14', name: 'Darts' },
-        // { id: '15', name: 'Dance' },
-        // { id: '16', name: 'Equestrian' },
-        // { id: '17', name: 'Extreme Sports' },
-        // { id: '18', name: 'Fencing' },
-        // { id: '19', name: 'Fishing' },
-        // { id: '20', name: 'Flag Football' },
-        // { id: '21', name: 'Golf' },
-        // { id: '22', name: 'Gymnastics' },
-        // { id: '23', name: 'Hockey' },
-        // { id: '24', name: 'Karate' },
-        // { id: '25', name: 'Lacrosse' },
-        // { id: '26', name: 'Martial Arts' },
-        // { id: '27', name: 'Motor Racing' },
-        // { id: '28', name: 'Pickleball' },
-        // { id: '29', name: 'Pool' },
-        // { id: '30', name: 'Powerlifting' },
-        // { id: '31', name: 'Rifle Shooting' },
-        // { id: '32', name: 'Rowing' },
-        // { id: '33', name: 'Rugby' },
-        // { id: '34', name: 'Skiing' },
-        // { id: '35', name: 'Soccer' },
-        // { id: '36', name: 'Softball' },
-        // { id: '37', name: 'Swimming' },
-        // { id: '38', name: 'Track and Field' },
-        // { id: '39', name: 'T-Ball/Baseball' },
-        // { id: '40', name: 'Tennis' },
-        // { id: '41', name: 'Ultimate Frisbee' },
-        // { id: '42', name: 'Volleyball' },
-        // { id: '43', name: 'Water Polo' },
-        // { id: '44', name: 'Wrestling' },
-        // { id: '45', name: 'Yoga' },
-    ]);
+    const [selectedSports, setSelectedSports] = useState<Map<string, UserInterestedSport>>(new Map([]));
+    const [sports, setSports] = useState<Sport[] | undefined>([]);
 
 
     useEffect(() => {
@@ -147,7 +96,7 @@ const SportInterested = () => {
                             createAt: new Date(),
                             sportId: sport.id,
                             sportName: sport.name,
-                            sportLevel: undefined
+                            sportLevel: SportLevel.Beginner
                         });
                     }
                 }
@@ -218,7 +167,6 @@ const SportInterested = () => {
 
             const sport = selectedSports.get(id);
             if (!sport) return false;
-
             return sport.sportLevel === value;
         }
 
@@ -254,12 +202,12 @@ const SportInterested = () => {
         return (
             <View>
                 <View>
-                    <Text style={{fontSize: 15, marginVertical: 3}}><Text style={styles.headInfoText}>Beginner: </Text>New
+                    <Text style={{fontSize: 14, marginVertical: 3}}><Text style={styles.headInfoText}>Beginner: </Text>New
                         To Sport, Learning Basic Rules Or Skills Or Social League</Text>
-                    <Text style={{fontSize: 15, marginVertical: 3}}><Text
+                    <Text style={{fontSize: 14, marginVertical: 3}}><Text
                         style={styles.headInfoText}>Intermediate: </Text> Solid Understanding Of Rules, Refine
                         Techniques, Level Up Competitive Experience</Text>
-                    <Text style={{fontSize: 15, marginVertical: 3}}><Text style={styles.headInfoText}>Advance: </Text>Mastery
+                    <Text style={{fontSize: 14, marginVertical: 3}}><Text style={styles.headInfoText}>Advance: </Text>Mastery
                         Of Rules And Skills, High Level Competition</Text>
                 </View>
                 <View style={{height: hp(45), marginTop: 3}}>
@@ -389,7 +337,7 @@ const styles = StyleSheet.create({
     },
     headInfoText: {
         fontWeight: 'bold',
-        fontSize: 16
+        fontSize: 14
     },
     lvlContainer: {
         backgroundColor: 'white',
@@ -405,7 +353,6 @@ const styles = StyleSheet.create({
         borderColor: '#E9EDF9',
         borderWidth: 1,
         alignSelf: 'center'
-
     }
 });
 

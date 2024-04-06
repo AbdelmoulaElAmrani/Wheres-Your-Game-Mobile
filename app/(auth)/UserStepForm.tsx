@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import Modal from "react-native-modal";
-import {useEffect, useState} from "react";
+import {memo, useState} from "react";
 import CustomButton from "@/components/CustomButton";
 import {AntDesign} from "@expo/vector-icons";
 import {OtpInput} from "react-native-otp-entry";
@@ -31,8 +31,9 @@ import { AuthService } from "@/services/AuthService";
 const UserStepForm = () => {
     const dispatch = useDispatch();
     const [visible, setVisible] = useState<boolean>(false);
-    const [otpCodeNotEmpty, setOtpCodeNotEmpty] = useState<boolean>(false);
     const [currentStep, setCurrentStep] = useState<number>(1);
+    const [otpCodeNotEmpty, setOtpCodeNotEmpty] = useState<boolean>(false);
+
     // TODO:: replace it with redux or get user data from localstorage
     const userRegister = useSelector((state: any) => state.user.userRegister);
 
@@ -52,9 +53,7 @@ const UserStepForm = () => {
 
     const buttonText = ['Continue', 'Verify'];
 
-    const _onCheckOTPCode = (): boolean => {
-        return false;
-    }
+
 
 
     const _showModal = () => {
@@ -72,14 +71,6 @@ const UserStepForm = () => {
             return  true;
     }
 
-    const _verifyOTP = (otpNumber: string) => {
-        Keyboard.dismiss();
-        if (otpNumber.trim().length !== 0) {
-            setOtpCodeNotEmpty(true);
-            console.log('verify');
-        }
-    }
-
     const createUser = async () => {
         try {
             await AuthService.register(userData);
@@ -95,18 +86,18 @@ const UserStepForm = () => {
         return res;
     }
 
-    const goToNextStep = () => {
-        createUser();
+    const goToNextStep = async () => {
+        await createUser();
         setCurrentStep(oldValue => Math.max(2, oldValue - 1));
     };
 
-    const _onNext = () => {
+    const _onNext = async () => {
         _hideModal();
         if (currentStep === 1) {
             if (!_verifyUserSelectedHisRule()) {
                 return;
             }
-            goToNextStep();
+            await goToNextStep();
         } else {
             handleSubmit();
         }
@@ -120,8 +111,9 @@ const UserStepForm = () => {
         setCurrentStep(oldValue => Math.max(1, oldValue - 1));
     };
     const handleSubmit = () => {
-        if (_verifyUserStepDate(currentStep))
+        if (_verifyUserStepDate(currentStep)) {
             router.navigate('/EditProfile')
+        }
     };
 
 
@@ -131,7 +123,7 @@ const UserStepForm = () => {
 
     }
 
-    const UserTypeForm = () => (
+    const UserTypeForm = memo(() => (
         <>
             <View style={styles.rowContainer}>
                 <TouchableOpacity onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.PARENT}))}
@@ -197,9 +189,23 @@ const UserStepForm = () => {
                 </TouchableOpacity>
             </View>
         </>
-    );
+    ));
 
-    const OTPVerification = () => (
+    const _onCheckOTPCode = (): boolean => {
+        return false;
+    }
+    const _verifyOTP = (otpNumber: string) => {
+        Keyboard.dismiss();
+        if (otpNumber.trim().length !== 0) {
+            // TODO:: call the back end for OTP code
+            setOtpCodeNotEmpty(true);
+            console.log('verify');
+        }
+    }
+
+    const OTPVerification = memo(() => {
+
+        return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={{
                 alignItems: 'center',
@@ -235,7 +241,7 @@ const UserStepForm = () => {
                     <Text style={{
                         fontSize: 18,
                         color: 'grey'
-                    }}>Don't recerive your code?
+                    }}>Don't receive your code?
                     </Text>
                     <TouchableOpacity
                         onPress={_onResentOTPCode}
@@ -250,6 +256,7 @@ const UserStepForm = () => {
             </View>
         </TouchableWithoutFeedback>
     );
+    });
 
     return (
         <ImageBackground
