@@ -11,7 +11,7 @@ export interface UserResponse {
     phoneNumber: string;
     role: string;
     age: number;
-    phoneContryCode: string;
+    phoneCountryCode: string;
     gender: Gender;
 
 }

@@ -108,9 +108,9 @@ const Login = () => {
                                 </View>
 
                                 {/* Sign in with */}
-                                <View style={styles.dividerContainerSigninUp}>
+                                <View style={styles.dividerContainerSignUp}>
                                     <Divider style={styles.dividerStyle} />
-                                    <Text style={styles.signinTextStyle}>Sign in with</Text>
+                                    <Text style={styles.signInTextStyle}>Sign in with</Text>
                                     <Divider style={styles.dividerStyle} />
                                 </View>
 
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
     },
-    dividerContainerSigninUp: {
+    dividerContainerSignUp: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
@@ -238,14 +238,14 @@ const styles = StyleSheet.create({
         backgroundColor: '#D3D3D3',
 
     },
-    signinTextStyle: {
+    signInTextStyle: {
         fontSize: 18,
         marginHorizontal: 20
     },
     dontHaveAccountText: {
-        marginTop: 150,
         flexDirection: 'row',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        marginTop: hp(13)
 
     },
 });
