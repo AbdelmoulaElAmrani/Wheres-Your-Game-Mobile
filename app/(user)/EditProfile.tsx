@@ -20,11 +20,16 @@ import {router} from "expo-router";
 import Gender from "@/models/Gender";
 import MaleIcon from "@/assets/images/svg/MaleIcon";
 import FemaleIcon from "@/assets/images/svg/FemaleIcon";
-import {UserService} from "@/services/UserService";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
+import { useDispatch, useSelector } from "react-redux";
+import { getUserProfile, updateUserProfile } from "@/redux/UserSlice";
 
 
 const EditProfile = () => {
+
+    const dispatch = useDispatch();
+    const userData = useSelector((state: any) => state.user.userData) as UserResponse;
+
 
     const [user, setUser] = useState<UserResponse>({
         address: "",
@@ -38,28 +43,31 @@ const EditProfile = () => {
         phoneCountryCode: "",
         phoneNumber: "",
         role: "",
-        zipCode: ""
+        zipCode: "",
+        id: ""
     });
     const [currentStep, setCurrentStep] = useState<number>(1);
 
 
     useEffect(() => {
-        UserService.getUser().then((res) => {
-            console.log(res);
-            if (res) {
-                setUser(res);
-            }
-        }).catch(e => console.log(e));
+        if (userData) {
+            setUser(userData);
+        }
+        else {
+            dispatch(getUserProfile() as any)
+        }
     }, []);
 
+    const _handleUpdateUser = async () => {
+        dispatch(updateUserProfile(user) as any);
+    }
 
     const _handleContinue = async () => {
         console.log({...user});
         setCurrentStep(oldValue => Math.min(3, oldValue + 1));
         if (currentStep >= 3) {
             try {
-                //TODO:: test this method
-                //const res = await UserService.updateUser(user as UserRequest);
+                _handleUpdateUser();
                 router.navigate('/SportInterested');
             } catch (e) {
                 console.log('update user page', e);
@@ -125,7 +133,7 @@ const EditProfile = () => {
                                 placeholderTextColor={'grey'}
                                 left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
                                 value={editUser.firstName}
-                                onChangeText={(text) => setEditUser({...editUser, L: text})}
+                                onChangeText={(text) => setEditUser({...editUser, firstName: text})}
                                 underlineColor={"transparent"}
                             />
                             <Text style={styles.textLabel}>Last Name</Text>
@@ -212,8 +220,9 @@ const EditProfile = () => {
         }
 
         useEffect(() => {
-            console.log(selectedGender === null || selectedGender === Gender.DEFAULT);
+            console.log(selectedGender === Gender.MALE);
             console.log(selectedGender);
+            setSelectedGender
         }, [selectedGender]);
 
         return (

@@ -1,32 +1,34 @@
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ImageBackground, Text, View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { Avatar } from 'react-native-paper';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AntDesign,MaterialCommunityIcons,Octicons } from '@expo/vector-icons';
+import { AntDesign, Octicons } from '@expo/vector-icons';
 
-import {router} from "expo-router";
+import { router } from "expo-router";
+import { useDispatch, useSelector } from "react-redux";
+import { getUserProfile } from "@/redux/UserSlice";
+import { UserResponse } from "@/models/responseObjects/UserResponse";
+import { ActivityIndicator, MD2Colors } from 'react-native-paper';
 
 const Profile = () => {
+    const dispatch = useDispatch()
 
-    const _handleEditProfile = (id: number) => {
-        console.log('Edit Profile');
+    const _handleEditProfile = () => {
         router.navigate('EditProfile');
     }
 
+    const userData = useSelector((state: any) => state.user.userData) as UserResponse;
+    const loading = useSelector((state: any) => state.user.loading) as boolean;
 
 
-
-    const [user, setUser] = useState({
-        name: 'John Doe',
-        age: 25,
-        email: 'jhon@gmail.com',
-        phone: '1234567890',
-        gender: 'Male',
-        imageUrl: null//'http://www.cecyteo.edu.mx/Nova/App_themes/Nova2016/assets/pages/media/profile/profile_user.jpg'
-    });
-
+    useEffect(() => {
+        if (!userData){
+            dispatch(getUserProfile() as any)
+        }
+        
+    }, []);
 
     return (
         <ImageBackground
@@ -36,24 +38,36 @@ const Profile = () => {
             <SafeAreaView>
 
                 <View style={styles.userInfoContainer}>
-
-                    {user.imageUrl ? <Avatar.Image size={100} source={{ uri: user.imageUrl }} />
-                        : <Avatar.Text size={100} label={user.name ? user.name[0] : ''} />}
-
-
-                    <View style={styles.userTextInfoContainer}>
-                        <View style={styles.userInfoRow}> 
-                            <Text style={styles.userName}>{user.name}</Text>
-                            <TouchableOpacity onPress={() => _handleEditProfile(12555)}>
-                            <Octicons name="pencil" size={24} color="white" style={styles.editIcon} />
-
-                            {/* <MaterialCommunityIcons name="pencil-outline" size={30} color="white" style={styles.editIcon} /> */}
-                            </TouchableOpacity>
-                        </View>
-                        <Text style={styles.userInfo}>Age: {user.age}</Text>
-                        <Text style={styles.userInfo}>Gender: {user.gender}</Text>
-                    </View>
+                    {loading ? (
+                        <ActivityIndicator animating={true} color={MD2Colors.purple200} size={50} />
+                    ) : (
+                        <>
+                            {userData.imageUrl ? (
+                                <Avatar.Image size={100} source={{ uri: userData.imageUrl }} />
+                            ) : (
+                                <Avatar.Text
+                                    size={100}
+                                    label={(userData.firstName.charAt(0) + userData.lastName.charAt(0)).toUpperCase()}
+                                />
+                            )}
+                            <View style={styles.userTextInfoContainer}>
+                                <View style={styles.userInfoRow}>
+                                    <Text style={styles.userName}>
+                                        {userData.firstName} {userData.lastName.substring(0, 3)}.
+                                    </Text>
+                                    <TouchableOpacity onPress={() => _handleEditProfile()}>
+                                        <Octicons name="pencil" size={24} color="white" style={styles.editIcon} />
+                                    </TouchableOpacity>
+                                </View>
+                                <Text style={styles.userInfo}>Age: {userData.age}</Text>
+                                <Text style={styles.userInfo}>
+                                    Gender: {userData.gender === 1 ? 'Female' : 'Male'}
+                                </Text>
+                            </View>
+                        </>
+                    )}
                 </View>
+
 
                 <View style={styles.cardContainer}>
                     <Text style={styles.textSettings}>Settings</Text>
