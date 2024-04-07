@@ -10,9 +10,13 @@ import { Divider } from "react-native-paper";
 import { FontAwesome5 } from '@expo/vector-icons';
 import { router } from "expo-router";
 import { AuthService } from '@/services/AuthService';
+import { useDispatch } from 'react-redux';
+import { getUserProfile } from '@/redux/UserSlice';
 
 
 const Login = () => {
+
+    const dispatch = useDispatch();
 
     const _handleSignInWithGoogle = () => {
         console.log('Sign in with Google');
@@ -30,6 +34,7 @@ const Login = () => {
 
         const data = await AuthService.logIn({email: email, password: password});
         if (data !== null && data !== undefined) {
+            dispatch(getUserProfile() as any)
             router.replace('/Welcome');
         } else {
             setErrorMessages(['Invalid email or password']);
