@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import { Image, ImageBackground, Keyboard, StyleSheet, Text, TouchableOpacity, View, TouchableWithoutFeedback} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,13 +10,28 @@ import { Divider } from "react-native-paper";
 import { FontAwesome5 } from '@expo/vector-icons';
 import { router } from "expo-router";
 import { AuthService } from '@/services/AuthService';
-import { useDispatch } from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import { getUserProfile } from '@/redux/UserSlice';
+import {UserResponse} from "@/models/responseObjects/UserResponse";
 
 
 const Login = () => {
 
     const dispatch = useDispatch();
+    const [email, setEmail] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
+    const [errorMessages, setErrorMessages] = useState<string>('');
+    const user = useSelector((state: any) => state.user.userData) as UserResponse;
+
+
+    useEffect(() => {
+        const checkIntroViewed = async () => {
+            if (user) {
+                router.replace("/(tabs)/");
+            }
+        };
+        checkIntroViewed();
+    }, [user]);
 
     const _handleSignInWithGoogle = () => {
         console.log('Sign in with Google');
@@ -25,9 +40,9 @@ const Login = () => {
 
     const _handleLogin = async () => {
         if (_isLoginFormNotValid()) {
-            setErrorMessages(['Please enter email and password']);
+            setErrorMessages('Please enter email and password');
             setTimeout(() => {
-                setErrorMessages([]);
+                setErrorMessages('');
             }, 5000);
             return;
         }
@@ -37,9 +52,9 @@ const Login = () => {
             dispatch(getUserProfile() as any)
             router.replace('/Welcome');
         } else {
-            setErrorMessages(['Invalid email or password']);
+            setErrorMessages('Invalid email or password');
             setTimeout(() => {
-                setErrorMessages([]);
+                setErrorMessages('');
             }, 5000);
         }
     }
@@ -55,15 +70,21 @@ const Login = () => {
 
     const _isLoginFormNotValid = (): boolean => (email.trim() === '' || password.trim() === '');
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [errorMessages, setErrorMessages] = useState([] as string[]);
+
 
     return (
         <>
             <StatusBar style="light" />
             <ImageBackground
-                style={{ height: hp(100) }}
+                style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    right: 0,
+                    flex: 1,
+                    alignItems: "center"
+                }}
                 source={require('../../assets/images/signupBackGround.jpg')}
             >
                 {/* Card Component */}
@@ -101,6 +122,15 @@ const Login = () => {
                                         underlineColor={"transparent"}
                                     />
                                 </View>
+                                {(errorMessages.trim() !== '') &&
+                                    <Text style={{
+                                        color: 'red',
+                                        textAlign: 'center',
+                                        fontSize: 16,
+                                        marginTop: 10,
+                                        fontWeight: "400"
+                                    }}>{errorMessages}</Text>
+                                }
                                 <View style={styles.mgTop}>
                                     <CustomButton text="Login" onPress={_handleLogin} 
                                     disabled={_isLoginFormNotValid()} />
@@ -132,11 +162,6 @@ const Login = () => {
                                     </TouchableOpacity>
                                 </View>
 
-                                {errorMessages.map((message, index) => (
-                                    <Text key={index} style={{ color: 'red', textAlign: 'center', fontSize: 16, marginTop: 30 }}>{message}</Text>
-                                ))}
-
-                                {/* Dont have an account ? Sign Up */}
                                 <View style={styles.dontHaveAccountText}>
                                     <Text style={{ color: 'black', textAlign: 'center', fontSize: 16 }}>Don't have an account ?
                                     </Text>
@@ -148,7 +173,6 @@ const Login = () => {
                         </View>
                     </SafeAreaView>
                 </TouchableWithoutFeedback>
-
             </ImageBackground>
         </>
     );

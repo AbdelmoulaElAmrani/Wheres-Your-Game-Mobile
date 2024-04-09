@@ -74,9 +74,9 @@ const UserStepForm = () => {
     const createUser = async () => {
         try {
             await AuthService.register(userData);
-
+            console.log('done');
         } catch (error) {
-            console.error(error);
+            console.log(error);
         }
     }
 
@@ -87,7 +87,9 @@ const UserStepForm = () => {
     }
 
     const goToNextStep = async () => {
+        console.log('here');
         await createUser();
+        console.log('here end');
         setCurrentStep(oldValue => Math.max(2, oldValue - 1));
     };
 

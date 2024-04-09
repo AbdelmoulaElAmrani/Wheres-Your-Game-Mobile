@@ -64,9 +64,10 @@ export class AuthService {
     }
 
     static register = async (request: RegisterRequest): Promise<AuthenticationResponse | undefined> => {
-
+        console.log('user: ', request);
         const res = await Requests.post('auth/register', request);
-        if (res.status !== 200) {
+        console.log(res);
+        if (res?.status !== 200) {
             return undefined;
         }
         if (res.data) {

@@ -1,17 +1,27 @@
-import { StatusBar } from "expo-status-bar";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Image, ImageBackground, StyleSheet, Modal, Text, TouchableOpacity, View, TouchableWithoutFeedback, FlatList, Keyboard, ScrollView, Alert } from "react-native";
-import React, { useRef, useState } from "react";
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
+import {StatusBar} from "expo-status-bar";
+import {SafeAreaView} from "react-native-safe-area-context";
+import {
+    Image,
+    ImageBackground,
+    StyleSheet,
+    Text,
+    View,
+    TouchableWithoutFeedback,
+    Keyboard,
+    Alert,
+} from "react-native";
+import React, {useRef, useState} from "react";
+import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import CustomButton from "@/components/CustomButton";
-import { TextInput } from "react-native-paper";
-import { router } from "expo-router";
-import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
+import {TextInput} from "react-native-paper";
+import {router} from "expo-router";
+import {RegisterRequest} from "@/models/requestObjects/RegisterRequest";
 import UserType from "@/models/UserType";
-import { useDispatch } from 'react-redux'
+import {useDispatch} from 'react-redux'
 import PhoneInput from "react-native-phone-number-input";
-import { updateUserRegisterData } from "@/redux/UserSlice";
-
+import {updateUserRegisterData} from "@/redux/UserSlice";
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import backHandler from "@/.expo/metro/shims/react-native-web/dist/exports/BackHandler";
 
 
 
@@ -36,7 +46,7 @@ const Register = () => {
     const _handleOnNext = (): void => {
         const errors = _verifyRequiredData(userData);
         if (errors.length === 0) {
-            dispatch(updateUserRegisterData({ ...userData, phoneNumber: formattedPhoneNumber }))
+            dispatch(updateUserRegisterData({...userData, phoneNumber: formattedPhoneNumber}))
             router.navigate("/TermsPolicies");
         } else {
             Alert.alert(errors.join('\n'));
@@ -69,7 +79,7 @@ const Register = () => {
         if (userData.phoneNumber.trim() === '') {
             errors.push('Phone number is required');
         }
-        if(phoneInput.current?.isValidNumber(userData.phoneNumber) === false){           
+        if (phoneInput.current?.isValidNumber(userData.phoneNumber) === false) {
             //errors.push('Invalid phone number');
         }
 
@@ -88,104 +98,108 @@ const Register = () => {
     }
 
 
-    return <>
-        <StatusBar style="light" />
-        <ImageBackground
-            style={{ height: hp(100) }}
-            source={require('../../assets/images/signupBackGround.jpg')}
-        >
-
-            <SafeAreaView style={{ height: hp(100) }}>
-                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <View style={styles.container}>
-                        <View style={styles.headerContainer}>
-                            <Image style={styles.logoContainer}
-                                source={require('../../assets/images/logoBall.png')} />
-                        </View>
-                        <Text style={styles.headerTitle}>Sports For Every Age</Text>
-                        <ScrollView automaticallyAdjustKeyboardInsets={true}>
-                            <View style={styles.formContainer}>
-                                <View>
-                                    <Text style={styles.textLabel}>First Name</Text>
-                                    <TextInput
-                                        style={styles.inputStyle}
-                                        placeholder={'First name'}
-                                        placeholderTextColor={'grey'}
-                                        value={userData.firstName}
-                                        onChangeText={(value) => {
-                                            setUserData(oldValue => ({ ...oldValue, firstName: value }))
-                                        }}
-                                    />
-                                </View>
-                                <View style={styles.mgTop}>
-                                    <Text style={styles.textLabel}>Last Name</Text>
-                                    <TextInput
-                                        style={styles.inputStyle}
-                                        placeholder={'Last name'}
-                                        placeholderTextColor={'grey'}
-                                        value={userData.lastName}
-                                        onChangeText={(value) => {
-                                            setUserData(oldValue => ({ ...oldValue, lastName: value }))
-                                        }}
-                                    />
-                                </View>
-                                <View style={styles.mgTop}>
-                                    <Text style={styles.textLabel}>Email</Text>
-                                    <TextInput
-                                        style={styles.inputStyle}
-                                        placeholder={'Email'}
-                                        placeholderTextColor={'grey'}
-                                        value={userData.email}
-                                        onChangeText={(value) => {
-                                            setUserData(oldValue => ({ ...oldValue, email: value }))
-                                        }}
-                                    />
-                                </View>
-                                <View style={styles.mgTop}>
-                                    <Text style={styles.textLabel}>Password</Text>
-                                    <TextInput
-                                        style={styles.inputStyle}
-                                        placeholder={'Password'}
-                                        secureTextEntry={true}
-                                        placeholderTextColor={'grey'}
-                                        value={userData.password}
-                                        onChangeText={(value) => {
-                                            setUserData(oldValue => ({ ...oldValue, password: value }))
-                                        }}
-                                    />
-                                </View>
-                                <View style={styles.mgTop}>
-                                    <Text style={styles.textLabel}>Phone number</Text>
-                                    <PhoneInput
-                                        ref={phoneInput}
-                                        defaultCode="US"
-                                        layout="first"
-                                        withDarkTheme
-                                        placeholder="Enter phone number"
-                                        value={userData.phoneNumber}
-                                        onChangeText={(text) => setUserData(oldValue => ({ ...oldValue, phoneNumber: text }))}
-                                        containerStyle={styles.inputStyle}
-                                        textContainerStyle={styles.textPhoneInputContainer}
-                                        onChangeFormattedText={(text) => setFormattedPhoneNumber(text)}
-                                        codeTextStyle={styles.phoneCodeTextStyle}
-                                        textInputStyle={styles.phoneInputTextStyle}
-
-                                    />
-                                    
-                                </View>
-                            </View>
-                        </ScrollView>
-                        <View style={styles.nextBottom}>
-                            <Image source={require('../../assets/images/groupPeople.png')} />
-                            <CustomButton
-                                style={{ marginTop: 5 }} text={"Next"} onPress={_handleOnNext} />
-                        </View>
+    return (<ImageBackground
+        style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            bottom: 0,
+            right: 0,
+            flex: 1,
+            alignItems: "center"
+        }}
+        source={require('../../assets/images/signupBackGround.jpg')}
+    >
+        <StatusBar style="light"/>
+        <SafeAreaView style={{height: hp(100)}}>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View style={styles.container}>
+                    <View style={styles.headerContainer}>
+                        <Image style={styles.logoContainer}
+                               source={require('../../assets/images/logoBall.png')}/>
                     </View>
-                </TouchableWithoutFeedback>
-            </SafeAreaView>
-        </ImageBackground>
+                    <Text style={styles.headerTitle}>Sports For Every Age</Text>
+                    <KeyboardAwareScrollView style={{flex: 1}}>
+                        <View style={styles.formContainer}>
+                            <View>
+                                <Text style={styles.textLabel}>First Name</Text>
+                                <TextInput
+                                    style={styles.inputStyle}
+                                    placeholder={'First name'}
+                                    placeholderTextColor={'grey'}
+                                    value={userData.firstName}
+                                    onChangeText={(value) => {
+                                        setUserData(oldValue => ({...oldValue, firstName: value}))
+                                    }}
+                                />
+                            </View>
+                            <View style={styles.mgTop}>
+                                <Text style={styles.textLabel}>Last Name</Text>
+                                <TextInput
+                                    style={styles.inputStyle}
+                                    placeholder={'Last name'}
+                                    placeholderTextColor={'grey'}
+                                    value={userData.lastName}
+                                    onChangeText={(value) => {
+                                        setUserData(oldValue => ({...oldValue, lastName: value}))
+                                    }}
+                                />
+                            </View>
+                            <View style={styles.mgTop}>
+                                <Text style={styles.textLabel}>Email</Text>
+                                <TextInput
+                                    style={styles.inputStyle}
+                                    placeholder={'Email'}
+                                    placeholderTextColor={'grey'}
+                                    value={userData.email}
+                                    onChangeText={(value) => {
+                                        setUserData(oldValue => ({...oldValue, email: value}))
+                                    }}
+                                />
+                            </View>
+                            <View style={styles.mgTop}>
+                                <Text style={styles.textLabel}>Password</Text>
+                                <TextInput
+                                    style={styles.inputStyle}
+                                    placeholder={'Password'}
+                                    secureTextEntry={true}
+                                    placeholderTextColor={'grey'}
+                                    value={userData.password}
+                                    onChangeText={(value) => {
+                                        setUserData(oldValue => ({...oldValue, password: value}))
+                                    }}
+                                />
+                            </View>
+                            <View style={styles.mgTop}>
+                                <Text style={styles.textLabel}>Phone number</Text>
+                                <PhoneInput
+                                    ref={phoneInput}
+                                    defaultCode="US"
+                                    layout="first"
+                                    withDarkTheme
+                                    placeholder="Phone number"
+                                    value={userData.phoneNumber}
+                                    onChangeText={(text) => setUserData(oldValue => ({...oldValue, phoneNumber: text}))}
+                                    containerStyle={styles.inputStyle}
+                                    textContainerStyle={styles.textPhoneInputContainer}
+                                    onChangeFormattedText={(text) => setFormattedPhoneNumber(text)}
+                                    codeTextStyle={styles.phoneCodeTextStyle}
+                                    textInputStyle={styles.phoneInputTextStyle}
+                                />
 
-    </>
+                            </View>
+                        </View>
+                    </KeyboardAwareScrollView>
+                    <View style={styles.nextBottom}>
+                        <Image
+                            source={require('../../assets/images/groupPeople.png')}/>
+                        <CustomButton
+                            text={"Next"} onPress={_handleOnNext}/>
+                    </View>
+                </View>
+            </TouchableWithoutFeedback>
+        </SafeAreaView>
+    </ImageBackground>);
 }
 
 const styles = StyleSheet.create({
@@ -253,10 +267,7 @@ const styles = StyleSheet.create({
         resizeMode: 'contain',
     },
     nextBottom: {
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
+        alignItems: 'center'
     },
     selectedFlagContainer: {
         backgroundColor: 'white',
@@ -285,7 +296,7 @@ const styles = StyleSheet.create({
         fontSize: 17,
         height: 50,
         marginTop: 4
-        
+
     }
 });
 export default Register;

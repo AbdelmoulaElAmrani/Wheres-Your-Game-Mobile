@@ -1,10 +1,10 @@
 import CustomButton from "@/components/CustomButton";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {
+    Button,
     ImageBackground,
-    Keyboard,
-    ScrollView,
+    Keyboard, Platform,
     StyleSheet,
     TouchableOpacity,
     TouchableWithoutFeedback,
@@ -16,20 +16,21 @@ import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-nativ
 import {SafeAreaView} from "react-native-safe-area-context";
 import {Octicons} from '@expo/vector-icons';
 import ScrollPicker, {ScrollPickerHandle} from "react-native-wheel-scrollview-picker";
-import {router} from "expo-router";
+import {router, useLocalSearchParams} from "expo-router";
 import Gender from "@/models/Gender";
 import MaleIcon from "@/assets/images/svg/MaleIcon";
 import FemaleIcon from "@/assets/images/svg/FemaleIcon";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
-import { useDispatch, useSelector } from "react-redux";
-import { getUserProfile, updateUserProfile } from "@/redux/UserSlice";
+import {useDispatch, useSelector} from "react-redux";
+import {getUserProfile, updateUserProfile} from "@/redux/UserSlice";
+import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
 
 
 const EditProfile = () => {
 
     const dispatch = useDispatch();
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
-
+    const params = useLocalSearchParams();
 
     const [user, setUser] = useState<UserResponse>({
         address: "",
@@ -52,8 +53,7 @@ const EditProfile = () => {
     useEffect(() => {
         if (userData) {
             setUser(userData);
-        }
-        else {
+        } else {
             dispatch(getUserProfile() as any)
         }
     }, []);
@@ -67,7 +67,9 @@ const EditProfile = () => {
         setCurrentStep(oldValue => Math.min(3, oldValue + 1));
         if (currentStep >= 3) {
             try {
-                _handleUpdateUser();
+                await _handleUpdateUser();
+                if (params?.previousScreenName)
+                    router.setParams({previousScreenName: 'profile'})
                 router.navigate('/SportInterested');
             } catch (e) {
                 console.log('update user page', e);
@@ -122,7 +124,7 @@ const EditProfile = () => {
                     {user.imageUrl ? <Avatar.Image size={100} source={{uri: editUser.imageUrl}}/>
                         : <Avatar.Text size={100} label={editUser.firstName[0] + editUser.lastName[0]}/>}
                 </View>
-                <ScrollView automaticallyAdjustKeyboardInsets={true}>
+                <KeyboardAwareScrollView>
                     <View style={styles.formContainer}>
                         <View style={styles.mgTop}>
                             <Text style={styles.textLabel}>First Name</Text>
@@ -175,8 +177,6 @@ const EditProfile = () => {
                                     onChangeText={(text) => setEditUser({...editUser, phoneNumber: text})}
                                     containerStyle={styles.phoneInputContainer}
                                     textContainerStyle={styles.textPhoneInputContainer}
-                                    onChangeFormattedText={(text) => setFormattedPhoneNumber(text)}
-
                                 />
                                 <Text style={styles.textLabel}>Address</Text>
                                 <TextInput
@@ -207,7 +207,7 @@ const EditProfile = () => {
                             </View>
                         </View>
                     </View>
-                </ScrollView>
+                </KeyboardAwareScrollView>
             </>
         </TouchableWithoutFeedback>);
     }
@@ -219,11 +219,6 @@ const EditProfile = () => {
             await _handleContinue();
         }
 
-        useEffect(() => {
-            console.log(selectedGender === Gender.MALE);
-            console.log(selectedGender);
-            setSelectedGender
-        }, [selectedGender]);
 
         return (
             <>
@@ -296,19 +291,29 @@ const EditProfile = () => {
                         This will help us create personalized plan
                     </Text>
                     <View style={styles.ageList}>
-                        <ScrollPicker
-                            ref={refAge}
-                            dataSource={ages}
-                            selectedIndex={selectedAgeIndex}
-                            onValueChange={(selectedIndex) => _onAgeChange(selectedIndex)}
-                            wrapperHeight={180}
-                            wrapperBackground={'#ffffff'}
-                            itemHeight={70}
-                            highlightColor={'#2757cb'}
-                            highlightBorderWidth={5}
-                            itemTextStyle={{color: '#ccc', fontSize: 25}}
-                            activeItemTextStyle={{color: '#2757cb', fontSize: 50, fontWeight: 'bold'}}
-                        />
+                        {Platform.OS === 'ios' ?
+                            <ScrollPicker
+                                ref={refAge}
+                                dataSource={ages}
+                                selectedIndex={selectedAgeIndex}
+                                onValueChange={(selectedIndex) => _onAgeChange(selectedIndex)}
+                                wrapperHeight={180}
+                                wrapperBackground={'#ffffff'}
+                                itemHeight={70}
+                                highlightColor={'#2757cb'}
+                                highlightBorderWidth={5}
+                                itemTextStyle={{color: '#ccc', fontSize: 25}}
+                                activeItemTextStyle={{color: '#2757cb', fontSize: 50, fontWeight: 'bold'}}
+                            /> :
+                            /*<RNPickerSelect
+                                style={{ backgroundColor: 'white', width: 300, height: 215 }}
+                                items={ages}
+                                onValueChange={(value: any) => { console.log(value) }}
+                             />*/
+                            <Button
+                                onPress={() => console.log('clicked')}
+                                title={'Age'}/>
+                        }
 
                     </View>
                     <View style={styles.sideBySideButtons}>
@@ -324,7 +329,15 @@ const EditProfile = () => {
 
     return (
         <ImageBackground
-            style={{height: hp(100)}}
+            style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                bottom: 0,
+                right: 0,
+                flex: 1,
+                height: hp(100)
+            }}
             source={require('../../assets/images/signupBackGround.jpg')}
         >
             <SafeAreaView>
