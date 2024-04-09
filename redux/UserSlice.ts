@@ -1,6 +1,7 @@
 import { UserRequest } from "@/models/requestObjects/UserRequest";
 import { UserResponse } from "@/models/responseObjects/UserResponse";
 import UserType from "@/models/UserType";
+import { AuthService } from "@/services/AuthService";
 import { UserService } from "@/services/UserService";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
@@ -12,10 +13,15 @@ export const getUserProfile = createAsyncThunk('user/getUserProfile', async () =
 });
 
 export const updateUserProfile = createAsyncThunk('user/updateUserProfile', async (user: UserRequest) => {
-    console.log(user);
     const response = await UserService.updateUser(user);
     return response;
 });
+
+export const logout = createAsyncThunk('user/logout', async () => {
+    await AuthService.logOut();
+
+});
+
 
 
 
@@ -69,6 +75,16 @@ const userSlice = createSlice({
                 state.userData = action.payload as UserResponse;
             })
             .addCase(updateUserProfile.rejected, (state) => {
+                state.loading = false;
+            })
+            .addCase(logout.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(logout.fulfilled, (state) => {
+                state.loading = false;
+                state.userData = {} as UserResponse;
+            })
+            .addCase(logout.rejected, (state) => {
                 state.loading = false;
             })
 
