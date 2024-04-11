@@ -1,6 +1,7 @@
 import Gender from "../Gender";
 
 export interface UserResponse {
+    id: string;
     email: string;
     firstName: string;
     lastName: string;
@@ -11,7 +12,8 @@ export interface UserResponse {
     phoneNumber: string;
     role: string;
     age: number;
-    phoneContryCode: string;
+    phoneCountryCode: string;
     gender: Gender;
+
 
 }

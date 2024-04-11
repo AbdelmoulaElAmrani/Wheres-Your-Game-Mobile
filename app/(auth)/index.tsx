@@ -7,6 +7,8 @@ import Carousel from 'react-native-reanimated-carousel';
 import LocalStorageService from "@/services/LocalStorageService";
 import { router } from "expo-router";
 import CustomButton from "@/components/CustomButton";
+import { useSelector } from "react-redux";
+import { UserResponse } from "@/models/responseObjects/UserResponse";
 
 
 const windowWidth = Dimensions.get('window').width;
@@ -18,6 +20,7 @@ const data = [
 
 const Intro = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const user = useSelector((state: any) => state.user.userData) as UserResponse;
 
     useEffect(() => {
         const checkIntroViewed = async () => {
@@ -26,9 +29,15 @@ const Intro = () => {
                 //TODO:: Remove the comment later
                 //router.replace("/Login");
             }
+            if (user) {
+                router.replace("/(tabs)/");
+            }
+
+
         };
         checkIntroViewed();
     }, []);
+    
 
     const _navigateToLoginPage = (): void => {
         LocalStorageService.storeItem<boolean>("intro", true);
@@ -55,7 +64,7 @@ const Intro = () => {
                             <Carousel
                                 loop={true}
                                 width={windowWidth}
-                                height={540}
+                                height={530}
                                 autoPlay={true}
                                 autoPlayInterval={2000}
                                 onSnapToItem={index => setCurrentIndex(index)}

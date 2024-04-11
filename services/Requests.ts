@@ -3,7 +3,7 @@ import { AuthService } from './AuthService';
 import { router } from 'expo-router';
 
 
-export const API_URI = 'https://greater-siemens-goods-chosen.trycloudflare.com/api/'
+export const API_URI = 'https://provided-ruby-attending-customized.trycloudflare.com/api/'
 
 const axiosInstance = axios.create({
     baseURL: API_URI,
