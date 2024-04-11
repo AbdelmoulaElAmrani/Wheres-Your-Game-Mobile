@@ -2,8 +2,7 @@ import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-nativ
 import {
     FlatList,
     ImageBackground,
-    Keyboard,
-    ScrollView,
+    Keyboard, ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -11,7 +10,7 @@ import {
     View
 } from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
-import {useEffect, useState} from "react";
+import {memo, useCallback, useEffect, useState} from "react";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {Chip, RadioButton, TextInput} from "react-native-paper";
 import {AntDesign} from '@expo/vector-icons';
@@ -19,7 +18,8 @@ import Sport from "@/models/Sport";
 import SportLevel, {convertStringToEnumValue} from "@/models/SportLevel";
 import {UserInterestedSport} from "@/models/UserInterestedSport";
 import {SportService} from "@/services/SportService";
-import {router} from "expo-router";
+import {router, useLocalSearchParams} from "expo-router";
+import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
 
 const SportInterested = () => {
     const _stepTitles = [
@@ -33,7 +33,7 @@ const SportInterested = () => {
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [selectedSports, setSelectedSports] = useState<Map<string, UserInterestedSport>>(new Map([]));
     const [sports, setSports] = useState<Sport[] | undefined>([]);
-
+    const params = useLocalSearchParams();
 
     useEffect(() => {
         const fetchSport = async () => {
@@ -70,7 +70,11 @@ const SportInterested = () => {
         console.log(selectedSports)
         try {
             //const response = await SportService.registerUserToSport([...selectedSports.values()], 'userId')
-            router.replace('/Welcome');
+            if (params?.previousScreenName) {
+                router.navigate('/(tabs)');
+            } else {
+                router.replace('/Welcome');
+            }
         } catch (e) {
             console.log(e);
         }
@@ -118,7 +122,8 @@ const SportInterested = () => {
                         underlineColor="transparent"
                         left={<TextInput.Icon size={50} color='#9BA0AB' icon="magnify"/>}
                     />
-                    <ScrollView>
+                    <KeyboardAwareScrollView
+                        scrollEnabled={true}>
                         <View style={styles.sportContainer}>
                             {sports?.filter(x => x.name.toLowerCase().includes(query)).map(sport => {
                                 const isSelected = isSportSelected(sport.id);
@@ -136,7 +141,7 @@ const SportInterested = () => {
                                 </Chip>)
                             })}
                         </View>
-                    </ScrollView>
+                    </KeyboardAwareScrollView>
                 </View>
             </TouchableWithoutFeedback>
 
@@ -145,8 +150,9 @@ const SportInterested = () => {
 
 
     const _RenderUserSportLevel = () => {
+        const sportLevels = Object.values(SportLevel).filter((value) => typeof value === 'string');
 
-        const _onSelectSportLevel = (id?: string, value?: string | SportLevel): void => {
+        const _onSelectSportLevel = useCallback((id?: string, value?: string | SportLevel): void => {
             if (id === undefined) return;
             if (value === undefined) return;
             const v = convertStringToEnumValue(SportLevel, value);
@@ -160,29 +166,29 @@ const SportInterested = () => {
                 return updatedSports;
             });
             console.log(id, value);
-        }
+        }, [])
 
-        const _checkIfSelected = (id: string | undefined, value: string | SportLevel): boolean => {
+        const _checkIfSelected = useCallback((id: string | undefined, value: string | SportLevel): boolean => {
             if (!id) return false;
 
             const sport = selectedSports.get(id);
             if (!sport) return false;
             return sport.sportLevel === value;
-        }
+        }, [selectedSports])
 
 
-        const _RenderItem = ({item}: { item: UserInterestedSport }) => {
+        const _RenderItem = memo(({item}: { item: UserInterestedSport }) => {
 
             return (
                 <View style={styles.lvlContainer}>
                     <Text style={{fontWeight: 'bold', fontSize: 16}}>{item.sportName}</Text>
                     <View>
-                        {Object.values(SportLevel).filter((value) => typeof value === 'string').map((value, key) => (
+                        {sportLevels.map((value, key) => (
                             <View
                                 key={key}
                                 style={{
                                     flexDirection: 'row',
-                                    marginTop: 10,
+                                    marginTop: 5,
                                     alignItems: 'center',
                                     justifyContent: 'flex-start'
                                 }}>
@@ -196,7 +202,7 @@ const SportInterested = () => {
                         ))}
                     </View>
                 </View>);
-        }
+        });
 
 
         return (
@@ -210,13 +216,20 @@ const SportInterested = () => {
                     <Text style={{fontSize: 14, marginVertical: 3}}><Text style={styles.headInfoText}>Advance: </Text>Mastery
                         Of Rules And Skills, High Level Competition</Text>
                 </View>
-                <View style={{height: hp(45), marginTop: 3}}>
+                <View style={{maxHeight: hp(53), height: hp(50)}}>
+                    {/* <ScrollView
+                    scrollEnabled={true}
+                    >
+                        {[...selectedSports.values()].map((item => <_RenderItem key={item.sportName + ' ' + Math.random()} item={item}/>))}
+                    </ScrollView>*/}
                     <FlatList
-                        nestedScrollEnabled
                         showsVerticalScrollIndicator={true}
                         data={[...selectedSports.values()]}
+                        scrollEnabled={true}
                         renderItem={({item}) => <_RenderItem item={item}/>}
-                        keyExtractor={item => item.sportName + ' 1'}
+                        keyExtractor={item => item.sportName + ' ' + Math.random()}
+                        bounces={true}
+                        alwaysBounceHorizontal={true}
                     />
                 </View>
             </View>
@@ -226,7 +239,15 @@ const SportInterested = () => {
 
     return (
         <ImageBackground
-            style={{height: hp(100)}}
+
+            style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                bottom: 0,
+                right: 0,
+                flex: 1,
+            }}
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
                 <CustomNavigationHeader text={"Sport"} goBackFunction={_handleGoBack()} showBackArrow/>
@@ -237,13 +258,10 @@ const SportInterested = () => {
                             <Text style={styles.title}>{_stepTitles[currentStep - 1].title}</Text>
                         </View>
                         <View style={{justifyContent: 'center', alignContent: "center", marginTop: 20}}>
-                            <View>
                                 {currentStep === 1 && <_RenderSportCatalog/>}
                                 {currentStep === 2 && <_RenderUserSportLevel/>}
-                            </View>
                         </View>
-
-                        <View style={styles.btnConainter}>
+                        <View style={styles.btnContainer}>
                             <TouchableOpacity
                                 onPress={_handleGoBack()}
                                 style={styles.btn}>
@@ -277,13 +295,13 @@ const styles = StyleSheet.create({
         marginLeft: 30
     },
     mainContainer: {
-        flex: 1,
         backgroundColor: 'white',
         borderTopEndRadius: 35,
         borderTopStartRadius: 35,
         paddingTop: 30,
         padding: 20,
-        marginTop: 10
+        marginTop: 10,
+        flex: 1
     },
     titleContainer: {
         alignSelf: "center",
@@ -327,10 +345,10 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#2757CB'
     },
-    btnConainter: {
+    btnContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        marginTop: 30,
+        marginTop: 10
     },
     infoContainer: {
         flexDirection: 'row'

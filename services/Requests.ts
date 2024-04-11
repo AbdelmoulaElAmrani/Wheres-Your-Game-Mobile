@@ -3,7 +3,9 @@ import { AuthService } from './AuthService';
 import { router } from 'expo-router';
 
 
-export const API_URI = 'https://provided-ruby-attending-customized.trycloudflare.com/api/'
+const PREFIX = 'api'
+
+export const API_URI = `https://career-assumes-pirates-annie.trycloudflare.com/${PREFIX}/`
 
 const axiosInstance = axios.create({
     baseURL: API_URI,
@@ -70,6 +72,7 @@ const Requests = {
 
     post: async (url: string, body: any): Promise<any> => {
         try {
+            console.log('body', body);
             const response = await axiosInstance.post(url, body);
             return response;
         } catch (error : any) {
