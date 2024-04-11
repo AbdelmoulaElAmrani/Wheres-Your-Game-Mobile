@@ -12,7 +12,15 @@ const Welcome = () => {
     <>
        <StatusBar style="light" />
        <ImageBackground
-                style={{ height: hp(100) }}
+           style={{
+               position: "absolute",
+               top: 0,
+               left: 0,
+               bottom: 0,
+               right: 0,
+               flex: 1,
+               alignItems: "center"
+           }}
                 source={require('../../assets/images/signupBackGround.jpg')}
         >
             <Image style={styles.logoContainer} source={require('../../assets/images/ballwithoutText.png')} />
