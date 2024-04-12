@@ -3,18 +3,40 @@ import { ImageBackground, StyleSheet, Text, View, FlatList, TouchableOpacity, Bu
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Searchbar } from 'react-native-paper';
-import { useState } from "react";
+import React, {useState} from "react";
 import { FontAwesome } from '@expo/vector-icons';
 
 
 const GClips = () => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedTag, setSelectedTag] = useState(null);
+    const tags = ['New', 'Trending', 'Popular', 'Top Photos', 'Top Videos'];
+    const videos = [
+        {
+            title: 'Mike running last mile',
+            info: 'Mike added 3 videos',
+            thumbnailUri: 'https://ak.picdn.net/shutterstock/videos/1040007623/thumb/1.jpg',
+            uploadHour: 1
+        },
+        {
+            title: 'John playing football',
+            info: 'John added 2 videos',
+            thumbnailUri: 'https://athletetrainingandhealth.com/wp-content/uploads/2017/04/Sprinter_1.jpg',
+            uploadHour: 2
+        },
+        {
+            title: 'Mat running last mile',
+            info: 'Mat added 1 videos',
+            thumbnailUri: 'https://maville.com/photosmvi/2021/08/06/P27610131D4443815G.jpg',
+            uploadHour: 3
+        }];
 
     const _renderItem = ({ item }: { item: any }) => (
         <TouchableOpacity
             style={[styles.tag, selectedTag === item ? styles.selectedTag : null]}
             onPress={() => setSelectedTag(item)}
         >
-            <Text style={[styles.tagText, selectedTag === item ? styles.tagTextSelected : null]}>{item}</Text>
+            <Text style={[styles.tagText, {color: selectedTag === item ? 'white' : 'black'}]}>{item}</Text>
         </TouchableOpacity>
     );
 
@@ -57,13 +79,6 @@ const GClips = () => {
     
     }
 
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedTag, setSelectedTag] = useState(null);
-    const tags = ['New', 'Trending', 'Popular', 'Top Photos', 'Top Videos'];
-    const videos = [
-        { title: 'Mike running last mile', info: 'Mike added 3 videos' , thumbnailUri: 'https://ak.picdn.net/shutterstock/videos/1040007623/thumb/1.jpg', uploadHour: 1 },
-        { title: 'John playing football', info: 'John added 2 videos', thumbnailUri: 'https://athletetrainingandhealth.com/wp-content/uploads/2017/04/Sprinter_1.jpg', uploadHour: 2 }, 
-        { title: 'Mat running last mile', info: 'Mat added 1 videos', thumbnailUri: 'https://maville.com/photosmvi/2021/08/06/P27610131D4443815G.jpg', uploadHour: 3 }];
 
     return (
         <ImageBackground
@@ -81,8 +96,6 @@ const GClips = () => {
                         placeholderTextColor="#808080"
                         iconColor="#808080"
                         style={styles.searchBar}
-
-
                     />
                 </View>
                 <View style={styles.cardContainer}>
@@ -101,8 +114,6 @@ const GClips = () => {
                             <Text style={{ color: 'blue', fontSize: 17 }}>View All</Text>
                         </TouchableOpacity>
 
-
-
                     </View>
                     <View style={styles.videoListContainer}>
                         <FlatList
@@ -113,17 +124,11 @@ const GClips = () => {
                             showsVerticalScrollIndicator={false}
                             style={styles.videosFlatList}
                             bouncesZoom={true}
-
-
                         />
 
                     </View>
-
                 </View>
-
-
             </SafeAreaView>
-
         </ImageBackground>
     )
 }
@@ -149,7 +154,6 @@ const styles = StyleSheet.create({
     },
     flatList: {
         marginBottom: hp(2)
-
     },
     tag: {
         backgroundColor: 'white',
@@ -259,8 +263,6 @@ const styles = StyleSheet.create({
     },
     shareIcon: {
         marginLeft: wp(20)
-    
-
     }
 })
 

@@ -52,8 +52,17 @@ const SportInterested = () => {
         setCurrentStep(oldValue => Math.max(2, oldValue - 1));
     };
 
-    const _onNext = () => {
-        currentStep === 1 ? _handleContinue() : handleSubmit();
+    const _onNext = async () => {
+        if (currentStep === 1 && selectedSports.size === 0) {
+            alert("Please select at least one sport to continue.");
+            return;
+        }
+
+        if (currentStep === 1) {
+            _handleContinue();
+        } else {
+            await handleSubmit();
+        }
     }
     const _handleGoBack = () => {
         if (currentStep === 1) {
@@ -70,6 +79,7 @@ const SportInterested = () => {
         console.log(selectedSports)
         try {
             //const response = await SportService.registerUserToSport([...selectedSports.values()], 'userId')
+            console.log('params:', params);
             if (params?.previousScreenName) {
                 router.navigate('/(tabs)');
             } else {
@@ -217,20 +227,11 @@ const SportInterested = () => {
                         Of Rules And Skills, High Level Competition</Text>
                 </View>
                 <View style={{maxHeight: hp(53), height: hp(50)}}>
-                    {/* <ScrollView
+                    <ScrollView
                     scrollEnabled={true}
                     >
                         {[...selectedSports.values()].map((item => <_RenderItem key={item.sportName + ' ' + Math.random()} item={item}/>))}
-                    </ScrollView>*/}
-                    <FlatList
-                        showsVerticalScrollIndicator={true}
-                        data={[...selectedSports.values()]}
-                        scrollEnabled={true}
-                        renderItem={({item}) => <_RenderItem item={item}/>}
-                        keyExtractor={item => item.sportName + ' ' + Math.random()}
-                        bounces={true}
-                        alwaysBounceHorizontal={true}
-                    />
+                    </ScrollView>
                 </View>
             </View>
         );
@@ -239,42 +240,39 @@ const SportInterested = () => {
 
     return (
         <ImageBackground
-
             style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                bottom: 0,
-                right: 0,
-                flex: 1,
+                flex: 1, // Full screen coverage
+                width: '100%', // Cover full width
             }}
-            source={require('../../assets/images/signupBackGround.jpg')}>
-            <SafeAreaView>
-                <CustomNavigationHeader text={"Sport"} goBackFunction={_handleGoBack()} showBackArrow/>
-                <View style={styles.container}>
+            source={require('../../assets/images/signupBackGround.jpg')}
+        >
+            <SafeAreaView style={{flex: 1}}>
+                <KeyboardAwareScrollView
+                    style={{flex: 1}}
+                    contentContainerStyle={{flexGrow: 1}}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <CustomNavigationHeader text={"Sport"} goBackFunction={_handleGoBack()} showBackArrow/>
                     <Text style={styles.stepText}>Step {currentStep}/2</Text>
                     <View style={styles.mainContainer}>
-                        <View style={styles.titleContainer}>
-                            <Text style={styles.title}>{_stepTitles[currentStep - 1].title}</Text>
-                        </View>
-                        <View style={{justifyContent: 'center', alignContent: "center", marginTop: 20}}>
-                                {currentStep === 1 && <_RenderSportCatalog/>}
-                                {currentStep === 2 && <_RenderUserSportLevel/>}
-                        </View>
+                        {currentStep === 1 && <_RenderSportCatalog/>}
+                        {currentStep === 2 && <_RenderUserSportLevel/>}
                         <View style={styles.btnContainer}>
                             <TouchableOpacity
                                 onPress={_handleGoBack()}
-                                style={styles.btn}>
+                                style={styles.btn}
+                            >
                                 <Text style={{textAlign: 'center', fontSize: 18, color: '#2757CB'}}>Back</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => _onNext()}
-                                style={[styles.btn, {backgroundColor: '#2757CB'}]}>
+                                style={[styles.btn, {backgroundColor: '#2757CB'}]}
+                            >
                                 <Text style={{textAlign: 'center', fontSize: 18, color: 'white'}}>Continue</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
-                </View>
+                </KeyboardAwareScrollView>
             </SafeAreaView>
         </ImageBackground>
     );
@@ -301,7 +299,9 @@ const styles = StyleSheet.create({
         paddingTop: 30,
         padding: 20,
         marginTop: 10,
-        flex: 1
+        flex: 1,
+        paddingHorizontal: 20, // Adjust padding for overall alignment
+        paddingBottom: 20,
     },
     titleContainer: {
         alignSelf: "center",
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     btnContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        marginTop: 10
+        marginTop: 20
     },
     infoContainer: {
         flexDirection: 'row'

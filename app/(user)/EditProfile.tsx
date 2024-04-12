@@ -1,10 +1,10 @@
 import CustomButton from "@/components/CustomButton";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import React, {useEffect, useRef, useState} from "react";
+import React, {memo, useEffect, useRef, useState} from "react";
 import {
-    Button,
     ImageBackground,
-    Keyboard, Platform,
+    Keyboard,
+    Platform, ScrollView,
     StyleSheet,
     TouchableOpacity,
     TouchableWithoutFeedback,
@@ -124,7 +124,9 @@ const EditProfile = () => {
                     {user.imageUrl ? <Avatar.Image size={100} source={{uri: editUser.imageUrl}}/>
                         : <Avatar.Text size={100} label={editUser.firstName[0] + editUser.lastName[0]}/>}
                 </View>
-                <KeyboardAwareScrollView>
+                <KeyboardAwareScrollView style={{flex: 1}}
+                                         contentContainerStyle={{flexGrow: 1}}
+                                         keyboardShouldPersistTaps="handled">
                     <View style={styles.formContainer}>
                         <View style={styles.mgTop}>
                             <Text style={styles.textLabel}>First Name</Text>
@@ -211,67 +213,73 @@ const EditProfile = () => {
             </>
         </TouchableWithoutFeedback>);
     }
-    const UserGenderEdit = () => {
+    const UserGenderEdit = memo(() => {
+
         const [selectedGender, setSelectedGender] = useState<Gender>(user?.gender);
+
+        // This effect updates the local state if the user gender changes outside this component
+        useEffect(() => {
+            setSelectedGender(user?.gender);
+        }, [user.gender]);
 
         const _handleContinueGenderEdit = async () => {
             setUser({...user, gender: selectedGender});
             await _handleContinue();
-        }
+        };
 
+        const _verifySelectedGender = (sex: Gender): boolean => {
+            return selectedGender === sex;
+        };
 
         return (
             <>
                 <View style={styles.topTextContainer}>
                     <Text style={styles.textFirst}>
-                        Tell us about your self
+                        Tell us about yourself
                     </Text>
                     <Text style={styles.textSecond}>
-                        To give you better experience and results, we need to know your gender
+                        To give you a better experience and results, we need to know your gender
                     </Text>
 
                     <View style={styles.genderSelection}>
                         <TouchableOpacity
                             style={[
                                 styles.genderOption,
-                                selectedGender === Gender.MALE && {backgroundColor: '#2757cb'},
+                                _verifySelectedGender(Gender.MALE) ? styles.selectedGender : {},
                             ]}
                             onPress={() => setSelectedGender(Gender.MALE)}
                         >
-                            <MaleIcon fill={selectedGender === Gender.MALE ? 'white' : 'black'}/>
+                            <MaleIcon fill={_verifySelectedGender(Gender.MALE) ? 'white' : 'black'}/>
                             <Text style={[
                                 styles.genderLabel,
-                                selectedGender === Gender.MALE ? {color: 'white'} : {color: 'black'}
-                            ]
-                            }
-                            >Male</Text>
+                                {color: _verifySelectedGender(Gender.MALE) ? 'white' : 'black'}
+                            ]}>Male</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[
                                 styles.genderOption,
-                                selectedGender === Gender.FEMALE && {backgroundColor: '#2757cb'},
+                                _verifySelectedGender(Gender.FEMALE) ? styles.selectedGender : {},
                             ]}
                             onPress={() => setSelectedGender(Gender.FEMALE)}
                         >
-                            <FemaleIcon fill={selectedGender === Gender.FEMALE ? 'white' : 'black'}/>
+                            <FemaleIcon fill={_verifySelectedGender(Gender.FEMALE) ? 'white' : 'black'}/>
                             <Text style={[
                                 styles.genderLabel,
-                                selectedGender === Gender.FEMALE ? {color: 'white'} : {color: 'black'}
-                            ]
-                            }>Female</Text>
+                                {color: _verifySelectedGender(Gender.FEMALE) ? 'white' : 'black'}
+                            ]}>Female</Text>
                         </TouchableOpacity>
                     </View>
                     <View style={styles.sideBySideButtons}>
                         <CustomButton text="Back" onPress={goToPreviousStep} style={styles.backButton}
                                       textStyle={styles.buttonText}/>
-                        <CustomButton disabled={selectedGender === null || selectedGender === Gender.DEFAULT}
+                        <CustomButton disabled={selectedGender === Gender.DEFAULT}
                                       text="Continue" onPress={_handleContinueGenderEdit}
                                       style={styles.continueButton}/>
                     </View>
                 </View>
             </>
         );
-    }
+    });
     const UserAgeEdit = () => {
         const refAge = useRef<ScrollPickerHandle>(null);
         const [selectedAgeIndex, setSelectedAgeIndex] = useState(user?.age - 1);
@@ -282,7 +290,7 @@ const EditProfile = () => {
             setUser({...user, age: ages[index - 1]});
         };
 
-        return (<>
+        return (<View>
                 <View style={styles.topTextContainer}>
                     <Text style={styles.textFirst}>
                         How old are you ?
@@ -291,30 +299,19 @@ const EditProfile = () => {
                         This will help us create personalized plan
                     </Text>
                     <View style={styles.ageList}>
-                        {Platform.OS === 'ios' ?
-                            <ScrollPicker
-                                ref={refAge}
-                                dataSource={ages}
-                                selectedIndex={selectedAgeIndex}
-                                onValueChange={(selectedIndex) => _onAgeChange(selectedIndex)}
-                                wrapperHeight={180}
-                                wrapperBackground={'#ffffff'}
-                                itemHeight={70}
-                                highlightColor={'#2757cb'}
-                                highlightBorderWidth={5}
-                                itemTextStyle={{color: '#ccc', fontSize: 25}}
-                                activeItemTextStyle={{color: '#2757cb', fontSize: 50, fontWeight: 'bold'}}
-                            /> :
-                            /*<RNPickerSelect
-                                style={{ backgroundColor: 'white', width: 300, height: 215 }}
-                                items={ages}
-                                onValueChange={(value: any) => { console.log(value) }}
-                             />*/
-                            <Button
-                                onPress={() => console.log('clicked')}
-                                title={'Age'}/>
-                        }
-
+                        <ScrollPicker
+                            ref={refAge}
+                            dataSource={ages}
+                            selectedIndex={selectedAgeIndex}
+                            onValueChange={(selectedIndex) => _onAgeChange(selectedIndex)}
+                            wrapperHeight={180}
+                            wrapperBackground={'#ffffff'}
+                            itemHeight={70}
+                            highlightColor={'#2757cb'}
+                            highlightBorderWidth={5}
+                            itemTextStyle={{color: '#ccc', fontSize: 25}}
+                            activeItemTextStyle={{color: '#2757cb', fontSize: 50, fontWeight: 'bold'}}
+                        />
                     </View>
                     <View style={styles.sideBySideButtons}>
                         <CustomButton text="Back" onPress={goToPreviousStep} style={styles.backButton}
@@ -322,7 +319,7 @@ const EditProfile = () => {
                         <CustomButton text="Continue" onPress={_handleContinue} style={styles.continueButton}/>
                     </View>
                 </View>
-            </>
+            </View>
         );
     }
 
@@ -330,17 +327,18 @@ const EditProfile = () => {
     return (
         <ImageBackground
             style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                bottom: 0,
-                right: 0,
+                /* position: "absolute",
+                 top: 0,
+                 left: 0,
+                 bottom: 0,
+                 right: 0,
+                 flex: 1,*/
                 flex: 1,
-                height: hp(100)
+                width: '100%',
             }}
             source={require('../../assets/images/signupBackGround.jpg')}
         >
-            <SafeAreaView>
+            <SafeAreaView style={{flex: 1}}>
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                     <CustomNavigationHeader text={_getCurrentStepTitle()} goBackFunction={goBackFunc()} showBackArrow/>
                 </TouchableWithoutFeedback>
@@ -357,14 +355,13 @@ const EditProfile = () => {
 
 const styles = StyleSheet.create({
     cardContainer: {
-        width: wp('100'),
-        height: hp('90'),
+        flex: 1,
         justifyContent: 'center',
         backgroundColor: 'white',
-        borderRadius: 40,
+        borderTopEndRadius: 40,
+        borderTopStartRadius: 40,
         padding: 20,
-        marginTop: hp(25),
-        position: 'absolute'
+        marginTop: 25,
     },
     userInfoContainer: {
         backgroundColor: 'red'
@@ -382,7 +379,7 @@ const styles = StyleSheet.create({
         width: wp(100),
         borderRadius: 30,
         padding: 20,
-        height: hp(100),
+        flex: 1
     },
     textLabel: {
         color: 'black',
@@ -487,7 +484,10 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.7,
         shadowRadius: 4,
         elevation: 6,
-        marginBottom: hp(5)
+        marginBottom: 20,
+    },
+    selectedGender: {
+        backgroundColor: '#2757CB', // A darker shade to indicate selection
     },
     genderLabel: {
         fontSize: 16,
@@ -497,10 +497,8 @@ const styles = StyleSheet.create({
     sideBySideButtons: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        marginTop: hp(3),
-        alignItems: 'center',
-        top: hp(5)
-
+        marginTop: 20,
+        width: '100%',
     },
     backButton: {
         backgroundColor: 'white',
