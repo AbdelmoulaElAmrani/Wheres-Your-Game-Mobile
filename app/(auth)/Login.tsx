@@ -13,6 +13,7 @@ import { AuthService } from '@/services/AuthService';
 import {useDispatch, useSelector} from 'react-redux';
 import { getUserProfile } from '@/redux/UserSlice';
 import {UserResponse} from "@/models/responseObjects/UserResponse";
+import {Helpers} from "@/constants/Helpers";
 
 
 const Login = () => {
@@ -26,8 +27,10 @@ const Login = () => {
 
     useEffect(() => {
         const checkIntroViewed = async () => {
-            if (user) {
+            if (!Helpers.isObjectNullOrEmpty(user)) {
+                console.log('user found', user);
                 router.replace("/(tabs)/");
+            } else {
             }
         };
         checkIntroViewed();
