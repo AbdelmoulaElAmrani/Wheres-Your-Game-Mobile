@@ -43,18 +43,17 @@ const Intro = () => {
 
     useEffect(() => {
         const checkIntroViewed = async () => {
-            if (!Helpers.isObjectNullOrEmpty(user)) {
-                console.log('user found auth index', user);
+            if (user?.id) {
                 router.replace("/(tabs)/");
             } else {
                 const isIntroViewed = await LocalStorageService.getItem<boolean>('intro');
-                if (isIntroViewed !== null) {
-                    //TODO:: Remove the comment later
-                    //router.replace("/Login");
+                if (isIntroViewed) {
+                    router.replace("/Login");
                 }
             }
         };
         checkIntroViewed();
+
     }, [user]);
 
 

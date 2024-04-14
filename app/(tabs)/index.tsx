@@ -1,27 +1,45 @@
 import {
     FlatList,
-    Image,
-    ImageBackground,
-    Keyboard, ScrollView,
+    ScrollView,
     StyleSheet, Text, TouchableOpacity,
-    TouchableWithoutFeedback,
-    View
+    View,
+    Image,
+    ImageBackground
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
-import React, {memo, useState} from "react";
+import React, {memo, useEffect, useMemo, useState} from "react";
 import {AntDesign, Fontisto, MaterialIcons} from "@expo/vector-icons";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {Helpers} from "@/constants/Helpers";
 import {Player} from "@/models/Player";
+import {Avatar} from "react-native-paper";
+import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
+import {getUserProfile, getUserSports} from "@/redux/UserSlice";
+import UserType from "@/models/UserType";
+import {Team} from "@/models/Team";
 
 const Home = () => {
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
+    const loading = useSelector((state: any) => state.user.loading) as boolean;
+    const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
+    const dispatch = useDispatch();
     const tags = ['Add Coach', 'Add Player', 'Add Team', 'Map View'];
     const [selectedTag, setSelectedTag] = useState('');
     const [players, setPlayers] = useState<Player[]>([]);
+    const [teams, setTeams] = useState<Team[]>([]);
+
+    useEffect(() => {
+
+        if (!userData?.id) {
+            dispatch(getUserProfile() as any);
+        }
+        if (userData?.id && !userSport) {
+            dispatch(getUserSports(userData.id) as any);
+        }
+    }, [userData]);
 
 
     const _handleOnOpenMenu = () => {
@@ -51,6 +69,8 @@ const Home = () => {
         console.log('View All');
     }
 
+    const isCoach = (): boolean => userData.role == UserType.COACH.toString();
+
 
     const _renderMenuItem = memo(({item}: { item: any }) => (
         <TouchableOpacity
@@ -61,27 +81,50 @@ const Home = () => {
         </TouchableOpacity>
     ));
 
-    const _renderSportItem = memo(({item}: { item: any }) => (
-        <TouchableOpacity
+    const _renderSportItem = memo(({item}: { item: UserSportResponse }) => {
+        const [iconLoadedError, setIconLoadedError] = useState(false);
+
+        const iconSource = useMemo(() => {
+            if (iconLoadedError || !item.iconUrl) {
+                return require('../../assets/images/sport/sport.png');
+            } else {
+                try {
+                    return {uri: `../../assets/images/sport/${item.iconUrl}.png`};
+                } catch {
+                    setIconLoadedError(true);
+                    return require('../../assets/images/sport/sport.png');
+                }
+            }
+        }, [item.iconUrl, iconLoadedError]);
+
+        return (<TouchableOpacity
             style={{justifyContent: 'center', alignItems: 'center', alignContent: 'center'}}
-            onPress={() => _onSelectMenuItem(item)}
+            onPress={() => _onSelectMenuItem(item.id)}
         >
             <View style={styles.circle}>
-                <Text style={styles.tagText}>{item}</Text>
+                <Image
+                    source={iconSource} style={styles.iconImage}/>
             </View>
-            <Text style={styles.tagText}>{item}</Text>
-        </TouchableOpacity>
-    ));
+            <Text style={styles.tagText}>{item.sportName}</Text>
+        </TouchableOpacity>);
+    });
 
-    const _renderTeam = memo(({item}: { item: any }) => (
+    const _renderTeam = memo(({item}: { item: string }) => (
         <TouchableOpacity
             style={styles.card}
             onPress={() => _onSelectMenuItem(item)}
         >
             <View>
-                <Image
-                    style={styles.cardImage}
-                    source={require('../../assets/images/flags/US-flag.png')}/>
+                <View style={styles.cardImage}>
+                    {false ? (
+                        <Avatar.Image size={60} source={{uri: item}}/>
+                    ) : (
+                        <Avatar.Text
+                            size={60}
+                            label={(item.charAt(0) + item.charAt(1)).toUpperCase()}
+                        />
+                    )}
+                </View>
             </View>
             <Text>item</Text>
         </TouchableOpacity>
@@ -110,6 +153,7 @@ const Home = () => {
         </TouchableOpacity>
     ));
 
+    const User = UserType;
     return (
         <>
             <StatusBar style="light"/>
@@ -176,12 +220,12 @@ const Home = () => {
                             <View style={styles.menuContainer}>
                                 <View style={styles.menuTitleContainer}>
                                     <Text style={styles.menuTitle}>Your Sports <Text
-                                        style={styles.count}>8</Text></Text>
+                                        style={styles.count}>{userSport?.length}</Text></Text>
                                 </View>
                                 <FlatList
-                                    data={tags}
+                                    data={userSport}
                                     renderItem={({item}) => <_renderSportItem item={item}/>}
-                                    keyExtractor={item => item}
+                                    keyExtractor={item => item.sportId}
                                     horizontal={true}
                                     showsHorizontalScrollIndicator={true}
                                     focusable={true}
@@ -192,14 +236,14 @@ const Home = () => {
                                 <View style={styles.menuTitleContainer}>
                                     <View style={{flexDirection: 'row'}}>
                                         <Text style={styles.menuTitle}>Your Teams <Text
-                                            style={styles.count}>8</Text></Text>
+                                            style={styles.count}>{players?.length}</Text></Text>
                                     </View>
-                                    <TouchableOpacity
+                                    {isCoach() && <TouchableOpacity
                                         onPress={_onAddTeam}
                                         style={styles.btnContainer}>
                                         <Text style={styles.btnText}>Add Team</Text>
                                         <AntDesign name="right" size={20} color="#4361EE"/>
-                                    </TouchableOpacity>
+                                    </TouchableOpacity>}
                                 </View>
                                 <FlatList
                                     data={tags}
@@ -216,14 +260,14 @@ const Home = () => {
                                 <View style={styles.menuTitleContainer}>
                                     <View style={{flexDirection: 'row'}}>
                                         <Text style={styles.menuTitle}>Your Players <Text
-                                            style={styles.count}>8</Text></Text>
+                                            style={styles.count}>{players?.length}</Text></Text>
                                     </View>
-                                    <TouchableOpacity
+                                    {isCoach() && <TouchableOpacity
                                         onPress={_onAddPlayer}
                                         style={styles.btnContainer}>
                                         <Text style={styles.btnText}>Add Player</Text>
                                         <AntDesign name="right" size={20} color="#4361EE"/>
-                                    </TouchableOpacity>
+                                    </TouchableOpacity>}
                                 </View>
                                 <FlatList
                                     data={tags}
@@ -236,7 +280,7 @@ const Home = () => {
                                 />
                             </View>
 
-                            <View style={styles.menuContainer}>
+                            <View style={[styles.menuContainer, {marginBottom: 100}]}>
                                 <View style={styles.menuTitleContainer}>
                                     <View style={{flexDirection: 'row'}}>
                                         <Text style={styles.menuTitle}>Explore by Categories</Text>
@@ -248,9 +292,7 @@ const Home = () => {
                                         <AntDesign name="right" size={20} color="#4361EE"/>
                                     </TouchableOpacity>
                                 </View>
-
                             </View>
-
                         </ScrollView>
                     </View>
                 </SafeAreaView>
@@ -335,26 +377,33 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 10,
         shadowColor: '#000',
-        shadowOffset: {width: 10, height: 10},
-        shadowOpacity: 1,
-        shadowRadius: 10,
-        elevation: 5,
+        shadowOffset: {width: 0, height: 2},
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 3,
         margin: 6
     },
     cardImage: {
         height: 65,
-        width: 85
+        width: 85,
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     circle: {
         borderWidth: 1,
-        borderColor: 'black',
+        borderColor: '#E9EDF9',
         marginHorizontal: 4,
         height: 80,
         width: 80,
         borderRadius: 40,
         justifyContent: 'center',
         alignItems: 'center'
-    }
+    },
+    iconImage: {
+        height: '70%',
+        width: '70%',
+        //resizeMode: 'cover',
+    },
 });
 
 

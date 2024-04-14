@@ -1,6 +1,5 @@
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {
-    ImageBackground,
     StyleSheet,
     Text,
     View,
@@ -9,6 +8,7 @@ import {
     Keyboard,
     Alert
 } from "react-native";
+import {ImageBackground} from "expo-image";
 import {SafeAreaView} from "react-native-safe-area-context";
 import Modal from "react-native-modal";
 import {memo, useState} from "react";

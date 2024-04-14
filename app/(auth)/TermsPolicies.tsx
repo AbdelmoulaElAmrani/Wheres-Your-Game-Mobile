@@ -1,5 +1,6 @@
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
-import { Alert, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {ImageBackground} from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import Checkbox from 'expo-checkbox';
@@ -41,7 +42,7 @@ const TermsPolicies = () => {
             source={require('../../assets/images/signupBackGround.jpg')}
         >
             <SafeAreaView>
-                <CustomNavigationHeader showLogo={true} />
+                <CustomNavigationHeader showLogo={true} showBackArrow/>
                 <View style={styles.card}>
                     <Text style={styles.cardTitle}>Terms of Services</Text>
                     <View style={{ height: hp(56), paddingTop: 10 }}>

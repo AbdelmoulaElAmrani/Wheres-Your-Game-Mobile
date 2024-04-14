@@ -1,5 +1,6 @@
-import {ImageBackground, Keyboard, StyleSheet, Text, TouchableWithoutFeedback, View} from "react-native";
+import {Keyboard, StyleSheet, Text, TouchableWithoutFeedback, View} from "react-native";
 import {StatusBar} from "expo-status-bar";
+import {ImageBackground} from "expo-image";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
 import React from "react";

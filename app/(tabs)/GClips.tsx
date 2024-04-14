@@ -1,10 +1,11 @@
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import { ImageBackground, StyleSheet, Text, View, FlatList, TouchableOpacity, Button, Image } from "react-native";
+import {StyleSheet, Text, View, FlatList, TouchableOpacity} from "react-native";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Searchbar } from 'react-native-paper';
 import React, {useState} from "react";
 import { FontAwesome } from '@expo/vector-icons';
+import {Image, ImageBackground} from "expo-image";
 
 
 const GClips = () => {
@@ -49,7 +50,7 @@ const GClips = () => {
                     <Image
                         source={{ uri: video?.thumbnailUri || video?.uri }}
                         style={styles.videoThumbnail}
-                        resizeMode="cover"
+                        contentFit="cover"
                     />
                     <FontAwesome name="play-circle" size={60} color="rgba(255,255,255,0.8)" style={styles.playIcon} />
                 </View>

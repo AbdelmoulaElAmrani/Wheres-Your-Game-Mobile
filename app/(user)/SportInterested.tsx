@@ -1,7 +1,5 @@
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {
-    FlatList,
-    ImageBackground,
     Keyboard, ScrollView,
     StyleSheet,
     Text,
@@ -9,6 +7,7 @@ import {
     TouchableWithoutFeedback,
     View
 } from "react-native";
+import {ImageBackground} from "expo-image";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {memo, useCallback, useEffect, useState} from "react";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
@@ -20,6 +19,8 @@ import {UserInterestedSport} from "@/models/UserInterestedSport";
 import {SportService} from "@/services/SportService";
 import {router, useLocalSearchParams} from "expo-router";
 import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
+import {useSelector} from "react-redux";
+import {UserResponse} from "@/models/responseObjects/UserResponse";
 
 const SportInterested = () => {
     const _stepTitles = [
@@ -34,6 +35,7 @@ const SportInterested = () => {
     const [selectedSports, setSelectedSports] = useState<Map<string, UserInterestedSport>>(new Map([]));
     const [sports, setSports] = useState<Sport[] | undefined>([]);
     const params = useLocalSearchParams();
+    const user = useSelector((state: any) => state.user.userData) as UserResponse;
 
     useEffect(() => {
         const fetchSport = async () => {
@@ -76,9 +78,9 @@ const SportInterested = () => {
         setCurrentStep(oldValue => Math.max(1, oldValue - 1));
     };
     const handleSubmit = async () => {
-        console.log(selectedSports)
         try {
-            //const response = await SportService.registerUserToSport([...selectedSports.values()], 'userId')
+            const userId = user?.id;
+            const response = await SportService.registerUserToSport([...selectedSports.values()], userId);
             console.log('params:', params);
             if (params?.previousScreenName) {
                 router.navigate('/(tabs)');
@@ -86,7 +88,7 @@ const SportInterested = () => {
                 router.replace('/Welcome');
             }
         } catch (e) {
-            console.log(e);
+            console.error(e);
         }
     };
 
