@@ -7,7 +7,7 @@ import { UserRequest } from "@/models/requestObjects/UserRequest";
 export class UserService {
 
     static getUser = async (): Promise<UserResponse | undefined> => {
-            var res = await Requests.get('profile');
+            var res = await Requests.get('user/profile');
 
             if (res.status !== 200) {
                 return undefined;
@@ -19,7 +19,7 @@ export class UserService {
             return undefined;
     }
     static updateUser = async (user: UserRequest): Promise<UserResponse | undefined> => {
-        var res = await Requests.put('profile', user);
+        var res = await Requests.put('user/profile', user);
 
         if (res.status !== 200) {
             return undefined;
