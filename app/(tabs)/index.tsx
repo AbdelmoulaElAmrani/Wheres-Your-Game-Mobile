@@ -18,8 +18,8 @@ import {Player} from "@/models/Player";
 import {Avatar} from "react-native-paper";
 import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {getUserProfile, getUserSports} from "@/redux/UserSlice";
-
-const blurhash = require('../../assets/images/sport/sport.png');
+import UserType from "@/models/UserType";
+import {Team} from "@/models/Team";
 
 const Home = () => {
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
@@ -29,6 +29,7 @@ const Home = () => {
     const tags = ['Add Coach', 'Add Player', 'Add Team', 'Map View'];
     const [selectedTag, setSelectedTag] = useState('');
     const [players, setPlayers] = useState<Player[]>([]);
+    const [teams, setTeams] = useState<Team[]>([]);
 
     useEffect(() => {
 
@@ -67,6 +68,8 @@ const Home = () => {
     const _onViewAll = () => {
         console.log('View All');
     }
+
+    const isCoach = (): boolean => userData.role == UserType.COACH.toString();
 
 
     const _renderMenuItem = memo(({item}: { item: any }) => (
@@ -150,6 +153,7 @@ const Home = () => {
         </TouchableOpacity>
     ));
 
+    const User = UserType;
     return (
         <>
             <StatusBar style="light"/>
@@ -232,14 +236,14 @@ const Home = () => {
                                 <View style={styles.menuTitleContainer}>
                                     <View style={{flexDirection: 'row'}}>
                                         <Text style={styles.menuTitle}>Your Teams <Text
-                                            style={styles.count}>8</Text></Text>
+                                            style={styles.count}>{players?.length}</Text></Text>
                                     </View>
-                                    <TouchableOpacity
+                                    {isCoach() && <TouchableOpacity
                                         onPress={_onAddTeam}
                                         style={styles.btnContainer}>
                                         <Text style={styles.btnText}>Add Team</Text>
                                         <AntDesign name="right" size={20} color="#4361EE"/>
-                                    </TouchableOpacity>
+                                    </TouchableOpacity>}
                                 </View>
                                 <FlatList
                                     data={tags}
@@ -256,14 +260,14 @@ const Home = () => {
                                 <View style={styles.menuTitleContainer}>
                                     <View style={{flexDirection: 'row'}}>
                                         <Text style={styles.menuTitle}>Your Players <Text
-                                            style={styles.count}>8</Text></Text>
+                                            style={styles.count}>{players?.length}</Text></Text>
                                     </View>
-                                    <TouchableOpacity
+                                    {isCoach() && <TouchableOpacity
                                         onPress={_onAddPlayer}
                                         style={styles.btnContainer}>
                                         <Text style={styles.btnText}>Add Player</Text>
                                         <AntDesign name="right" size={20} color="#4361EE"/>
-                                    </TouchableOpacity>
+                                    </TouchableOpacity>}
                                 </View>
                                 <FlatList
                                     data={tags}
@@ -276,7 +280,7 @@ const Home = () => {
                                 />
                             </View>
 
-                            <View style={styles.menuContainer}>
+                            <View style={[styles.menuContainer, {marginBottom: 100}]}>
                                 <View style={styles.menuTitleContainer}>
                                     <View style={{flexDirection: 'row'}}>
                                         <Text style={styles.menuTitle}>Explore by Categories</Text>
