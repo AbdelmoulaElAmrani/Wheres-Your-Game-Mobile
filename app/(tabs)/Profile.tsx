@@ -7,7 +7,7 @@ import {AntDesign, Octicons} from '@expo/vector-icons';
 import {ImageBackground} from "expo-image";
 import {router} from "expo-router";
 import {useDispatch, useSelector} from "react-redux";
-import {getUserProfile} from "@/redux/UserSlice";
+import {getUserProfile, logout} from "@/redux/UserSlice";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {ActivityIndicator, MD2Colors} from 'react-native-paper';
 
@@ -15,9 +15,28 @@ const Profile = () => {
     const dispatch = useDispatch()
 
     const _handleEditProfile = () => {
-        router.setParams({previousScreenName: 'profile'})
-        router.navigate('EditProfile');
+        console.log(userData?.role)
+        if(userData?.role ===  'COACH')
+        {
+            router.setParams({previousScreenName: 'profile'})
+            router.navigate('EditCoachProfile');
+    
+        }
+        else
+        {
+            router.setParams({previousScreenName: 'profile'})
+            router.navigate('EditProfile');
+        }
+        
     }
+
+    const _handleLogout = () => {
+        console.log('logout')
+        router.replace("/(auth)/Login");
+        dispatch(logout() as any);
+    }
+
+
 
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const loading = useSelector((state: any) => state.user.loading) as boolean;
@@ -117,6 +136,12 @@ const Profile = () => {
                                 <Text style={styles.settingOptionText}>Connection Settings</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
+
+                            <TouchableOpacity style={styles.settingOption} onPress={_handleLogout}>
+                                <Text style={styles.settingOptionText}>Log Out</Text>
+                                <AntDesign name="right" size={24} color="grey"/>
+                            </TouchableOpacity>
+
                         </View>
                     </ScrollView>
                 </View>
