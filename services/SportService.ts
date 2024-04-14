@@ -13,7 +13,15 @@ export class SportService {
     }
 
     static registerUserToSport = async (userInterestedSports: UserInterestedSport[], userId: string) => {
-        const res = await Requests.post(`registerUserToSport/${userId}`, userInterestedSports);
+        const res = await Requests.post(`sport/registerUserToSport/${userId}`, userInterestedSports);
+        if (res.status !== 200) {
+            return undefined;
+        }
+        return res.data;
+    }
+
+    static getUserSport = async (userId: string) => {
+        const res = await Requests.get(`sport/user/${userId}`);
         if (res.status !== 200) {
             return undefined;
         }

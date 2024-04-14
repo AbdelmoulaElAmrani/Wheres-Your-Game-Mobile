@@ -1,17 +1,25 @@
 import {useEffect, useState} from 'react';
-import { Image, ImageBackground, Keyboard, StyleSheet, Text, TouchableOpacity, View, TouchableWithoutFeedback} from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { TextInput } from "react-native-paper";
-import { AntDesign } from '@expo/vector-icons';
+import {
+    Keyboard,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    TouchableWithoutFeedback
+} from 'react-native';
+import {StatusBar} from 'expo-status-bar';
+import {Image, ImageBackground} from "expo-image";
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
+import {TextInput} from "react-native-paper";
+import {AntDesign} from '@expo/vector-icons';
 import CustomButton from '@/components/CustomButton';
-import { Divider } from "react-native-paper";
-import { FontAwesome5 } from '@expo/vector-icons';
-import { router } from "expo-router";
-import { AuthService } from '@/services/AuthService';
+import {Divider} from "react-native-paper";
+import {FontAwesome5} from '@expo/vector-icons';
+import {router} from "expo-router";
+import {AuthService} from '@/services/AuthService';
 import {useDispatch, useSelector} from 'react-redux';
-import { getUserProfile } from '@/redux/UserSlice';
+import {getUserProfile} from '@/redux/UserSlice';
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {Helpers} from "@/constants/Helpers";
 
@@ -28,7 +36,6 @@ const Login = () => {
     useEffect(() => {
         const checkIntroViewed = async () => {
             if (!Helpers.isObjectNullOrEmpty(user)) {
-                console.log('user found', user);
                 router.replace("/(tabs)/");
             } else {
             }
@@ -50,11 +57,15 @@ const Login = () => {
             return;
         }
 
-        const data = await AuthService.logIn({email: email, password: password});
-        if (data !== null && data !== undefined) {
+        try {
+            const data = await AuthService.logIn({email, password});
+            if (!data) {
+                throw new Error('Invalid login credentials');
+            }
             dispatch(getUserProfile() as any)
             router.replace('/Welcome');
-        } else {
+        } catch (error) {
+            console.error('Login failed:');
             setErrorMessages('Invalid email or password');
             setTimeout(() => {
                 setErrorMessages('');
@@ -74,10 +85,9 @@ const Login = () => {
     const _isLoginFormNotValid = (): boolean => (email.trim() === '' || password.trim() === '');
 
 
-
     return (
         <>
-            <StatusBar style="light" />
+            <StatusBar style="light"/>
             <ImageBackground
                 style={{
                     position: "absolute",
@@ -96,7 +106,7 @@ const Login = () => {
                         <View style={styles.cardContainer}>
                             <View style={styles.headerContainer}>
                                 <Image style={styles.logoContainer}
-                                    source={require('../../assets/images/logoBall.png')} />
+                                       source={require('../../assets/images/logoBall.png')}/>
                             </View>
                             <View style={styles.formContainer}>
                                 <View>
@@ -106,7 +116,7 @@ const Login = () => {
                                         placeholder={'Email'}
                                         cursorColor='black'
                                         placeholderTextColor={'grey'}
-                                        left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
+                                        left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
                                         value={email}
                                         onChangeText={setEmail}
                                         underlineColor={"transparent"}
@@ -119,7 +129,7 @@ const Login = () => {
                                         placeholder={'Password'}
                                         placeholderTextColor={'grey'}
                                         secureTextEntry={true}
-                                        left={<TextInput.Icon color={'#D3D3D3'} icon='lock-outline' size={30} />}
+                                        left={<TextInput.Icon color={'#D3D3D3'} icon='lock-outline' size={30}/>}
                                         value={password}
                                         onChangeText={setPassword}
                                         underlineColor={"transparent"}
@@ -135,41 +145,43 @@ const Login = () => {
                                     }}>{errorMessages}</Text>
                                 }
                                 <View style={styles.mgTop}>
-                                    <CustomButton text="Login" onPress={_handleLogin} 
-                                    disabled={_isLoginFormNotValid()} />
+                                    <CustomButton text="Login" onPress={_handleLogin}
+                                                  disabled={_isLoginFormNotValid()}/>
                                 </View>
                                 {/* forgot password ? */}
                                 <View style={styles.mgTop}>
                                     <TouchableOpacity onPress={_handleForgotPassword}>
-                                        <Text style={{ color: 'blue', textAlign: 'center', fontSize: 18 }}>Forgot Password ?</Text>
+                                        <Text style={{color: 'blue', textAlign: 'center', fontSize: 18}}>Forgot Password
+                                            ?</Text>
                                     </TouchableOpacity>
                                 </View>
 
                                 {/* Sign in with */}
                                 <View style={styles.dividerContainerSignUp}>
-                                    <Divider style={styles.dividerStyle} />
+                                    <Divider style={styles.dividerStyle}/>
                                     <Text style={styles.signInTextStyle}>Sign in with</Text>
-                                    <Divider style={styles.dividerStyle} />
+                                    <Divider style={styles.dividerStyle}/>
                                 </View>
 
                                 {/* Social Media Icons */}
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 30 }}>
+                                <View style={{flexDirection: 'row', justifyContent: 'space-around', marginTop: 30}}>
                                     <TouchableOpacity disabled={true}>
-                                        <FontAwesome5 name="facebook" size={40} color="blue" />
+                                        <FontAwesome5 name="facebook" size={40} color="blue"/>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={_handleSignInWithGoogle}>
-                                        <AntDesign name="google" size={40} color="blue" />
+                                        <AntDesign name="google" size={40} color="blue"/>
                                     </TouchableOpacity>
                                     <TouchableOpacity disabled={true}>
-                                        <AntDesign name="twitter" size={40} color="blue" />
+                                        <AntDesign name="twitter" size={40} color="blue"/>
                                     </TouchableOpacity>
                                 </View>
 
                                 <View style={styles.dontHaveAccountText}>
-                                    <Text style={{ color: 'black', textAlign: 'center', fontSize: 16 }}>Don't have an account ?
+                                    <Text style={{color: 'black', textAlign: 'center', fontSize: 16}}>Don't have an
+                                        account ?
                                     </Text>
                                     <TouchableOpacity onPress={_handleSignUp}>
-                                        <Text style={{ color: 'blue', textAlign: 'center', fontSize: 16 }}> Sign Up</Text>
+                                        <Text style={{color: 'blue', textAlign: 'center', fontSize: 16}}> Sign Up</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -180,7 +192,6 @@ const Login = () => {
         </>
     );
 }
-
 
 
 const styles = StyleSheet.create({
