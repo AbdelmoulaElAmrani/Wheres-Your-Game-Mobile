@@ -1,14 +1,13 @@
 import {StatusBar} from "expo-status-bar";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {
-    Image,
-    ImageBackground,
     StyleSheet,
     Text,
     View,
     TouchableWithoutFeedback,
     Keyboard,
     Alert,
+    Image, ImageBackground
 } from "react-native";
 import React, {useRef, useState} from "react";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";

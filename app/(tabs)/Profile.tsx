@@ -1,11 +1,10 @@
-import {StatusBar} from "expo-status-bar";
-import {useEffect, useState} from "react";
-import {ImageBackground, Text, View, StyleSheet, TouchableOpacity, ScrollView} from "react-native";
+import {useEffect} from "react";
+import {Text, View, StyleSheet, TouchableOpacity, ScrollView} from "react-native";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {Avatar} from 'react-native-paper';
 import {SafeAreaView} from "react-native-safe-area-context";
 import {AntDesign, Octicons} from '@expo/vector-icons';
-
+import {ImageBackground} from "expo-image";
 import {router} from "expo-router";
 import {useDispatch, useSelector} from "react-redux";
 import {getUserProfile} from "@/redux/UserSlice";

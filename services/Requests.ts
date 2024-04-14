@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 
 const PREFIX = 'api'
 
-export const API_URI = `https://colleague-anne-angela-prisoner.trycloudflare.com/${PREFIX}/`
+export const API_URI = `https://draws-like-fellow-nato.trycloudflare.com/${PREFIX}/`
 
 const axiosInstance = axios.create({
     baseURL: API_URI,
@@ -53,7 +53,7 @@ axiosInstance.interceptors.response.use(
 
 const handleErrors = async (err: AxiosError) => {
     if (err && err.response && err.response.status === 401) {
-        //router.replace("/Login");
+        router.replace("/Login");
     }
     return err;
 };
@@ -72,7 +72,6 @@ const Requests = {
 
     post: async (url: string, body: any): Promise<any> => {
         try {
-            console.log('body', body);
             const response = await axiosInstance.post(url, body);
             return response;
         } catch (error : any) {

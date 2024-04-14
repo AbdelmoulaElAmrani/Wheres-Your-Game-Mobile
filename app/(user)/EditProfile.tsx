@@ -2,14 +2,13 @@ import CustomButton from "@/components/CustomButton";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React, {memo, useEffect, useRef, useState} from "react";
 import {
-    ImageBackground,
     Keyboard,
-    Platform, ScrollView,
     StyleSheet,
     TouchableOpacity,
     TouchableWithoutFeedback,
     View
 } from "react-native"
+import {ImageBackground} from "expo-image";
 import {Avatar, Text, TextInput} from "react-native-paper";
 import PhoneInput from "react-native-phone-number-input";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
@@ -63,7 +62,6 @@ const EditProfile = () => {
     }
 
     const _handleContinue = async () => {
-        console.log({...user});
         setCurrentStep(oldValue => Math.min(3, oldValue + 1));
         if (currentStep >= 3) {
             try {
@@ -410,11 +408,6 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginRight: 5,
         height: 45,
-    },
-    flagIcon: {
-        width: 30,
-        height: 30,
-        resizeMode: 'contain',
     },
     phoneInputContainer: {
         backgroundColor: 'white',

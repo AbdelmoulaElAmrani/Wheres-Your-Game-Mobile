@@ -43,9 +43,15 @@ export class AuthService {
         AuthService.setRefreshToken(tokens.refreshToken);
     }
 
-    static refreshToken = (): string => {
-        const token = '';
-        return token;
+    static refreshToken = async (): Promise<string | undefined> => {
+        const res = await Requests.get('auth/refreshtoken',);
+        if (res.status !== 200) {
+            return undefined;
+        }
+        if (res.data) {
+            AuthService.setAuthTokens(res.data);
+        }
+        return res.data;
     }
 
     static logIn = async (request: AuthenticationRequest): Promise<AuthenticationResponse | undefined> => {
@@ -64,9 +70,7 @@ export class AuthService {
     }
 
     static register = async (request: RegisterRequest): Promise<AuthenticationResponse | undefined> => {
-        console.log('user: ', request);
         const res = await Requests.post('auth/register', request);
-        console.log(res);
         if (res?.status !== 200) {
             return undefined;
         }
