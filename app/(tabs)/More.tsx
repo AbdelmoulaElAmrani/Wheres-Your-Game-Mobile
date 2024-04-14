@@ -1,11 +1,21 @@
-import {Keyboard, StyleSheet, Text, TouchableWithoutFeedback, View} from "react-native";
+import {Button, Keyboard, StyleSheet, Text, TouchableWithoutFeedback, View} from "react-native";
 import {StatusBar} from "expo-status-bar";
 import {ImageBackground} from "expo-image";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
 import React from "react";
+import {useDispatch} from "react-redux";
+import {router} from "expo-router";
+import {logout} from "@/redux/UserSlice";
 
 const More = () => {
+    const dispatch = useDispatch();
+
+    const _handleLogout = () => {
+        dispatch(logout() as any);
+        router.replace('/Login');
+    }
+
     return <>
         <StatusBar style="light"/>
         <ImageBackground
@@ -30,7 +40,9 @@ const More = () => {
                             </View>*/}
 
                         <View style={styles.mainContainer}>
-
+                            <Button
+                                onPress={_handleLogout}
+                                title={'logout'}/>
                         </View>
                     </View>
                 </TouchableWithoutFeedback>

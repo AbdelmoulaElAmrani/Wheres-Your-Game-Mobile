@@ -98,8 +98,7 @@ const userSlice = createSlice({
                 state.loading = true;
             })
             .addCase(logout.fulfilled, (state) => {
-                state.loading = false;
-                state.userData = {} as UserResponse;
+                state = initialState;
             })
             .addCase(logout.rejected, (state) => {
                 state.loading = false;
