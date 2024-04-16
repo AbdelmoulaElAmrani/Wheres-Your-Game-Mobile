@@ -18,28 +18,10 @@ import {getSports} from "@/redux/SportSlice";
 import Sport from "@/models/Sport";
 
 const EditCoachProfile = () => {
-
-    useEffect(() => {
-        if (userData) {
-            setUser(userData);
-        } else {
-            dispatch(getUserProfile() as any)
-        }
-    }, []);
-
-    useEffect(() => {
-        dispatch(getSports() as any);
-    }, []);
-
     const [currentStep, setCurrentStep] = useState<number>(1);
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
-    const {evalbleSports}: { evalbleSports: Sport[] } = useSelector((state: any) => state.sport);
-
-    const params = useLocalSearchParams();
-    registerTranslation("en", enGB);
-
+    const {availableSport}: { availableSport: Sport[] } = useSelector((state: any) => state.sport);
     const dispatch = useDispatch();
-
     const [user, setUser] = useState<UserResponse>({
         address: "",
         age: 0,
@@ -55,6 +37,17 @@ const EditCoachProfile = () => {
         zipCode: "",
         id: ""
     });
+    const params = useLocalSearchParams();
+    registerTranslation("en", enGB);
+
+    useEffect(() => {
+        if (userData) {
+            setUser(userData);
+        } else {
+            dispatch(getUserProfile() as any)
+        }
+        dispatch(getSports() as any);
+    }, []);
 
 
     const goBackFunc = () => {
@@ -282,13 +275,13 @@ const EditCoachProfile = () => {
                                 <Text style={styles.textLabel}>Your Sport</Text>
                                 <RNPickerSelect
                                     style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
-                                    items={evalbleSports.map(sport => ({
+                                    items={availableSport.map(sport => ({
                                         label: sport.name,
                                         value: sport.id,
                                         key: sport.id
                                     }))}
                                     placeholder={{label: 'Select sport', value: null}}
-                                    onValueChange={(value) => setSelectedSport(evalbleSports.find(sport => sport.id === value) || null)}
+                                    onValueChange={(value) => setSelectedSport(availableSport.find(sport => sport.id === value) || null)}
                                 />
                                 <Text style={styles.textLabel}>Position Coach</Text>
                                 <TextInput

@@ -20,6 +20,7 @@ import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {getUserProfile, getUserSports} from "@/redux/UserSlice";
 import UserType from "@/models/UserType";
 import {Team} from "@/models/Team";
+import {router} from "expo-router";
 
 const Home = () => {
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
@@ -55,6 +56,9 @@ const Home = () => {
 
     const _onSelectMenuItem = (item: string) => {
         setSelectedTag(item)
+        if (item === 'Map View') {
+            router.navigate('/(map)')
+        }
     }
 
     const _onAddPlayer = () => {
