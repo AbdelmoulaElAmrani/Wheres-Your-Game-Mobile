@@ -125,7 +125,7 @@ const SportInterested = () => {
                 <View>
                     <TextInput
                         placeholder="Search Sports"
-                        style={styles.credentialInput}
+                        style={styles.search}
                         textColor='black'
                         onChangeText={(value) => setQuery(value.toLowerCase())}
                         value={query}
@@ -243,8 +243,8 @@ const SportInterested = () => {
     return (
         <ImageBackground
             style={{
-                flex: 1, // Full screen coverage
-                width: '100%', // Cover full width
+                flex: 1,
+                width: '100%',
             }}
             source={require('../../assets/images/signupBackGround.jpg')}
         >
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         fontSize: 25
     },
-    credentialInput: {
+    search: {
         backgroundColor: 'white',
         borderColor: '#9BA0AB',
         borderWidth: 1,

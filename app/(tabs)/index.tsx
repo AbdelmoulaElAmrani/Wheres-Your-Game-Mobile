@@ -10,7 +10,7 @@ import {StatusBar} from "expo-status-bar";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
 import React, {memo, useEffect, useMemo, useState} from "react";
-import {AntDesign, Fontisto, MaterialIcons} from "@expo/vector-icons";
+import {AntDesign, Fontisto, Ionicons, MaterialIcons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {Helpers} from "@/constants/Helpers";
@@ -21,6 +21,8 @@ import {getUserProfile, getUserSports} from "@/redux/UserSlice";
 import UserType from "@/models/UserType";
 import {Team} from "@/models/Team";
 import {router} from "expo-router";
+import RNPickerSelect from 'react-native-picker-select';
+
 
 const Home = () => {
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
@@ -31,9 +33,25 @@ const Home = () => {
     const [selectedTag, setSelectedTag] = useState('');
     const [players, setPlayers] = useState<Player[]>([]);
     const [teams, setTeams] = useState<Team[]>([]);
+    const [selectedTeam, setSelectedTeam] = useState<string | undefined>(undefined);
+    const [selectedChild, setSelectedChild] = useState<Player | undefined>(undefined)
+    const [children, setChildren] = useState<Player[]>([])
+    const sports = [
+        {
+            label: 'All Children',
+            value: 'All Children',
+        },
+        {
+            label: 'Baseball',
+            value: 'baseball',
+        },
+        {
+            label: 'Hockey',
+            value: 'hockey',
+        },
+    ];
 
     useEffect(() => {
-
         if (!userData?.id) {
             dispatch(getUserProfile() as any);
         }
@@ -46,19 +64,16 @@ const Home = () => {
     const _handleOnOpenMenu = () => {
         console.log('menu');
     }
-    const _handleNotification = () => {
+    const _onOpenNotification = () => {
         console.log('notification');
     }
 
-    const _onSearch = () => {
+    const _onOpenChat = () => {
         console.log('search');
     }
 
-    const _onSelectMenuItem = (item: string) => {
-        setSelectedTag(item)
-        if (item === 'Map View') {
-            router.navigate('/(map)')
-        }
+    const _onOpenMap = () => {
+        router.navigate('/(map)');
     }
 
     const _onAddPlayer = () => {
@@ -73,17 +88,27 @@ const Home = () => {
         console.log('View All');
     }
 
-    const isCoach = (): boolean => userData.role == UserType.COACH.toString();
+    const _onSelectTeam = (team: any) => {
+        console.log('selected team');
+        setSelectedTeam(team);
+    }
+    const _onSelectPlayer = (player: any) => {
+        console.log('Player');
+    }
 
+    const _onSelectCategory = (category: any) => {
+        console.log('Category')
+    }
 
-    const _renderMenuItem = memo(({item}: { item: any }) => (
-        <TouchableOpacity
-            style={[styles.tag, selectedTag === item ? styles.selectedTag : null]}
-            onPress={() => _onSelectMenuItem(item)}
-        >
-            <Text style={[styles.tagText, {color: selectedTag === item ? 'white' : 'black'}]}>{item}</Text>
-        </TouchableOpacity>
-    ));
+    const _onSelectSport = (id: any) => {
+        console.log('select sport');
+    }
+
+    const isCoach = (): boolean => true; //userData.role == UserType.COACH.toString();
+
+    const isPlayersVisible = (): boolean =>
+        (isCoach() || [UserType.COACH.toString(), UserType.PLAYER.toString()].includes(userData.role)) && selectedTeam !== undefined;
+
 
     const _renderSportItem = memo(({item}: { item: UserSportResponse }) => {
         const [iconLoadedError, setIconLoadedError] = useState(false);
@@ -103,7 +128,7 @@ const Home = () => {
 
         return (<TouchableOpacity
             style={{justifyContent: 'center', alignItems: 'center', alignContent: 'center'}}
-            onPress={() => _onSelectMenuItem(item.id)}
+            onPress={() => _onSelectSport(item.id)}
         >
             <View style={styles.circle}>
                 <Image
@@ -116,7 +141,7 @@ const Home = () => {
     const _renderTeam = memo(({item}: { item: string }) => (
         <TouchableOpacity
             style={styles.card}
-            onPress={() => _onSelectMenuItem(item)}
+            onPress={() => _onSelectTeam(item)}
         >
             <View>
                 <View style={styles.cardImage}>
@@ -137,7 +162,7 @@ const Home = () => {
     const _renderPlayer = memo(({item}: { item: any }) => (
         <TouchableOpacity
             style={styles.card}
-            onPress={() => _onSelectMenuItem(item)}
+            onPress={() => _onSelectPlayer(item)}
         >
             <View>
                 <Image
@@ -151,7 +176,7 @@ const Home = () => {
     const _renderCategory = memo(({item}: { item: any }) => (
         <TouchableOpacity
             style={[styles.tag, selectedTag === item ? styles.selectedTag : null]}
-            onPress={() => _onSelectMenuItem(item)}
+            onPress={() => _onSelectCategory(item)}
         >
             <Text style={[styles.tagText, {color: selectedTag === item ? 'white' : 'black'}]}>{item}</Text>
         </TouchableOpacity>
@@ -185,37 +210,52 @@ const Home = () => {
                         </View>
                         <View style={styles.sideHiderContainer}>
                             <TouchableOpacity
-                                onPress={_handleNotification}
+                                onPress={_onOpenNotification}
                                 style={{marginRight: 20}}>
                                 <Fontisto name="bell" size={30} color="white"/>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                onPress={_onSearch}
+                                onPress={_onOpenChat}
                             >
-                                <AntDesign name="search1" size={30} color="white"/>
+                                <Ionicons name="chatbubble-ellipses-outline" size={30} color="white"/>
                             </TouchableOpacity>
                         </View>
                     </View>
-                    <View style={{marginTop: 35, marginHorizontal: 20, flexDirection: 'row'}}>
+                    <View style={{
+                        marginTop: 35,
+                        marginHorizontal: 20,
+                        flexDirection: 'row',
+                        justifyContent: 'space-between'
+                    }}>
                         <Text style={{
                             color: 'white',
                             fontWeight: 'bold',
                             fontSize: 18
                         }}>Hi {`${Helpers.capitalize(userData?.firstName)}`}</Text>
-                        <View>
-
-                        </View>
+                        <RNPickerSelect
+                            placeholder={{}}
+                            items={sports}
+                            onValueChange={value => {
+                                console.log(value)
+                            }}
+                            style={pickerSelectStyles}
+                            value={selectedChild}
+                        />
                     </View>
                     <View style={styles.mainContainer}>
-                        <View style={{marginBottom: 10}}>
-                            <FlatList
-                                data={tags}
-                                renderItem={({item}) => <_renderMenuItem item={item}/>}
-                                keyExtractor={item => item}
-                                horizontal={true}
-                                showsHorizontalScrollIndicator={true}
-                                focusable={true}
-                            />
+                        <View style={{marginBottom: 10, flexDirection: 'row', justifyContent: 'center'}}>
+                            <TouchableOpacity style={styles.tag}>
+                                <Text style={styles.tagText}>Add Coach</Text>
+                            </TouchableOpacity>
+                            {isCoach() && <TouchableOpacity onPress={_onAddPlayer} style={styles.tag}>
+                                <Text style={styles.tagText}>Add Player</Text>
+                            </TouchableOpacity>}
+                            {isCoach() && <TouchableOpacity onPress={_onAddTeam} style={styles.tag}>
+                                <Text style={styles.tagText}>Add Team</Text>
+                            </TouchableOpacity>}
+                            <TouchableOpacity onPress={_onOpenMap} style={styles.tag}>
+                                <Text style={styles.tagText}>Map View</Text>
+                            </TouchableOpacity>
                         </View>
                         <ScrollView
                             style={{flex: 1}}
@@ -260,10 +300,10 @@ const Home = () => {
                                 />
                             </View>
 
-                            <View style={styles.menuContainer}>
+                            {isPlayersVisible() && <View style={styles.menuContainer}>
                                 <View style={styles.menuTitleContainer}>
                                     <View style={{flexDirection: 'row'}}>
-                                        <Text style={styles.menuTitle}>Your Players <Text
+                                        <Text style={styles.menuTitle}>{isCoach() ? 'Your ' : ''}Players <Text
                                             style={styles.count}>{players?.length}</Text></Text>
                                     </View>
                                     {isCoach() && <TouchableOpacity
@@ -282,7 +322,7 @@ const Home = () => {
                                     focusable={true}
                                     nestedScrollEnabled={true}
                                 />
-                            </View>
+                            </View>}
 
                             <View style={[styles.menuContainer, {marginBottom: 100}]}>
                                 <View style={styles.menuTitleContainer}>
@@ -336,8 +376,8 @@ const styles = StyleSheet.create({
         borderColor: 'grey',
         borderWidth: 1,
         borderRadius: 10,
-        paddingHorizontal: 8,
-        paddingVertical: 5,
+        paddingHorizontal: 10,
+        paddingVertical: 10,
         marginRight: 5
     },
     tagText: {
@@ -409,6 +449,33 @@ const styles = StyleSheet.create({
         //resizeMode: 'cover',
     },
 });
-
+const pickerSelectStyles = StyleSheet.create({
+    inputIOS: {
+        borderWidth: 1,
+        borderColor: 'white',
+        borderRadius: 4,
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 16,
+        width: 120,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    inputAndroid: {
+        borderWidth: 1,
+        borderColor: 'white',
+        borderRadius: 4,
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 16,
+        width: 120,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+});
 
 export default Home;
