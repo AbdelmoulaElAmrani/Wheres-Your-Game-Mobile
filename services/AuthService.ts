@@ -56,8 +56,7 @@ export class AuthService {
 
     static logIn = async (request: AuthenticationRequest): Promise<AuthenticationResponse | undefined> => {
         const res = await Requests.post('auth/login', request);
-
-        if (res.status !== 200) {
+        if (res?.status !== 200) {
             return undefined;
         }
 
