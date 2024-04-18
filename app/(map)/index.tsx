@@ -9,7 +9,9 @@ import {widthPercentageToDP as wp, heightPercentageToDP as hp} from "react-nativ
 import Modal from "react-native-modal";
 import {useSelector} from "react-redux";
 import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
-import {List} from "react-native-paper";
+import {List, RadioButton} from "react-native-paper";
+import {FlashList} from "@shopify/flash-list";
+import Checkbox from "expo-checkbox";
 
 enum Filters {
     SPORT,
@@ -17,12 +19,37 @@ enum Filters {
     SORTBY
 }
 
+interface RadioBoxFilter {
+    id: string;
+    value: string;
+}
+
+interface FilterState {
+    category: RadioBoxFilter[];
+    sortBy: RadioBoxFilter;
+}
+
+const sortByValues = [
+    {id: 'PLTH', value: 'Price Low To High'},
+    {id: 'PHTL', value: 'Price High To Low'},
+    {id: 'BD', value: 'Best Deal'},
+    {id: 'HEV', value: 'Hot Event'}] as RadioBoxFilter[];
+
+const categoryValues = [
+    {id: '5MR', value: '5 mile Radius'},
+    {id: 'PRSM', value: 'Price Range Selection Monthly'},
+    {id: 'Ratings', value: 'Ratings'},
+    {id: 'Promos', value: 'Promos'},
+    {id: 'FCAMPS', value: 'Free Camps'},
+    {id: 'Training', value: 'Training'},
+    {id: 'TEVENT', value: 'Last Minute Today Event'}] as RadioBoxFilter[];
 const SportMap = () => {
-    const [searchQuery, setSearchQuery] = useState<string>('');
+    //const [searchQuery, setSearchQuery] = useState<string>('');
     const [modalVisible, setModalVisible] = useState<boolean>(false)
     const userSports = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
-    const [selectedSportForSearch, setSelectedSportForSearch] = useState<UserSportResponse[]>([]);
+    const [selectedSportForSearch, setSelectedSportForSearch] = useState<UserSportResponse | undefined>();
     const [expandedFilter, setExpandedFilter] = useState<Filters | undefined>(Filters.SPORT);
+    const [filter, setFilter] = useState<FilterState>({category: [], sortBy: {} as RadioBoxFilter});
 
 
     const _onGoBack = () => {
@@ -41,17 +68,39 @@ const SportMap = () => {
 
     }
 
-    const _onSelectSportForSearch = (selectedItem: UserSportResponse) => {
-        setSelectedSportForSearch(currentSelectedSports => {
-            const isFound = currentSelectedSports.some(_ => _.sportId == selectedItem.sportId);
-            if (!isFound) return [...currentSelectedSports, selectedItem];
-            else return currentSelectedSports.filter(_ => _.sportId != selectedItem.sportId);
-        });
-    }
+    /*    const _onSelectSportForSearch = (selectedItem: UserSportResponse) => {
+            setSelectedSportForSearch(currentSelectedSports => {
+                const isFound = currentSelectedSports.some(_ => _.sportId == selectedItem.sportId);
+                if (!isFound) return [...currentSelectedSports, selectedItem];
+                else return currentSelectedSports.filter(_ => _.sportId != selectedItem.sportId);
+            });
+        }*/
 
     const _handleSelectedFilter = (filter: Filters) => {
         setExpandedFilter(old => expandedFilter !== filter ? filter : undefined);
     }
+
+    const [selectedSportId, setSelectedSportId] = useState<any>(null);
+
+    const _handleSelectedSport = (item: UserSportResponse) => {
+        setSelectedSportForSearch(item);
+        setSelectedSportId(item.sportId);
+    }
+
+    const _handleSortByFilter = (item: RadioBoxFilter) => {
+        setFilter(old => ({...old, sortBy: item}));
+    }
+
+    const _handleSelectedCategories = (item: RadioBoxFilter, value: boolean) => {
+        setFilter(oldFilter => {
+            return {
+                ...oldFilter,
+                category: value
+                    ? [...oldFilter.category, item]
+                    : oldFilter.category.filter(existingItem => existingItem.value !== item.value)
+            };
+        });
+    };
 
     return (
         <View style={styles.container}>
@@ -103,36 +152,100 @@ const SportMap = () => {
                             </TouchableOpacity>
                         </View>
                         <ScrollView
+                            showsVerticalScrollIndicator={false}
                             style={{
                                 height: 230,
                                 width: 300
-                            }}
-                        >
+                            }}>
                             <List.Section>
-                                <List.Accordion titleStyle={{fontWeight: 'bold', color: 'black'}}
-                                                style={{borderRadius: 10}}
+                                <List.Accordion titleStyle={{
+                                    fontWeight: 'bold',
+                                    color: expandedFilter == Filters.SPORT ? 'white' : 'black'
+                                }}
+                                                style={[styles.dropDownContainer, {backgroundColor: expandedFilter == Filters.SPORT ? '#2757CB' : '#F8F9FA'}]}
                                                 expanded={expandedFilter == Filters.SPORT}
                                                 onPress={() => _handleSelectedFilter(Filters.SPORT)}
                                                 title="Sports Listings">
-                                    <List.Item title="First item"/>
-                                    <List.Item title="Second item"/>
+                                    <View style={{flex: 1, paddingVertical: 8, paddingHorizontal: 12}}>
+                                        <FlashList
+                                            data={userSports}
+                                            renderItem={({item, index}) => (
+                                                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                                    <RadioButton
+                                                        color='#2757CB'
+                                                        value={item.sportId}
+                                                        status={selectedSportId === item.sportId ? 'checked' : 'unchecked'}
+                                                        onPress={() => _handleSelectedSport(item)}
+                                                    />
+                                                    <Text style={{fontSize: 16}}>{item.sportName}</Text>
+                                                </View>
+                                            )}
+                                            keyExtractor={(item) => item.sportId.toString()}
+                                            estimatedItemSize={50}
+                                        />
+                                    </View>
                                 </List.Accordion>
 
                                 <List.Accordion
-                                    titleStyle={{fontWeight: 'bold', color: 'black'}}
+                                    titleStyle={{
+                                        fontWeight: 'bold',
+                                        color: expandedFilter == Filters.CATEGORY ? 'white' : 'black'
+                                    }}
+                                    style={[styles.dropDownContainer, {backgroundColor: expandedFilter == Filters.CATEGORY ? '#2757CB' : '#F8F9FA'}]}
                                     expanded={expandedFilter == Filters.CATEGORY}
                                     onPress={() => _handleSelectedFilter(Filters.CATEGORY)}
                                     title="Category">
-                                    <List.Item title="First item"/>
-                                    <List.Item title="Second item"/>
+                                    <View
+                                        style={{flex: 1, paddingVertical: 8, paddingHorizontal: 12}}>
+                                        <FlashList
+                                            data={categoryValues}
+                                            renderItem={({item, index}) => (
+                                                <View style={{
+                                                    flexDirection: 'row',
+                                                    alignItems: 'center',
+                                                    marginBottom: 5
+                                                }}>
+                                                    <Checkbox
+                                                        style={{borderRadius: 5, borderColor: 'grey', marginRight: 10}}
+                                                        value={filter.category.some(x => x.id === item.id)}
+                                                        onValueChange={(value) => _handleSelectedCategories(item, value)}
+                                                    />
+                                                    <Text style={{fontSize: 16}}>{item.value}</Text>
+                                                </View>
+                                            )}
+                                            keyExtractor={(item) => item.id}
+                                            estimatedItemSize={50}
+                                        />
+                                    </View>
                                 </List.Accordion>
                                 <List.Accordion
-                                    titleStyle={{fontWeight: 'bold', color: 'black'}}
+                                    titleStyle={{
+                                        fontWeight: 'bold',
+                                        color: expandedFilter == Filters.SORTBY ? 'white' : 'black'
+                                    }}
+                                    style={[styles.dropDownContainer, {backgroundColor: expandedFilter == Filters.SORTBY ? '#2757CB' : '#F8F9FA'}]}
                                     expanded={expandedFilter == Filters.SORTBY}
-                                    onPress={() => _handleSelectedFilter(Filters.SPORT)}
+                                    onPress={() => _handleSelectedFilter(Filters.SORTBY)}
                                     title="Sort By">
-                                    <List.Item title="First item"/>
-                                    <List.Item title="Second item"/>
+                                    <View
+                                        style={{flex: 1, paddingVertical: 8, paddingHorizontal: 12}}>
+                                        <FlashList
+                                            data={sortByValues}
+                                            renderItem={({item, index}) => (
+                                                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                                    <RadioButton
+                                                        color='#2757CB'
+                                                        value={item.id}
+                                                        status={filter.sortBy.id === item.id ? 'checked' : 'unchecked'}
+                                                        onPress={() => _handleSortByFilter(item)}
+                                                    />
+                                                    <Text style={{fontSize: 16}}>{item.value}</Text>
+                                                </View>
+                                            )}
+                                            keyExtractor={(item) => item.id}
+                                            estimatedItemSize={50}
+                                        />
+                                    </View>
                                 </List.Accordion>
                             </List.Section>
                         </ScrollView>
@@ -197,31 +310,13 @@ const styles = StyleSheet.create({
         bottom: hp(30),
         padding: 10
     },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginVertical: 16,
-    },
-    listItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginVertical: 8,
-        padding: 8,
-    },
-    list: {
-        marginTop: 20,
-    },
-    search: {},
     selectedFilterTitle: {
         fontWeight: 'bold',
         color: 'white'
     },
-    filterTitle: {
-        color: 'black'
-    },
-    selectedFilterContainer: {
-        backgroundColor: '#2757CB'
+    dropDownContainer: {
+        borderRadius: 10,
+        height: 55
     }
 });
 export default SportMap;
