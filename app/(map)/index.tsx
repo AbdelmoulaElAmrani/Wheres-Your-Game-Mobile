@@ -12,6 +12,7 @@ import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {List, RadioButton} from "react-native-paper";
 import {FlashList} from "@shopify/flash-list";
 import Checkbox from "expo-checkbox";
+import CustomButton from "@/components/CustomButton";
 
 enum Filters {
     SPORT,
@@ -44,7 +45,6 @@ const categoryValues = [
     {id: 'Training', value: 'Training'},
     {id: 'TEVENT', value: 'Last Minute Today Event'}] as RadioBoxFilter[];
 const SportMap = () => {
-    //const [searchQuery, setSearchQuery] = useState<string>('');
     const [modalVisible, setModalVisible] = useState<boolean>(false)
     const userSports = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
     const [selectedSportForSearch, setSelectedSportForSearch] = useState<UserSportResponse | undefined>();
@@ -65,19 +65,11 @@ const SportMap = () => {
     }
 
     const _handleSearch = () => {
-
+        console.log('search');
     }
 
-    /*    const _onSelectSportForSearch = (selectedItem: UserSportResponse) => {
-            setSelectedSportForSearch(currentSelectedSports => {
-                const isFound = currentSelectedSports.some(_ => _.sportId == selectedItem.sportId);
-                if (!isFound) return [...currentSelectedSports, selectedItem];
-                else return currentSelectedSports.filter(_ => _.sportId != selectedItem.sportId);
-            });
-        }*/
-
     const _handleSelectedFilter = (filter: Filters) => {
-        setExpandedFilter(old => expandedFilter !== filter ? filter : undefined);
+        setExpandedFilter(old => old !== filter ? filter : undefined);
     }
 
     const [selectedSportId, setSelectedSportId] = useState<any>(null);
@@ -119,32 +111,9 @@ const SportMap = () => {
                             <Ionicons name="filter-sharp" size={35} color="black"/>
                         </TouchableOpacity>
                     </View>
-                    {/* Remove it from this version */}
-                    {/*<View style={styles.bodyContainer}>
-                        <View style={styles.adsImageContainer}>
-                            <Image resizeMode={"contain"} source={require('../../assets/images/mapAds.png')}/>
-                        </View>
-                        <TextInput
-                            placeholder="Search Football Club"
-                            style={styles.searchBar}
-                            textColor='black'
-                            onChangeText={(value) => setSearchQuery(value)}
-                            value={searchQuery}
-                            placeholderTextColor='#9BA0AB'
-                            error={false}
-                            underlineColor="transparent"
-                            left={<TextInput.Icon size={40} onPress={_handleSearch} color='#2757CB' icon="magnify"/>}
-                            right={<TextInput.Icon size={40} onPress={_openModal} color='#2757CB' icon="tune-vertical"/>}
-                        />
-                    </View>*/}
                     <Modal backdropOpacity={0.1} onDismiss={_hideModal} isVisible={modalVisible}
                            style={styles.modalStyle} hideModalContentWhileAnimating={true}>
-                        <View style={{
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            width: '100%',
-                            marginTop: 3
-                        }}>
+                        <View style={styles.modalHeader}>
                             <View></View>
                             <Text style={{fontWeight: 'bold', fontSize: 18}}>Filters</Text>
                             <TouchableOpacity onPress={_hideModal}>
@@ -250,6 +219,10 @@ const SportMap = () => {
                             </List.Section>
                         </ScrollView>
                     </Modal>
+
+                    <View style={styles.searchButton}>
+                        <CustomButton text='Search' onPress={_handleSearch}/>
+                    </View>
                 </SafeAreaView>
             </MapView>
         </View>
@@ -297,10 +270,15 @@ const styles = StyleSheet.create({
     bodyContainer: {
         marginTop: 20
     },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 10,
+        width: '100%'
+    },
     modalStyle: {
         backgroundColor: 'white',
-        height: 270,
-        width: 330,
         borderRadius: 20,
         alignSelf: "center",
         justifyContent: 'center',
@@ -317,6 +295,16 @@ const styles = StyleSheet.create({
     dropDownContainer: {
         borderRadius: 10,
         height: 55
+    },
+    searchButton: {
+        width: '100%',
+        height: 100,
+        backgroundColor: 'white',
+        position: 'absolute',
+        bottom: -hp(85),
+        borderTopStartRadius: 40,
+        borderTopEndRadius: 40,
+        justifyContent: 'center'
     }
 });
 export default SportMap;

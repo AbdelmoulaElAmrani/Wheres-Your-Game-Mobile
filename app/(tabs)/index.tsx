@@ -36,18 +36,18 @@ const Home = () => {
     const [selectedTeam, setSelectedTeam] = useState<string | undefined>(undefined);
     const [selectedChild, setSelectedChild] = useState<Player | undefined>(undefined)
     const [children, setChildren] = useState<Player[]>([])
-    const sports = [
+    const childrens = [
         {
             label: 'All Children',
             value: 'All Children',
         },
         {
-            label: 'Baseball',
-            value: 'baseball',
+            label: 'Child 1',
+            value: 'Child 1',
         },
         {
-            label: 'Hockey',
-            value: 'hockey',
+            label: 'Child 2',
+            value: 'Child 2',
         },
     ];
 
@@ -232,15 +232,15 @@ const Home = () => {
                             fontWeight: 'bold',
                             fontSize: 18
                         }}>Hi {`${Helpers.capitalize(userData?.firstName)}`}</Text>
-                        <RNPickerSelect
+                        {userData.role == UserType.PARENT.toString() && <RNPickerSelect
                             placeholder={{}}
-                            items={sports}
+                            items={childrens}
                             onValueChange={value => {
                                 console.log(value)
                             }}
                             style={pickerSelectStyles}
                             value={selectedChild}
-                        />
+                        />}
                     </View>
                     <View style={styles.mainContainer}>
                         <View style={{marginBottom: 10, flexDirection: 'row', justifyContent: 'center'}}>
@@ -336,6 +336,7 @@ const Home = () => {
                                         <AntDesign name="right" size={20} color="#4361EE"/>
                                     </TouchableOpacity>
                                 </View>
+
                             </View>
                         </ScrollView>
                     </View>
