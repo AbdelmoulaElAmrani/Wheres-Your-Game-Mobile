@@ -53,7 +53,8 @@ const EditCoachProfile = () => {
         phoneNumber: "",
         role: "",
         zipCode: "",
-        id: ""
+        id: "",
+        dateOfBirth: new Date()
     });
 
 
