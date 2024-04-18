@@ -23,6 +23,7 @@ import {Team} from "@/models/Team";
 import {router} from "expo-router";
 import RNPickerSelect from 'react-native-picker-select';
 
+const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
 
 const Home = () => {
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
@@ -65,11 +66,11 @@ const Home = () => {
         console.log('menu');
     }
     const _onOpenNotification = () => {
-        console.log('notification');
+        router.navigate('/(user)/Notifications');
     }
 
     const _onOpenChat = () => {
-        console.log('search');
+        router.navigate('/(user)/Chats');
     }
 
     const _onOpenMap = () => {
@@ -175,10 +176,9 @@ const Home = () => {
 
     const _renderCategory = memo(({item}: { item: any }) => (
         <TouchableOpacity
-            style={[styles.tag, selectedTag === item ? styles.selectedTag : null]}
-            onPress={() => _onSelectCategory(item)}
-        >
-            <Text style={[styles.tagText, {color: selectedTag === item ? 'white' : 'black'}]}>{item}</Text>
+            style={styles.categoryContainer}
+            onPress={() => _onSelectCategory(item)}>
+            <Text style={{fontSize: 14, fontWeight: 'bold', textAlign: 'center'}}>{item}</Text>
         </TouchableOpacity>
     ));
 
@@ -337,6 +337,16 @@ const Home = () => {
                                     </TouchableOpacity>
                                 </View>
 
+                                <View>
+                                    <FlatList
+                                        nestedScrollEnabled={true}
+                                        data={categories}
+                                        renderItem={({item}) => <_renderCategory item={item}/>}
+                                        numColumns={2}
+                                        keyExtractor={(item) => item}
+                                    />
+                                </View>
+
                             </View>
                         </ScrollView>
                     </View>
@@ -449,6 +459,20 @@ const styles = StyleSheet.create({
         width: '70%',
         //resizeMode: 'cover',
     },
+    categoryContainer: {
+        backgroundColor: 'white',
+        width: 160,
+        height: 90,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        margin: 10,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 2},
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 3,
+    }
 });
 const pickerSelectStyles = StyleSheet.create({
     inputIOS: {

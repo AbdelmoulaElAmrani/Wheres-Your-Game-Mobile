@@ -65,8 +65,8 @@ const Login = () => {
             dispatch(getUserProfile() as any)
             router.replace('/Welcome');
         } catch (error) {
-            console.error('Login failed:');
-            setErrorMessages('Invalid email or password');
+            console.error('Login failed:', error);
+            setErrorMessages('Password or email not correct');
             setTimeout(() => {
                 setErrorMessages('');
             }, 5000);
