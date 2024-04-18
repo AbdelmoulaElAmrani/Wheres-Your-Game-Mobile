@@ -14,6 +14,7 @@ export interface UserResponse {
     age: number;
     phoneCountryCode: string;
     gender: Gender;
+    dateOfBirth: Date;
 
 
 }

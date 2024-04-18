@@ -1,15 +1,15 @@
-import {useEffect} from "react";
-import {Text, View, StyleSheet, TouchableOpacity, ScrollView} from "react-native";
-import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
-import {Avatar} from 'react-native-paper';
-import {SafeAreaView} from "react-native-safe-area-context";
-import {AntDesign, Octicons} from '@expo/vector-icons';
-import {ImageBackground} from "expo-image";
-import {router} from "expo-router";
-import {useDispatch, useSelector} from "react-redux";
-import {getUserProfile, logout} from "@/redux/UserSlice";
-import {UserResponse} from "@/models/responseObjects/UserResponse";
-import {ActivityIndicator, MD2Colors} from 'react-native-paper';
+import { useEffect } from "react";
+import { Text, View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { Avatar } from 'react-native-paper';
+import { SafeAreaView } from "react-native-safe-area-context";
+import { AntDesign, Octicons } from '@expo/vector-icons';
+import { ImageBackground } from "expo-image";
+import { router } from "expo-router";
+import { useDispatch, useSelector } from "react-redux";
+import { getUserProfile, logout } from "@/redux/UserSlice";
+import { UserResponse } from "@/models/responseObjects/UserResponse";
+import { ActivityIndicator, MD2Colors } from 'react-native-paper';
 
 const Profile = () => {
     const dispatch = useDispatch()
@@ -17,19 +17,12 @@ const Profile = () => {
     const loading = useSelector((state: any) => state.user.loading) as boolean;
 
     useEffect(() => {
-        //if (!userData) {
         dispatch(getUserProfile() as any)
-        //}
-
     }, []);
 
     const _handleEditProfile = () => {
-        router.setParams({previousScreenName: 'profile'})
-
-        if (userData?.role === 'COACH')
-            router.navigate('EditCoachProfile');
-        else
-            router.navigate('EditProfile');
+        router.setParams({ previousScreenName: 'profile' })
+        router.navigate('EditProfile');
     }
 
     const _handleLogout = () => {
@@ -38,20 +31,20 @@ const Profile = () => {
         dispatch(logout() as any);
     }
 
-
+        
     return (
         <ImageBackground
-            style={{height: hp(100)}}
+            style={{ height: hp(100) }}
             source={require('../../assets/images/signupBackGround.jpg')}
         >
             <SafeAreaView>
                 <View style={styles.userInfoContainer}>
                     {loading ? (
-                        <ActivityIndicator animating={true} color={MD2Colors.purple200} size={50}/>
+                        <ActivityIndicator animating={true} color={MD2Colors.purple200} size={50} />
                     ) : (
                         <>
                             {userData.imageUrl ? (
-                                <Avatar.Image size={100} source={{uri: userData.imageUrl}}/>
+                                <Avatar.Image size={100} source={{ uri: userData.imageUrl }} />
                             ) : (
                                 <Avatar.Text
                                     size={100}
@@ -64,10 +57,10 @@ const Profile = () => {
                                         {userData.firstName} {userData.lastName.substring(0, 3)}.
                                     </Text>
                                     <TouchableOpacity onPress={() => _handleEditProfile()}>
-                                        <Octicons name="pencil" size={24} color="white" style={styles.editIcon}/>
+                                        <Octicons name="pencil" size={24} color="white" style={styles.editIcon} />
                                     </TouchableOpacity>
                                 </View>
-                                <Text style={styles.userInfo}>Age: {userData.age}</Text>
+                                <Text style={styles.userInfo}>Age: {new Date().getFullYear() - new Date(userData.dateOfBirth).getFullYear()}</Text>
                                 <Text style={styles.userInfo}>
                                     Gender: {userData.gender === 1 ? 'Female' : 'Male'}
                                 </Text>
@@ -78,7 +71,7 @@ const Profile = () => {
 
                 <View style={styles.cardContainer}>
                     <Text style={styles.textSettings}>Settings</Text>
-                    <ScrollView contentContainerStyle={{flexGrow: 1}} bounces={true}>
+                    <ScrollView contentContainerStyle={{ flexGrow: 1 }} bounces={true}>
                         <View style={{
                             flex: 1,
                             justifyContent: 'center',
@@ -86,48 +79,48 @@ const Profile = () => {
                         }}>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Contact Information</Text>
-                                <AntDesign name="right" size={24} color="grey"/>
+                                <AntDesign name="right" size={24} color="grey" />
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Location Settings</Text>
-                                <AntDesign name="right" size={24} color="grey"/>
+                                <AntDesign name="right" size={24} color="grey" />
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Privacy Settings</Text>
-                                <AntDesign name="right" size={24} color="grey"/>
+                                <AntDesign name="right" size={24} color="grey" />
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Notification Perfrences</Text>
-                                <AntDesign name="right" size={24} color="grey"/>
+                                <AntDesign name="right" size={24} color="grey" />
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Account Type and Role</Text>
-                                <AntDesign name="right" size={24} color="grey"/>
+                                <AntDesign name="right" size={24} color="grey" />
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Bio/About Me</Text>
-                                <AntDesign name="right" size={24} color="grey"/>
+                                <AntDesign name="right" size={24} color="grey" />
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Skills and Interests</Text>
-                                <AntDesign name="right" size={24} color="grey"/>
+                                <AntDesign name="right" size={24} color="grey" />
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Team Affiliation</Text>
-                                <AntDesign name="right" size={24} color="grey"/>
+                                <AntDesign name="right" size={24} color="grey" />
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Achievements and Badges</Text>
-                                <AntDesign name="right" size={24} color="grey"/>
+                                <AntDesign name="right" size={24} color="grey" />
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Connection Settings</Text>
-                                <AntDesign name="right" size={24} color="grey"/>
+                                <AntDesign name="right" size={24} color="grey" />
                             </TouchableOpacity>
 
                             <TouchableOpacity style={styles.settingOption} onPress={_handleLogout}>
                                 <Text style={styles.settingOptionText}>Log Out</Text>
-                                <AntDesign name="right" size={24} color="grey"/>
+                                <AntDesign name="right" size={24} color="grey" />
                             </TouchableOpacity>
 
                         </View>
@@ -187,7 +180,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginTop: 10,
         shadowColor: '#E9EDF9',
-        shadowOffset: {width: 0, height: 2},
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 1,
