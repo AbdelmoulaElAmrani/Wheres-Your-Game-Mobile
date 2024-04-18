@@ -13,21 +13,23 @@ import {ActivityIndicator, MD2Colors} from 'react-native-paper';
 
 const Profile = () => {
     const dispatch = useDispatch()
+    const userData = useSelector((state: any) => state.user.userData) as UserResponse;
+    const loading = useSelector((state: any) => state.user.loading) as boolean;
+
+    useEffect(() => {
+        //if (!userData) {
+        dispatch(getUserProfile() as any)
+        //}
+
+    }, []);
 
     const _handleEditProfile = () => {
-        console.log(userData?.role)
-        if(userData?.role ===  'COACH')
-        {
-            router.setParams({previousScreenName: 'profile'})
+        router.setParams({previousScreenName: 'profile'})
+
+        if (userData?.role === 'COACH')
             router.navigate('EditCoachProfile');
-    
-        }
         else
-        {
-            router.setParams({previousScreenName: 'profile'})
             router.navigate('EditProfile');
-        }
-        
     }
 
     const _handleLogout = () => {
@@ -37,25 +39,12 @@ const Profile = () => {
     }
 
 
-
-    const userData = useSelector((state: any) => state.user.userData) as UserResponse;
-    const loading = useSelector((state: any) => state.user.loading) as boolean;
-
-
-    useEffect(() => {
-        if (!userData) {
-            dispatch(getUserProfile() as any)
-        }
-
-    }, []);
-
     return (
         <ImageBackground
             style={{height: hp(100)}}
             source={require('../../assets/images/signupBackGround.jpg')}
         >
             <SafeAreaView>
-
                 <View style={styles.userInfoContainer}>
                     {loading ? (
                         <ActivityIndicator animating={true} color={MD2Colors.purple200} size={50}/>
@@ -86,7 +75,6 @@ const Profile = () => {
                         </>
                     )}
                 </View>
-
 
                 <View style={styles.cardContainer}>
                     <Text style={styles.textSettings}>Settings</Text>
