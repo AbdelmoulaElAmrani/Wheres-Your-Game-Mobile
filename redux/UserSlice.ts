@@ -37,11 +37,11 @@ export const updateUserProfile = createAsyncThunk('user/updateUserProfile', asyn
     return response;
 });
 
-export const logout = createAsyncThunk('user/logout', async () => {
-    await persistor.purge();
-    await AuthService.logOut();
-    console.log('logout');
-});
+/*export const logout = createAsyncThunk('user/logout', async () => {
+    AuthService.logOut();
+    persistor.purge();
+    persistor.flush();
+});*/
 
 
 const initialState = {
@@ -72,6 +72,14 @@ const userSlice = createSlice({
                 ...state.userRegister,
                 ...action.payload
             }
+        },
+        logout: (state, action) => {
+            state.loading = false;
+            state = initialState;
+            // TODO:: Error on this state
+            AuthService.logOut();
+            persistor.purge();
+            persistor.flush();
         }
     },
     // for promise methods like axios
@@ -97,15 +105,15 @@ const userSlice = createSlice({
             .addCase(updateUserProfile.rejected, (state) => {
                 state.loading = false;
             })
-            .addCase(logout.pending, (state) => {
-                state.loading = true;
-            })
-            .addCase(logout.fulfilled, (state) => {
-                state = initialState;
-            })
-            .addCase(logout.rejected, (state) => {
-                state.loading = false;
-            })
+            /* .addCase(logout.pending, (state) => {
+                 state = initialState;
+             })
+             .addCase(logout.fulfilled, (state) => {
+                 state = initialState;
+             })
+             .addCase(logout.rejected, (state) => {
+                 state = initialState;
+             })*/
             .addCase(getUserSports.pending, (state) => {
                 state.loading = true;
             })
@@ -119,6 +127,6 @@ const userSlice = createSlice({
     }
 });
 
-export const {updateUserRegisterData} = userSlice.actions;
+export const {updateUserRegisterData, logout} = userSlice.actions;
 
 export default userSlice.reducer;

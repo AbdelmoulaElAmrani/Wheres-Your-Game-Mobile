@@ -19,9 +19,10 @@ import {FontAwesome5} from '@expo/vector-icons';
 import {router} from "expo-router";
 import {AuthService} from '@/services/AuthService';
 import {useDispatch, useSelector} from 'react-redux';
-import {getUserProfile} from '@/redux/UserSlice';
+import {getUserProfile, logout} from '@/redux/UserSlice';
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {Helpers} from "@/constants/Helpers";
+import {persistor} from "@/redux/ReduxConfig";
 
 
 const Login = () => {
@@ -34,14 +35,17 @@ const Login = () => {
 
 
     useEffect(() => {
-        const checkIntroViewed = async () => {
-            console.log('login,', user);
-            if (!Helpers.isObjectNullOrEmpty(user)) {
+        const fetchData = async () => {
+            const token = await AuthService.getAccessToken();
+            console.log('login', user);
+            if (token) {
                 router.replace("/(tabs)/");
             } else {
+                dispatch(logout({}))
+                await persistor.purge();
             }
-        };
-        checkIntroViewed();
+        }
+        fetchData();
     }, [user]);
 
     const _handleSignInWithGoogle = () => {

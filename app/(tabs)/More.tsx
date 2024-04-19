@@ -12,7 +12,8 @@ const More = () => {
     const dispatch = useDispatch();
 
     const _handleLogout = () => {
-        dispatch(logout() as any);
+        console.log('logout');
+        dispatch(logout({}));
         router.replace('/Login');
     }
 

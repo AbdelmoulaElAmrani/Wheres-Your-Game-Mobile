@@ -31,7 +31,6 @@ const Home = () => {
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
     const dispatch = useDispatch();
     const tags = ['Add Coach', 'Add Player', 'Add Team', 'Map View'];
-    //const [selectedTag, setSelectedTag] = useState('');
     const [players, setPlayers] = useState<Player[]>([]);
     const [teams, setTeams] = useState<Team[]>([]);
     const [selectedTeam, setSelectedTeam] = useState<string | undefined>(undefined);
@@ -56,7 +55,7 @@ const Home = () => {
         if (!userData?.id) {
             dispatch(getUserProfile() as any);
         }
-        if (userData?.id && !userSport) {
+        if (userData?.id) {
             dispatch(getUserSports(userData.id) as any);
         }
     }, [userData]);
@@ -115,11 +114,14 @@ const Home = () => {
         const [iconLoadedError, setIconLoadedError] = useState(false);
 
         const iconSource = useMemo(() => {
+            console.log('sport img', item.sportName, iconLoadedError || !item.iconUrl);
             if (iconLoadedError || !item.iconUrl) {
                 return require('../../assets/images/sport/sport.png');
             } else {
                 try {
-                    return {uri: `../../assets/images/sport/${item.iconUrl}.png`};
+                    //
+                    const uri = `../../assets/images/sport/${item.iconUrl}.png`;
+                    //return require(uri);
                 } catch {
                     setIconLoadedError(true);
                     return require('../../assets/images/sport/sport.png');
@@ -142,8 +144,7 @@ const Home = () => {
     const _renderTeam = memo(({item}: { item: string }) => (
         <TouchableOpacity
             style={styles.card}
-            onPress={() => _onSelectTeam(item)}
-        >
+            onPress={() => _onSelectTeam(item)}>
             <View>
                 <View style={styles.cardImage}>
                     {false ? (
