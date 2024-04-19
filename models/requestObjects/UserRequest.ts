@@ -7,5 +7,4 @@ export interface UserRequest {
     zipCode: string;
     address: string;
     gender: Gender;
-
 }

@@ -2,6 +2,7 @@ import { AuthenticationRequest } from "@/models/requestObjects/AuthenticationReq
 import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
 import LocalStorageService from "./LocalStorageService";
 import Requests from "./Requests";
+import {persistor} from "@/redux/ReduxConfig";
 
 
 export class AuthService {
@@ -9,6 +10,7 @@ export class AuthService {
     static logOut = async (): Promise<void> => {
         await LocalStorageService.removeItem('accessToken');
         await LocalStorageService.removeItem('refreshToken');
+        await persistor.purge();
     }
 
     static getAccessToken = async (): Promise<string | null> => {

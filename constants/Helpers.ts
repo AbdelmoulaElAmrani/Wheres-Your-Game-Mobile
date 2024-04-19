@@ -10,4 +10,14 @@ export class Helpers {
         if (!str) return '';
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
+
+    static _isEmailValid = (email: string): boolean => {
+        const re = /\S+@\S+\.\S+/;
+        return re.test(email);
+    }
+
+    static _isPasswordValid = (password: string): boolean => {
+        const re = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/;
+        return re.test(password);
+    }
 }

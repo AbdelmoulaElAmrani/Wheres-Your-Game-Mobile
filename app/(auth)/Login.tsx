@@ -35,6 +35,7 @@ const Login = () => {
 
     useEffect(() => {
         const checkIntroViewed = async () => {
+            console.log('login,', user);
             if (!Helpers.isObjectNullOrEmpty(user)) {
                 router.replace("/(tabs)/");
             } else {
@@ -256,7 +257,6 @@ const styles = StyleSheet.create({
         borderRadius: 40,
         padding: 20,
         marginTop: hp(16),
-
     },
     loginButton: {
         backgroundColor: '#007BFF',

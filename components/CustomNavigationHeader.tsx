@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     text: {
         fontWeight: 'bold',
         color: 'white',
-        fontSize: 30
+        fontSize: 25
     },
     textSkip: {
         fontWeight: 'bold',

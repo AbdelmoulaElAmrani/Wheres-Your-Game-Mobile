@@ -33,10 +33,7 @@ const UserStepForm = () => {
     const [visible, setVisible] = useState<boolean>(false);
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [otpCodeNotEmpty, setOtpCodeNotEmpty] = useState<boolean>(false);
-
-    // TODO:: replace it with redux or get user data from localstorage
     const userRegister = useSelector((state: any) => state.user.userRegister);
-
     const [userData, setUserData] = useState<RegisterRequest>(userRegister);
     const _stepTitles = [
         {
@@ -47,7 +44,7 @@ const UserStepForm = () => {
         }, {
             title: 'Verification Number',
             subTitle: 'You will got a OTP via SMS',
-            modalTitle: 'Your account has been sucessfully verified',
+            modalTitle: 'Your account has been successfully verified',
             modalSubTitle: 'Now you can start to create your profile.'
         }];
 
@@ -74,7 +71,6 @@ const UserStepForm = () => {
     const createUser = async () => {
         try {
             await AuthService.register(userData);
-            console.log('done');
         } catch (error) {
             console.log(error);
         }
@@ -87,9 +83,7 @@ const UserStepForm = () => {
     }
 
     const goToNextStep = async () => {
-        console.log('here');
         await createUser();
-        console.log('here end');
         setCurrentStep(oldValue => Math.max(2, oldValue - 1));
     };
 

@@ -31,7 +31,7 @@ const Home = () => {
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
     const dispatch = useDispatch();
     const tags = ['Add Coach', 'Add Player', 'Add Team', 'Map View'];
-    const [selectedTag, setSelectedTag] = useState('');
+    //const [selectedTag, setSelectedTag] = useState('');
     const [players, setPlayers] = useState<Player[]>([]);
     const [teams, setTeams] = useState<Team[]>([]);
     const [selectedTeam, setSelectedTeam] = useState<string | undefined>(undefined);
@@ -105,10 +105,10 @@ const Home = () => {
         console.log('select sport');
     }
 
-    const isCoach = (): boolean => true; //userData.role == UserType.COACH.toString();
+    const isCoach = (): boolean => userData.role == UserType[UserType.COACH];
 
     const isPlayersVisible = (): boolean =>
-        (isCoach() || [UserType.COACH.toString(), UserType.PLAYER.toString()].includes(userData.role)) && selectedTeam !== undefined;
+        (isCoach() || UserType[UserType.PLAYER] == userData.role.toString()) && selectedTeam !== undefined;
 
 
     const _renderSportItem = memo(({item}: { item: UserSportResponse }) => {
@@ -232,7 +232,7 @@ const Home = () => {
                             fontWeight: 'bold',
                             fontSize: 18
                         }}>Hi {`${Helpers.capitalize(userData?.firstName)}`}</Text>
-                        {userData.role == UserType.PARENT.toString() && <RNPickerSelect
+                        {userData.role == UserType[UserType.PARENT] && <RNPickerSelect
                             placeholder={{}}
                             items={childrens}
                             onValueChange={value => {
@@ -259,8 +259,7 @@ const Home = () => {
                         </View>
                         <ScrollView
                             style={{flex: 1}}
-                            showsVerticalScrollIndicator={true}
-                        >
+                            showsVerticalScrollIndicator={true}>
                             <View style={styles.menuContainer}>
                                 <View style={styles.menuTitleContainer}>
                                     <Text style={styles.menuTitle}>Your Sports <Text
@@ -340,6 +339,7 @@ const Home = () => {
                                 <View>
                                     <FlatList
                                         nestedScrollEnabled={true}
+                                        scrollEnabled={false}
                                         data={categories}
                                         renderItem={({item}) => <_renderCategory item={item}/>}
                                         numColumns={2}

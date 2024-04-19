@@ -12,7 +12,7 @@ export interface UserResponse {
     phoneNumber: string;
     role: string;
     age: number;
-    phoneCountryCode: string;
+    countryCode: string;
     gender: Gender;
     dateOfBirth: Date;
 

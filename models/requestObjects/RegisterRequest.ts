@@ -7,6 +7,7 @@ export interface RegisterRequest
     firstName: string;
     lastName: string;
     phoneNumber: string;
+    countryCode: string;
     address: string;
     zipCode: string;
     bio: string;
