@@ -27,8 +27,8 @@ const Profile = () => {
 
     const _handleLogout = () => {
         console.log('logout')
-        router.replace("/(auth)/Login");
-        dispatch(logout() as any);
+        // router.replace("/(auth)/Login");
+        //dispatch(logout());
     }
 
         

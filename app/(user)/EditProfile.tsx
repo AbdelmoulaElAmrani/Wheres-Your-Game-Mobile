@@ -230,8 +230,6 @@ const EditProfile = () => {
                                     }
                                 }
                                 }
-
-
                             />
                             <TextInput
                                 style={styles.inputStyle}
@@ -367,46 +365,47 @@ const EditProfile = () => {
             </View>
         );
     });
-    const UserAgeEdit = () => {
-        const refAge = useRef<ScrollPickerHandle>(null);
-        const [selectedAgeIndex, setSelectedAgeIndex] = useState(user?.age - 1);
-        const ages = Array.from({length: 100}, (_, i) => i + 1);
 
-        const _onAgeChange = (index: number) => {
-            setSelectedAgeIndex(index - 1);
-            setUser({...user, age: ages[index - 1]});
-        };
+    /*   const UserAgeEdit = () => {
+           const refAge = useRef<ScrollPickerHandle>(null);
+           const [selectedAgeIndex, setSelectedAgeIndex] = useState(user?.age - 1);
+           const ages = Array.from({length: 100}, (_, i) => i + 1);
 
-        return (<View>
-                <View style={styles.genericContainer}>
-                    <Text style={styles.textFirst}>How old are you ?</Text>
-                    <Text style={styles.textSecond}>This will help us create personalized plan</Text>
-                    <View style={styles.ageList}>
-                        <ScrollPicker
-                            ref={refAge}
-                            dataSource={ages}
-                            selectedIndex={selectedAgeIndex}
-                            onValueChange={(selectedIndex) => _onAgeChange(selectedIndex)}
-                            wrapperHeight={180}
-                            wrapperBackground={'#ffffff'}
-                            itemHeight={70}
-                            highlightColor={'#2757cb'}
-                            highlightBorderWidth={5}
-                            itemTextStyle={{color: '#ccc', fontSize: 25}}
-                            activeItemTextStyle={{color: '#2757cb', fontSize: 50, fontWeight: 'bold'}}
-                        />
-                    </View>
-                    <View style={styles.sideBySideButtons}>
-                        <CustomButton text="Back" onPress={goToPreviousStep} style={styles.backButton}
-                                      textStyle={styles.buttonText}/>
-                        <CustomButton text="Continue" onPress={_handleContinue} style={styles.continueButton}/>
-                    </View>
-                </View>
-            </View>
-        );
-    }
+           const _onAgeChange = (index: number) => {
+               setSelectedAgeIndex(index - 1);
+               setUser({...user, age: ages[index - 1]});
+           };
 
+           return (<View>
+                   <View style={styles.genericContainer}>
+                       <Text style={styles.textFirst}>How old are you ?</Text>
+                       <Text style={styles.textSecond}>This will help us create personalized plan</Text>
+                       <View style={styles.ageList}>
+                           <ScrollPicker
+                               ref={refAge}
+                               dataSource={ages}
+                               selectedIndex={selectedAgeIndex}
+                               onValueChange={(selectedIndex) => _onAgeChange(selectedIndex)}
+                               wrapperHeight={180}
+                               wrapperBackground={'#ffffff'}
+                               itemHeight={70}
+                               highlightColor={'#2757cb'}
+                               highlightBorderWidth={5}
+                               itemTextStyle={{color: '#ccc', fontSize: 25}}
+                               activeItemTextStyle={{color: '#2757cb', fontSize: 50, fontWeight: 'bold'}}
+                           />
+                       </View>
+                       <View style={styles.sideBySideButtons}>
+                           <CustomButton text="Back" onPress={goToPreviousStep} style={styles.backButton}
+                                         textStyle={styles.buttonText}/>
+                           <CustomButton text="Continue" onPress={_handleContinue} style={styles.continueButton}/>
+                       </View>
+                   </View>
+               </View>
+           );
+       }
 
+   */
     const CoachSportInfoEdit = () => {
 
         const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
