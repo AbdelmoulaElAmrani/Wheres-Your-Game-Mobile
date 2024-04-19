@@ -21,6 +21,7 @@ import {router, useLocalSearchParams} from "expo-router";
 import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
 import {useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
+import {Style} from "domelementtype";
 
 const SportInterested = () => {
     const _stepTitles = [
@@ -58,12 +59,12 @@ const SportInterested = () => {
         if (currentStep === 1 && selectedSports.size === 0) {
             alert("Please select at least one sport to continue.");
             return;
-        }
-
-        if (currentStep === 1) {
-            _handleContinue();
         } else {
-            await handleSubmit();
+            if (currentStep === 1) {
+                _handleContinue();
+            } else {
+                await handleSubmit();
+            }
         }
     }
     const _handleGoBack = () => {
@@ -156,7 +157,6 @@ const SportInterested = () => {
                     </KeyboardAwareScrollView>
                 </View>
             </TouchableWithoutFeedback>
-
         );
     }
 
@@ -230,9 +230,10 @@ const SportInterested = () => {
                 </View>
                 <View style={{maxHeight: hp(53), height: hp(50)}}>
                     <ScrollView
-                    scrollEnabled={true}
+                        scrollEnabled={true}
                     >
-                        {[...selectedSports.values()].map((item => <_RenderItem key={item.sportName + ' ' + Math.random()} item={item}/>))}
+                        {[...selectedSports.values()].map((item => <_RenderItem
+                            key={item.sportName + ' ' + Math.random()} item={item}/>))}
                     </ScrollView>
                 </View>
             </View>
@@ -242,28 +243,23 @@ const SportInterested = () => {
 
     return (
         <ImageBackground
-            style={{
-                flex: 1,
-                width: '100%',
-            }}
-            source={require('../../assets/images/signupBackGround.jpg')}
-        >
+            style={StyleSheet.absoluteFill}
+            source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView style={{flex: 1}}>
-                <KeyboardAwareScrollView
-                    style={{flex: 1}}
-                    contentContainerStyle={{flexGrow: 1}}
-                    keyboardShouldPersistTaps="handled"
-                >
-                    <CustomNavigationHeader text={"Sport"} goBackFunction={_handleGoBack()} showBackArrow/>
-                    <Text style={styles.stepText}>Step {currentStep}/2</Text>
-                    <View style={styles.mainContainer}>
+                <CustomNavigationHeader text={"Sport"} goBackFunction={_handleGoBack()} showBackArrow/>
+                <Text style={styles.stepText}>Step {currentStep}/2</Text>
+                <View style={styles.mainContainer}>
+                    <KeyboardAwareScrollView
+                        style={{flex: 1}}
+                        contentContainerStyle={{flexGrow: 1}}
+                        keyboardShouldPersistTaps="handled"
+                    >
                         {currentStep === 1 && <_RenderSportCatalog/>}
                         {currentStep === 2 && <_RenderUserSportLevel/>}
                         <View style={styles.btnContainer}>
                             <TouchableOpacity
                                 onPress={_handleGoBack()}
-                                style={styles.btn}
-                            >
+                                style={styles.btn}>
                                 <Text style={{textAlign: 'center', fontSize: 18, color: '#2757CB'}}>Back</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
@@ -273,8 +269,8 @@ const SportInterested = () => {
                                 <Text style={{textAlign: 'center', fontSize: 18, color: 'white'}}>Continue</Text>
                             </TouchableOpacity>
                         </View>
-                    </View>
-                </KeyboardAwareScrollView>
+                    </KeyboardAwareScrollView>
+                </View>
             </SafeAreaView>
         </ImageBackground>
     );
@@ -295,14 +291,15 @@ const styles = StyleSheet.create({
         marginLeft: 30
     },
     mainContainer: {
+        //flex: 1,
+        height: '100%',
         backgroundColor: 'white',
         borderTopEndRadius: 35,
         borderTopStartRadius: 35,
         paddingTop: 30,
         padding: 20,
         marginTop: 10,
-        flex: 1,
-        paddingHorizontal: 20, // Adjust padding for overall alignment
+        paddingHorizontal: 20,
         paddingBottom: 20,
     },
     titleContainer: {
@@ -350,7 +347,7 @@ const styles = StyleSheet.create({
     btnContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        marginTop: 20
+        marginTop: 50
     },
     infoContainer: {
         flexDirection: 'row'
