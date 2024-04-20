@@ -1,4 +1,4 @@
-import {StyleSheet} from "react-native";
+import {StyleSheet, View} from "react-native";
 import {ImageBackground} from "expo-image";
 import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
@@ -18,9 +18,11 @@ const Notifications = () => {
                 width: '100%',
             }}
             source={require('../../assets/images/signupBackGround.jpg')}>
-            <SafeAreaView style={{flex: 1}}>
+            <SafeAreaView>
                 <CustomNavigationHeader text={"Notification"} goBackFunction={_handleGoBack} showBackArrow/>
+                <View style={{backgroundColor: 'white', height: '100%', width: '100%'}}>
 
+                </View>
             </SafeAreaView>
         </ImageBackground>
     );
