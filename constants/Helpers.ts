@@ -20,4 +20,24 @@ export class Helpers {
         const re = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/;
         return re.test(password);
     }
+
+    static formatNotificationDate = (timestamp: Date | undefined): string => {
+        const messageDate = timestamp ? new Date(timestamp) : new Date();
+        const currentDate = new Date();
+        const yesterdayDate = new Date(currentDate.getTime() - (24 * 60 * 60 * 1000));
+
+        if (messageDate.toDateString() === currentDate.toDateString()) {
+            const diffMinutes = (currentDate.getTime() - messageDate.getTime()) / (1000 * 60);
+            if (diffMinutes < 1) {
+                return "Now";
+            }
+            return `${messageDate.getHours()}:${messageDate.getMinutes().toString().padStart(2, '0')}`;
+        }
+
+        if (messageDate.toDateString() === yesterdayDate.toDateString()) {
+            return "Yesterday";
+        }
+
+        return `${messageDate.getMonth() + 1}/${messageDate.getDate()}`;
+    }
 }
