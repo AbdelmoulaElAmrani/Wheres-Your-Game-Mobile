@@ -2,6 +2,7 @@ import CustomButton from "@/components/CustomButton";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React, {memo, useCallback, useEffect, useRef, useState} from "react";
 import {
+    Alert,
     Keyboard,
     StyleSheet,
     TouchableOpacity,
@@ -27,6 +28,7 @@ import {DatePickerModal, enGB, registerTranslation} from 'react-native-paper-dat
 import Sport from "@/models/Sport";
 import RNPickerSelect from 'react-native-picker-select';
 import {SportService} from "@/services/SportService";
+import SportLevel from "@/models/SportLevel";
 
 
 const EditProfile = () => {
@@ -77,6 +79,7 @@ const EditProfile = () => {
 
     useEffect(() => {
         if (user?.id == '' || user?.id == undefined) {
+            console.log('user', user)
             setUser(userData);
         }
     }, [userData]);
@@ -156,8 +159,38 @@ const EditProfile = () => {
             [setOpen]
         );
         const _handleContinueUserInfo = async () => {
+            const errors = _verifyUserInfo(editUser);
+
+            if (errors.length > 0) {
+                Alert.alert(errors.join('\n'));
+                return;
+            }
+
             setUser(oldValue => ({...editUser}));
             await _handleContinue();
+        }
+
+        const _verifyUserInfo = (user: UserResponse): string[] => {
+            const errors: string[] = [];
+            if (!user.firstName || user.firstName.trim() === '') {
+                errors.push('First name is required');
+            }
+            if (!user.lastName || user.lastName.trim() === '') {
+                errors.push('Last name is required');
+            }
+            if (!user.email || user.email.trim() === '') {
+                errors.push('Email is required');
+            }
+            if (!user.dateOfBirth || user.dateOfBirth.toString().trim() === '') {
+                errors.push('Date of birth is required');
+            }
+            if (!user.address || user.address.trim() === '') {
+                errors.push('Address is required');
+            }
+            if (!user.zipCode || user.zipCode.trim() === '') {
+                errors.push('Zip code is required');
+            }
+            return errors;
         }
 
         return (<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -212,6 +245,7 @@ const EditProfile = () => {
                                 value={editUser.email}
                                 onChangeText={(text) => setEditUser({...editUser, email: text})}
                                 underlineColor={"transparent"}
+                                disabled={true}
                             />
                             <Text style={styles.textLabel}>Date of Birth</Text>
                             <DatePickerModal
@@ -415,6 +449,16 @@ const EditProfile = () => {
 
         const [editUser, setEditUser] = useState<UserResponse>({...user});
 
+
+
+        const _generateSportLevelItems = (): { label: string; value: string; key: string }[] => {
+            return Object.keys(SportLevel).filter((key: string) => !isNaN(Number(SportLevel[key as keyof typeof SportLevel]))).map((key: string) => ({
+                label: key,
+                value: key.toUpperCase(),
+                key: SportLevel[key as keyof typeof SportLevel].toString()
+            }));
+        };
+
         return (
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <>
@@ -449,11 +493,7 @@ const EditProfile = () => {
                                 <Text style={styles.textLabel}>Skill Level</Text>
                                 <RNPickerSelect
                                     style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
-                                    items={[
-                                        {label: 'Beginner', value: 'BEGINNER', key: 1},
-                                        {label: 'Intermediate', value: 'INTERMEDIATE', key: 2},
-                                        {label: 'Advanced', value: 'ADVANCED', key: 3}
-                                    ]}
+                                    items={_generateSportLevelItems()}
                                     placeholder={{label: 'Select skill level', value: null}}
                                     value={skillLevel}
                                     onValueChange={(value) => setSkillLevel(value)}
