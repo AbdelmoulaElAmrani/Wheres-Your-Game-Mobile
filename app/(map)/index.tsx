@@ -50,35 +50,24 @@ const SportMap = () => {
     const [selectedSportForSearch, setSelectedSportForSearch] = useState<UserSportResponse | undefined>();
     const [expandedFilter, setExpandedFilter] = useState<Filters | undefined>(Filters.SPORT);
     const [filter, setFilter] = useState<FilterState>({category: [], sortBy: {} as RadioBoxFilter});
+    const [selectedSportId, setSelectedSportId] = useState<any>(null);
 
 
     const _onGoBack = () => {
         if (router.canGoBack()) router.back();
     }
-
-    const _hideModal = () => {
-        setModalVisible(false);
-    }
-
-    const _openModal = () => {
-        setModalVisible(true);
-    }
-
+    const _hideModal = () => setModalVisible(false);
+    const _openModal = () => setModalVisible(true);
     const _handleSearch = () => {
         console.log('search');
     }
-
     const _handleSelectedFilter = (filter: Filters) => {
         setExpandedFilter(old => old !== filter ? filter : undefined);
     }
-
-    const [selectedSportId, setSelectedSportId] = useState<any>(null);
-
     const _handleSelectedSport = (item: UserSportResponse) => {
         setSelectedSportForSearch(item);
         setSelectedSportId(item.sportId);
     }
-
     const _handleSortByFilter = (item: RadioBoxFilter) => {
         setFilter(old => ({...old, sortBy: item}));
     }
@@ -219,7 +208,6 @@ const SportMap = () => {
                             </List.Section>
                         </ScrollView>
                     </Modal>
-
                     <View style={styles.searchButton}>
                         <CustomButton text='Search' onPress={_handleSearch}/>
                     </View>
@@ -247,29 +235,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         fontWeight: 'bold'
     },
-    searchBar: {
-        backgroundColor: 'white',
-        width: wp(85),
-        alignSelf: 'center',
-        borderColor: 'grey',
-        borderWidth: 1,
-        borderTopStartRadius: 30,
-        borderTopEndRadius: 30,
-        borderBottomStartRadius: 30,
-        borderBottomEndRadius: 30,
-    },
-    adsImageContainer: {
-        height: 90,
-        width: wp(85),
-        borderRadius: 10,
-        marginBottom: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-        alignSelf: 'center',
-    },
-    bodyContainer: {
-        marginTop: 20
-    },
     modalHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -287,10 +252,6 @@ const styles = StyleSheet.create({
         position: "absolute",
         bottom: hp(30),
         padding: 10
-    },
-    selectedFilterTitle: {
-        fontWeight: 'bold',
-        color: 'white'
     },
     dropDownContainer: {
         borderRadius: 10,

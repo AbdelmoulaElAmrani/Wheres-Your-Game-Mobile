@@ -164,8 +164,7 @@ const Home = () => {
     const _renderPlayer = memo(({item}: { item: any }) => (
         <TouchableOpacity
             style={styles.card}
-            onPress={() => _onSelectPlayer(item)}
-        >
+            onPress={() => _onSelectPlayer(item)}>
             <View>
                 <Image
                     style={styles.cardImage}
@@ -183,7 +182,6 @@ const Home = () => {
         </TouchableOpacity>
     ));
 
-    const User = UserType;
     return (
         <>
             <StatusBar style="light"/>

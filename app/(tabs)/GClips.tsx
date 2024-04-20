@@ -1,94 +1,79 @@
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {StyleSheet, Text, View, FlatList, TouchableOpacity} from "react-native";
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Searchbar } from 'react-native-paper';
+import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
+import {SafeAreaView} from "react-native-safe-area-context";
+import {Searchbar} from 'react-native-paper';
 import React, {useState} from "react";
-import { FontAwesome } from '@expo/vector-icons';
-import {Image, ImageBackground} from "expo-image";
+import {FontAwesome} from '@expo/vector-icons';
+import {ImageBackground} from "expo-image";
+import VideoComponent from "@/components/VideoComponent";
+import * as Sharing from 'expo-sharing';
 
 
 const GClips = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedTag, setSelectedTag] = useState(null);
-    const tags = ['New', 'Trending', 'Popular', 'Top Photos', 'Top Videos'];
-    const videos = [
+    const [videos, setVideos] = useState([
         {
             title: 'Mike running last mile',
             info: 'Mike added 3 videos',
-            thumbnailUri: 'https://ak.picdn.net/shutterstock/videos/1040007623/thumb/1.jpg',
+            videoUri: 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
             uploadHour: 1
         },
         {
             title: 'John playing football',
             info: 'John added 2 videos',
-            thumbnailUri: 'https://athletetrainingandhealth.com/wp-content/uploads/2017/04/Sprinter_1.jpg',
+            videoUri: 'https://www.youtube.com/watch?v=H5St0xIQsDo',
             uploadHour: 2
         },
         {
             title: 'Mat running last mile',
             info: 'Mat added 1 videos',
-            thumbnailUri: 'https://maville.com/photosmvi/2021/08/06/P27610131D4443815G.jpg',
+            videoUri: 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
             uploadHour: 3
-        }];
+        }]);
+    const tags = ['New', 'Trending', 'Popular', 'Top Photos', 'Top Videos'];
 
-    const _renderItem = ({ item }: { item: any }) => (
+    const _renderItem = ({item}: { item: any }) => (
         <TouchableOpacity
             style={[styles.tag, selectedTag === item ? styles.selectedTag : null]}
-            onPress={() => setSelectedTag(item)}
-        >
+            onPress={() => setSelectedTag(item)}>
             <Text style={[styles.tagText, {color: selectedTag === item ? 'white' : 'black'}]}>{item}</Text>
         </TouchableOpacity>
     );
 
-    const _videoPreview = ({ video }: { video: any }) => (
-        <>
-            <Text style={styles.videoTitle}>{video?.title}</Text>
-            <TouchableOpacity style={styles.videoPreview} onPress={() => _handlePlayClip(video)}>
-
-                <View style={styles.thumbnailContainer}>
-                    <Image
-                        source={{ uri: video?.thumbnailUri || video?.uri }}
-                        style={styles.videoThumbnail}
-                        contentFit="cover"
-                    />
-                    <FontAwesome name="play-circle" size={60} color="rgba(255,255,255,0.8)" style={styles.playIcon} />
+    const _videoPreview = ({video}: { video: any }) => {
+        return (
+            <>
+                <Text style={styles.videoTitle}>{video?.title}</Text>
+                <View style={styles.videoPreview}>
+                    <View style={{height: '100%', width: '100%'}}>
+                        <VideoComponent url={video.videoUri}/>
+                    </View>
                 </View>
-            </TouchableOpacity>
-            <View style={styles.videoInfoContainer}>
-                <Text style={styles.videoInfo}>{video?.info}</Text>
-                <View style={styles.infoIconContainer}>
-                    <Text style={styles.uploadHour}>{video?.uploadHour} hour ago</Text>
-                    <TouchableOpacity onPress={() => _handleShareClip(video)}>
-                    <FontAwesome name="share-alt" size={20} color="grey" style={styles.shareIcon} />
-                    </TouchableOpacity>
-
-
+                <View style={styles.videoInfoContainer}>
+                    <Text style={styles.videoInfo}>{video?.info}</Text>
+                    <View style={styles.infoIconContainer}>
+                        <Text style={styles.uploadHour}>{video?.uploadHour} hour ago</Text>
+                        <TouchableOpacity onPress={() => _handleShareClip(video)}>
+                            <FontAwesome name="share-alt" size={20} color="grey" style={styles.shareIcon}/>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
-
-        </>
-    )
-
-    const _handleShareClip = (video: any) => {
-        console.log('Share Clip', video)
-        //TODO: Implement Share Clip functionality
+            </>
+        );
     }
 
-    const _handlePlayClip = (video: any) => {
-        console.log('Play Clip', video)
-    
+    const _handleShareClip = async (video: any) => {
+        await Sharing.shareAsync(video.videoUri);
     }
-
 
     return (
         <ImageBackground
-            style={{ height: hp(100) }}
-            source={require('../../assets/images/signupBackGround.jpg')}
-        >
+            style={{height: hp(100)}}
+            source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                <CustomNavigationHeader text="G Clips" showBackArrow={false} showSkip={false} showLogo={true} />
-
+                <CustomNavigationHeader showBackArrow={false} showSkip={false} showLogo={true}/>
                 <View style={styles.searchBarContainer}>
                     <Searchbar
                         placeholder="Search Videos"
@@ -110,23 +95,21 @@ const GClips = () => {
                     />
 
                     <View style={styles.videoHeader}>
-                        <Text style={styles.videoListTitle}>New Videos </Text>
+                        <Text style={styles.videoListTitle}>New Videos</Text>
                         <TouchableOpacity>
-                            <Text style={{ color: 'blue', fontSize: 17 }}>View All</Text>
+                            <Text style={{color: 'blue', fontSize: 17}}>View All</Text>
                         </TouchableOpacity>
-
                     </View>
                     <View style={styles.videoListContainer}>
                         <FlatList
                             data={videos}
-                            renderItem={({ item }) => _videoPreview({ video: item })}
+                            renderItem={({item}) => _videoPreview({video: item})}
                             keyExtractor={item => item.title}
                             horizontal={false}
                             showsVerticalScrollIndicator={false}
                             style={styles.videosFlatList}
                             bouncesZoom={true}
                         />
-
                     </View>
                 </View>
             </SafeAreaView>
@@ -151,22 +134,18 @@ const styles = StyleSheet.create({
         borderRadius: 40,
         padding: 20,
         marginTop: hp(2),
-        position: 'relative'
+        position: 'relative',
     },
     flatList: {
-        marginBottom: hp(2)
+        marginBottom: hp(2),
     },
     tag: {
         backgroundColor: 'white',
-        borderColor: '#E9EDF9',
-        shadowColor: '#E9EDF9',
-        shadowOpacity: 0.3,
-        borderWidth: 0.4,
-        shadowOffset: { width: 0, height: 2 },
-        borderRadius: 10,
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        marginRight: 5
+        borderRadius: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 5,
+        marginHorizontal: 5,
     },
     selectedTag: {
         backgroundColor: '#295AD2',
@@ -184,15 +163,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         height: hp(5),
-        marginBottom: hp(1)
-
     },
     videoListContainer: {
         height: hp(62),
         width: wp(100),
         marginBottom: hp(1),
-        marginLeft: 'auto'
-
     },
     videoListTitle: {
         fontSize: 20,
@@ -213,7 +188,7 @@ const styles = StyleSheet.create({
         borderRadius: 25,
         shadowColor: 'black',
         shadowOpacity: 0.3,
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowRadius: 2,
     },
     videoInfo: {
@@ -238,17 +213,6 @@ const styles = StyleSheet.create({
         height: hp(50),
         alignSelf: 'center'
 
-    },
-    thumbnailContainer: {
-        position: 'relative',
-        borderRadius: 25,
-        overflow: 'hidden',
-    },
-    playIcon: {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: [{ translateX: -25 }, { translateY: -25 }],
     },
     videoInfoContainer: {
         flexDirection: 'row',
