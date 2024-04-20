@@ -41,9 +41,9 @@ const Register = () => {
     });
     const phoneInput = useRef<PhoneInput>(null);
 
-    useEffect(() => {
-        dispatch(logout() as any);
-    }, []);
+    // useEffect(() => {
+    //     dispatch(logout() as any);
+    // }, []);
 
 
     const _handleOnNext = (): void => {

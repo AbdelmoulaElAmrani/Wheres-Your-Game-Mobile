@@ -24,7 +24,7 @@ import PlayerIcon from "../../assets/images/svg/PlayerIcon";
 import { router } from "expo-router";
 import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
 import {useDispatch, useSelector} from 'react-redux'
-import { updateUserRegisterData } from "@/redux/UserSlice";
+import { getUserProfile, updateUserRegisterData } from "@/redux/UserSlice";
 import { AuthService } from "@/services/AuthService";
 
 
@@ -64,8 +64,12 @@ const UserStepForm = () => {
     const _verifyUserStepDate = (step: number): boolean => {
         if (step === 1)
             return _verifyUserSelectedHisRule();
-        else
+        else { 
+            dispatch(getUserProfile() as any)
             return  true;
+
+
+        }
     }
 
     const createUser = async () => {
