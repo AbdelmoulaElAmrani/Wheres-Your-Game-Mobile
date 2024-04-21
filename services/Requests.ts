@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 
 const PREFIX = 'api'
 
-export const API_URI = `https://year-passive-offerings-games.trycloudflare.com/${PREFIX}/`
+export const API_URI = `https://easter-tractor-amber-pt.trycloudflare.com/${PREFIX}/`
 
 const axiosInstance = axios.create({
     baseURL: API_URI,
