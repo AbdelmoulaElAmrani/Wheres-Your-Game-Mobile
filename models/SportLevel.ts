@@ -6,10 +6,15 @@ enum SportLevel {
 
 
 export const convertStringToEnumValue = <T>(enumObj: T, value: any): T[keyof T] | null => {
-    // @ts-ignore
-    const entries = Object.entries(enumObj).find(([_, enumValue]) => enumValue === value);
+    
+    const formattedValue = value?.charAt(0).toUpperCase() + value?.slice(1).toLowerCase();
+
+    const entries = Object.entries(enumObj as Record<string, any>).find(([, v]) => {
+        return v === formattedValue;
+    });
+
     if (entries) {
-        return enumObj[entries[0] as keyof T];
+         return enumObj[entries[0] as keyof T];
     }
     return null;
 };

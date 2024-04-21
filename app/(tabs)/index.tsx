@@ -114,7 +114,7 @@ const Home = () => {
         const [iconLoadedError, setIconLoadedError] = useState(false);
 
         const iconSource = useMemo(() => {
-            console.log('sport img', item.sportName, iconLoadedError || !item.iconUrl);
+            //console.log('sport img', item.sportName, iconLoadedError || !item.iconUrl);
             if (iconLoadedError || !item.iconUrl) {
                 return require('../../assets/images/sport/sport.png');
             } else {
