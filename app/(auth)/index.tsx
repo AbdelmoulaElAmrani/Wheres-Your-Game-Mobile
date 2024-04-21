@@ -43,13 +43,13 @@ const Intro = () => {
 
     useEffect(() => {
         const checkIntroViewed = async () => {
+            const isIntroViewed = await LocalStorageService.getItem<boolean>('intro');
             if (user?.id) {
-                 router.replace("/(tabs)/");
-             } else {
-                 const isIntroViewed = await LocalStorageService.getItem<boolean>('intro');
-                 if (isIntroViewed) {
-                     router.replace("/Login");
-                 }
+                router.replace("/(tabs)/");
+            } else {
+                if (isIntroViewed) {
+                    router.replace("/Login");
+                }
             }
         };
         checkIntroViewed();

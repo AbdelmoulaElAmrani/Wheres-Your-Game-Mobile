@@ -39,7 +39,6 @@ const More = () => {
                                     <TouchableOpacity></TouchableOpacity>
                                 </View>
                             </View>*/}
-
                         <View style={styles.mainContainer}>
                             <Button
                                 onPress={_handleLogout}
