@@ -21,6 +21,7 @@ import { DatePickerModal, enGB, registerTranslation, TimePickerModal } from 'rea
 import CustomButton from "@/components/CustomButton";
 import RNPickerSelect from 'react-native-picker-select';
 import SportLevel from "@/models/SportLevel";
+import Checkbox from "expo-checkbox";
 
 
 
@@ -40,7 +41,7 @@ const Calendar = () => {
     const [open, setOpen] = useState(false);
     const [eventDate, setEventDate] = useState<Date | null>(null);
 
-    const [event, setEvent] = useState<any>({ name: '', date: new Date(), time: '', type: [], level: [] ,ageGroup: ''});
+    const [event, setEvent] = useState<any>({ name: '', date: new Date(), time: '', type: [], level: [], ageGroup: '' });
     const [time, setTime] = useState<any>({ hours: new Date().getHours(), minutes: new Date().getMinutes() });
     const [timeOpen, setTimeOpen] = useState(false);
     const [currentModalStep, setCurrentModalStep] = useState<number>(1);
@@ -172,7 +173,7 @@ const Calendar = () => {
     const _handleAddEventContinue = () => {
         setCurrentModalStep(old => Math.min(3, old + 1));
         if (currentModalStep === 3) {
-            console.log({...event, type: options.filter(option => option.isChecked).map(option => option.title), level: selectedSportLevel , ageGroup: event.ageGroup});
+            console.log({ ...event, type: options.filter(option => option.isChecked).map(option => option.title), level: selectedSportLevel, ageGroup: event.ageGroup });
             hideModal();
             setEvent({ name: '', date: new Date(), time: '', type: [], level: [], ageGroup: '' });
             setTime({ hours: new Date().getHours(), minutes: new Date().getMinutes() });
@@ -189,7 +190,7 @@ const Calendar = () => {
         setOptions(prevOptions => {
             const updatedOptions = [...prevOptions];
             const selectedOption = updatedOptions[index].title;
-    
+
             if (selectedOption === 'All') {
                 const isChecked = !updatedOptions[index].isChecked;
                 updatedOptions.forEach(option => {
@@ -198,7 +199,7 @@ const Calendar = () => {
             } else {
                 updatedOptions[index].isChecked = !updatedOptions[index].isChecked;
             }
-    
+
             return updatedOptions;
         });
     };
@@ -209,22 +210,25 @@ const Calendar = () => {
         onPress: () => void;
     }
 
-    const Checkbox = ({ title, isChecked, onPress }: CheckboxProps) => {
+    const CustomCheckbox = ({ title, isChecked, onPress }: CheckboxProps) => {
         return (
-            <TouchableOpacity style={styles.checkboxContainer} onPress={onPress}>
-                <MaterialCommunityIcons
-                    name={isChecked ? 'checkbox-marked' : 'checkbox-blank-outline'}
-                    size={24}
-                    color="black"
+            <>
+                <View style={styles.checkboxContainer}>
+                <Checkbox 
+                    value={isChecked}
+                    onValueChange={onPress}
+                    color={isChecked ? '#2757CB' : 'black'}
                 />
                 <Text style={styles.text}>{title}</Text>
-            </TouchableOpacity>
+                </View>
+            </>
+
         );
     };
 
     const _handleLevelPress = (index: number) => {
         const selectedLevel = sportLevels[index];
-        
+
         if (selectedLevel === 'All') {
             if (selectedSportLevel.includes('All')) {
                 setSelectedSportLevel([]);
@@ -233,20 +237,20 @@ const Calendar = () => {
             }
             return;
         }
-    
+
         const newSelectedLevels = selectedSportLevel.includes(selectedLevel)
             ? selectedSportLevel.filter(level => level !== selectedLevel)
             : [...selectedSportLevel, selectedLevel];
-    
+
         if (newSelectedLevels.length === sportLevels.length - 1) {
             setSelectedSportLevel([...newSelectedLevels, 'All']);
         } else {
             setSelectedSportLevel(newSelectedLevels);
         }
     };
-    
-    
-    
+
+
+
 
 
 
@@ -461,7 +465,7 @@ const Calendar = () => {
                                     <Text style={styles.textLabel}>Event Type</Text>
                                     <View style={styles.containerOptions}>
                                         {options.map((option, index) => (
-                                            <Checkbox
+                                            <CustomCheckbox
                                                 key={index}
                                                 title={option.title}
                                                 isChecked={option.isChecked}
@@ -479,7 +483,7 @@ const Calendar = () => {
                                     <Text style={styles.textLabel}>Level of Play</Text>
                                     <View style={styles.containerOptions}>
                                         {sportLevels.map((key: string, index) => (
-                                            <Checkbox
+                                            <CustomCheckbox
                                                 key={index}
                                                 title={key}
                                                 isChecked={selectedSportLevel.includes(key)}
