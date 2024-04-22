@@ -20,6 +20,7 @@ import { Helpers } from "@/constants/Helpers";
 import { DatePickerModal, enGB, registerTranslation, TimePickerModal } from 'react-native-paper-dates';
 import CustomButton from "@/components/CustomButton";
 import RNPickerSelect from 'react-native-picker-select';
+import SportLevel from "@/models/SportLevel";
 
 
 
@@ -39,8 +40,8 @@ const Calendar = () => {
     const [open, setOpen] = useState(false);
     const [eventDate, setEventDate] = useState<Date | null>(null);
 
-    const [event, setEvent] = useState<any>({ name: '', date: new Date(), time: '' });
-    const [time, setTime] = useState<any>({ hours: 0, minutes: 0 });
+    const [event, setEvent] = useState<any>({ name: '', date: new Date(), time: '', type: [], level: [] ,ageGroup: ''});
+    const [time, setTime] = useState<any>({ hours: new Date().getHours(), minutes: new Date().getMinutes() });
     const [timeOpen, setTimeOpen] = useState(false);
     const [currentModalStep, setCurrentModalStep] = useState<number>(1);
     const [options, setOptions] = useState([
@@ -53,9 +54,11 @@ const Calendar = () => {
         { title: 'Compettition', isChecked: false },
         { title: 'Meet', isChecked: false },
         { title: 'Match', isChecked: false },
-        { title: 'All', isChecked: false}
-        
+        { title: 'All', isChecked: false }
+
     ]);
+
+    const [selectedSportLevel, setSelectedSportLevel] = useState<string[]>([]);
 
 
 
@@ -115,6 +118,8 @@ const Calendar = () => {
         },
     ];
 
+    const sportLevels = Object.keys(SportLevel).filter((key: string) => !isNaN(Number(SportLevel[key as keyof typeof SportLevel])));
+    sportLevels.push('All');
 
     const _onAddEvent = (): void => {
         showModal();
@@ -150,6 +155,7 @@ const Calendar = () => {
         (params: any) => {
             setTimeOpen(false);
             setTime({ hours: params.hours, minutes: params.minutes });
+            setEvent({ ...event, time: params.hours + ':' + params.minutes });
         },
         [setTimeOpen]
     );
@@ -165,17 +171,36 @@ const Calendar = () => {
 
     const _handleAddEventContinue = () => {
         setCurrentModalStep(old => Math.min(3, old + 1));
-        console.log(currentModalStep);
+        if (currentModalStep === 3) {
+            console.log({...event, type: options.filter(option => option.isChecked).map(option => option.title), level: selectedSportLevel , ageGroup: event.ageGroup});
+            hideModal();
+            setEvent({ name: '', date: new Date(), time: '', type: [], level: [], ageGroup: '' });
+            setTime({ hours: new Date().getHours(), minutes: new Date().getMinutes() });
+            setSelectedSportLevel([]);
+            setCurrentModalStep(1);
+
+        }
     }
     const _handleAddEventBack = () => {
         setCurrentModalStep(old => Math.max(1, old - 1));
-        console.log(currentModalStep);
     }
 
     const _handlePress = (index: number) => {
-        const updatedOptions = [...options];
-        updatedOptions[index].isChecked = !updatedOptions[index].isChecked;
-        setOptions(updatedOptions);
+        setOptions(prevOptions => {
+            const updatedOptions = [...prevOptions];
+            const selectedOption = updatedOptions[index].title;
+    
+            if (selectedOption === 'All') {
+                const isChecked = !updatedOptions[index].isChecked;
+                updatedOptions.forEach(option => {
+                    option.isChecked = isChecked;
+                });
+            } else {
+                updatedOptions[index].isChecked = !updatedOptions[index].isChecked;
+            }
+    
+            return updatedOptions;
+        });
     };
 
     interface CheckboxProps {
@@ -196,6 +221,32 @@ const Calendar = () => {
             </TouchableOpacity>
         );
     };
+
+    const _handleLevelPress = (index: number) => {
+        const selectedLevel = sportLevels[index];
+        
+        if (selectedLevel === 'All') {
+            if (selectedSportLevel.includes('All')) {
+                setSelectedSportLevel([]);
+            } else {
+                setSelectedSportLevel([...sportLevels]);
+            }
+            return;
+        }
+    
+        const newSelectedLevels = selectedSportLevel.includes(selectedLevel)
+            ? selectedSportLevel.filter(level => level !== selectedLevel)
+            : [...selectedSportLevel, selectedLevel];
+    
+        if (newSelectedLevels.length === sportLevels.length - 1) {
+            setSelectedSportLevel([...newSelectedLevels, 'All']);
+        } else {
+            setSelectedSportLevel(newSelectedLevels);
+        }
+    };
+    
+    
+    
 
 
 
@@ -380,7 +431,7 @@ const Calendar = () => {
                                         items={
                                             generateAgeRanges(6, 18)
                                         }
-                                        onValueChange={(value) => console.log(value)}
+                                        onValueChange={(value) => setEvent({ ...event, ageGroup: value })}
                                         style={{
                                             inputAndroid: {
                                                 ...styles.inputStyle,
@@ -404,6 +455,7 @@ const Calendar = () => {
                                 </>
                             )}
 
+
                             {currentModalStep === 2 && (
                                 <>
                                     <Text style={styles.textLabel}>Event Type</Text>
@@ -422,6 +474,28 @@ const Calendar = () => {
                                 </>
                             )}
 
+                            {currentModalStep === 3 && (
+                                <>
+                                    <Text style={styles.textLabel}>Level of Play</Text>
+                                    <View style={styles.containerOptions}>
+                                        {sportLevels.map((key: string, index) => (
+                                            <Checkbox
+                                                key={index}
+                                                title={key}
+                                                isChecked={selectedSportLevel.includes(key)}
+                                                onPress={() => _handleLevelPress(index)}
+                                            />
+                                        ))}
+
+
+
+
+                                    </View>
+
+
+                                </>
+                            )}
+
 
 
 
@@ -429,18 +503,26 @@ const Calendar = () => {
 
                         </View>
 
-                        {currentModalStep === 1 && (<>
+                        {currentModalStep === 1 && (
                             <View style={styles.bottomCardContainer}>
                                 <CustomButton text="continue" onPress={_handleAddEventContinue} />
                             </View>
-                        </>)}
+                        )}
 
-                        {currentModalStep !== 1 && (<>
+                        {currentModalStep !== 1 && currentModalStep !== 3 && (
                             <View style={styles.bottomRowContainer}>
                                 <CustomButton text="back" onPress={_handleAddEventBack} style={styles.backButton} textStyle={styles.buttonText} />
                                 <CustomButton text="continue" onPress={_handleAddEventContinue} style={styles.continueButton} />
                             </View>
-                        </>)}
+                        )}
+
+                        {currentModalStep === 3 && (
+                            <View style={styles.bottomRowContainer}>
+                                <CustomButton text="back" onPress={_handleAddEventBack} style={styles.backButton} textStyle={styles.buttonText} />
+                                <CustomButton text="Save" onPress={_handleAddEventContinue} style={styles.continueButton} />
+                            </View>
+                        )}
+
 
 
 
