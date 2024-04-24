@@ -33,6 +33,8 @@ export const getUserSports = createAsyncThunk<UserSportResponse[], string, { rej
 );
 
 export const updateUserProfile = createAsyncThunk('user/updateUserProfile', async (user: UserRequest) => {
+    console.log('in update user profile');
+    console.log(user);
     const response = await UserService.updateUser(user);
     return response;
 });
