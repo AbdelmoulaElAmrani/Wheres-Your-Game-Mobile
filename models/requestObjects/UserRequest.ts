@@ -7,4 +7,9 @@ export interface UserRequest {
     zipCode: string;
     address: string;
     gender: Gender;
+    dateOfBirth: Date;
+    isCertified : boolean;
+    yearsOfExperience : number;
+    positionCoached : string;
+
 }

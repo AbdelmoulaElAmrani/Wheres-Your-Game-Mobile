@@ -15,6 +15,10 @@ export interface UserResponse {
     countryCode: string;
     gender: Gender;
     dateOfBirth: Date;
+    yearsOfExperience: number;
+    isCertified: boolean;
+    positionCoached: string;
+
 
 
 }

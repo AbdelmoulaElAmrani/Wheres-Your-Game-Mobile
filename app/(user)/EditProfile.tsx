@@ -31,6 +31,7 @@ import { SportService } from "@/services/SportService";
 import SportLevel, { convertStringToEnumValue } from "@/models/SportLevel";
 import { UserInterestedSport } from "@/models/UserInterestedSport";
 import { UserSportResponse } from "@/models/responseObjects/UserSportResponse";
+import { UserRequest } from "@/models/requestObjects/UserRequest";
 
 
 const EditProfile = () => {
@@ -62,7 +63,10 @@ const EditProfile = () => {
         role: "",
         zipCode: "",
         id: "",
-        dateOfBirth: new Date()
+        dateOfBirth: new Date(),
+        isCertified: false,
+        positionCoached: "",
+        yearsOfExperience: 0
     });
 
     const [currentStep, setCurrentStep] = useState<number>(1);
@@ -92,8 +96,22 @@ const EditProfile = () => {
         }
     }, [userData]);
 
+    const { firstName, lastName, bio, zipCode, address, gender, dateOfBirth, isCertified, yearsOfExperience, positionCoached } = user;
+
+    const userRequest: UserRequest = {
+        firstName,
+        lastName,
+        bio,
+        zipCode,
+        address,
+        gender,
+        dateOfBirth,
+        isCertified,
+        yearsOfExperience,
+        positionCoached
+    };
     const _handleUpdateUser = async () => {
-        dispatch(updateUserProfile(user) as any);
+        dispatch(updateUserProfile(userRequest) as any);
     }
 
     const _handleContinue = async () => {
@@ -463,16 +481,18 @@ const EditProfile = () => {
 
 
         const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
-        const [positionCoach, setPositionCoach] = useState<string>('');
+        const [positionCoach, setPositionCoach] = useState<string>(user.positionCoached);
         const [sportLevel, setSportLevel] = useState<SportLevel>(SportLevel.Beginner);
-        const [yearsOfExperience, setYearsOfExperience] = useState<number>(0);
-        const [Sports, setSports] = useState<Map<string, UserInterestedSport>>(new Map([]));
+        const [yearsOfExperience, setYearsOfExperience] = useState<number>(user.yearsOfExperience);
+        const [isCertified, setIsCertified] = useState<boolean>(user.isCertified);
 
         const [editUser, setEditUser] = useState<UserResponse>({ ...user });
 
         const _handleCoachSportInfoEdit = async () => {
+            console.log('in _handleCoachSportInfoEdit');
+            console.log({ ...editUser, bio: editUser.bio , positionCoached: positionCoach, yearsOfExperience: yearsOfExperience, isCertified: isCertified });
+            setUser(({ ...editUser, bio: editUser.bio , positionCoached: positionCoach, yearsOfExperience: yearsOfExperience, isCertified: isCertified }));
 
-            setUser(oldValue => ({ ...oldValue, bio: editUser.bio }));
 
             if (userSport.length === 0) {
 
@@ -546,7 +566,7 @@ const EditProfile = () => {
                                 <Text style={styles.textLabel}>Position Coach</Text>
                                 <TextInput
                                     style={styles.inputStyle}
-                                    placeholder={'Position Coach'}
+                                    placeholder={'Position Coached'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
                                     left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
@@ -572,8 +592,19 @@ const EditProfile = () => {
                                         key: i
                                     }))}
                                     placeholder={{ label: 'Select years of experience', value: null }}
-                                    onValueChange={(value) => setYearsOfExperience(value)}
+                                    onValueChange={(value) => setYearsOfExperience(value as number)}
+                                    value={yearsOfExperience || null}
                                 />
+
+                                <Text style={styles.textLabel}>Certification</Text>
+                                <RNPickerSelect
+                                    style={{ inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle }}
+                                    items={[{ label: 'Yes', value: true, key: 'Yes' }, { label: 'No', value: false, key: 'No' }]}
+                                    placeholder={{ label: 'Select certification', value: null }}
+                                    onValueChange={(value) => setIsCertified(value as boolean)}
+                                    value={isCertified || null}
+                                />
+
 
                                 <Text style={styles.textLabel}>Tell us about yourself</Text>
                                 <TextInput
