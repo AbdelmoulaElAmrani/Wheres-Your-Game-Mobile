@@ -1,5 +1,5 @@
-import { AuthenticationRequest } from "@/models/requestObjects/AuthenticationRequest";
-import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
+import {AuthenticationRequest} from "@/models/requestObjects/AuthenticationRequest";
+import {RegisterRequest} from "@/models/requestObjects/RegisterRequest";
 import LocalStorageService from "./LocalStorageService";
 import Requests from "./Requests";
 import {persistor} from "@/redux/ReduxConfig";
@@ -78,23 +78,30 @@ export class AuthService {
         if (res.data) {
             AuthService.setAuthTokens(res.data);
         }
-
         return res.data;
 
     }
 
-    static sendOTP = async (): Promise<string> => {
-        const res = await Requests.get('auth/generateOTP')
-        return "";
+    static sendOTP = async (): Promise<boolean | undefined> => {
+        const res = await Requests.get('auth/generateOTP');
+        return res?.status === 200;
     }
 
     static verifyOTP = async (code: string): Promise<boolean | undefined> => {
-        const res = await Requests.get(`auth/verifyOTP?otp=${code}`)
-        if (res.status !== 200) {
+        const res = await Requests.get(`auth/verifyOTP?otp=${code}`);
+        if (res?.status !== 200) {
             return false;
         }
+        return res.data;
+    }
 
-        res.data;
+    static verifyEmail = async (email: string): Promise<boolean | undefined> => {
+        const res = await Requests.get(`auth/verify-email/${email}`);
+        if (res?.status !== 200) {
+            return false;
+        }
+        console.log(res.data);
+        return res.data;
     }
 
 }

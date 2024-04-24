@@ -18,10 +18,10 @@ import {RegisterRequest} from "@/models/requestObjects/RegisterRequest";
 import UserType from "@/models/UserType";
 import {useDispatch} from 'react-redux'
 import PhoneInput from "react-native-phone-number-input";
-import {logout, updateUserRegisterData} from "@/redux/UserSlice";
+import {updateUserRegisterData} from "@/redux/UserSlice";
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {Helpers} from "@/constants/Helpers";
-import {persistor} from "@/redux/ReduxConfig";
+import {AuthService} from "@/services/AuthService";
 
 
 const Register = () => {
@@ -46,8 +46,8 @@ const Register = () => {
     // }, []);
 
 
-    const _handleOnNext = (): void => {
-        const errors = _verifyRequiredData(userData);
+    const _handleOnNext = async (): Promise<void> => {
+        const errors = await _verifyRequiredData(userData);
         if (errors.length === 0) {
             dispatch(updateUserRegisterData(userData))
             router.navigate("/TermsPolicies");
@@ -56,13 +56,19 @@ const Register = () => {
         }
     }
 
-    const _verifyRequiredData = (userData: RegisterRequest): string[] => {
+    const _verifyRequiredData = async (userData: RegisterRequest): Promise<string[]> => {
         const errors: string[] = [];
 
         if (userData.email.trim() === '') {
             errors.push('Email is required');
         } else if (!Helpers._isEmailValid(userData.email)) {
             errors.push('Invalid email format');
+        }
+        try {
+            const result = await AuthService.verifyEmail(userData.email.trim());
+            if (result || result == undefined) errors.push('The Email already taken');
+        } catch (e) {
+            console.log(e);
         }
 
         if (userData.password.trim() === '') {

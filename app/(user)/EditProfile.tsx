@@ -1,6 +1,6 @@
 import CustomButton from "@/components/CustomButton";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import React, { memo, useCallback, useEffect, useRef, useState } from "react";
+import React, {memo, useCallback, useEffect, useRef, useState} from "react";
 import {
     Alert,
     Keyboard,
@@ -9,29 +9,30 @@ import {
     TouchableWithoutFeedback,
     View
 } from "react-native"
-import { ImageBackground } from "expo-image";
-import { Avatar, Text, TextInput } from "react-native-paper";
+import {ImageBackground} from "expo-image";
+import {Avatar, Text, TextInput} from "react-native-paper";
 import PhoneInput from "react-native-phone-number-input";
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Octicons } from '@expo/vector-icons';
-import ScrollPicker, { ScrollPickerHandle } from "react-native-wheel-scrollview-picker";
-import { router, useLocalSearchParams } from "expo-router";
+import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
+import {SafeAreaView} from "react-native-safe-area-context";
+import {Octicons} from '@expo/vector-icons';
+import * as ImagePicker from "expo-image-picker";
+import {router, useLocalSearchParams} from "expo-router";
 import Gender from "@/models/Gender";
 import MaleIcon from "@/assets/images/svg/MaleIcon";
 import FemaleIcon from "@/assets/images/svg/FemaleIcon";
-import { UserResponse } from "@/models/responseObjects/UserResponse";
-import { useDispatch, useSelector } from "react-redux";
-import { getUserProfile, getUserSports, updateUserProfile } from "@/redux/UserSlice";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { DatePickerModal, enGB, registerTranslation } from 'react-native-paper-dates';
+import {UserResponse} from "@/models/responseObjects/UserResponse";
+import {useDispatch, useSelector} from "react-redux";
+import {getUserProfile, getUserSports, updateUserProfile} from "@/redux/UserSlice";
+import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
+import {DatePickerModal, enGB, registerTranslation} from 'react-native-paper-dates';
 import Sport from "@/models/Sport";
 import RNPickerSelect from 'react-native-picker-select';
-import { SportService } from "@/services/SportService";
-import SportLevel, { convertStringToEnumValue } from "@/models/SportLevel";
-import { UserInterestedSport } from "@/models/UserInterestedSport";
-import { UserSportResponse } from "@/models/responseObjects/UserSportResponse";
-import { UserRequest } from "@/models/requestObjects/UserRequest";
+import {SportService} from "@/services/SportService";
+import SportLevel, {convertStringToEnumValue} from "@/models/SportLevel";
+import {UserInterestedSport} from "@/models/UserInterestedSport";
+import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
+import {UserRequest} from "@/models/requestObjects/UserRequest";
+import {manipulateAsync, SaveFormat} from "expo-image-manipulator";
 
 
 const EditProfile = () => {
@@ -43,8 +44,6 @@ const EditProfile = () => {
     //const {availableSport}: { availableSport: Sport[] } = useSelector((state: any) => state.sport);
     const [sports, setSports] = useState<Sport[]>([]);
     const [selectedSports, setSelectedSports] = useState<UserInterestedSport[]>([]);
-
-
 
 
     const params = useLocalSearchParams();
@@ -96,7 +95,18 @@ const EditProfile = () => {
         }
     }, [userData]);
 
-    const { firstName, lastName, bio, zipCode, address, gender, dateOfBirth, isCertified, yearsOfExperience, positionCoached } = user;
+    const {
+        firstName,
+        lastName,
+        bio,
+        zipCode,
+        address,
+        gender,
+        dateOfBirth,
+        isCertified,
+        yearsOfExperience,
+        positionCoached
+    } = user;
 
     const userRequest: UserRequest = {
         firstName,
@@ -110,6 +120,7 @@ const EditProfile = () => {
         yearsOfExperience,
         positionCoached
     };
+
     const _handleUpdateUser = async () => {
         dispatch(updateUserProfile(userRequest) as any);
     }
@@ -121,19 +132,13 @@ const EditProfile = () => {
                 try {
                     await _handleUpdateUser();
                     if (params?.previousScreenName)
-                        router.setParams({ previousScreenName: 'profile' })
+                        router.setParams({previousScreenName: 'profile'})
 
                     if (selectedSports.length > 0 && userSport.length === 0) {
-
                         const response = await SportService.registerUserToSport(selectedSports, userData.id);
-
                         router.navigate('/(tabs)');
-
                     }
                     router.navigate('/(tabs)');
-
-
-
                 } catch (e) {
                     console.log('update user page', e);
                 }
@@ -144,7 +149,7 @@ const EditProfile = () => {
                 try {
                     await _handleUpdateUser();
                     if (params?.previousScreenName)
-                        router.setParams({ previousScreenName: 'profile' })
+                        router.setParams({previousScreenName: 'profile'})
                     router.navigate('/SportInterested');
                 } catch (e) {
                     console.log('update user page', e);
@@ -178,9 +183,36 @@ const EditProfile = () => {
         }
     }
 
+    const _handleEditProfilePic = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.2
+        });
+
+        if (!result.canceled) {
+            manipulateAsync(result.assets[0].uri, [{resize: {height: 900, width: 900}}], {
+                compress: 0.2,
+                format: SaveFormat.PNG
+            }).then((manipulateImgResult) => {
+                const formData = new FormData();
+                // @ts-ignore
+                formData.append(
+                    'file',
+                    {
+                        uri: manipulateImgResult.uri,
+                        name: result.assets[0].fileName ? result.assets[0].fileName : 'userProfileImg.png',
+                        type: 'image/png'
+                    });
+            }).catch(err => {
+                console.error('Error during image manipulation:', err);
+            });
+        }
+    }
 
     const UserInfoEdit = () => {
-        const [editUser, setEditUser] = useState<UserResponse>({ ...user });
+        const [editUser, setEditUser] = useState<UserResponse>({...user});
         const phoneInput = useRef<PhoneInput>(null);
         const [open, setOpen] = useState(false);
 
@@ -203,7 +235,7 @@ const EditProfile = () => {
                 return;
             }
 
-            setUser(oldValue => ({ ...editUser }));
+            setUser(oldValue => ({...editUser}));
             await _handleContinue();
         }
 
@@ -234,17 +266,17 @@ const EditProfile = () => {
             <>
                 <View style={styles.profilePhotoContainer}>
                     {user.imageUrl ? (
-                        <Avatar.Image size={100} source={{ uri: user.imageUrl }} />
+                        <Avatar.Image size={100} source={{uri: user.imageUrl}}/>
                     ) : (
-                        <Avatar.Text size={100} label={`${editUser.firstName[0] || ''}${editUser.lastName[0] || ''}`} />
+                        <Avatar.Text size={100} label={`${editUser.firstName[0] || ''}${editUser.lastName[0] || ''}`}/>
                     )}
                     <TouchableOpacity onPress={_handleProfilePhotoEdit} style={styles.editPhotoIcon}>
-                        <Octicons name="pencil" size={24} color={'white'} />
+                        <Octicons name="pencil" size={24} color={'white'}/>
                     </TouchableOpacity>
                 </View>
-                <KeyboardAwareScrollView style={{ flex: 1 }}
-                    contentContainerStyle={{ flexGrow: 1 }}
-                    keyboardShouldPersistTaps="handled">
+                <KeyboardAwareScrollView style={{flex: 1}}
+                                         contentContainerStyle={{flexGrow: 1}}
+                                         keyboardShouldPersistTaps="handled">
                     <View style={styles.formContainer}>
                         <View style={styles.mgTop}>
                             <Text style={styles.textLabel}>First Name</Text>
@@ -253,9 +285,9 @@ const EditProfile = () => {
                                 placeholder={'First Name'}
                                 cursorColor='black'
                                 placeholderTextColor={'grey'}
-                                left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
+                                left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
                                 value={editUser.firstName}
-                                onChangeText={(text) => setEditUser({ ...editUser, firstName: text })}
+                                onChangeText={(text) => setEditUser({...editUser, firstName: text})}
                                 underlineColor={"transparent"}
                             />
                             <Text style={styles.textLabel}>Last Name</Text>
@@ -264,9 +296,9 @@ const EditProfile = () => {
                                 placeholder={'Last Name'}
                                 cursorColor='black'
                                 placeholderTextColor={'grey'}
-                                left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
+                                left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
                                 value={editUser.lastName}
-                                onChangeText={(text) => setEditUser({ ...editUser, lastName: text })}
+                                onChangeText={(text) => setEditUser({...editUser, lastName: text})}
                                 underlineColor={"transparent"}
 
                             />
@@ -278,9 +310,9 @@ const EditProfile = () => {
                                 placeholder={'Email'}
                                 cursorColor='black'
                                 placeholderTextColor={'grey'}
-                                left={<TextInput.Icon color={'#D3D3D3'} icon='email-outline' size={30} />}
+                                left={<TextInput.Icon color={'#D3D3D3'} icon='email-outline' size={30}/>}
                                 value={editUser.email}
-                                onChangeText={(text) => setEditUser({ ...editUser, email: text })}
+                                onChangeText={(text) => setEditUser({...editUser, email: text})}
                                 underlineColor={"transparent"}
                                 disabled={true}
                             />
@@ -297,7 +329,7 @@ const EditProfile = () => {
                                 locale="en"
                                 onChange={(p) => {
                                     if (p && p.date) {
-                                        setEditUser({ ...editUser, dateOfBirth: new Date(p.date) });
+                                        setEditUser({...editUser, dateOfBirth: new Date(p.date)});
                                     }
                                 }
                                 }
@@ -307,7 +339,7 @@ const EditProfile = () => {
                                 placeholder={'Date of Birth'}
                                 cursorColor='black'
                                 placeholderTextColor={'grey'}
-                                left={<TextInput.Icon color={'#D3D3D3'} icon='calendar' size={30} />}
+                                left={<TextInput.Icon color={'#D3D3D3'} icon='calendar' size={30}/>}
                                 value={new Date(editUser.dateOfBirth).toLocaleDateString()}
                                 onFocus={() => setOpen(true)}
                                 underlineColor={"transparent"}
@@ -322,7 +354,7 @@ const EditProfile = () => {
                                     placeholder={'Phone number'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='phone' size={30} />}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='phone' size={30}/>}
                                     value={editUser.countryCode + editUser.phoneNumber}
                                     onFocus={() => setOpen(true)}
                                     underlineColor={"transparent"}
@@ -347,9 +379,9 @@ const EditProfile = () => {
                                     placeholder={'Address'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30} />}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30}/>}
                                     value={editUser.address}
-                                    onChangeText={(text) => setEditUser({ ...editUser, address: text })}
+                                    onChangeText={(text) => setEditUser({...editUser, address: text})}
                                     underlineColor={"transparent"}
                                 />
 
@@ -359,13 +391,13 @@ const EditProfile = () => {
                                     placeholder={'Zip Code'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30} />}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30}/>}
                                     value={editUser.zipCode}
-                                    onChangeText={(text) => setEditUser({ ...editUser, zipCode: text })}
+                                    onChangeText={(text) => setEditUser({...editUser, zipCode: text})}
                                     underlineColor={"transparent"}
                                 />
                                 <View style={styles.buttonContainer}>
-                                    <CustomButton text="Continue" onPress={_handleContinueUserInfo} />
+                                    <CustomButton text="Continue" onPress={_handleContinueUserInfo}/>
                                 </View>
                             </View>
                         </View>
@@ -383,7 +415,7 @@ const EditProfile = () => {
         }, [user.gender]);
 
         const _handleContinueGenderEdit = async () => {
-            setUser({ ...user, gender: selectedGender });
+            setUser({...user, gender: selectedGender});
             await _handleContinue();
         };
         const _verifySelectedGender = (sex: Gender): boolean => {
@@ -392,9 +424,9 @@ const EditProfile = () => {
 
         return (
             <View style={styles.genericContainer}>
-                <View style={{ justifyContent: 'center', alignContent: 'center' }}>
-                    <Text style={[styles.textFirst, { textAlign: 'center' }]}>Tell us about yourself</Text>
-                    <Text style={[styles.textSecond, { textAlign: 'center' }]}>To give you a better experience and
+                <View style={{justifyContent: 'center', alignContent: 'center'}}>
+                    <Text style={[styles.textFirst, {textAlign: 'center'}]}>Tell us about yourself</Text>
+                    <Text style={[styles.textSecond, {textAlign: 'center'}]}>To give you a better experience and
                         results, we need to know your
                         gender</Text>
                 </View>
@@ -406,10 +438,10 @@ const EditProfile = () => {
                         ]}
                         onPress={() => setSelectedGender(Gender.MALE)}
                     >
-                        <MaleIcon fill={_verifySelectedGender(Gender.MALE) ? 'white' : 'black'} />
+                        <MaleIcon fill={_verifySelectedGender(Gender.MALE) ? 'white' : 'black'}/>
                         <Text style={[
                             styles.genderLabel,
-                            { color: _verifySelectedGender(Gender.MALE) ? 'white' : 'black' }
+                            {color: _verifySelectedGender(Gender.MALE) ? 'white' : 'black'}
                         ]}>Male</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -419,19 +451,19 @@ const EditProfile = () => {
                         ]}
                         onPress={() => setSelectedGender(Gender.FEMALE)}
                     >
-                        <FemaleIcon fill={_verifySelectedGender(Gender.FEMALE) ? 'white' : 'black'} />
+                        <FemaleIcon fill={_verifySelectedGender(Gender.FEMALE) ? 'white' : 'black'}/>
                         <Text style={[
                             styles.genderLabel,
-                            { color: _verifySelectedGender(Gender.FEMALE) ? 'white' : 'black' }
+                            {color: _verifySelectedGender(Gender.FEMALE) ? 'white' : 'black'}
                         ]}>Female</Text>
                     </TouchableOpacity>
                 </View>
                 <View style={styles.sideBySideButtons}>
                     <CustomButton text="Back" onPress={goToPreviousStep} style={styles.backButton}
-                        textStyle={styles.buttonText} />
+                                  textStyle={styles.buttonText}/>
                     <CustomButton disabled={selectedGender === Gender.DEFAULT}
-                        text="Continue" onPress={_handleContinueGenderEdit}
-                        style={styles.continueButton} />
+                                  text="Continue" onPress={_handleContinueGenderEdit}
+                                  style={styles.continueButton}/>
                 </View>
             </View>
         );
@@ -486,12 +518,24 @@ const EditProfile = () => {
         const [yearsOfExperience, setYearsOfExperience] = useState<number>(user.yearsOfExperience);
         const [isCertified, setIsCertified] = useState<boolean>(user.isCertified);
 
-        const [editUser, setEditUser] = useState<UserResponse>({ ...user });
+        const [editUser, setEditUser] = useState<UserResponse>({...user});
 
         const _handleCoachSportInfoEdit = async () => {
             console.log('in _handleCoachSportInfoEdit');
-            console.log({ ...editUser, bio: editUser.bio , positionCoached: positionCoach, yearsOfExperience: yearsOfExperience, isCertified: isCertified });
-            setUser(({ ...editUser, bio: editUser.bio , positionCoached: positionCoach, yearsOfExperience: yearsOfExperience, isCertified: isCertified }));
+            console.log({
+                ...editUser,
+                bio: editUser.bio,
+                positionCoached: positionCoach,
+                yearsOfExperience: yearsOfExperience,
+                isCertified: isCertified
+            });
+            setUser(({
+                ...editUser,
+                bio: editUser.bio,
+                positionCoached: positionCoach,
+                yearsOfExperience: yearsOfExperience,
+                isCertified: isCertified
+            }));
 
 
             if (userSport.length === 0) {
@@ -510,28 +554,25 @@ const EditProfile = () => {
                     return;
 
                 setSelectedSports([...selectedSports,
-                {
-                    sportId: selectedSport.id,
-                    sportLevel: convertedSportLevel,
-                    createAt: new Date(),
-                    sportName: selectedSport.name
+                    {
+                        sportId: selectedSport.id,
+                        sportLevel: convertedSportLevel,
+                        createAt: new Date(),
+                        sportName: selectedSport.name
 
 
-                }]);
+                    }]);
 
             }
 
-            if(selectedSports.length === 0 && userSport.length === 0){  
+            if (selectedSports.length === 0 && userSport.length === 0) {
                 return;
             }
-
-
 
 
             await _handleContinue();
 
         }
-
 
 
         const _generateSportLevelItems = (): { label: string; value: string; key: string }[] => {
@@ -545,21 +586,21 @@ const EditProfile = () => {
         return (
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <>
-                    <KeyboardAwareScrollView style={{ flex: 1 }}>
+                    <KeyboardAwareScrollView style={{flex: 1}}>
                         <View style={styles.formContainer}>
-                            <Text style={{ color: 'black', fontSize: 20, fontWeight: 'bold', marginTop: 5 }}>Sport
+                            <Text style={{color: 'black', fontSize: 20, fontWeight: 'bold', marginTop: 5}}>Sport
                                 Info</Text>
                             <View style={styles.mgTop}>
 
                                 <Text style={styles.textLabel}>Your Sport</Text>
                                 <RNPickerSelect
-                                    style={{ inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle }}
+                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
                                     items={sports.map(sport => ({
                                         label: sport.name,
                                         value: sport.id,
                                         key: sport.id
                                     }))}
-                                    placeholder={{ label: 'Select sport', value: null }}
+                                    placeholder={{label: 'Select sport', value: null}}
                                     onValueChange={(value) => setSelectedSport(sports.find(sport => sport.id === value) || null)}
                                     value={userSport[0]?.sportId || selectedSport?.id || null}
                                 />
@@ -569,38 +610,42 @@ const EditProfile = () => {
                                     placeholder={'Position Coached'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
                                     underlineColor={"transparent"}
                                     value={positionCoach}
                                     onChangeText={(text) => setPositionCoach(text)}
                                 />
                                 <Text style={styles.textLabel}>Skill Level</Text>
                                 <RNPickerSelect
-                                    style={{ inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle }}
+                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
                                     items={_generateSportLevelItems()}
-                                    placeholder={{ label: 'Select skill level', value: null }}
+                                    placeholder={{label: 'Select skill level', value: null}}
                                     onValueChange={(value) => setSportLevel(value as SportLevel)}
                                     value={userSport[0]?.sportLevel || sportLevel || null}
                                 />
 
                                 <Text style={styles.textLabel}>Years of Experience</Text>
                                 <RNPickerSelect
-                                    style={{ inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle }}
-                                    items={Array.from({ length: 40 }, (_, i) => i).map(i => ({
+                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
+                                    items={Array.from({length: 40}, (_, i) => i).map(i => ({
                                         label: i.toString(),
                                         value: i,
                                         key: i
                                     }))}
-                                    placeholder={{ label: 'Select years of experience', value: null }}
+                                    placeholder={{label: 'Select years of experience', value: null}}
                                     onValueChange={(value) => setYearsOfExperience(value as number)}
                                     value={yearsOfExperience || null}
                                 />
 
                                 <Text style={styles.textLabel}>Certification</Text>
                                 <RNPickerSelect
-                                    style={{ inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle }}
-                                    items={[{ label: 'Yes', value: true, key: 'Yes' }, { label: 'No', value: false, key: 'No' }]}
-                                    placeholder={{ label: 'Select certification', value: null }}
+                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
+                                    items={[{label: 'Yes', value: true, key: 'Yes'}, {
+                                        label: 'No',
+                                        value: false,
+                                        key: 'No'
+                                    }]}
+                                    placeholder={{label: 'Select certification', value: null}}
                                     onValueChange={(value) => setIsCertified(value as boolean)}
                                     value={isCertified || null}
                                 />
@@ -613,14 +658,14 @@ const EditProfile = () => {
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
                                     value={editUser.bio}
-                                    onChangeText={(text) => setEditUser({ ...editUser, bio: text })}
+                                    onChangeText={(text) => setEditUser({...editUser, bio: text})}
                                     underlineColor={"transparent"}
                                     multiline={true}
                                     numberOfLines={4}
                                 />
 
-                                <View style={{ marginTop: 30 }}>
-                                    <CustomButton text="Continue" onPress={_handleCoachSportInfoEdit} />
+                                <View style={{marginTop: 30}}>
+                                    <CustomButton text="Continue" onPress={_handleCoachSportInfoEdit}/>
                                 </View>
                             </View>
                         </View>
@@ -635,15 +680,15 @@ const EditProfile = () => {
         <ImageBackground
             style={StyleSheet.absoluteFill}
             source={require('../../assets/images/signupBackGround.jpg')}>
-            <SafeAreaView style={{ flex: 1 }}>
+            <SafeAreaView style={{flex: 1}}>
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <CustomNavigationHeader text={_getCurrentStepTitle()} goBackFunction={goBackFunc()} showBackArrow />
+                    <CustomNavigationHeader text={_getCurrentStepTitle()} goBackFunction={goBackFunc()} showBackArrow/>
                 </TouchableWithoutFeedback>
                 <Text style={styles.stepText}>Step {currentStep}/3</Text>
                 <View style={styles.cardContainer}>
-                    {currentStep === 1 && <UserInfoEdit />}
-                    {currentStep === 2 && <UserGenderEdit />}
-                    {currentStep === 3 && <CoachSportInfoEdit />}
+                    {currentStep === 1 && <UserInfoEdit/>}
+                    {currentStep === 2 && <UserGenderEdit/>}
+                    {currentStep === 3 && <CoachSportInfoEdit/>}
                 </View>
             </SafeAreaView>
         </ImageBackground>
@@ -770,7 +815,7 @@ const styles = StyleSheet.create({
         borderWidth: 0.5,
         borderColor: '#f2f4fb',
         shadowColor: '#dcddde',
-        shadowOffset: { width: 0, height: 5 },
+        shadowOffset: {width: 0, height: 5},
         shadowOpacity: 0.7,
         shadowRadius: 4,
         elevation: 6,
