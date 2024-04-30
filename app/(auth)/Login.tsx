@@ -37,7 +37,6 @@ const Login = () => {
     useEffect(() => {
         const fetchData = async () => {
             const token = await AuthService.getAccessToken();
-            console.log('login', token);
             if (token && user?.id) {
                 router.replace("/(tabs)/");
             } else {

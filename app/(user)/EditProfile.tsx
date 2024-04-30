@@ -33,6 +33,7 @@ import {UserInterestedSport} from "@/models/UserInterestedSport";
 import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {UserRequest} from "@/models/requestObjects/UserRequest";
 import {manipulateAsync, SaveFormat} from "expo-image-manipulator";
+import {StorageService} from "@/services/StorageService";
 
 
 const EditProfile = () => {
@@ -44,7 +45,7 @@ const EditProfile = () => {
     //const {availableSport}: { availableSport: Sport[] } = useSelector((state: any) => state.sport);
     const [sports, setSports] = useState<Sport[]>([]);
     const [selectedSports, setSelectedSports] = useState<UserInterestedSport[]>([]);
-
+    const [image, setImage] = useState<any>();
 
     const params = useLocalSearchParams();
 
@@ -74,8 +75,8 @@ const EditProfile = () => {
 
     useEffect(() => {
         dispatch(getUserProfile() as any)
-        dispatch(getUserSports(userData.id) as any);
-
+        if (userData?.id)
+            dispatch(getUserSports(userData?.id) as any);
         const fetchSport = async () => {
             try {
                 const data = await SportService.getAllSports();
@@ -90,8 +91,11 @@ const EditProfile = () => {
     }, []);
 
     useEffect(() => {
+        console.log(user);
         if (user?.id == '' || user?.id == undefined) {
             setUser(userData);
+        } else {
+            dispatch(getUserSports(userData.id) as any);
         }
     }, [userData]);
 
@@ -126,7 +130,7 @@ const EditProfile = () => {
     }
 
     const _handleContinue = async () => {
-        if (userData.role === 'COACH') {
+        if (userData?.role === 'COACH') {
             setCurrentStep(oldValue => Math.min(3, oldValue + 1));
             if (currentStep >= 3) {
                 try {
@@ -162,9 +166,7 @@ const EditProfile = () => {
     const goBackFunc = () => {
         return currentStep === 1 ? undefined : goToPreviousStep;
     }
-    const _handleProfilePhotoEdit = () => {
-        console.log('Edit Profile Photo');
-    }
+
     const goToPreviousStep = () => {
         setCurrentStep(oldValue => Math.max(1, oldValue - 1));
     };
@@ -195,7 +197,7 @@ const EditProfile = () => {
             manipulateAsync(result.assets[0].uri, [{resize: {height: 900, width: 900}}], {
                 compress: 0.2,
                 format: SaveFormat.PNG
-            }).then((manipulateImgResult) => {
+            }).then(async (manipulateImgResult) => {
                 const formData = new FormData();
                 // @ts-ignore
                 formData.append(
@@ -205,6 +207,9 @@ const EditProfile = () => {
                         name: result.assets[0].fileName ? result.assets[0].fileName : 'userProfileImg.png',
                         type: 'image/png'
                     });
+                const imageUrl = await StorageService.upload(userData.id, formData);
+                const data = await StorageService.downloadImageByName(imageUrl);
+                setImage(data);
             }).catch(err => {
                 console.error('Error during image manipulation:', err);
             });
@@ -266,11 +271,11 @@ const EditProfile = () => {
             <>
                 <View style={styles.profilePhotoContainer}>
                     {user.imageUrl ? (
-                        <Avatar.Image size={100} source={{uri: user.imageUrl}}/>
+                        <Avatar.Image size={100} source={{uri: image}}/>
                     ) : (
                         <Avatar.Text size={100} label={`${editUser.firstName[0] || ''}${editUser.lastName[0] || ''}`}/>
                     )}
-                    <TouchableOpacity onPress={_handleProfilePhotoEdit} style={styles.editPhotoIcon}>
+                    <TouchableOpacity onPress={_handleEditProfilePic} style={styles.editPhotoIcon}>
                         <Octicons name="pencil" size={24} color={'white'}/>
                     </TouchableOpacity>
                 </View>
@@ -521,7 +526,6 @@ const EditProfile = () => {
         const [editUser, setEditUser] = useState<UserResponse>({...user});
 
         const _handleCoachSportInfoEdit = async () => {
-            console.log('in _handleCoachSportInfoEdit');
             console.log({
                 ...editUser,
                 bio: editUser.bio,
@@ -559,10 +563,7 @@ const EditProfile = () => {
                         sportLevel: convertedSportLevel,
                         createAt: new Date(),
                         sportName: selectedSport.name
-
-
                     }]);
-
             }
 
             if (selectedSports.length === 0 && userSport.length === 0) {

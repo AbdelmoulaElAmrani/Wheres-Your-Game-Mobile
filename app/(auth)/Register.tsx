@@ -18,7 +18,7 @@ import {RegisterRequest} from "@/models/requestObjects/RegisterRequest";
 import UserType from "@/models/UserType";
 import {useDispatch} from 'react-redux'
 import PhoneInput from "react-native-phone-number-input";
-import {updateUserRegisterData} from "@/redux/UserSlice";
+import {updateUserRegisterData, logout} from "@/redux/UserSlice";
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {Helpers} from "@/constants/Helpers";
 import {AuthService} from "@/services/AuthService";
@@ -41,9 +41,9 @@ const Register = () => {
     });
     const phoneInput = useRef<PhoneInput>(null);
 
-    // useEffect(() => {
-    //     dispatch(logout() as any);
-    // }, []);
+    useEffect(() => {
+        dispatch(logout({}) as any);
+    }, []);
 
 
     const _handleOnNext = async (): Promise<void> => {

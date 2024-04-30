@@ -43,4 +43,10 @@ export class Helpers {
 
         return `${messageDate.getMonth() + 1}/${messageDate.getDate()}`;
     }
+
+
+    static getImageSource = (imgSource: any) => {
+        return `data:image/jpeg;base64,${imgSource}`
+    }
+
 }

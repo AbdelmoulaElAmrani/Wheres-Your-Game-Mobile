@@ -1,50 +1,89 @@
-import { useEffect } from "react";
-import { Text, View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { Avatar } from 'react-native-paper';
-import { SafeAreaView } from "react-native-safe-area-context";
-import { AntDesign, Octicons } from '@expo/vector-icons';
-import { ImageBackground } from "expo-image";
-import { router } from "expo-router";
-import { useDispatch, useSelector } from "react-redux";
-import { getUserProfile, logout } from "@/redux/UserSlice";
-import { UserResponse } from "@/models/responseObjects/UserResponse";
-import { ActivityIndicator, MD2Colors } from 'react-native-paper';
+import {useEffect, useState} from "react";
+import {Text, View, StyleSheet, TouchableOpacity, ScrollView, RefreshControl} from "react-native";
+import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
+import {Avatar} from 'react-native-paper';
+import {SafeAreaView} from "react-native-safe-area-context";
+import {AntDesign, Octicons} from '@expo/vector-icons';
+import {ImageBackground} from "expo-image";
+import {router} from "expo-router";
+import {useDispatch, useSelector} from "react-redux";
+import {getUserProfile, logout} from "@/redux/UserSlice";
+import {UserResponse} from "@/models/responseObjects/UserResponse";
+import {ActivityIndicator, MD2Colors} from 'react-native-paper';
+import {StorageService} from "@/services/StorageService";
+import {Helpers} from "@/constants/Helpers";
 
 const Profile = () => {
     const dispatch = useDispatch()
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const loading = useSelector((state: any) => state.user.loading) as boolean;
+    const [image, setImage] = useState<any>();
+    const [refreshing, setRefreshing] = useState<boolean>(false);
+    const loadingImage = {isStart: false};
 
     useEffect(() => {
-        dispatch(getUserProfile() as any)
+        (async () => {
+            //console.log('start getting profile');
+            await dispatch(getUserProfile() as any)
+            //console.log('end getting profile');
+            console.log(userData?.imageUrl);
+        })()
     }, []);
 
+
+    useEffect(() => {
+        (async () => {
+            if (userData?.imageUrl && !loadingImage.isStart) {
+                try {
+                    console.log('start downloading', userData?.imageUrl && !loadingImage.isStart);
+                    loadingImage.isStart = true
+                    const result = await StorageService.downloadImageByName(userData.imageUrl);
+                    console.log('donwloaded');
+                    console.log(result);
+                    setImage(result);
+                } catch (e) {
+
+                } finally {
+                    loadingImage.isStart = false;
+                }
+
+            }
+        })();
+    }, [userData]);
+
     const _handleEditProfile = () => {
-        router.setParams({ previousScreenName: 'profile' })
+        router.setParams({previousScreenName: 'profile'})
         router.navigate('EditProfile');
     }
 
     const _handleLogout = () => {
-        console.log('logout')
-        // router.replace("/(auth)/Login");
-        //dispatch(logout());
+        console.log('logout');
+        dispatch(logout({}));
+        router.replace('/Login');
     }
 
-        
+    const _refreshProfile = () => {
+        setRefreshing(true)
+        console.log('refresh');
+        setTimeout(() => {
+            setRefreshing(false)
+        }, 3000);
+    }
+
+
     return (
         <ImageBackground
-            style={{ height: hp(100) }}
+            style={{height: hp(100)}}
             source={require('../../assets/images/signupBackGround.jpg')}
         >
             <SafeAreaView>
                 <View style={styles.userInfoContainer}>
                     {loading ? (
-                        <ActivityIndicator animating={true} color={MD2Colors.purple200} size={50} />
+                        <ActivityIndicator animating={true} color={MD2Colors.purple200} size={50}/>
                     ) : (
                         <>
-                            {userData.imageUrl ? (
-                                <Avatar.Image size={100} source={{ uri: userData.imageUrl }} />
+                            {image ? (
+                                <Avatar.Image size={100} source={{uri: Helpers.getImageSource(image)}}/>
                             ) : (
                                 <Avatar.Text
                                     size={100}
@@ -57,10 +96,11 @@ const Profile = () => {
                                         {userData.firstName} {userData.lastName.substring(0, 3)}.
                                     </Text>
                                     <TouchableOpacity onPress={() => _handleEditProfile()}>
-                                        <Octicons name="pencil" size={24} color="white" style={styles.editIcon} />
+                                        <Octicons name="pencil" size={24} color="white" style={styles.editIcon}/>
                                     </TouchableOpacity>
                                 </View>
-                                <Text style={styles.userInfo}>Age: {new Date().getFullYear() - new Date(userData.dateOfBirth).getFullYear()}</Text>
+                                <Text
+                                    style={styles.userInfo}>Age: {new Date().getFullYear() - new Date(userData.dateOfBirth).getFullYear()}</Text>
                                 <Text style={styles.userInfo}>
                                     Gender: {userData.gender === 1 ? 'Female' : 'Male'}
                                 </Text>
@@ -70,57 +110,59 @@ const Profile = () => {
                 </View>
 
                 <View style={styles.cardContainer}>
-                    <Text style={styles.textSettings}>Settings</Text>
-                    <ScrollView contentContainerStyle={{ flexGrow: 1 }} bounces={true}>
+                    <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={_refreshProfile}/>}
+                                contentContainerStyle={{flexGrow: 1}} bounces={true}>
                         <View style={{
                             flex: 1,
                             justifyContent: 'center',
                             marginBottom: hp(20)
                         }}>
+                            <Text style={styles.textSettings}>Settings</Text>
+
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Contact Information</Text>
-                                <AntDesign name="right" size={24} color="grey" />
+                                <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Location Settings</Text>
-                                <AntDesign name="right" size={24} color="grey" />
+                                <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Privacy Settings</Text>
-                                <AntDesign name="right" size={24} color="grey" />
+                                <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Notification Perfrences</Text>
-                                <AntDesign name="right" size={24} color="grey" />
+                                <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Account Type and Role</Text>
-                                <AntDesign name="right" size={24} color="grey" />
+                                <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Bio/About Me</Text>
-                                <AntDesign name="right" size={24} color="grey" />
+                                <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Skills and Interests</Text>
-                                <AntDesign name="right" size={24} color="grey" />
+                                <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Team Affiliation</Text>
-                                <AntDesign name="right" size={24} color="grey" />
+                                <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Achievements and Badges</Text>
-                                <AntDesign name="right" size={24} color="grey" />
+                                <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Connection Settings</Text>
-                                <AntDesign name="right" size={24} color="grey" />
+                                <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
 
                             <TouchableOpacity style={styles.settingOption} onPress={_handleLogout}>
                                 <Text style={styles.settingOptionText}>Log Out</Text>
-                                <AntDesign name="right" size={24} color="grey" />
+                                <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
 
                         </View>
@@ -180,7 +222,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginTop: 10,
         shadowColor: '#E9EDF9',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 1,

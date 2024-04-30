@@ -3,6 +3,7 @@ import {RegisterRequest} from "@/models/requestObjects/RegisterRequest";
 import LocalStorageService from "./LocalStorageService";
 import Requests from "./Requests";
 import {persistor} from "@/redux/ReduxConfig";
+import {FeatureTogglingConfig} from "@/models/responseObjects/FeatureTogglingConfig";
 
 
 export class AuthService {
@@ -11,6 +12,7 @@ export class AuthService {
         await LocalStorageService.removeItem('accessToken');
         await LocalStorageService.removeItem('refreshToken');
         await persistor.purge();
+        await persistor.flush();
     }
 
     static getAccessToken = async (): Promise<string | null> => {
@@ -89,6 +91,7 @@ export class AuthService {
 
     static verifyOTP = async (code: string): Promise<boolean | undefined> => {
         const res = await Requests.get(`auth/verifyOTP?otp=${code}`);
+        console.log(res);
         if (res?.status !== 200) {
             return false;
         }
@@ -101,6 +104,14 @@ export class AuthService {
             return false;
         }
         console.log(res.data);
+        return res.data;
+    }
+
+    static featureTogglingConfig = async (): Promise<FeatureTogglingConfig | undefined> => {
+        const res = await Requests.get('auth/fTConfig');
+        if (res?.status !== 200) {
+            return undefined;
+        }
         return res.data;
     }
 

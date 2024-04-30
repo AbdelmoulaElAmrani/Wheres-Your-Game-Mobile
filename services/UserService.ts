@@ -9,11 +9,10 @@ export class UserService {
         try {
            var res = await Requests.get('user/profile');
 
-            if (res?.status === 200 && res.data) {
-                return res.data as UserResponse;
+            if (res?.status === 200 && res?.data) {
+                return res?.data as UserResponse;
             }
-
-            console.error('Failed to fetch profile:', res.status);
+            console.error('Failed to fetch profile:', res?.status);
             return undefined;
         } catch (error) {
             console.error('Error fetching profile:', error);
@@ -24,8 +23,8 @@ export class UserService {
         try {
             var res = await Requests.put('user/profile', user);
 
-            if (res.status === 200 && res.data) {
-                return res.data as UserResponse;
+            if (res?.status === 200 && res?.data) {
+                return res?.data as UserResponse;
             } else {
                 console.error('Failed to update user:', res.status);
                 return undefined;

@@ -22,6 +22,7 @@ import UserType from "@/models/UserType";
 import {Team} from "@/models/Team";
 import {router} from "expo-router";
 import RNPickerSelect from 'react-native-picker-select';
+import {TeamService} from "@/services/TeamService";
 
 const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
 
@@ -33,7 +34,7 @@ const Home = () => {
     const tags = ['Add Coach', 'Add Player', 'Add Team', 'Map View'];
     const [players, setPlayers] = useState<Player[]>([]);
     const [teams, setTeams] = useState<Team[]>([]);
-    const [selectedTeam, setSelectedTeam] = useState<string | undefined>(undefined);
+    const [selectedTeam, setSelectedTeam] = useState<Team | undefined>(undefined);
     const [selectedChild, setSelectedChild] = useState<Player | undefined>(undefined)
     const [children, setChildren] = useState<Player[]>([])
     const childrens = [
@@ -55,9 +56,19 @@ const Home = () => {
         if (!userData?.id) {
             dispatch(getUserProfile() as any);
         }
-        if (userData?.id) {
-            dispatch(getUserSports(userData.id) as any);
+        const fetchData = async () => {
+            if (userData?.id) {
+                try {
+                    dispatch(getUserSports(userData.id) as any);
+                    const data = await TeamService.getUserTeams(userData.id);
+                    //console.log('teams', data);
+                    // TODO::
+                    setTeams(data);
+                } catch (e) {
+                }
+            }
         }
+        fetchData();
     }, [userData]);
 
 
@@ -88,9 +99,16 @@ const Home = () => {
         console.log('View All');
     }
 
-    const _onSelectTeam = (team: any) => {
+    const _onSelectTeam = async (team: Team) => {
         console.log('selected team');
-        setSelectedTeam(team);
+        // TODO:: call api get all players
+        try {
+            const teamPlayers = await TeamService.getTeamPlayers(team.id);
+            setSelectedTeam(team);
+            setPlayers(teamPlayers);
+        } catch (e) {
+
+        }
     }
     const _onSelectPlayer = (player: any) => {
         console.log('Player');
@@ -141,18 +159,18 @@ const Home = () => {
         </TouchableOpacity>);
     });
 
-    const _renderTeam = memo(({item}: { item: string }) => (
+    const _renderTeam = memo(({item}: { item: Team }) => (
         <TouchableOpacity
             style={styles.card}
             onPress={() => _onSelectTeam(item)}>
             <View>
                 <View style={styles.cardImage}>
-                    {false ? (
-                        <Avatar.Image size={60} source={{uri: item}}/>
+                    {item.imageUrl ? (
+                        <Avatar.Image size={60} source={{uri: item.imageUrl}}/>
                     ) : (
                         <Avatar.Text
                             size={60}
-                            label={(item.charAt(0) + item.charAt(1)).toUpperCase()}
+                            label={(item.name.charAt(0) + item.name.charAt(1)).toUpperCase()}
                         />
                     )}
                 </View>
@@ -267,7 +285,7 @@ const Home = () => {
                                 <FlatList
                                     data={userSport}
                                     renderItem={({item}) => <_renderSportItem item={item}/>}
-                                    keyExtractor={item => item.sportId}
+                                    keyExtractor={item => item.sportId + item.sportName}
                                     horizontal={true}
                                     showsHorizontalScrollIndicator={true}
                                     focusable={true}
@@ -288,9 +306,9 @@ const Home = () => {
                                     </TouchableOpacity>}
                                 </View>
                                 <FlatList
-                                    data={tags}
+                                    data={teams}
                                     renderItem={({item}) => <_renderTeam item={item}/>}
-                                    keyExtractor={item => item}
+                                    keyExtractor={item => item.id}
                                     horizontal={true}
                                     showsHorizontalScrollIndicator={true}
                                     focusable={true}

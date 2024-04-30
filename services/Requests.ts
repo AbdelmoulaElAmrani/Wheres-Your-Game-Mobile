@@ -1,17 +1,18 @@
-import axios, { AxiosError, AxiosResponse } from 'axios';
-import { AuthService } from './AuthService';
-import { router } from 'expo-router';
+import axios, {AxiosError, AxiosResponse} from 'axios';
+import {AuthService} from './AuthService';
+import {router} from 'expo-router';
 
 
 const PREFIX = 'api'
 
-export const API_URI = `https://collector-insider-adsl-myself.trycloudflare.com/${PREFIX}/`
+export const API_URI = `https://solely-museums-duplicate-responding.trycloudflare.com/${PREFIX}/`
 
 const axiosInstance = axios.create({
     baseURL: API_URI,
     headers: {
         'Content-Type': 'application/json',
     },
+    timeout: 3000
 });
 // Request Interceptor
 axiosInstance.interceptors.request.use(
@@ -19,9 +20,19 @@ axiosInstance.interceptors.request.use(
         const accessToken = await AuthService.getAccessToken();
         if (accessToken) {
             config.headers.Authorizations = `Bearer ${accessToken}`;
-            config.headers = { ...config.headers, Authorizations: `Bearer ${accessToken}` } as any;
+            config.headers = {...config.headers, Authorizations: `Bearer ${accessToken}`} as any;
         }
-        return config;
+        if (config.url?.includes('storage')) {
+            config.headers['Content-Type'] = 'multipart/form-data';
+        } else {
+            config.headers.Accept = 'application/json';
+            config.headers["Content-Type"] = 'application/json';
+        }
+
+        if (config.url?.includes('profile'))
+            console.log('header => ', config.headers);
+
+        return config
     },
     (error) => {
         return Promise.reject(error);
@@ -30,8 +41,8 @@ axiosInstance.interceptors.request.use(
 
 // Response Interceptor
 axiosInstance.interceptors.response.use(
-    (response : AxiosResponse) => response,
-    async (error : AxiosError) => {
+    (response: AxiosResponse) => response,
+    async (error: AxiosError) => {
         if (error.response && error.response.status === 401) {
             try {
                 const newAccessToken = await AuthService.refreshToken();
@@ -41,14 +52,12 @@ axiosInstance.interceptors.response.use(
                         return axiosInstance.request(error.config);
                     }
                 }
-            }
-            catch (err) {
+            } catch (err) {
                 router.replace("/Login");
             }
         }
     }
 );
-
 
 
 const handleErrors = async (err: AxiosError) => {
@@ -61,11 +70,11 @@ const handleErrors = async (err: AxiosError) => {
 
 const Requests = {
 
-    get: async (url: string) : Promise<any> => {
+    get: async (url: string): Promise<any> => {
         try {
             const response = await axiosInstance.get(url);
             return response;
-        } catch (error : any) {
+        } catch (error: any) {
             return handleErrors(error);
         }
     },
@@ -74,25 +83,25 @@ const Requests = {
         try {
             const response = await axiosInstance.post(url, body);
             return response;
-        } catch (error : any) {
+        } catch (error: any) {
             return handleErrors(error);
         }
     },
 
-    put: async (url: string, body: any) : Promise<any> => {
+    put: async (url: string, body: any): Promise<any> => {
         try {
             const response = await axiosInstance.put(url, body);
             return response
-        } catch (error : any) {
+        } catch (error: any) {
             return handleErrors(error);
         }
     },
 
-    delete: async (url: string)  : Promise<any> => {
+    delete: async (url: string): Promise<any> => {
         try {
             const response = await axiosInstance.delete(url);
             return response;
-        } catch (error : any) {
+        } catch (error: any) {
             return handleErrors(error);
         }
     },

@@ -32,14 +32,18 @@
     },
     "plugins": [
       "expo-router",
-      "expo-image-picker",
-      {
-        "photosPermission": "Allow $(PRODUCT_NAME) to access your photos"
-      },
-      "expo-location",
-      {
-        "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
-      }
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

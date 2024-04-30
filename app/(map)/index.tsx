@@ -1,7 +1,7 @@
-import {Image, Keyboard, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Alert, Image, Keyboard, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import MapView from "react-native-maps";
 import {StatusBar} from "expo-status-bar";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {AntDesign, Ionicons} from "@expo/vector-icons";
 import {router} from "expo-router";
@@ -13,6 +13,7 @@ import {List, RadioButton} from "react-native-paper";
 import {FlashList} from "@shopify/flash-list";
 import Checkbox from "expo-checkbox";
 import CustomButton from "@/components/CustomButton";
+import * as Location from 'expo-location';
 
 enum Filters {
     SPORT,
@@ -51,7 +52,32 @@ const SportMap = () => {
     const [expandedFilter, setExpandedFilter] = useState<Filters | undefined>(Filters.SPORT);
     const [filter, setFilter] = useState<FilterState>({category: [], sortBy: {} as RadioBoxFilter});
     const [selectedSportId, setSelectedSportId] = useState<any>(null);
+    //const [location, setLocation] = useState<any>(null);
+    const mapRef = useRef<MapView>(null);
 
+
+    useEffect(() => {
+        (async () => {
+            let {status} = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission to access location was denied');
+                return;
+            }
+            let location = await Location.getCurrentPositionAsync({});
+            if (location?.coords) {
+                const latitude = parseFloat(String(location.coords.latitude));
+                const longitude = parseFloat(String(location.coords.longitude));
+
+                const region = {
+                    latitudeDelta: 0.0092,
+                    longitudeDelta: 0.0092,
+                    latitude,
+                    longitude,
+                };
+                mapRef.current?.animateToRegion(region, 1000);
+            }
+        })();
+    }, []);
 
     const _onGoBack = () => {
         if (router.canGoBack()) router.back();
@@ -87,6 +113,8 @@ const SportMap = () => {
         <View style={styles.container}>
             <StatusBar style="dark"/>
             <MapView
+                ref={mapRef}
+                showsUserLocation={true}
                 onPress={Keyboard.dismiss}
                 provider={"google"}
                 style={StyleSheet.absoluteFill}>

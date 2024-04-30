@@ -78,10 +78,7 @@ const userSlice = createSlice({
         logout: (state, action) => {
             state.loading = false;
             state = initialState;
-            // TODO:: Error on this state
             AuthService.logOut();
-            persistor.purge();
-            persistor.flush();
         }
     },
     // for promise methods like axios
@@ -92,10 +89,14 @@ const userSlice = createSlice({
             })
             .addCase(getUserProfile.fulfilled, (state, action) => {
                 state.loading = false;
-                state.userData = action.payload as UserResponse;
+                if (action.payload) {
+                    state.userData = action.payload as UserResponse;
+                } else
+                    console.log('not good profile');
             })
             .addCase(getUserProfile.rejected, (state) => {
                 state.loading = false;
+                console.log('bad');
             })
             .addCase(updateUserProfile.pending, (state) => {
                 state.loading = true;
