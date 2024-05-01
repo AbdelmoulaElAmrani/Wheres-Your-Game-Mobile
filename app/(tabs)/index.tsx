@@ -23,6 +23,7 @@ import {Team} from "@/models/Team";
 import {router} from "expo-router";
 import RNPickerSelect from 'react-native-picker-select';
 import {TeamService} from "@/services/TeamService";
+import {StorageService} from "@/services/StorageService";
 
 const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
 
@@ -60,16 +61,36 @@ const Home = () => {
             if (userData?.id) {
                 try {
                     dispatch(getUserSports(userData.id) as any);
-                    const data = await TeamService.getUserTeams(userData.id);
-                    //console.log('teams', data);
-                    // TODO::
-                    setTeams(data);
+                    //await _getMyTeams();
                 } catch (e) {
                 }
             }
         }
         fetchData();
     }, [userData]);
+
+
+    const _getMyTeams = async () => {
+        try {
+            const result = await TeamService.getUserTeams(userData.id);
+            console.log('teams', result);
+            setTeams(result);
+        } catch (e) {
+            console.log('_getMyTeams', e);
+        }
+    }
+
+    const _getAllPlayerOfSelectedTeam = async () => {
+        try {
+            if (selectedTeam?.id) {
+                const teamPlayers = await TeamService.getTeamPlayers(selectedTeam.id);
+                console.log('players', teamPlayers);
+                setPlayers(teamPlayers);
+            }
+        } catch (e) {
+            console.log('_getAllPlayerOfSelectedTeam', e);
+        }
+    }
 
 
     const _handleOnOpenMenu = () => {
@@ -101,11 +122,9 @@ const Home = () => {
 
     const _onSelectTeam = async (team: Team) => {
         console.log('selected team');
-        // TODO:: call api get all players
         try {
-            const teamPlayers = await TeamService.getTeamPlayers(team.id);
             setSelectedTeam(team);
-            setPlayers(teamPlayers);
+            await _getAllPlayerOfSelectedTeam();
         } catch (e) {
 
         }
@@ -129,28 +148,33 @@ const Home = () => {
 
 
     const _renderSportItem = memo(({item}: { item: UserSportResponse }) => {
-        const [iconLoadedError, setIconLoadedError] = useState(false);
+        const [iconSource, setIconSource] = useState<any>(null);
 
-        const iconSource = useMemo(() => {
-            //console.log('sport img', item.sportName, iconLoadedError || !item.iconUrl);
-            if (iconLoadedError || !item.iconUrl) {
-                return require('../../assets/images/sport/sport.png');
-            } else {
+        useEffect(() => {
+            const fetchIconSource = async () => {
                 try {
-                    //
-                    const uri = `../../assets/images/sport/${item.iconUrl}.png`;
-                    //return require(uri);
-                } catch {
-                    setIconLoadedError(true);
-                    return require('../../assets/images/sport/sport.png');
+                    let source;
+                    if (!item.iconUrl) {
+                        source = require('../../assets/images/sport/sport.png');
+                    } else {
+                        const data = await StorageService.downloadImageByName(item.iconUrl, true);
+                        if (data?.image) {
+                            source = {uri: Helpers.getImageSource(data.image)};
+                        } else {
+                            source = require('../../assets/images/sport/sport.png');
+                        }
+                    }
+                    setIconSource(source);
+                } catch (error) {
+                    setIconSource(require('../../assets/images/sport/sport.png'));
                 }
-            }
-        }, [item.iconUrl, iconLoadedError]);
+            };
+            fetchIconSource();
+        }, [item.iconUrl]);
 
         return (<TouchableOpacity
             style={{justifyContent: 'center', alignItems: 'center', alignContent: 'center'}}
-            onPress={() => _onSelectSport(item.id)}
-        >
+            onPress={() => _onSelectSport(item.id)}>
             <View style={styles.circle}>
                 <Image
                     source={iconSource} style={styles.iconImage}/>
@@ -464,9 +488,9 @@ const styles = StyleSheet.create({
     circle: {
         borderWidth: 1,
         borderColor: '#E9EDF9',
-        marginHorizontal: 4,
-        height: 80,
-        width: 80,
+        marginHorizontal: 8,
+        height: 60,
+        width: 60,
         borderRadius: 40,
         justifyContent: 'center',
         alignItems: 'center'

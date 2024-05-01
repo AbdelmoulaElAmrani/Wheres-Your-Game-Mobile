@@ -209,7 +209,7 @@ const EditProfile = () => {
                     });
                 const imageUrl = await StorageService.upload(userData.id, formData);
                 const data = await StorageService.downloadImageByName(imageUrl);
-                setImage(data);
+                setImage(data.image);
             }).catch(err => {
                 console.error('Error during image manipulation:', err);
             });

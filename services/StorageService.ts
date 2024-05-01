@@ -17,10 +17,9 @@ export class StorageService {
     }
 
 
-    static async downloadImageByName(imageName: string): Promise<any> {
+    static async downloadImageByName(imageName: string, isIcon: boolean = false): Promise<any> {
         try {
-            const response = await Requests.get(`/storage/download/${imageName}`);
-            console.log('downloadImageByName', response);
+            const response = await Requests.get(`/storage/download/${imageName}/${isIcon}`);
             if (response?.status === 200) {
                 return response.data;
             } else {

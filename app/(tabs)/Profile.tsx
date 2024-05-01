@@ -23,15 +23,23 @@ const Profile = () => {
 
     useEffect(() => {
         (async () => {
-            //console.log('start getting profile');
             await dispatch(getUserProfile() as any)
-            //console.log('end getting profile');
-            console.log(userData?.imageUrl);
+            if (userData?.imageUrl && !loadingImage.isStart) {
+                try {
+                    console.log('start downloading', userData?.imageUrl && !loadingImage.isStart);
+                    loadingImage.isStart = true
+                    const result = await StorageService.downloadImageByName(userData.imageUrl);
+                    setImage(result.image);
+                } catch (e) {
+                } finally {
+                    loadingImage.isStart = false;
+                }
+            }
         })()
     }, []);
 
 
-    useEffect(() => {
+    /*useEffect(() => {
         (async () => {
             if (userData?.imageUrl && !loadingImage.isStart) {
                 try {
@@ -49,7 +57,7 @@ const Profile = () => {
 
             }
         })();
-    }, [userData]);
+    }, [userData]);*/
 
     const _handleEditProfile = () => {
         router.setParams({previousScreenName: 'profile'})

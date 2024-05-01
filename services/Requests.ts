@@ -5,7 +5,7 @@ import {router} from 'expo-router';
 
 const PREFIX = 'api'
 
-export const API_URI = `https://solely-museums-duplicate-responding.trycloudflare.com/${PREFIX}/`
+export const API_URI = `https://kenya-role-oc-encoding.trycloudflare.com/${PREFIX}/`
 
 const axiosInstance = axios.create({
     baseURL: API_URI,
@@ -28,9 +28,6 @@ axiosInstance.interceptors.request.use(
             config.headers.Accept = 'application/json';
             config.headers["Content-Type"] = 'application/json';
         }
-
-        if (config.url?.includes('profile'))
-            console.log('header => ', config.headers);
 
         return config
     },
