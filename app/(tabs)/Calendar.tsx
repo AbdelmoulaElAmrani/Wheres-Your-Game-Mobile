@@ -1,32 +1,36 @@
-import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {StatusBar} from "expo-status-bar";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import {
     heightPercentageToDP,
     heightPercentageToDP as hp,
     widthPercentageToDP as wp
 } from "react-native-responsive-screen";
-import {SafeAreaView} from "react-native-safe-area-context";
-import React, {memo, useCallback, useEffect, useState} from "react";
-import {Image, ImageBackground} from "expo-image";
+import { SafeAreaView } from "react-native-safe-area-context";
+import React, { memo, useCallback, useEffect, useState } from "react";
+import { Image, ImageBackground } from "expo-image";
 import ReactNativeCalendarStrip from "react-native-calendar-strip";
 import moment from "moment";
-import {AntDesign, Entypo, Octicons} from "@expo/vector-icons";
-import {useSelector} from "react-redux";
-import {UserResponse} from "@/models/responseObjects/UserResponse";
+import { AntDesign, Entypo, Octicons } from "@expo/vector-icons";
+import { useSelector } from "react-redux";
+import { UserResponse } from "@/models/responseObjects/UserResponse";
 import UserType from "@/models/UserType";
-import {FlashList} from "@shopify/flash-list";
-import {Modal, TextInput} from "react-native-paper";
-import {Helpers} from "@/constants/Helpers";
-import {DatePickerModal, enGB, registerTranslation, TimePickerModal} from 'react-native-paper-dates';
+import { FlashList } from "@shopify/flash-list";
+import { ActivityIndicator, MD2Colors, Modal, TextInput } from "react-native-paper";
+import { Helpers } from "@/constants/Helpers";
+import { DatePickerModal, enGB, registerTranslation, TimePickerModal } from 'react-native-paper-dates';
 import CustomButton from "@/components/CustomButton";
 import RNPickerSelect from 'react-native-picker-select';
 import SportLevel from "@/models/SportLevel";
 import Checkbox from "expo-checkbox";
-import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
-import {unsubscribeFromKeyboardEvents} from "react-native-reanimated/lib/typescript/reanimated2/core";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { unsubscribeFromKeyboardEvents } from "react-native-reanimated/lib/typescript/reanimated2/core";
+import { EventService } from "@/services/EventService";
+import { List } from "lodash";
+import { SportEvent } from "@/models/SportEvent";
 
 
 const Calendar = () => {
+
     const user = useSelector((state: any) => state.user.userData) as UserResponse;
     const today = moment();
     const [selectedDate, setSelectedDate] = useState<moment.Moment>(today);
@@ -35,7 +39,7 @@ const Calendar = () => {
     const [markedToday, setMarkedToday] = useState<any>(
         [{
             date: today,
-            lines: [{color: 'white'}]
+            lines: [{ color: 'white' }]
         }]
     );
 
@@ -45,106 +49,50 @@ const Calendar = () => {
     const [open, setOpen] = useState(false);
     const [eventDate, setEventDate] = useState<Date | null>(null);
 
-    const [event, setEvent] = useState<any>({name: '', date: new Date(), time: '', type: [], level: [], ageGroup: ''});
-    const [time, setTime] = useState<any>({hours: new Date().getHours(), minutes: new Date().getMinutes()});
+    const [event, setEvent] = useState<any>({ name: '', date: new Date(), time: '', type: [], level: [], ageGroup: '' });
+    const [time, setTime] = useState<any>({ hours: new Date().getHours(), minutes: new Date().getMinutes() });
     const [timeOpen, setTimeOpen] = useState(false);
     const [currentModalStep, setCurrentModalStep] = useState<number>(1);
     const [options, setOptions] = useState([
-        {title: 'League', isChecked: false},
-        {title: 'Tournament', isChecked: false},
-        {title: 'Pick Up Game', isChecked: false},
-        {title: 'Ref', isChecked: false},
-        {title: 'Umpire', isChecked: false},
-        {title: 'Official', isChecked: false},
-        {title: 'Compettition', isChecked: false},
-        {title: 'Meet', isChecked: false},
-        {title: 'Match', isChecked: false},
-        {title: 'All', isChecked: false}
+        { title: 'League', isChecked: false },
+        { title: 'Tournament', isChecked: false },
+        { title: 'Pick Up Game', isChecked: false },
+        { title: 'Ref', isChecked: false },
+        { title: 'Umpire', isChecked: false },
+        { title: 'Official', isChecked: false },
+        { title: 'Compettition', isChecked: false },
+        { title: 'Meet', isChecked: false },
+        { title: 'Match', isChecked: false },
+        { title: 'All', isChecked: false }
 
     ]);
 
+    useEffect(() => {
+        setIsLoaded(true);
+        const getEvents = async () => {
+            try {
+                const events = await EventService.getCoachEvents(user.id, selectedDate.format('YYYY-MM-DDT00:00:00'), 0, 100);
+                if (events?.content) {
+                    setEvents(events.content);
+                }
+
+            } catch (e) {
+                console.log(e);
+            }
+            finally {
+                setIsLoaded(false);
+            }
+        }
+        getEvents();
+
+
+    }, [selectedDate, user.id]);
+
     const [selectedSportLevel, setSelectedSportLevel] = useState<string[]>([]);
     registerTranslation("en", enGB);
+    const [events, setEvents] = useState<SportEvent[]>([]);
+    const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
-    const eventData = [
-        {
-            id: '1',
-            name: 'Event One',
-            imageUri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2_Sqd2wYWrnGHc6uY6OG0umC4IarkT5Awntkh8s1z2A&s',
-            date: '2024-04-21',
-            time: '',
-            type: [],
-            level: [],
-            ageGroup: [],
-            creator: 'coach'
-        },
-        {
-            id: '2',
-            name: 'Event One',
-            imageUri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2_Sqd2wYWrnGHc6uY6OG0umC4IarkT5Awntkh8s1z2A&s',
-            date: '2024-04-21',
-            time: '',
-            type: [],
-            level: [],
-            ageGroup: [],
-            creator: 'coach'
-        },
-        {
-            id: '4',
-            name: 'Event One',
-            imageUri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2_Sqd2wYWrnGHc6uY6OG0umC4IarkT5Awntkh8s1z2A&s',
-            date: '2024-04-21',
-            time: '',
-            type: [],
-            level: [],
-            ageGroup: [],
-            creator: 'coach'
-        },
-        {
-            id: '5',
-            name: 'Event One',
-            imageUri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2_Sqd2wYWrnGHc6uY6OG0umC4IarkT5Awntkh8s1z2A&s',
-            date: '2024-04-21',
-            time: '',
-            type: [],
-            level: [],
-            ageGroup: [],
-            creator: 'coach'
-        },
-        {
-            id: '6',
-            name: 'Event One',
-            imageUri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2_Sqd2wYWrnGHc6uY6OG0umC4IarkT5Awntkh8s1z2A&s',
-            date: '2024-04-21',
-            time: '',
-            type: [],
-            level: [],
-            ageGroup: [],
-            creator: 'coach'
-        },
-        {
-            id: '7',
-            name: 'Event One',
-            imageUri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2_Sqd2wYWrnGHc6uY6OG0umC4IarkT5Awntkh8s1z2A&s',
-            date: '2024-04-21',
-            time: '',
-            type: [],
-            level: [],
-            ageGroup: [],
-            creator: 'coach'
-        },
-        {
-            id: '8',
-            name: 'Event One',
-            imageUri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2_Sqd2wYWrnGHc6uY6OG0umC4IarkT5Awntkh8s1z2A&s',
-            date: '2024-04-21',
-            time: '',
-            type: [],
-            level: [],
-            ageGroup: [],
-            creator: 'coach'
-        },
-    ];
 
     const sportLevels = Object.keys(SportLevel).filter((key: string) => !isNaN(Number(SportLevel[key as keyof typeof SportLevel])));
     sportLevels.push('All');
@@ -173,13 +121,13 @@ const Calendar = () => {
 
         if (item.time) {
             const [hours, minutes] = item.time.split(':');
-            setTime({hours: parseInt(hours, 10), minutes: parseInt(minutes, 10)});
+            setTime({ hours: parseInt(hours, 10), minutes: parseInt(minutes, 10) });
         }
         showModal();
     }
 
     const showModal = () => {
-        setTime({hours: new Date().getHours(), minutes: new Date().getMinutes()});
+        setTime({ hours: new Date().getHours(), minutes: new Date().getMinutes() });
         setIsModalVisible(true);
     }
     const hideModal = () => setIsModalVisible(false);
@@ -202,8 +150,8 @@ const Calendar = () => {
     const onConfirmTime = useCallback(
         (params: any) => {
             setTimeOpen(false);
-            setTime({hours: params.hours, minutes: params.minutes});
-            setEvent({...event, time: params.hours + ':' + params.minutes});
+            setTime({ hours: params.hours, minutes: params.minutes });
+            setEvent({ ...event, time: params.hours + ':' + params.minutes });
         },
         [setTimeOpen]
     );
@@ -211,9 +159,9 @@ const Calendar = () => {
     const generateAgeRanges = (start: number, end: number) => {
         const ranges = [];
         for (let age = start; age <= end; age++) {
-            ranges.push({label: `U-${age}`, value: `U-${age}`});
+            ranges.push({ label: `U-${age}`, value: `U-${age}` });
         }
-        ranges.push({label: 'Senior', value: 'Senior'});
+        ranges.push({ label: 'Senior', value: 'Senior' });
         return ranges;
     };
 
@@ -247,7 +195,7 @@ const Calendar = () => {
         hideModal();
         setSelectedSportLevel([]);
         setCurrentModalStep(1);
-        setEvent({name: '', date: new Date(), time: '', type: [], level: [], ageGroup: ''});
+        setEvent({ name: '', date: new Date(), time: '', type: [], level: [], ageGroup: '' });
         setOpen(false);
         setEventDate(null);
         setTimeOpen(false);
@@ -278,7 +226,7 @@ const Calendar = () => {
         onPress: () => void;
     }
 
-    const CustomCheckbox = ({title, isChecked, onPress}: CheckboxProps) => {
+    const CustomCheckbox = ({ title, isChecked, onPress }: CheckboxProps) => {
         return (
             <View style={styles.checkboxContainer}>
                 <Checkbox
@@ -312,27 +260,27 @@ const Calendar = () => {
     };
 
 
-    const _renderEvent = memo(({item}: { item: any }) => {
-
+    const _renderEvent = memo(({ item }: { item: SportEvent }) => {
+        
         return (
             <TouchableOpacity
                 onPress={() => _onClickEvent(item)}
                 disabled={isCoach()}
                 style={styles.eventContainer}>
-                <View style={{flex: 0.25}}>
+                <View style={{ flex: 0.25 }}>
                     <Image
                         contentFit={"fill"}
-                        style={{height: '100%', width: '100%', borderRadius: 10}}
-                        source={Helpers.isObjectNullOrEmpty<string>(item.imageUri) ? require('../../assets/images/noimg.jpg') : {uri: item.imageUri}}/>
+                        style={{ height: '100%', width: '100%', borderRadius: 10 }}
+                        source={require('../../assets/images/noimg.jpg')} />
                 </View>
-                <View style={{flex: 0.75, paddingHorizontal: 10}}>
-                    <View style={{flexDirection: 'row', justifyContent: 'space-between', flex: 0.7}}>
-                        <Text style={{fontWeight: 'bold', fontSize: 16}}>{item.name}</Text>
+                <View style={{ flex: 0.75, paddingHorizontal: 10 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', flex: 0.7 }}>
+                        <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{item.name}</Text>
                         {isCoach() &&
-                            <Octicons onPress={() => _onEditEvent(item)} name="pencil" size={24} color="grey"/>}
+                            <Octicons onPress={() => _onEditEvent(item)} name="pencil" size={24} color="grey" />}
                     </View>
-                    <Text style={{color: 'grey', flex: 0.3}}>
-                        {isCoach() ? item.date : '17 Km | 9:00 am'}
+                    <Text style={{ color: 'grey', flex: 0.3 }}>
+                        {isCoach() ? moment(item.eventDate).format('YYYY-MM-DD') : '17 Km | 9:00 am'}
                     </Text>
                 </View>
             </TouchableOpacity>
@@ -364,25 +312,25 @@ const Calendar = () => {
     }
 
     return <>
-        <StatusBar style="light"/>
+        <StatusBar style="light" />
         <ImageBackground
-            style={{height: hp(100)}}
+            style={{ height: hp(100) }}
             source={require('../../assets/images/signupBackGround.jpg')}>
 
-            <SafeAreaView style={{flex: 1}}>
-                <View style={{flex: 1}}>
-                    <View style={{width: '100%'}}>
+            <SafeAreaView style={{ flex: 1 }}>
+                <View style={{ flex: 1 }}>
+                    <View style={{ width: '100%' }}>
                         <ReactNativeCalendarStrip
-                            dateNameStyle={{color: 'white'}}
-                            dateNumberStyle={{color: 'white'}}
-                            calendarHeaderStyle={{color: 'white'}}
-                            highlightDateContainerStyle={{backgroundColor: '#E15B2D', borderRadius: 5}}
-                            highlightDateNameStyle={{color: 'white'}}
-                            highlightDateNumberStyle={{color: 'white'}}
-                            dayContainerStyle={{height: 70}}
-                            style={{height: 100}}
-                            leftSelector={<Entypo name="chevron-left" size={30} color="white"/>}
-                            rightSelector={<Entypo name="chevron-right" size={30} color="white"/>}
+                            dateNameStyle={{ color: 'white' }}
+                            dateNumberStyle={{ color: 'white' }}
+                            calendarHeaderStyle={{ color: 'white' }}
+                            highlightDateContainerStyle={{ backgroundColor: '#E15B2D', borderRadius: 5 }}
+                            highlightDateNameStyle={{ color: 'white' }}
+                            highlightDateNumberStyle={{ color: 'white' }}
+                            dayContainerStyle={{ height: 70 }}
+                            style={{ height: 100 }}
+                            leftSelector={<Entypo name="chevron-left" size={30} color="white" />}
+                            rightSelector={<Entypo name="chevron-right" size={30} color="white" />}
                             minDate={minDate}
                             maxDate={maxDate}
                             onDateSelected={(dt) => setSelectedDate(dt)}
@@ -395,23 +343,26 @@ const Calendar = () => {
                         {isCoach() && <TouchableOpacity
                             onPress={_onAddEvent}
                             style={styles.addEventBtn}>
-                            <Text style={{fontSize: 16, fontWeight: 'bold', color: 'white'}}>Add Event</Text>
+                            <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'white' }}>Add Event</Text>
                         </TouchableOpacity>}
-                        <Text style={{fontWeight: 'bold', fontSize: 20}}>{getTitle()}</Text>
-                        <View style={{marginTop: 10, height: '100%'}}>
-                            <FlashList
-                                data={eventData}
-                                renderItem={({item, index}) => <_renderEvent item={item}/>}
-                                keyExtractor={item => item.id}
-                                estimatedItemSize={10}
-                                contentContainerStyle={{backgroundColor: 'white', padding: 10}}
-                                ListFooterComponent={<View style={{height: heightPercentageToDP(50)}}/>}
-                            />
+                        <Text style={{ fontWeight: 'bold', fontSize: 20 }}>{getTitle()}</Text>
+                        <View style={{ marginTop: 10, height: '100%' }}>
+                            {isLoaded ? <ActivityIndicator animating={true} color={MD2Colors.blueGrey800} size={50} style={{ marginTop: 50 }} /> :
+                                (
+                                    <FlashList
+                                        data={events}
+                                        renderItem={({ item, index }) => <_renderEvent item={item} />}
+                                        keyExtractor={item => item.id.toString()}
+                                        estimatedItemSize={10}
+                                        contentContainerStyle={{ backgroundColor: 'white', padding: 10 }}
+                                        ListFooterComponent={<View style={{ height: heightPercentageToDP(50) }} />}
+                                    />
+                                )}
                         </View>
                     </View>
                 </View>
                 <Modal visible={isModalVisible} onDismiss={_handleCancelEventCreation}
-                       contentContainerStyle={styles.addEventModal}>
+                    contentContainerStyle={styles.addEventModal}>
                     <Text style={{
                         fontSize: 25,
                         fontWeight: 'bold',
@@ -432,14 +383,14 @@ const Calendar = () => {
                                     animationType="slide"
                                     locale="en"
                                     onChange={(p) => {
-                                        if (p && p.date) setEvent({...event, date: p.date})
-                                    }}/>
+                                        if (p && p.date) setEvent({ ...event, date: p.date })
+                                    }} />
                                 <TextInput
                                     style={styles.inputStyle}
                                     placeholder={'Date of Event'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='calendar' size={30}/>}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='calendar' size={30} />}
                                     value={event?.date.toDateString()}
                                     onFocus={() => setOpen(true)}
                                     underlineColor={"transparent"}
@@ -459,41 +410,41 @@ const Calendar = () => {
                                     placeholder={'Time of Event'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='clock' size={30}/>}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='clock' size={30} />}
                                     value={time.hours + ':' + time.minutes}
                                     onFocus={() => setTimeOpen(true)}
                                     underlineColor={"transparent"}
                                 />
 
-                                <Text style={[styles.textLabel, {marginTop: 20}]}>Event Name</Text>
+                                <Text style={[styles.textLabel, { marginTop: 20 }]}>Event Name</Text>
                                 <TextInput
                                     style={styles.inputStyle}
                                     placeholder={'Event Name'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='star' size={30}/>}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='star' size={30} />}
                                     underlineColor={"transparent"}
                                     value={event.name}
-                                    onChangeText={(text) => setEvent({...event, name: text})}
+                                    onChangeText={(text) => setEvent({ ...event, name: text })}
                                 />
-                                <Text style={[styles.textLabel, {marginTop: 20}]}>Age Group</Text>
+                                <Text style={[styles.textLabel, { marginTop: 20 }]}>Age Group</Text>
                                 <RNPickerSelect
                                     items={generateAgeRanges(6, 18)}
-                                    onValueChange={(value) => setEvent({...event, ageGroup: value})}
+                                    onValueChange={(value) => setEvent({ ...event, ageGroup: value })}
                                     style={{
-                                        inputAndroid: {...styles.inputStyle, color: 'grey'},
-                                        inputIOS: {...styles.inputStyle, color: 'grey'},
-                                        iconContainer: {top: 18, right: 12}
+                                        inputAndroid: { ...styles.inputStyle, color: 'grey' },
+                                        inputIOS: { ...styles.inputStyle, color: 'grey' },
+                                        iconContainer: { top: 18, right: 12 }
                                     }}
-                                    Icon={() => <AntDesign name="down" size={20} color="grey"/>}/>
+                                    Icon={() => <AntDesign name="down" size={20} color="grey" />} />
                             </KeyboardAwareScrollView>
                         )}
 
                         {currentModalStep === 2 && (
-                            <ScrollView contentContainerStyle={{paddingHorizontal: 20}}>
-                                <Text style={[styles.textLabel, {marginBottom: 20, textAlign: 'center', fontSize: 16}]}>Event
+                            <ScrollView contentContainerStyle={{ paddingHorizontal: 20 }}>
+                                <Text style={[styles.textLabel, { marginBottom: 20, textAlign: 'center', fontSize: 16 }]}>Event
                                     Type</Text>
-                                <View style={{marginTop: 30}}>
+                                <View style={{ marginTop: 30 }}>
                                     {options.map((option, index) => (
                                         index % 2 === 0 && (
                                             <View key={index} style={{
@@ -522,9 +473,9 @@ const Calendar = () => {
 
                         {currentModalStep === 3 && (
                             <ScrollView>
-                                <Text style={[styles.textLabel, {marginBottom: 20, textAlign: 'center', fontSize: 16}]}>Level
+                                <Text style={[styles.textLabel, { marginBottom: 20, textAlign: 'center', fontSize: 16 }]}>Level
                                     of Play</Text>
-                                <View style={{marginTop: hp(5), marginLeft: wp(10)}}>
+                                <View style={{ marginTop: hp(5), marginLeft: wp(10) }}>
                                     {sportLevels.map((key: string, index) => (
                                         index % 2 === 0 && (
                                             <View key={index} style={{
@@ -554,23 +505,23 @@ const Calendar = () => {
                     </View>
 
                     {currentModalStep === 1 && (<View style={styles.bottomCardContainer}>
-                        <CustomButton text="continue" onPress={_handleAddEventContinue}/>
+                        <CustomButton text="continue" onPress={_handleAddEventContinue} />
                     </View>)}
 
                     {currentModalStep !== 1 && currentModalStep !== 3 && (
                         <View style={styles.bottomRowContainer}>
                             <CustomButton text="Back" onPress={_handleAddEventBack} style={styles.backButton}
-                                          textStyle={styles.buttonText}/>
+                                textStyle={styles.buttonText} />
                             <CustomButton text="Continue" onPress={_handleAddEventContinue}
-                                          style={styles.continueButton}/>
+                                style={styles.continueButton} />
                         </View>
                     )}
 
                     {currentModalStep === 3 && (
                         <View style={styles.bottomRowContainer}>
                             <CustomButton text="Cancel" onPress={_handleCancelEventCreation} style={styles.backButton}
-                                          textStyle={styles.buttonText}/>
-                            <CustomButton text="Save" onPress={_handleAddEventContinue} style={styles.continueButton}/>
+                                textStyle={styles.buttonText} />
+                            <CustomButton text="Save" onPress={_handleAddEventContinue} style={styles.continueButton} />
                         </View>
                     )}
                 </Modal>
@@ -580,128 +531,128 @@ const Calendar = () => {
 }
 
 const styles = StyleSheet.create({
-        mainContainer: {
-            flex: 1,
-            backgroundColor: 'white',
-            borderTopEndRadius: 35,
-            borderTopStartRadius: 35,
-            paddingTop: 30,
-            padding: 20,
-            marginTop: 10,
-            minHeight: hp(100),
-            width: wp(100)
-        },
-        addEventBtn: {
-            borderWidth: 1,
-            width: 100,
-            height: 40,
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderRadius: 20,
-            backgroundColor: '#2757CB',
-            alignSelf: "flex-end"
-        },
-        eventContainer: {
-            backgroundColor: 'white',
-            padding: 10,
-            borderColor: '#E9EDF9',
-            borderWidth: 1,
-            borderRadius: 10,
-            marginBottom: 10,
-            flexDirection: "row",
-            height: 80,
-            shadowColor: '#000',
-            shadowOffset: {width: 0, height: 2},
-            shadowOpacity: 0.1,
-            shadowRadius: 6,
-            elevation: 3,
-        },
-        addEventModal: {
-            backgroundColor: 'white',
-            borderRadius: 20,
-            paddingHorizontal: 5,
-            width: '90%',
-            height: '80%',
-            alignItems: 'center',
-            alignSelf: 'center',
-            justifyContent: 'flex-start',
-            marginTop: 10,
-        },
-        addEventModalFormContainer: {
-            width: '95%',
-            height: '70%',
-            marginTop: 30,
-        },
-        textLabel: {
-            fontSize: 14,
-            fontWeight: 'bold',
-            color: 'black',
-            marginBottom: 5,
-            marginLeft: 10,
-        },
-        inputStyle: {
-            backgroundColor: 'white',
-            height: 45,
-            fontSize: 16,
-            marginTop: 5,
-            color: 'black',
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-            borderBottomRightRadius: 20,
-            borderBottomLeftRadius: 20,
-            borderColor: '#D3D3D3',
-            borderWidth: 1,
-            width: '100%',
-            paddingLeft: 10,
-            paddingRight: 10,
-            marginBottom: 10,
+    mainContainer: {
+        flex: 1,
+        backgroundColor: 'white',
+        borderTopEndRadius: 35,
+        borderTopStartRadius: 35,
+        paddingTop: 30,
+        padding: 20,
+        marginTop: 10,
+        minHeight: hp(100),
+        width: wp(100)
+    },
+    addEventBtn: {
+        borderWidth: 1,
+        width: 100,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 20,
+        backgroundColor: '#2757CB',
+        alignSelf: "flex-end"
+    },
+    eventContainer: {
+        backgroundColor: 'white',
+        padding: 10,
+        borderColor: '#E9EDF9',
+        borderWidth: 1,
+        borderRadius: 10,
+        marginBottom: 10,
+        flexDirection: "row",
+        height: 80,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 3,
+    },
+    addEventModal: {
+        backgroundColor: 'white',
+        borderRadius: 20,
+        paddingHorizontal: 5,
+        width: '90%',
+        height: '80%',
+        alignItems: 'center',
+        alignSelf: 'center',
+        justifyContent: 'flex-start',
+        marginTop: 10,
+    },
+    addEventModalFormContainer: {
+        width: '95%',
+        height: '70%',
+        marginTop: 30,
+    },
+    textLabel: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: 'black',
+        marginBottom: 5,
+        marginLeft: 10,
+    },
+    inputStyle: {
+        backgroundColor: 'white',
+        height: 45,
+        fontSize: 16,
+        marginTop: 5,
+        color: 'black',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        borderBottomRightRadius: 20,
+        borderBottomLeftRadius: 20,
+        borderColor: '#D3D3D3',
+        borderWidth: 1,
+        width: '100%',
+        paddingLeft: 10,
+        paddingRight: 10,
+        marginBottom: 10,
 
-        },
-        bottomCardContainer: {
-            width: '100%',
-            alignItems: 'center',
-        },
-        bottomRowContainer: {
-            position: 'absolute',
-            bottom: 20,
-            flexDirection: 'row',
-            alignItems: 'center',
-            width: '100%',
-            justifyContent: 'space-around',
-        },
-        backButton: {
-            backgroundColor: 'white',
-            borderColor: '#2757CB',
-            borderWidth: 1,
-            width: wp(40),
-            height: 50,
-            borderRadius: 22,
+    },
+    bottomCardContainer: {
+        width: '100%',
+        alignItems: 'center',
+    },
+    bottomRowContainer: {
+        position: 'absolute',
+        bottom: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '100%',
+        justifyContent: 'space-around',
+    },
+    backButton: {
+        backgroundColor: 'white',
+        borderColor: '#2757CB',
+        borderWidth: 1,
+        width: wp(40),
+        height: 50,
+        borderRadius: 22,
 
-        },
-        continueButton: {
-            backgroundColor: "#2757CB",
-            width: wp(40),
-            height: 50,
-            borderRadius: 22,
-            alignSelf: "center",
-            justifyContent: "center",
-        },
-        buttonText: {
-            fontSize: 20,
-            color: '#2757CB',
-            textAlign: 'center'
-        },
-        checkboxContainer: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            width: '50%'
-        },
-        text: {
-            fontSize: 16,
-            marginLeft: 15,
-        }
-
-
+    },
+    continueButton: {
+        backgroundColor: "#2757CB",
+        width: wp(40),
+        height: 50,
+        borderRadius: 22,
+        alignSelf: "center",
+        justifyContent: "center",
+    },
+    buttonText: {
+        fontSize: 20,
+        color: '#2757CB',
+        textAlign: 'center'
+    },
+    checkboxContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '50%'
+    },
+    text: {
+        fontSize: 16,
+        marginLeft: 15,
     }
+
+
+}
 );
 export default Calendar;
