@@ -110,15 +110,16 @@ const SportMap = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar style="dark"/>
-            <MapView
-                ref={mapRef}
-                showsUserLocation={true}
-                onPress={Keyboard.dismiss}
-                provider={"google"}
-                style={StyleSheet.absoluteFill}>
-                <SafeAreaView>
+        <SafeAreaView style={{flex: 1}}>
+            <View style={styles.container}>
+                <StatusBar style="dark"/>
+                <MapView
+                    ref={mapRef}
+                    showsUserLocation={true}
+                    onPress={Keyboard.dismiss}
+                    provider={"google"}
+                    style={StyleSheet.absoluteFill}>
+
                     <View style={styles.headerContainer}>
                         <TouchableOpacity onPress={_onGoBack}>
                             <Ionicons name="chevron-back" size={35} color="black"/>
@@ -237,11 +238,15 @@ const SportMap = () => {
                         </ScrollView>
                     </Modal>
                     <View style={styles.searchButton}>
-                        <CustomButton text='Search' onPress={_handleSearch}/>
+                        <TouchableOpacity
+                            onPress={_handleSearch}
+                            style={styles.nextBtn}>
+                            <Text style={styles.buttonText}>Search</Text>
+                        </TouchableOpacity>
                     </View>
-                </SafeAreaView>
-            </MapView>
-        </View>
+                </MapView>
+            </View>
+        </SafeAreaView>
     );
 }
 const styles = StyleSheet.create({
@@ -290,10 +295,23 @@ const styles = StyleSheet.create({
         height: 100,
         backgroundColor: 'white',
         position: 'absolute',
-        bottom: -hp(85),
+        bottom: 0,
         borderTopStartRadius: 40,
         borderTopEndRadius: 40,
         justifyContent: 'center'
-    }
+    },
+    nextBtn: {
+        backgroundColor: "#2757CB",
+        width: wp(80),
+        height: 55,
+        borderRadius: 30,
+        alignSelf: "center",
+        justifyContent: "center",
+    },
+    buttonText: {
+        fontSize: 20,
+        color: 'white',
+        textAlign: 'center'
+    },
 });
 export default SportMap;

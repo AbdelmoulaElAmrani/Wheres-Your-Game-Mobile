@@ -61,7 +61,7 @@ const Home = () => {
             if (userData?.id) {
                 try {
                     dispatch(getUserSports(userData.id) as any);
-                    //await _getMyTeams();
+                    await _getMyTeams();
                 } catch (e) {
                 }
             }
@@ -73,7 +73,6 @@ const Home = () => {
     const _getMyTeams = async () => {
         try {
             const result = await TeamService.getUserTeams(userData.id);
-            console.log('teams', result);
             setTeams(result);
         } catch (e) {
             console.log('_getMyTeams', e);
@@ -84,7 +83,6 @@ const Home = () => {
         try {
             if (selectedTeam?.id) {
                 const teamPlayers = await TeamService.getTeamPlayers(selectedTeam.id);
-                console.log('players', teamPlayers);
                 setPlayers(teamPlayers);
             }
         } catch (e) {
@@ -199,20 +197,39 @@ const Home = () => {
                     )}
                 </View>
             </View>
-            <Text>item</Text>
+            <Text style={{
+                textAlign: 'center',
+                fontSize: 16,
+                fontWeight: "600",
+                marginTop: 10,
+                width: 105
+            }}>{item.name}</Text>
         </TouchableOpacity>
     ));
 
-    const _renderPlayer = memo(({item}: { item: any }) => (
+    const _renderPlayer = memo(({item}: { item: Player }) => (
         <TouchableOpacity
             style={styles.card}
             onPress={() => _onSelectPlayer(item)}>
             <View>
-                <Image
-                    style={styles.cardImage}
-                    source={require('../../assets/images/flags/US-flag.png')}/>
+                <View style={styles.cardImage}>
+                    {/*{item.imageUrl ? (
+                        <Avatar.Image size={60} source={{uri: item.imageUrl}}/>
+                    ) : (*/}
+                    <Avatar.Text
+                        size={60}
+                        label={(item.firstName.charAt(0) + item.lastName.charAt(1)).toUpperCase()}
+                    />
+                    {/*)}*/}
+                </View>
             </View>
-            <Text>item</Text>
+            <Text style={{
+                textAlign: 'center',
+                fontSize: 16,
+                fontWeight: "600",
+                marginTop: 10,
+                width: 105
+            }}>{`${item.firstName} ${item.lastName}`}</Text>
         </TouchableOpacity>
     ));
 
@@ -320,7 +337,7 @@ const Home = () => {
                                 <View style={styles.menuTitleContainer}>
                                     <View style={{flexDirection: 'row'}}>
                                         <Text style={styles.menuTitle}>Your Teams <Text
-                                            style={styles.count}>{players?.length}</Text></Text>
+                                            style={styles.count}>{teams?.length}</Text></Text>
                                     </View>
                                     {isCoach() && <TouchableOpacity
                                         onPress={_onAddTeam}
@@ -354,9 +371,9 @@ const Home = () => {
                                     </TouchableOpacity>}
                                 </View>
                                 <FlatList
-                                    data={tags}
+                                    data={players}
                                     renderItem={({item}) => <_renderPlayer item={item}/>}
-                                    keyExtractor={item => item}
+                                    keyExtractor={item => item.id}
                                     horizontal={true}
                                     showsHorizontalScrollIndicator={true}
                                     focusable={true}

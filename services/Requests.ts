@@ -5,7 +5,7 @@ import {router} from 'expo-router';
 
 const PREFIX = 'api'
 
-export const API_URI = `https://kenya-role-oc-encoding.trycloudflare.com/${PREFIX}/`
+export const API_URI = `https://azerbaijan-volunteer-remembered-innocent.trycloudflare.com/${PREFIX}/`
 
 const axiosInstance = axios.create({
     baseURL: API_URI,
@@ -40,7 +40,11 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
     (response: AxiosResponse) => response,
     async (error: AxiosError) => {
-        if (error.response && error.response.status === 401) {
+        const originalRequest = error.config;
+        // @ts-ignore
+        if (error.response.status === 401 && !originalRequest['_retry']) {
+            // @ts-ignore
+            originalRequest['_retry'] = true;
             try {
                 const newAccessToken = await AuthService.refreshToken();
                 if (newAccessToken) {
@@ -50,8 +54,10 @@ axiosInstance.interceptors.response.use(
                     }
                 }
             } catch (err) {
-                router.replace("/Login");
             }
+        } else {
+            if (error?.response?.status !== 500 && error?.response?.status !== 408 && error?.response?.status !== 502)
+                router.replace("/Login");
         }
     }
 );
