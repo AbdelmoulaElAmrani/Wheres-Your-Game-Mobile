@@ -27,11 +27,14 @@ import {unsubscribeFromKeyboardEvents} from "react-native-reanimated/lib/typescr
 import {EventService} from "@/services/EventService";
 import {List} from "lodash";
 import {SportEvent} from "@/models/SportEvent";
+import {EventSearchRequest} from "@/models/requestObjects/EventSearchRequest";
+import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 
 
 const Calendar = () => {
 
     const user = useSelector((state: any) => state.user.userData) as UserResponse;
+    const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
     const today = moment();
     const [selectedDate, setSelectedDate] = useState<moment.Moment>(today);
     const minDate = today.clone().add(1, 'months').toDate();
@@ -69,21 +72,11 @@ const Calendar = () => {
 
     useEffect(() => {
         setIsLoaded(true);
-        const getEvents = async () => {
-            try {
-                const events = await EventService.getCoachEvents(user.id, selectedDate.format('YYYY-MM-DDT00:00:00'), 0, 100);
-                if (events?.content) {
-                    setEvents(events.content);
-                }
-            } catch (e) {
-                console.log(e);
-            } finally {
-                setIsLoaded(false);
-            }
+        if (user.role == UserType[UserType.COACH]) {
+            getCoachEvents();
+        } else {
+            getUserEvents();
         }
-        getEvents();
-
-
     }, [selectedDate, user.id]);
 
     const [selectedSportLevel, setSelectedSportLevel] = useState<string[]>([]);
@@ -91,9 +84,41 @@ const Calendar = () => {
     const [events, setEvents] = useState<SportEvent[]>([]);
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
-
     const sportLevels = Object.keys(SportLevel).filter((key: string) => !isNaN(Number(SportLevel[key as keyof typeof SportLevel])));
     sportLevels.push('All');
+
+
+    const getCoachEvents = async () => {
+        try {
+            const events = await EventService.getCoachEvents(user.id, today.format('YYYY-MM-DDT00:00:00'), 0, 100);
+            if (events?.content) {
+                setEvents(events.content);
+            }
+        } catch (e) {
+            console.log(e);
+        } finally {
+            setIsLoaded(false);
+        }
+    }
+
+    const getUserEvents = async () => {
+        try {
+            // todo:: to be completed
+            //const body: EventSearchRequest = {date: selectedDate, zipCode: '', sportIds: [userSport.]};
+            const events = await EventService.getUserEvents({
+                date: selectedDate.toDate(),
+                zipCode: "",
+                sportIds: []
+            });
+            if (events?.content) {
+                setEvents(events.content);
+            }
+        } catch (e) {
+            console.log(e);
+        } finally {
+            setIsLoaded(false);
+        }
+    }
 
     const _onAddEvent = (): void => {
         showModal();
