@@ -1,11 +1,18 @@
 import axios, {AxiosError, AxiosResponse} from 'axios';
 import {AuthService} from './AuthService';
 import {router} from 'expo-router';
+import {logout} from "@/redux/UserSlice";
 
 
 const PREFIX = 'api'
 
-export const API_URI = `https://azerbaijan-volunteer-remembered-innocent.trycloudflare.com/${PREFIX}/`
+export const API_URI = `https://only-fog-handling-drew.trycloudflare.com/${PREFIX}/`
+
+
+let store: any;
+export const injectStoreIntoAxios = (_store: any) => {
+    store = _store;
+}
 
 const axiosInstance = axios.create({
     baseURL: API_URI,
@@ -56,8 +63,11 @@ axiosInstance.interceptors.response.use(
             } catch (err) {
             }
         } else {
-            if (error?.response?.status !== 500 && error?.response?.status !== 408 && error?.response?.status !== 502)
+            if (error?.response?.status !== 500 && error?.response?.status !== 408 && error?.response?.status !== 502) {
+                console.log('logout');
+                store.dispatch(logout({}));
                 router.replace("/Login");
+            }
         }
     }
 );
@@ -65,6 +75,8 @@ axiosInstance.interceptors.response.use(
 
 const handleErrors = async (err: AxiosError) => {
     if (err && err.response && err.response.status === 401) {
+        console.log('logout');
+        store.dispatch(logout({}));
         router.replace("/Login");
     }
     return err;

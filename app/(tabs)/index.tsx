@@ -79,10 +79,11 @@ const Home = () => {
         }
     }
 
-    const _getAllPlayerOfSelectedTeam = async () => {
+    const _getAllPlayerOfSelectedTeam = async (team?: Team | undefined) => {
         try {
-            if (selectedTeam?.id) {
-                const teamPlayers = await TeamService.getTeamPlayers(selectedTeam.id);
+            const id = selectedTeam?.id ? selectedTeam.id : team?.id ? team.id : undefined;
+            if (id) {
+                const teamPlayers = await TeamService.getTeamPlayers(id);
                 setPlayers(teamPlayers);
             }
         } catch (e) {
@@ -120,11 +121,16 @@ const Home = () => {
 
     const _onSelectTeam = async (team: Team) => {
         console.log('selected team');
-        try {
-            setSelectedTeam(team);
-            await _getAllPlayerOfSelectedTeam();
-        } catch (e) {
-
+        if (selectedTeam?.id == team.id) {
+            setSelectedTeam(undefined);
+            setPlayers([]);
+        } else {
+            try {
+                setSelectedTeam(team);
+                await _getAllPlayerOfSelectedTeam(team);
+            } catch (e) {
+                console.log(e);
+            }
         }
     }
     const _onSelectPlayer = (player: any) => {
@@ -183,7 +189,7 @@ const Home = () => {
 
     const _renderTeam = memo(({item}: { item: Team }) => (
         <TouchableOpacity
-            style={styles.card}
+            style={[styles.card, selectedTeam?.id == item.id ? styles.selectedTag : null]}
             onPress={() => _onSelectTeam(item)}>
             <View>
                 <View style={styles.cardImage}>
@@ -202,7 +208,8 @@ const Home = () => {
                 fontSize: 16,
                 fontWeight: "600",
                 marginTop: 10,
-                width: 105
+                width: 105,
+                color: selectedTeam?.id == item.id ? 'white' : 'black'
             }}>{item.name}</Text>
         </TouchableOpacity>
     ));
@@ -455,7 +462,7 @@ const styles = StyleSheet.create({
     },
 
     selectedTag: {
-        backgroundColor: '#295AD2',
+        backgroundColor: '#0041e8',
     },
     menuTitleContainer: {
         flexDirection: 'row',

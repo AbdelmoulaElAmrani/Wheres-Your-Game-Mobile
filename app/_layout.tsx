@@ -1,15 +1,16 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import {DarkTheme, DefaultTheme, ThemeProvider} from '@react-navigation/native';
+import {useFonts} from 'expo-font';
+import {Stack} from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Provider } from 'react-redux';
-import { persistor, store } from '@/redux/ReduxConfig';
-import { PersistGate } from 'redux-persist/integration/react';
-import { I18nManager } from 'react-native';
-import { LogBox } from 'react-native';
+import {SafeAreaProvider} from "react-native-safe-area-context";
+import {Provider} from 'react-redux';
+import {persistor, store} from '@/redux/ReduxConfig';
+import {PersistGate} from 'redux-persist/integration/react';
+import {I18nManager} from 'react-native';
+import {LogBox} from 'react-native';
+import {injectStoreIntoAxios} from "@/services/Requests";
 
 
 export {
@@ -58,26 +59,26 @@ export default function RootLayout() {
         return null;
     }
 
-    return <RootLayoutNav />;
+    return <RootLayoutNav/>;
 }
-
 
 
 function RootLayoutNav() {
     I18nManager.allowRTL(false);
     I18nManager.forceRTL(false);
+    injectStoreIntoAxios(store);
     return (
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
 
-                <SafeAreaProvider >
+                <SafeAreaProvider>
                     <Stack>
-                        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                        <Stack.Screen name="(user)" options={{ headerShown: false }} />
+                        <Stack.Screen name="(auth)" options={{headerShown: false}}/>
+                        <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
+                        <Stack.Screen name="(user)" options={{headerShown: false}}/>
                         <Stack.Screen name="(map)" options={{headerShown: false}}/>
                     </Stack>
-                </SafeAreaProvider >
+                </SafeAreaProvider>
             </PersistGate>
         </Provider>
     );
