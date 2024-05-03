@@ -29,6 +29,7 @@ import {List} from "lodash";
 import {SportEvent} from "@/models/SportEvent";
 import {EventSearchRequest} from "@/models/requestObjects/EventSearchRequest";
 import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
+import { SportEventRequest } from "@/models/requestObjects/SportEventRequest";
 
 
 const Calendar = () => {
@@ -188,15 +189,38 @@ const Calendar = () => {
         return ranges;
     };
 
-    const _handleAddEventContinue = () => {
+    const _handleAddEventContinue = async () => {
         setCurrentModalStep(old => Math.min(3, old + 1));
         if (currentModalStep === 3) {
-            console.log({
-                ...event,
-                type: options.filter(option => option.isChecked).map(option => option.title),
-                level: selectedSportLevel,
-                ageGroup: event.ageGroup
-            });
+
+            try {
+                var createdEvent = await EventService.createEvent({
+                    name: event.name,
+                description: selectedSportLevel.join(', ') + ' ' + event.ageGroup + ' ' + options.filter(option => option.isChecked).map(option => option.title).join(', '), //TODO:: Add description after validation
+                    ownerId: user.id,
+                    zipCode: '', // TODO:: Add zip code after validation
+                    eventDate: moment(event.date).format('YYYY-MM-DDTHH:mm:ss')
+
+                } as SportEventRequest);
+
+                if (createdEvent) {
+                    setEvents([...events, createdEvent]);
+                }
+
+
+
+            } catch (error) {
+                console.log(error);
+            }
+            
+
+
+            // console.log({
+            //     ...event,
+            //     type: options.filter(option => option.isChecked).map(option => option.title),
+            //     level: selectedSportLevel,
+            //     ageGroup: event.ageGroup
+            // });
             if (editMode) {
                 // TODO:: Edit
             } else {
