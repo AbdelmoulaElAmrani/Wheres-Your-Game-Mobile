@@ -23,13 +23,10 @@ import RNPickerSelect from 'react-native-picker-select';
 import SportLevel from "@/models/SportLevel";
 import Checkbox from "expo-checkbox";
 import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
-import {unsubscribeFromKeyboardEvents} from "react-native-reanimated/lib/typescript/reanimated2/core";
 import {EventService} from "@/services/EventService";
-import {List} from "lodash";
 import {SportEvent} from "@/models/SportEvent";
-import {EventSearchRequest} from "@/models/requestObjects/EventSearchRequest";
 import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
-import { SportEventRequest } from "@/models/requestObjects/SportEventRequest";
+import {SportEventRequest} from "@/models/requestObjects/SportEventRequest";
 
 
 const Calendar = () => {
@@ -72,11 +69,12 @@ const Calendar = () => {
     ]);
 
     useEffect(() => {
-        setIsLoaded(true);
-        if (user.role == UserType[UserType.COACH]) {
-            getCoachEvents();
-        } else {
-            getUserEvents();
+        if (user?.id) {
+            if (user.role == UserType[UserType.COACH]) {
+                getCoachEvents();
+            } else {
+                getUserEvents();
+            }
         }
     }, [selectedDate, user.id]);
 
@@ -91,9 +89,12 @@ const Calendar = () => {
 
     const getCoachEvents = async () => {
         try {
-            const events = await EventService.getCoachEvents(user.id, today.format('YYYY-MM-DDT00:00:00'), 0, 100);
-            if (events?.content) {
-                setEvents(events.content);
+            setIsLoaded(true);
+            if (events.length == 0) {
+                const data = await EventService.getEvents(user.id, today.format('YYYY-MM-DDT00:00:00'), 0, 100);
+                if (data?.content) {
+                    setEvents(data.content);
+                }
             }
         } catch (e) {
             console.log(e);
@@ -104,13 +105,8 @@ const Calendar = () => {
 
     const getUserEvents = async () => {
         try {
-            // todo:: to be completed
-            //const body: EventSearchRequest = {date: selectedDate, zipCode: '', sportIds: [userSport.]};
-            const events = await EventService.getUserEvents({
-                date: selectedDate.toDate(),
-                zipCode: "",
-                sportIds: []
-            });
+            setIsLoaded(true);
+            const events = await EventService.getEvents(user.id, selectedDate.format('YYYY-MM-DDT00:00:00'), 0, 100, '');
             if (events?.content) {
                 setEvents(events.content);
             }
@@ -126,7 +122,7 @@ const Calendar = () => {
     }
 
     const _onClickEvent = (event: any): void => {
-        console.log(event);
+        console.log('clicked event');
     }
 
     function _onEditEvent(item: any): void {
@@ -189,49 +185,59 @@ const Calendar = () => {
         return ranges;
     };
 
+
+    const _createEvent = async () => {
+        try {
+            var createdEvent = await EventService.createEvent({
+                name: event.name,
+                description: selectedSportLevel.join(', ') + ' ' + event.ageGroup + ' ' + options.filter(option => option.isChecked).map(option => option.title).join(', '), //TODO:: Add description after validation
+                ownerId: user.id,
+                zipCode: '', // TODO:: Add zip code after validation
+                eventDate: moment(event.date).format('YYYY-MM-DDTHH:mm:ss')
+            } as SportEventRequest);
+
+            if (createdEvent) {
+                setEvents([...events, createdEvent]);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+
+    const _editEvent = async () => {
+        try {
+            await EventService.editeEvent({
+                id: event.id,
+                name: event.name,
+                description: event.description,
+                zipCode: event.zipCode,
+                ownerId: user.id,
+                eventDate: eventDate,
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     const _handleAddEventContinue = async () => {
         setCurrentModalStep(old => Math.min(3, old + 1));
         if (currentModalStep === 3) {
-
-            try {
-                var createdEvent = await EventService.createEvent({
-                    name: event.name,
-                description: selectedSportLevel.join(', ') + ' ' + event.ageGroup + ' ' + options.filter(option => option.isChecked).map(option => option.title).join(', '), //TODO:: Add description after validation
-                    ownerId: user.id,
-                    zipCode: '', // TODO:: Add zip code after validation
-                    eventDate: moment(event.date).format('YYYY-MM-DDTHH:mm:ss')
-
-                } as SportEventRequest);
-
-                if (createdEvent) {
-                    setEvents([...events, createdEvent]);
-                }
-
-
-
-            } catch (error) {
-                console.log(error);
-            }
-            
-
-
-            // console.log({
-            //     ...event,
-            //     type: options.filter(option => option.isChecked).map(option => option.title),
-            //     level: selectedSportLevel,
-            //     ageGroup: event.ageGroup
-            // });
             if (editMode) {
                 // TODO:: Edit
+                await _editEvent();
+                setEvents(old => {
+                    const evntIndex = old.findIndex(x => x.id == event.id);
+                    if (evntIndex >= 0)
+                        return old[event[evntIndex]] = event;
+                    else
+                        return old;
+                })
             } else {
                 // TODO:: Create
+                await _createEvent();
             }
             _handleCancelEventCreation();
-            /*hideModal();
-            setEvent({name: '', date: new Date(), time: '', type: [], level: [], ageGroup: ''});
-            setTime({hours: new Date().getHours(), minutes: new Date().getMinutes()});
-            setSelectedSportLevel([]);
-            setCurrentModalStep(1);*/
         }
     }
     const _handleAddEventBack = () => {
@@ -242,7 +248,7 @@ const Calendar = () => {
         hideModal();
         setSelectedSportLevel([]);
         setCurrentModalStep(1);
-        setEvent({name: '', date: new Date(), time: '', type: [], level: [], ageGroup: ''});
+        setEvent({name: '', date: new Date(), time: '', type: [], level: [], ageGroup: '', id: ''});
         setOpen(false);
         setEventDate(null);
         setTimeOpen(false);

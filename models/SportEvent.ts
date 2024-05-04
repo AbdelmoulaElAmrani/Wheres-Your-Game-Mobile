@@ -1,5 +1,4 @@
-export interface SportEvent
-{
+export interface SportEvent {
     id: number;
     name: string;
     description: string;
@@ -8,6 +7,5 @@ export interface SportEvent
     owner: string;
     sportId: string;
     imageUri: string;
-    
 }
 

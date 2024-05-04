@@ -6,7 +6,7 @@ import {logout} from "@/redux/UserSlice";
 
 const PREFIX = 'api'
 
-export const API_URI = `https://webcast-invisible-ian-taxation.trycloudflare.com/${PREFIX}/`
+export const API_URI = `https://mug-dodge-segment-feedback.trycloudflare.com/${PREFIX}/`
 
 
 let store: any;
