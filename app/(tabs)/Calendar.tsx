@@ -332,7 +332,7 @@ const Calendar = () => {
                             <Octicons onPress={() => _onEditEvent(item)} name="pencil" size={24} color="grey"/>}
                     </View>
                     <Text style={{color: 'grey', flex: 0.3}}>
-                        {isCoach() ? moment(item.eventDate).format('YYYY-MM-DD') : '17 Km | 9:00 am'}
+                        {isCoach() ? moment(item.eventDate).format('YYYY-MM-DD hh:mm A') : `17 Km | ${moment(item.eventDate).format("hh:mm A")}`}
                     </Text>
                 </View>
             </TouchableOpacity>
