@@ -24,6 +24,7 @@ import {router} from "expo-router";
 import RNPickerSelect from 'react-native-picker-select';
 import {TeamService} from "@/services/TeamService";
 import {StorageService} from "@/services/StorageService";
+import Spinner from "@/components/Spinner";
 
 const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
 
@@ -38,6 +39,7 @@ const Home = () => {
     const [selectedTeam, setSelectedTeam] = useState<Team | undefined>(undefined);
     const [selectedChild, setSelectedChild] = useState<Player | undefined>(undefined)
     const [children, setChildren] = useState<Player[]>([])
+
     const childrens = [
         {
             label: 'All Children',
@@ -263,6 +265,7 @@ const Home = () => {
                 source={require('../../assets/images/signupBackGround.jpg')}>
 
                 <SafeAreaView style={{height: hp(100)}}>
+                    <Spinner visible={loading}/>
                     <View style={styles.headerContainer}>
                         <View>
                             <TouchableOpacity onPress={_handleOnOpenMenu}>
