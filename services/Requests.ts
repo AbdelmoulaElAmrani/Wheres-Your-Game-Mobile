@@ -9,6 +9,7 @@ const PREFIX = 'api'
 export const API_URI = `https://sport-app-38dd22818116.herokuapp.com/${PREFIX}/`
 
 
+
 let store: any;
 export const injectStoreIntoAxios = (_store: any) => {
     store = _store;

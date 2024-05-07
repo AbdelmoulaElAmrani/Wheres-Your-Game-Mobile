@@ -74,7 +74,7 @@ const SportMap = () => {
                     latitude,
                     longitude,
                 };
-                mapRef.current?.animateToRegion(region, 1000);
+                mapRef.current?.animateToRegion(region, 2000);
             }
         })();
     }, []);
