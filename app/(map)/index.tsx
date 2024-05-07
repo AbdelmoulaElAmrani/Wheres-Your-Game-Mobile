@@ -110,143 +110,143 @@ const SportMap = () => {
     };
 
     return (
-        <SafeAreaView style={{flex: 1}}>
-            <View style={styles.container}>
-                <StatusBar style="dark"/>
-                <MapView
-                    ref={mapRef}
-                    showsUserLocation={true}
-                    onPress={Keyboard.dismiss}
-                    provider={"google"}
-                    style={StyleSheet.absoluteFill}>
+        <>
+            <MapView
+                ref={mapRef}
+                showsUserLocation={true}
+                onPress={Keyboard.dismiss}
+                provider={"google"}
+                style={StyleSheet.absoluteFill}/>
+            <SafeAreaView style={{flex: 1}}>
+                <StatusBar style={"dark"}/>
+                <View style={styles.headerContainer}>
+                    <TouchableOpacity onPress={_onGoBack}>
+                        <Ionicons name="chevron-back" size={35} color="black"/>
+                    </TouchableOpacity>
+                    <Text style={styles.headerText}>Map View</Text>
+                    <TouchableOpacity onPress={_openModal}>
+                        <Ionicons name="filter-sharp" size={35} color="black"/>
+                    </TouchableOpacity>
+                </View>
 
-                    <View style={styles.headerContainer}>
-                        <TouchableOpacity onPress={_onGoBack}>
-                            <Ionicons name="chevron-back" size={35} color="black"/>
-                        </TouchableOpacity>
-                        <Text style={styles.headerText}>Map View</Text>
-                        <TouchableOpacity onPress={_openModal}>
-                            <Ionicons name="filter-sharp" size={35} color="black"/>
+                <Modal backdropOpacity={0.1} onDismiss={_hideModal} isVisible={modalVisible}
+                       style={styles.modalStyle} hideModalContentWhileAnimating={true}>
+                    <View style={styles.modalHeader}>
+                        <View></View>
+                        <Text style={{fontWeight: 'bold', fontSize: 18}}>Filters</Text>
+                        <TouchableOpacity onPress={_hideModal}>
+                            <AntDesign name="close" size={24} color="black"/>
                         </TouchableOpacity>
                     </View>
-                    <Modal backdropOpacity={0.1} onDismiss={_hideModal} isVisible={modalVisible}
-                           style={styles.modalStyle} hideModalContentWhileAnimating={true}>
-                        <View style={styles.modalHeader}>
-                            <View></View>
-                            <Text style={{fontWeight: 'bold', fontSize: 18}}>Filters</Text>
-                            <TouchableOpacity onPress={_hideModal}>
-                                <AntDesign name="close" size={24} color="black"/>
-                            </TouchableOpacity>
-                        </View>
-                        <ScrollView
-                            showsVerticalScrollIndicator={false}
-                            style={{
-                                height: 230,
-                                width: 300
-                            }}>
-                            <List.Section>
-                                <List.Accordion titleStyle={{
+                    <ScrollView
+                        showsVerticalScrollIndicator={false}
+                        style={{
+                            height: 230,
+                            width: 300
+                        }}>
+                        <List.Section>
+                            <List.Accordion titleStyle={{
+                                fontWeight: 'bold',
+                                color: expandedFilter == Filters.SPORT ? 'white' : 'black'
+                            }}
+                                            style={[styles.dropDownContainer, {backgroundColor: expandedFilter == Filters.SPORT ? '#2757CB' : '#F8F9FA'}]}
+                                            expanded={expandedFilter == Filters.SPORT}
+                                            onPress={() => _handleSelectedFilter(Filters.SPORT)}
+                                            title="Sports Listings">
+                                <View style={{flex: 1, paddingVertical: 8, paddingHorizontal: 12}}>
+                                    <FlashList
+                                        data={userSports}
+                                        renderItem={({item, index}) => (
+                                            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                                <RadioButton
+                                                    color='#2757CB'
+                                                    value={item.sportId}
+                                                    status={selectedSportId === item.sportId ? 'checked' : 'unchecked'}
+                                                    onPress={() => _handleSelectedSport(item)}
+                                                />
+                                                <Text style={{fontSize: 16}}>{item.sportName}</Text>
+                                            </View>
+                                        )}
+                                        keyExtractor={(item) => item.sportId.toString()}
+                                        estimatedItemSize={50}
+                                    />
+                                </View>
+                            </List.Accordion>
+
+                            <List.Accordion
+                                titleStyle={{
                                     fontWeight: 'bold',
-                                    color: expandedFilter == Filters.SPORT ? 'white' : 'black'
+                                    color: expandedFilter == Filters.CATEGORY ? 'white' : 'black'
                                 }}
-                                                style={[styles.dropDownContainer, {backgroundColor: expandedFilter == Filters.SPORT ? '#2757CB' : '#F8F9FA'}]}
-                                                expanded={expandedFilter == Filters.SPORT}
-                                                onPress={() => _handleSelectedFilter(Filters.SPORT)}
-                                                title="Sports Listings">
-                                    <View style={{flex: 1, paddingVertical: 8, paddingHorizontal: 12}}>
-                                        <FlashList
-                                            data={userSports}
-                                            renderItem={({item, index}) => (
-                                                <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                                                    <RadioButton
-                                                        color='#2757CB'
-                                                        value={item.sportId}
-                                                        status={selectedSportId === item.sportId ? 'checked' : 'unchecked'}
-                                                        onPress={() => _handleSelectedSport(item)}
-                                                    />
-                                                    <Text style={{fontSize: 16}}>{item.sportName}</Text>
-                                                </View>
-                                            )}
-                                            keyExtractor={(item) => item.sportId.toString()}
-                                            estimatedItemSize={50}
-                                        />
-                                    </View>
-                                </List.Accordion>
+                                style={[styles.dropDownContainer, {backgroundColor: expandedFilter == Filters.CATEGORY ? '#2757CB' : '#F8F9FA'}]}
+                                expanded={expandedFilter == Filters.CATEGORY}
+                                onPress={() => _handleSelectedFilter(Filters.CATEGORY)}
+                                title="Category">
+                                <View
+                                    style={{flex: 1, paddingVertical: 8, paddingHorizontal: 12}}>
+                                    <FlashList
+                                        data={categoryValues}
+                                        renderItem={({item, index}) => (
+                                            <View style={{
+                                                flexDirection: 'row',
+                                                alignItems: 'center',
+                                                marginBottom: 5
+                                            }}>
+                                                <Checkbox
+                                                    style={{borderRadius: 5, borderColor: 'grey', marginRight: 10}}
+                                                    value={filter.category.some(x => x.id === item.id)}
+                                                    onValueChange={(value) => _handleSelectedCategories(item, value)}
+                                                />
+                                                <Text style={{fontSize: 16}}>{item.value}</Text>
+                                            </View>
+                                        )}
+                                        keyExtractor={(item) => item.id}
+                                        estimatedItemSize={50}
+                                    />
+                                </View>
+                            </List.Accordion>
+                            <List.Accordion
+                                titleStyle={{
+                                    fontWeight: 'bold',
+                                    color: expandedFilter == Filters.SORTBY ? 'white' : 'black'
+                                }}
+                                style={[styles.dropDownContainer, {backgroundColor: expandedFilter == Filters.SORTBY ? '#2757CB' : '#F8F9FA'}]}
+                                expanded={expandedFilter == Filters.SORTBY}
+                                onPress={() => _handleSelectedFilter(Filters.SORTBY)}
+                                title="Sort By">
+                                <View
+                                    style={{flex: 1, paddingVertical: 8, paddingHorizontal: 12}}>
+                                    <FlashList
+                                        data={sortByValues}
+                                        renderItem={({item, index}) => (
+                                            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                                <RadioButton
+                                                    color='#2757CB'
+                                                    value={item.id}
+                                                    status={filter.sortBy.id === item.id ? 'checked' : 'unchecked'}
+                                                    onPress={() => _handleSortByFilter(item)}
+                                                />
+                                                <Text style={{fontSize: 16}}>{item.value}</Text>
+                                            </View>
+                                        )}
+                                        keyExtractor={(item) => item.id}
+                                        estimatedItemSize={50}
+                                    />
+                                </View>
+                            </List.Accordion>
+                        </List.Section>
+                    </ScrollView>
+                </Modal>
 
-                                <List.Accordion
-                                    titleStyle={{
-                                        fontWeight: 'bold',
-                                        color: expandedFilter == Filters.CATEGORY ? 'white' : 'black'
-                                    }}
-                                    style={[styles.dropDownContainer, {backgroundColor: expandedFilter == Filters.CATEGORY ? '#2757CB' : '#F8F9FA'}]}
-                                    expanded={expandedFilter == Filters.CATEGORY}
-                                    onPress={() => _handleSelectedFilter(Filters.CATEGORY)}
-                                    title="Category">
-                                    <View
-                                        style={{flex: 1, paddingVertical: 8, paddingHorizontal: 12}}>
-                                        <FlashList
-                                            data={categoryValues}
-                                            renderItem={({item, index}) => (
-                                                <View style={{
-                                                    flexDirection: 'row',
-                                                    alignItems: 'center',
-                                                    marginBottom: 5
-                                                }}>
-                                                    <Checkbox
-                                                        style={{borderRadius: 5, borderColor: 'grey', marginRight: 10}}
-                                                        value={filter.category.some(x => x.id === item.id)}
-                                                        onValueChange={(value) => _handleSelectedCategories(item, value)}
-                                                    />
-                                                    <Text style={{fontSize: 16}}>{item.value}</Text>
-                                                </View>
-                                            )}
-                                            keyExtractor={(item) => item.id}
-                                            estimatedItemSize={50}
-                                        />
-                                    </View>
-                                </List.Accordion>
-                                <List.Accordion
-                                    titleStyle={{
-                                        fontWeight: 'bold',
-                                        color: expandedFilter == Filters.SORTBY ? 'white' : 'black'
-                                    }}
-                                    style={[styles.dropDownContainer, {backgroundColor: expandedFilter == Filters.SORTBY ? '#2757CB' : '#F8F9FA'}]}
-                                    expanded={expandedFilter == Filters.SORTBY}
-                                    onPress={() => _handleSelectedFilter(Filters.SORTBY)}
-                                    title="Sort By">
-                                    <View
-                                        style={{flex: 1, paddingVertical: 8, paddingHorizontal: 12}}>
-                                        <FlashList
-                                            data={sortByValues}
-                                            renderItem={({item, index}) => (
-                                                <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                                                    <RadioButton
-                                                        color='#2757CB'
-                                                        value={item.id}
-                                                        status={filter.sortBy.id === item.id ? 'checked' : 'unchecked'}
-                                                        onPress={() => _handleSortByFilter(item)}
-                                                    />
-                                                    <Text style={{fontSize: 16}}>{item.value}</Text>
-                                                </View>
-                                            )}
-                                            keyExtractor={(item) => item.id}
-                                            estimatedItemSize={50}
-                                        />
-                                    </View>
-                                </List.Accordion>
-                            </List.Section>
-                        </ScrollView>
-                    </Modal>
-                    <View style={styles.searchButton}>
-                        <TouchableOpacity
-                            onPress={_handleSearch}
-                            style={styles.nextBtn}>
-                            <Text style={styles.buttonText}>Search</Text>
-                        </TouchableOpacity>
-                    </View>
-                </MapView>
-            </View>
-        </SafeAreaView>
+                <View style={styles.searchButton}>
+                    <TouchableOpacity
+                        onPress={_handleSearch}
+                        style={styles.nextBtn}>
+                        <Text style={styles.buttonText}>Search</Text>
+                    </TouchableOpacity>
+                </View>
+            </SafeAreaView>
+        </>
     );
 }
 const styles = StyleSheet.create({
