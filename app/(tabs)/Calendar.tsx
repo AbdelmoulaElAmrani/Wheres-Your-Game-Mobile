@@ -1,4 +1,4 @@
-import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {StatusBar} from "expo-status-bar";
 import {
     heightPercentageToDP,
@@ -17,7 +17,7 @@ import UserType from "@/models/UserType";
 import {FlashList} from "@shopify/flash-list";
 import {ActivityIndicator, MD2Colors, Modal, TextInput} from "react-native-paper";
 import {Helpers} from "@/constants/Helpers";
-import {DatePickerModal, enGB, registerTranslation, TimePickerModal} from 'react-native-paper-dates';
+import {DatePickerModal, enGB, registerTranslation, TimePickerModal, tr} from 'react-native-paper-dates';
 import CustomButton from "@/components/CustomButton";
 import RNPickerSelect from 'react-native-picker-select';
 import SportLevel from "@/models/SportLevel";
@@ -27,6 +27,7 @@ import {EventService} from "@/services/EventService";
 import {SportEvent} from "@/models/SportEvent";
 import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {SportEventRequest} from "@/models/requestObjects/SportEventRequest";
+import CustomSnackbar from "@/components/CustomSnackbar";
 
 
 const Calendar = () => {
@@ -67,6 +68,7 @@ const Calendar = () => {
         {title: 'All', isChecked: false}
 
     ]);
+    const [snackbarVisible, setSnackbarVisible] = useState(false);
 
     useEffect(() => {
         if (user?.id) {
@@ -185,8 +187,32 @@ const Calendar = () => {
         return ranges;
     };
 
+    const _verifyEvent = () => {
+        const errorMessages = [];
+        if (!event.name.trim() || event.name.length < 3) {
+            errorMessages.push('Event name is required and must be at least 3 characters');
+        }
+        if (!event.ageGroup) {
+            errorMessages.push('Age group is required');
+        }
+        if (selectedSportLevel.length === 0) {
+            errorMessages.push('Level of play is required');
+        }
+        if (options.filter(option => option.isChecked).length === 0) {
+            errorMessages.push('Event type is required');
+        }
+        if (errorMessages.length > 0) {
+            Alert.alert('Error', errorMessages.join('\n'));
+            return false;
+        }
+
+    }
 
     const _createEvent = async () => {
+        
+        if(_verifyEvent() === false) return;
+        
+
         try {
             var createdEvent = await EventService.createEvent({
                 name: event.name,
@@ -198,6 +224,11 @@ const Calendar = () => {
 
             if (createdEvent) {
                 setEvents([...events, createdEvent]);
+                setSnackbarVisible(true);
+                // reset event state
+                setSelectedSportLevel([]);
+                setEvent({name: '', date: new Date(), time: '', type: [], level: [], ageGroup: ''});
+                setOptions(options.map(option => ({...option, isChecked: false})));
             }
         } catch (error) {
             console.log(error);
@@ -578,6 +609,14 @@ const Calendar = () => {
                         </View>
                     )}
                 </Modal>
+
+                <CustomSnackbar
+                    visible={snackbarVisible}
+                    onDismissSnackBar={() => setSnackbarVisible(false)}
+                    duration={2000}
+                    content="Event Created Successfully"
+                    type="success"
+                />
             </SafeAreaView>
         </ImageBackground>
     </>
