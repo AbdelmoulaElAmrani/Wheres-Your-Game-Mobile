@@ -133,7 +133,7 @@ const Calendar = () => {
             name: item?.name,
             ageGroup: item?.ageGroup,
             level: item?.level,
-            date: item?.date,
+            date: new Date(item?.eventDate),
             time: item?.time
         });
 
