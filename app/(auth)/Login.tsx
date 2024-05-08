@@ -1,6 +1,14 @@
-import {useEffect, useState} from 'react';
-import { Image, ImageBackground, Keyboard, StyleSheet, Text, TouchableOpacity, View, TouchableWithoutFeedback} from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+    Keyboard,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    TouchableWithoutFeedback
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { Image, ImageBackground } from "expo-image";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { TextInput } from "react-native-paper";
@@ -10,9 +18,12 @@ import { Divider } from "react-native-paper";
 import { FontAwesome5 } from '@expo/vector-icons';
 import { router } from "expo-router";
 import { AuthService } from '@/services/AuthService';
-import {useDispatch, useSelector} from 'react-redux';
-import { getUserProfile } from '@/redux/UserSlice';
-import {UserResponse} from "@/models/responseObjects/UserResponse";
+import { useDispatch, useSelector } from 'react-redux';
+import { getUserProfile, logout } from '@/redux/UserSlice';
+import { UserResponse } from "@/models/responseObjects/UserResponse";
+import { Helpers } from "@/constants/Helpers";
+import { persistor } from "@/redux/ReduxConfig";
+import Spinner from '@/components/Spinner';
 
 
 const Login = () => {
@@ -22,15 +33,21 @@ const Login = () => {
     const [password, setPassword] = useState<string>('');
     const [errorMessages, setErrorMessages] = useState<string>('');
     const user = useSelector((state: any) => state.user.userData) as UserResponse;
-
+    const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
-        const checkIntroViewed = async () => {
-            if (user) {
+        const fetchData = async () => {
+            const token = await AuthService.getAccessToken();
+            //console.log('token => ', token);
+            //console.log('user => ', user);
+            if (token && user?.id) {
                 router.replace("/(tabs)/");
+            } else {
+                dispatch(logout({}))
+                await persistor.purge();
             }
-        };
-        checkIntroViewed();
+        }
+        fetchData();
     }, [user]);
 
     const _handleSignInWithGoogle = () => {
@@ -47,15 +64,22 @@ const Login = () => {
             return;
         }
 
-        const data = await AuthService.logIn({email: email, password: password});
-        if (data !== null && data !== undefined) {
+        try {
+            setLoading(true);
+            const data = await AuthService.logIn({ email, password });
+            if (!data) {
+                throw new Error('Invalid login credentials');
+            }
             dispatch(getUserProfile() as any)
+            setLoading(false);
             router.replace('/Welcome');
-        } else {
-            setErrorMessages('Invalid email or password');
+        } catch (error) {
+            console.error('Login failed:', error);
+            setErrorMessages('Password or email not correct');
             setTimeout(() => {
                 setErrorMessages('');
             }, 5000);
+            setLoading(false);
         }
     }
 
@@ -69,7 +93,6 @@ const Login = () => {
     }
 
     const _isLoginFormNotValid = (): boolean => (email.trim() === '' || password.trim() === '');
-
 
 
     return (
@@ -90,7 +113,12 @@ const Login = () => {
                 {/* Card Component */}
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                     <SafeAreaView style={styles.container}>
+
                         <View style={styles.cardContainer}>
+                            {loading && (
+                                <Spinner visible={loading} />
+                            )}
+
                             <View style={styles.headerContainer}>
                                 <Image style={styles.logoContainer}
                                     source={require('../../assets/images/logoBall.png')} />
@@ -132,13 +160,14 @@ const Login = () => {
                                     }}>{errorMessages}</Text>
                                 }
                                 <View style={styles.mgTop}>
-                                    <CustomButton text="Login" onPress={_handleLogin} 
-                                    disabled={_isLoginFormNotValid()} />
+                                    <CustomButton text="Login" onPress={_handleLogin}
+                                        disabled={_isLoginFormNotValid()} />
                                 </View>
                                 {/* forgot password ? */}
                                 <View style={styles.mgTop}>
                                     <TouchableOpacity onPress={_handleForgotPassword}>
-                                        <Text style={{ color: 'blue', textAlign: 'center', fontSize: 18 }}>Forgot Password ?</Text>
+                                        <Text style={{ color: 'blue', textAlign: 'center', fontSize: 18 }}>Forgot Password
+                                            ?</Text>
                                     </TouchableOpacity>
                                 </View>
 
@@ -163,7 +192,8 @@ const Login = () => {
                                 </View>
 
                                 <View style={styles.dontHaveAccountText}>
-                                    <Text style={{ color: 'black', textAlign: 'center', fontSize: 16 }}>Don't have an account ?
+                                    <Text style={{ color: 'black', textAlign: 'center', fontSize: 16 }}>Don't have an
+                                        account ?
                                     </Text>
                                     <TouchableOpacity onPress={_handleSignUp}>
                                         <Text style={{ color: 'blue', textAlign: 'center', fontSize: 16 }}> Sign Up</Text>
@@ -177,7 +207,6 @@ const Login = () => {
         </>
     );
 }
-
 
 
 const styles = StyleSheet.create({
@@ -242,7 +271,6 @@ const styles = StyleSheet.create({
         borderRadius: 40,
         padding: 20,
         marginTop: hp(16),
-
     },
     loginButton: {
         backgroundColor: '#007BFF',

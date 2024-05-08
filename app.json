@@ -15,16 +15,43 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSLocationAlwaysUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to allow you to get your current location.",
+        "NSLocationWhenInUseUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to allow you to get the position of your current location.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to allow you to get the position of your current location.",
+        "NSLocationUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to allow you to get the position of your current location.",
+        "NSPhotoLibraryUsageDescription ": "$(PRODUCT_NAME) requires access to your photo to allow you to upload photos"
+      },
+      "config": {
+        "googleMapsApiKey": "YOUR_API_KEY_HERE"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#160076"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_API_KEY_HERE"
+        }
       }
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

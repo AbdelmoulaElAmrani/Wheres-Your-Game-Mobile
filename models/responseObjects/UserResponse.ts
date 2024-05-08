@@ -12,8 +12,13 @@ export interface UserResponse {
     phoneNumber: string;
     role: string;
     age: number;
-    phoneCountryCode: string;
+    countryCode: string;
     gender: Gender;
+    dateOfBirth: Date;
+    yearsOfExperience: number;
+    isCertified: boolean;
+    positionCoached: string;
+
 
 
 }

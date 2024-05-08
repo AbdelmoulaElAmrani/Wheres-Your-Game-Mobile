@@ -1,6 +1,5 @@
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {
-    ImageBackground,
     StyleSheet,
     Text,
     View,
@@ -9,9 +8,10 @@ import {
     Keyboard,
     Alert
 } from "react-native";
+import {ImageBackground} from "expo-image";
 import {SafeAreaView} from "react-native-safe-area-context";
 import Modal from "react-native-modal";
-import {memo, useState} from "react";
+import {memo, useEffect, useState} from "react";
 import CustomButton from "@/components/CustomButton";
 import {AntDesign} from "@expo/vector-icons";
 import {OtpInput} from "react-native-otp-entry";
@@ -21,11 +21,12 @@ import ParentIcon from "../../assets/images/svg/ParentIcon";
 import CoachIcon from "../../assets/images/svg/CoachIcon";
 import BusinessIcon from "../../assets/images/svg/BusinessIcon";
 import PlayerIcon from "../../assets/images/svg/PlayerIcon";
-import { router } from "expo-router";
-import { RegisterRequest } from "@/models/requestObjects/RegisterRequest";
+import {router} from "expo-router";
+import {RegisterRequest} from "@/models/requestObjects/RegisterRequest";
 import {useDispatch, useSelector} from 'react-redux'
-import { updateUserRegisterData } from "@/redux/UserSlice";
-import { AuthService } from "@/services/AuthService";
+import {getUserProfile, updateUserRegisterData} from "@/redux/UserSlice";
+import {AuthService} from "@/services/AuthService";
+import {FeatureTogglingConfig} from "@/models/responseObjects/FeatureTogglingConfig";
 
 
 const UserStepForm = () => {
@@ -33,10 +34,7 @@ const UserStepForm = () => {
     const [visible, setVisible] = useState<boolean>(false);
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [otpCodeNotEmpty, setOtpCodeNotEmpty] = useState<boolean>(false);
-
-    // TODO:: replace it with redux or get user data from localstorage
     const userRegister = useSelector((state: any) => state.user.userRegister);
-
     const [userData, setUserData] = useState<RegisterRequest>(userRegister);
     const _stepTitles = [
         {
@@ -47,13 +45,23 @@ const UserStepForm = () => {
         }, {
             title: 'Verification Number',
             subTitle: 'You will got a OTP via SMS',
-            modalTitle: 'Your account has been sucessfully verified',
+            modalTitle: 'Your account has been successfully verified',
             modalSubTitle: 'Now you can start to create your profile.'
         }];
+    const [fTConfig, setFTConfig] = useState<FeatureTogglingConfig | undefined>(undefined);
 
     const buttonText = ['Continue', 'Verify'];
 
 
+    useEffect(() => {
+        (async () => {
+            try {
+                const result = await AuthService.featureTogglingConfig();
+                setFTConfig(result);
+            } catch (e) {
+            }
+        })();
+    }, []);
 
 
     const _showModal = () => {
@@ -65,16 +73,17 @@ const UserStepForm = () => {
 
     const _hideModal = () => setVisible(false)
     const _verifyUserStepDate = (step: number): boolean => {
-        if (step === 1)
+        if (step === 1) {
             return _verifyUserSelectedHisRule();
-        else
-            return  true;
+        } else {
+            dispatch(getUserProfile() as any)
+            return true;
+        }
     }
 
     const createUser = async () => {
         try {
             await AuthService.register(userData);
-            console.log('done');
         } catch (error) {
             console.log(error);
         }
@@ -87,10 +96,11 @@ const UserStepForm = () => {
     }
 
     const goToNextStep = async () => {
-        console.log('here');
         await createUser();
-        console.log('here end');
         setCurrentStep(oldValue => Math.max(2, oldValue - 1));
+        if (fTConfig !== undefined && !fTConfig.twoVerification) {
+            handleSubmit();
+        }
     };
 
     const _onNext = async () => {
@@ -121,8 +131,12 @@ const UserStepForm = () => {
 
     const _verifySelectedType = (type: UserType): boolean => userData.role == type;
 
-    const _onResentOTPCode = () => {
-
+    const _onResendOTPCode = async () => {
+        try {
+            const result = await AuthService.sendOTP();
+        } catch (e) {
+            console.log(e);
+        }
     }
 
     const UserTypeForm = memo(() => (
@@ -193,71 +207,73 @@ const UserStepForm = () => {
         </>
     ));
 
-    const _onCheckOTPCode = (): boolean => {
-        return false;
-    }
-    const _verifyOTP = (otpNumber: string) => {
+    const _verifyOTP = async (otpNumber: string) => {
         Keyboard.dismiss();
         if (otpNumber.trim().length !== 0) {
-            // TODO:: call the back end for OTP code
-            setOtpCodeNotEmpty(true);
-            console.log('verify');
+            try {
+                const result = await AuthService.verifyOTP(otpNumber.trim());
+                if (!result) {
+                    Alert.alert('the code is not correct try again');
+                } else {
+                    setOtpCodeNotEmpty(true);
+                }
+            } catch (err) {
+                console.log(err);
+            }
         }
     }
 
     const OTPVerification = memo(() => {
 
         return (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={{
-                alignItems: 'center',
-                marginTop: 50,
-                height: hp(45)
-            }}>
-                <Text style={{
-                    marginBottom: 20,
-                    fontSize: 20,
-                    fontWeight: '500'
-                }}>Verification Code</Text>
-                <OtpInput
-                    numberOfDigits={4}
-                    focusColor={'#2757CB'}
-                    onFilled={(value) => _verifyOTP(value)}
-                    focusStickBlinkingDuration={400}
-                    theme={{
-                        pinCodeContainerStyle: {
-                            width: 58,
-                            height: 58,
-                            borderColor: 'black'
-                        }
-                    }}
-
-                />
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <View style={{
-                    flexDirection: 'row',
-                    justifyContent: 'center',
                     alignItems: 'center',
-                    alignContent: 'center',
-                    marginTop: 30
+                    marginTop: 50,
+                    height: hp(45)
                 }}>
                     <Text style={{
-                        fontSize: 18,
-                        color: 'grey'
-                    }}>Don't receive your code?
-                    </Text>
-                    <TouchableOpacity
-                        onPress={_onResentOTPCode}
-                    >
+                        marginBottom: 20,
+                        fontSize: 20,
+                        fontWeight: '500'
+                    }}>Verification Code</Text>
+                    <OtpInput
+                        numberOfDigits={4}
+                        focusColor={'#2757CB'}
+                        onFilled={(value) => _verifyOTP(value)}
+                        focusStickBlinkingDuration={400}
+                        theme={{
+                            pinCodeContainerStyle: {
+                                width: 58,
+                                height: 58,
+                                borderColor: 'black'
+                            }
+                        }}
+                    />
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        alignContent: 'center',
+                        marginTop: 30
+                    }}>
                         <Text style={{
                             fontSize: 18,
-                            color: '#3E4FEF'
-                        }}> Resend</Text>
-                    </TouchableOpacity>
+                            color: 'grey'
+                        }}>Don't receive your code?
+                        </Text>
+                        <TouchableOpacity
+                            onPress={_onResendOTPCode}>
+                            <Text style={{
+                                fontSize: 18,
+                                color: '#3E4FEF'
+                            }}> Resend</Text>
+                        </TouchableOpacity>
 
+                    </View>
                 </View>
-            </View>
-        </TouchableWithoutFeedback>
-    );
+            </TouchableWithoutFeedback>
+        );
     });
 
     return (
@@ -278,7 +294,8 @@ const UserStepForm = () => {
                             style={{justifyContent: 'center', alignContent: "center", marginTop: 25, marginBottom: 25}}>
 
                             {currentStep === 1 && <UserTypeForm/>}
-                            {currentStep === 2 && <OTPVerification/>}
+                            {(currentStep === 2) && (fTConfig === undefined || fTConfig.twoVerification) &&
+                                <OTPVerification/>}
                         </View>
                         <CustomButton disabled={!otpCodeNotEmpty && currentStep === 2}
                                       text={buttonText[currentStep - 1]} onPress={_showModal}/>

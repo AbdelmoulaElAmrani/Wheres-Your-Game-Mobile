@@ -1,35 +1,81 @@
-import {StatusBar} from "expo-status-bar";
 import {useEffect, useState} from "react";
-import {ImageBackground, Text, View, StyleSheet, TouchableOpacity, ScrollView} from "react-native";
+import {Text, View, StyleSheet, TouchableOpacity, ScrollView, RefreshControl} from "react-native";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {Avatar} from 'react-native-paper';
 import {SafeAreaView} from "react-native-safe-area-context";
 import {AntDesign, Octicons} from '@expo/vector-icons';
-
+import {ImageBackground} from "expo-image";
 import {router} from "expo-router";
 import {useDispatch, useSelector} from "react-redux";
-import {getUserProfile} from "@/redux/UserSlice";
+import {getUserProfile, logout} from "@/redux/UserSlice";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {ActivityIndicator, MD2Colors} from 'react-native-paper';
 
 const Profile = () => {
     const dispatch = useDispatch()
+    const userData = useSelector((state: any) => state.user.userData) as UserResponse;
+    const loading = useSelector((state: any) => state.user.loading) as boolean;
+    const [image, setImage] = useState<any>();
+    const [refreshing, setRefreshing] = useState<boolean>(false);
+    //const loadingImage = {isStart: false};
+
+    useEffect(() => {
+        (async () => {
+            await dispatch(getUserProfile() as any)
+            /* if (userData?.imageUrl && !loadingImage.isStart) {
+                 try {
+                     console.log('start downloading', userData?.imageUrl && !loadingImage.isStart);
+                     loadingImage.isStart = true
+                     const result = await StorageService.downloadImageByName(userData.imageUrl);
+                     setImage(result.image);
+                 } catch (e) {
+                 } finally {
+                     loadingImage.isStart = false;
+                 }
+             }*/
+        })()
+    }, []);
+
+
+    /*useEffect(() => {
+        (async () => {
+            if (userData?.imageUrl && !loadingImage.isStart) {
+                try {
+                    console.log('start downloading', userData?.imageUrl && !loadingImage.isStart);
+                    loadingImage.isStart = true
+                    const result = await StorageService.downloadImageByName(userData.imageUrl);
+                    console.log('donwloaded');
+                    console.log(result);
+                    setImage(result);
+                } catch (e) {
+
+                } finally {
+                    loadingImage.isStart = false;
+                }
+
+            }
+        })();
+    }, [userData]);*/
 
     const _handleEditProfile = () => {
         router.setParams({previousScreenName: 'profile'})
         router.navigate('EditProfile');
     }
 
-    const userData = useSelector((state: any) => state.user.userData) as UserResponse;
-    const loading = useSelector((state: any) => state.user.loading) as boolean;
+    const _handleLogout = () => {
+        console.log('logout');
+        dispatch(logout({}));
+        router.replace('/Login');
+    }
 
+    const _refreshProfile = () => {
+        setRefreshing(true)
+        console.log('refresh');
+        setTimeout(() => {
+            setRefreshing(false)
+        }, 3000);
+    }
 
-    useEffect(() => {
-        if (!userData) {
-            dispatch(getUserProfile() as any)
-        }
-
-    }, []);
 
     return (
         <ImageBackground
@@ -37,13 +83,12 @@ const Profile = () => {
             source={require('../../assets/images/signupBackGround.jpg')}
         >
             <SafeAreaView>
-
                 <View style={styles.userInfoContainer}>
                     {loading ? (
                         <ActivityIndicator animating={true} color={MD2Colors.purple200} size={50}/>
                     ) : (
                         <>
-                            {userData.imageUrl ? (
+                            {image ? (
                                 <Avatar.Image size={100} source={{uri: userData.imageUrl}}/>
                             ) : (
                                 <Avatar.Text
@@ -60,24 +105,27 @@ const Profile = () => {
                                         <Octicons name="pencil" size={24} color="white" style={styles.editIcon}/>
                                     </TouchableOpacity>
                                 </View>
-                                <Text style={styles.userInfo}>Age: {userData.age}</Text>
+                                <Text
+                                    style={styles.userInfo}>Age: {new Date().getFullYear() - new Date(userData.dateOfBirth).getFullYear()}</Text>
                                 <Text style={styles.userInfo}>
                                     Gender: {userData.gender === 1 ? 'Female' : 'Male'}
                                 </Text>
                             </View>
                         </>
-                    )}
+                    )
+                    }
                 </View>
 
-
                 <View style={styles.cardContainer}>
-                    <Text style={styles.textSettings}>Settings</Text>
-                    <ScrollView contentContainerStyle={{flexGrow: 1}} bounces={true}>
+                    <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={_refreshProfile}/>}
+                                contentContainerStyle={{flexGrow: 1}} bounces={true}>
                         <View style={{
                             flex: 1,
                             justifyContent: 'center',
                             marginBottom: hp(20)
                         }}>
+                            <Text style={styles.textSettings}>Settings</Text>
+
                             <TouchableOpacity style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Contact Information</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
@@ -118,12 +166,19 @@ const Profile = () => {
                                 <Text style={styles.settingOptionText}>Connection Settings</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
+
+                            <TouchableOpacity style={styles.settingOption} onPress={_handleLogout}>
+                                <Text style={styles.settingOptionText}>Log Out</Text>
+                                <AntDesign name="right" size={24} color="grey"/>
+                            </TouchableOpacity>
+
                         </View>
                     </ScrollView>
                 </View>
             </SafeAreaView>
         </ImageBackground>
-    );
+    )
+        ;
 }
 
 

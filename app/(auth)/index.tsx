@@ -9,6 +9,7 @@ import {router} from "expo-router";
 import CustomButton from "@/components/CustomButton";
 import {useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
+import {Helpers} from "@/constants/Helpers";
 
 
 const windowWidth = Dimensions.get('window').width;
@@ -42,18 +43,18 @@ const Intro = () => {
 
     useEffect(() => {
         const checkIntroViewed = async () => {
-            if (user) {
+            const isIntroViewed = await LocalStorageService.getItem<boolean>('intro');
+            if (user?.id) {
                 router.replace("/(tabs)/");
             } else {
-                const isIntroViewed = await LocalStorageService.getItem<boolean>('intro');
-                if (isIntroViewed !== null) {
-                    //TODO:: Remove the comment later
-                    //router.replace("/Login");
+                if (isIntroViewed) {
+                    router.replace("/Login");
                 }
             }
         };
         checkIntroViewed();
-    }, []);
+
+    }, [user]);
 
 
     const _navigateToLoginPage = (): void => {

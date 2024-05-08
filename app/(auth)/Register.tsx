@@ -1,16 +1,15 @@
 import {StatusBar} from "expo-status-bar";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {
-    Image,
-    ImageBackground,
     StyleSheet,
     Text,
     View,
     TouchableWithoutFeedback,
     Keyboard,
     Alert,
+    Image, ImageBackground
 } from "react-native";
-import React, {useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import CustomButton from "@/components/CustomButton";
 import {TextInput} from "react-native-paper";
@@ -19,10 +18,10 @@ import {RegisterRequest} from "@/models/requestObjects/RegisterRequest";
 import UserType from "@/models/UserType";
 import {useDispatch} from 'react-redux'
 import PhoneInput from "react-native-phone-number-input";
-import {updateUserRegisterData} from "@/redux/UserSlice";
+import {updateUserRegisterData, logout} from "@/redux/UserSlice";
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
-import backHandler from "@/.expo/metro/shims/react-native-web/dist/exports/BackHandler";
-
+import {Helpers} from "@/constants/Helpers";
+import {AuthService} from "@/services/AuthService";
 
 
 const Register = () => {
@@ -33,6 +32,7 @@ const Register = () => {
         firstName: '',
         lastName: '',
         phoneNumber: '',
+        countryCode: '+1',
         address: '',
         zipCode: '',
         bio: '',
@@ -40,31 +40,40 @@ const Register = () => {
         role: UserType.DEFAULT,
     });
     const phoneInput = useRef<PhoneInput>(null);
-    const [formattedPhoneNumber, setFormattedPhoneNumber] = useState<string>('');
+
+    useEffect(() => {
+        dispatch(logout({}) as any);
+    }, []);
 
 
-    const _handleOnNext = (): void => {
-        const errors = _verifyRequiredData(userData);
+    const _handleOnNext = async (): Promise<void> => {
+        const errors = await _verifyRequiredData(userData);
         if (errors.length === 0) {
-            dispatch(updateUserRegisterData({...userData, phoneNumber: formattedPhoneNumber}))
+            dispatch(updateUserRegisterData(userData))
             router.navigate("/TermsPolicies");
         } else {
             Alert.alert(errors.join('\n'));
         }
     }
 
-    const _verifyRequiredData = (userData: RegisterRequest): string[] => {
+    const _verifyRequiredData = async (userData: RegisterRequest): Promise<string[]> => {
         const errors: string[] = [];
 
         if (userData.email.trim() === '') {
             errors.push('Email is required');
-        } else if (!_isEmailValid(userData.email)) {
+        } else if (!Helpers._isEmailValid(userData.email)) {
             errors.push('Invalid email format');
+        }
+        try {
+            const result = await AuthService.verifyEmail(userData.email.trim());
+            if (result || result == undefined) errors.push('The Email already taken');
+        } catch (e) {
+            console.log(e);
         }
 
         if (userData.password.trim() === '') {
             errors.push('Password is required');
-        } else if (!_isPasswordValid(userData.password)) {
+        } else if (!Helpers._isPasswordValid(userData.password)) {
             //errors.push('Password must be 6-20 characters long and contain at least one uppercase letter, one lowercase letter, and one number');
         }
 
@@ -86,17 +95,6 @@ const Register = () => {
 
         return errors;
     }
-
-    const _isEmailValid = (email: string): boolean => {
-        const re = /\S+@\S+\.\S+/;
-        return re.test(email);
-    }
-
-    const _isPasswordValid = (password: string): boolean => {
-        const re = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/;
-        return re.test(password);
-    }
-
 
     return (<ImageBackground
         style={{
@@ -182,7 +180,9 @@ const Register = () => {
                                     onChangeText={(text) => setUserData(oldValue => ({...oldValue, phoneNumber: text}))}
                                     containerStyle={styles.inputStyle}
                                     textContainerStyle={styles.textPhoneInputContainer}
-                                    onChangeFormattedText={(text) => setFormattedPhoneNumber(text)}
+                                    onChangeCountry={(country) => setUserData(oldValue => (
+                                        {...oldValue, countryCode: country.callingCode[0]}
+                                    ))}
                                     codeTextStyle={styles.phoneCodeTextStyle}
                                     textInputStyle={styles.phoneInputTextStyle}
                                 />

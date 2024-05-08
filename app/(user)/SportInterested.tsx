@@ -1,7 +1,5 @@
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {
-    FlatList,
-    ImageBackground,
     Keyboard, ScrollView,
     StyleSheet,
     Text,
@@ -9,6 +7,7 @@ import {
     TouchableWithoutFeedback,
     View
 } from "react-native";
+import {ImageBackground} from "expo-image";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {memo, useCallback, useEffect, useState} from "react";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
@@ -20,6 +19,9 @@ import {UserInterestedSport} from "@/models/UserInterestedSport";
 import {SportService} from "@/services/SportService";
 import {router, useLocalSearchParams} from "expo-router";
 import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
+import {useSelector} from "react-redux";
+import {UserResponse} from "@/models/responseObjects/UserResponse";
+import {Style} from "domelementtype";
 
 const SportInterested = () => {
     const _stepTitles = [
@@ -34,6 +36,7 @@ const SportInterested = () => {
     const [selectedSports, setSelectedSports] = useState<Map<string, UserInterestedSport>>(new Map([]));
     const [sports, setSports] = useState<Sport[] | undefined>([]);
     const params = useLocalSearchParams();
+    const user = useSelector((state: any) => state.user.userData) as UserResponse;
 
     useEffect(() => {
         const fetchSport = async () => {
@@ -52,8 +55,17 @@ const SportInterested = () => {
         setCurrentStep(oldValue => Math.max(2, oldValue - 1));
     };
 
-    const _onNext = () => {
-        currentStep === 1 ? _handleContinue() : handleSubmit();
+    const _onNext = async () => {
+        if (currentStep === 1 && selectedSports.size === 0) {
+            alert("Please select at least one sport to continue.");
+            return;
+        } else {
+            if (currentStep === 1) {
+                _handleContinue();
+            } else {
+                await handleSubmit();
+            }
+        }
     }
     const _handleGoBack = () => {
         if (currentStep === 1) {
@@ -67,16 +79,17 @@ const SportInterested = () => {
         setCurrentStep(oldValue => Math.max(1, oldValue - 1));
     };
     const handleSubmit = async () => {
-        console.log(selectedSports)
         try {
-            //const response = await SportService.registerUserToSport([...selectedSports.values()], 'userId')
+            const userId = user?.id;
+            const response = await SportService.registerUserToSport([...selectedSports.values()], userId);
+            console.log('params:', params);
             if (params?.previousScreenName) {
                 router.navigate('/(tabs)');
             } else {
                 router.replace('/Welcome');
             }
         } catch (e) {
-            console.log(e);
+            console.error(e);
         }
     };
 
@@ -113,7 +126,7 @@ const SportInterested = () => {
                 <View>
                     <TextInput
                         placeholder="Search Sports"
-                        style={styles.credentialInput}
+                        style={styles.search}
                         textColor='black'
                         onChangeText={(value) => setQuery(value.toLowerCase())}
                         value={query}
@@ -144,7 +157,6 @@ const SportInterested = () => {
                     </KeyboardAwareScrollView>
                 </View>
             </TouchableWithoutFeedback>
-
         );
     }
 
@@ -217,20 +229,12 @@ const SportInterested = () => {
                         Of Rules And Skills, High Level Competition</Text>
                 </View>
                 <View style={{maxHeight: hp(53), height: hp(50)}}>
-                    {/* <ScrollView
-                    scrollEnabled={true}
-                    >
-                        {[...selectedSports.values()].map((item => <_RenderItem key={item.sportName + ' ' + Math.random()} item={item}/>))}
-                    </ScrollView>*/}
-                    <FlatList
-                        showsVerticalScrollIndicator={true}
-                        data={[...selectedSports.values()]}
+                    <ScrollView
                         scrollEnabled={true}
-                        renderItem={({item}) => <_RenderItem item={item}/>}
-                        keyExtractor={item => item.sportName + ' ' + Math.random()}
-                        bounces={true}
-                        alwaysBounceHorizontal={true}
-                    />
+                    >
+                        {[...selectedSports.values()].map((item => <_RenderItem
+                            key={item.sportName + ' ' + Math.random()} item={item}/>))}
+                    </ScrollView>
                 </View>
             </View>
         );
@@ -239,28 +243,19 @@ const SportInterested = () => {
 
     return (
         <ImageBackground
-
-            style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                bottom: 0,
-                right: 0,
-                flex: 1,
-            }}
+            style={StyleSheet.absoluteFill}
             source={require('../../assets/images/signupBackGround.jpg')}>
-            <SafeAreaView>
+            <SafeAreaView style={{flex: 1}}>
                 <CustomNavigationHeader text={"Sport"} goBackFunction={_handleGoBack()} showBackArrow/>
-                <View style={styles.container}>
-                    <Text style={styles.stepText}>Step {currentStep}/2</Text>
-                    <View style={styles.mainContainer}>
-                        <View style={styles.titleContainer}>
-                            <Text style={styles.title}>{_stepTitles[currentStep - 1].title}</Text>
-                        </View>
-                        <View style={{justifyContent: 'center', alignContent: "center", marginTop: 20}}>
-                                {currentStep === 1 && <_RenderSportCatalog/>}
-                                {currentStep === 2 && <_RenderUserSportLevel/>}
-                        </View>
+                <Text style={styles.stepText}>Step {currentStep}/2</Text>
+                <View style={styles.mainContainer}>
+                    <KeyboardAwareScrollView
+                        style={{flex: 1}}
+                        contentContainerStyle={{flexGrow: 1}}
+                        keyboardShouldPersistTaps="handled"
+                    >
+                        {currentStep === 1 && <_RenderSportCatalog/>}
+                        {currentStep === 2 && <_RenderUserSportLevel/>}
                         <View style={styles.btnContainer}>
                             <TouchableOpacity
                                 onPress={_handleGoBack()}
@@ -269,11 +264,12 @@ const SportInterested = () => {
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => _onNext()}
-                                style={[styles.btn, {backgroundColor: '#2757CB'}]}>
+                                style={[styles.btn, {backgroundColor: '#2757CB'}]}
+                            >
                                 <Text style={{textAlign: 'center', fontSize: 18, color: 'white'}}>Continue</Text>
                             </TouchableOpacity>
                         </View>
-                    </View>
+                    </KeyboardAwareScrollView>
                 </View>
             </SafeAreaView>
         </ImageBackground>
@@ -295,13 +291,16 @@ const styles = StyleSheet.create({
         marginLeft: 30
     },
     mainContainer: {
+        //flex: 1,
+        height: '100%',
         backgroundColor: 'white',
         borderTopEndRadius: 35,
         borderTopStartRadius: 35,
         paddingTop: 30,
         padding: 20,
         marginTop: 10,
-        flex: 1
+        paddingHorizontal: 20,
+        paddingBottom: 20,
     },
     titleContainer: {
         alignSelf: "center",
@@ -311,7 +310,7 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         fontSize: 25
     },
-    credentialInput: {
+    search: {
         backgroundColor: 'white',
         borderColor: '#9BA0AB',
         borderWidth: 1,
@@ -348,7 +347,7 @@ const styles = StyleSheet.create({
     btnContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        marginTop: 10
+        marginTop: 50
     },
     infoContainer: {
         flexDirection: 'row'

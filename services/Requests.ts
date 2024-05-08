@@ -1,17 +1,25 @@
-import axios, { AxiosError, AxiosResponse } from 'axios';
-import { AuthService } from './AuthService';
-import { router } from 'expo-router';
+import axios, {AxiosError, AxiosResponse} from 'axios';
+import {AuthService} from './AuthService';
+import {router} from 'expo-router';
+import {logout} from "@/redux/UserSlice";
 
 
 const PREFIX = 'api'
+//export const API_URI = `https://mug-dodge-segment-feedback.trycloudflare.com/${PREFIX}/`
+export const API_URI = `https://sport-app-38dd22818116.herokuapp.com/${PREFIX}/`
 
-export const API_URI = `https://career-assumes-pirates-annie.trycloudflare.com/${PREFIX}/`
+
+let store: any;
+export const injectStoreIntoAxios = (_store: any) => {
+    store = _store;
+}
 
 const axiosInstance = axios.create({
     baseURL: API_URI,
     headers: {
         'Content-Type': 'application/json',
     },
+    timeout: 3000
 });
 // Request Interceptor
 axiosInstance.interceptors.request.use(
@@ -19,9 +27,16 @@ axiosInstance.interceptors.request.use(
         const accessToken = await AuthService.getAccessToken();
         if (accessToken) {
             config.headers.Authorizations = `Bearer ${accessToken}`;
-            config.headers = { ...config.headers, Authorizations: `Bearer ${accessToken}` } as any;
+            config.headers = {...config.headers, Authorizations: `Bearer ${accessToken}`} as any;
         }
-        return config;
+        if (config.url?.includes('storage')) {
+            config.headers['Content-Type'] = 'multipart/form-data';
+        } else {
+            config.headers.Accept = 'application/json';
+            config.headers["Content-Type"] = 'application/json';
+        }
+
+        return config
     },
     (error) => {
         return Promise.reject(error);
@@ -30,9 +45,13 @@ axiosInstance.interceptors.request.use(
 
 // Response Interceptor
 axiosInstance.interceptors.response.use(
-    (response : AxiosResponse) => response,
-    async (error : AxiosError) => {
-        if (error.response && error.response.status === 401) {
+    (response: AxiosResponse) => response,
+    async (error: AxiosError) => {
+        const originalRequest = error.config;
+        // @ts-ignore
+        if (error.response.status === 401 && !originalRequest['_retry']) {
+            // @ts-ignore
+            originalRequest['_retry'] = true;
             try {
                 const newAccessToken = await AuthService.refreshToken();
                 if (newAccessToken) {
@@ -41,8 +60,12 @@ axiosInstance.interceptors.response.use(
                         return axiosInstance.request(error.config);
                     }
                 }
+            } catch (err) {
             }
-            catch (err) {
+        } else {
+            if (error?.response?.status !== 500 && error?.response?.status !== 408 && error?.response?.status !== 502) {
+                console.log('logout');
+                store.dispatch(logout({}));
                 router.replace("/Login");
             }
         }
@@ -50,10 +73,11 @@ axiosInstance.interceptors.response.use(
 );
 
 
-
 const handleErrors = async (err: AxiosError) => {
     if (err && err.response && err.response.status === 401) {
-        //router.replace("/Login");
+        console.log('logout');
+        store.dispatch(logout({}));
+        router.replace("/Login");
     }
     return err;
 };
@@ -61,39 +85,38 @@ const handleErrors = async (err: AxiosError) => {
 
 const Requests = {
 
-    get: async (url: string) : Promise<any> => {
+    get: async (url: string): Promise<any> => {
         try {
             const response = await axiosInstance.get(url);
             return response;
-        } catch (error : any) {
+        } catch (error: any) {
             return handleErrors(error);
         }
     },
 
     post: async (url: string, body: any): Promise<any> => {
         try {
-            console.log('body', body);
             const response = await axiosInstance.post(url, body);
             return response;
-        } catch (error : any) {
+        } catch (error: any) {
             return handleErrors(error);
         }
     },
 
-    put: async (url: string, body: any) : Promise<any> => {
+    put: async (url: string, body: any): Promise<any> => {
         try {
             const response = await axiosInstance.put(url, body);
             return response
-        } catch (error : any) {
+        } catch (error: any) {
             return handleErrors(error);
         }
     },
 
-    delete: async (url: string)  : Promise<any> => {
+    delete: async (url: string): Promise<any> => {
         try {
             const response = await axiosInstance.delete(url);
             return response;
-        } catch (error : any) {
+        } catch (error: any) {
             return handleErrors(error);
         }
     },
