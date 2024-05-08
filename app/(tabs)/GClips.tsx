@@ -15,21 +15,21 @@ const GClips = () => {
     const [selectedTag, setSelectedTag] = useState(null);
     const [videos, setVideos] = useState([
         {
-            title: 'Mike running last mile',
-            info: 'Mike added 3 videos',
-            videoUri: 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
+            title: '5 Tips for your First Day of Shooting Archery',
+            info: 'Mike added a videos',
+            videoUri: 'https://www.youtube.com/watch?v=HiQG9Jbqr0E',
             uploadHour: 1
         },
         {
-            title: 'John playing football',
-            info: 'John added 2 videos',
-            videoUri: 'https://www.youtube.com/watch?v=H5St0xIQsDo',
+            title: 'How to Swim All Four Strokes',
+            info: 'John added a video',
+            videoUri: 'https://www.youtube.com/watch?v=8c_lt66Yvn4',
             uploadHour: 2
         },
         {
-            title: 'Mat running last mile',
-            info: 'Mat added 1 videos',
-            videoUri: 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
+            title: '20 min Full Body STRETCH/YOGA for STRESS & ANXIETY Relief\n',
+            info: 'MadFit added a video',
+            videoUri: 'https://www.youtube.com/watch?v=sTANio_2E0Q',
             uploadHour: 3
         }]);
     const tags = ['New', 'Trending', 'Popular', 'Top Photos', 'Top Videos'];
@@ -44,7 +44,7 @@ const GClips = () => {
 
     const _videoPreview = ({video}: { video: any }) => {
         return (
-            <>
+            <View style={{marginBottom: 30}}>
                 <Text style={styles.videoTitle}>{video?.title}</Text>
                 <View style={styles.videoPreview}>
                     <View style={{height: '100%', width: '100%'}}>
@@ -60,7 +60,7 @@ const GClips = () => {
                         </TouchableOpacity>
                     </View>
                 </View>
-            </>
+            </View>
         );
     }
 
@@ -179,8 +179,6 @@ const styles = StyleSheet.create({
         height: hp(25),
         backgroundColor: 'white',
         borderRadius: 30,
-        padding: 2,
-        marginBottom: hp(1),
     },
     videoThumbnail: {
         width: '100%',
@@ -195,16 +193,16 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: 'bold',
         color: 'grey',
-        marginLeft: wp(2),
-        marginTop: hp(1),
-        marginBottom: hp(1)
+        marginLeft: 10,
+        marginBottom: 10
     },
     videoTitle: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: 'bold',
         color: 'black',
-        marginLeft: wp(2),
-        marginBottom: hp(1)
+        marginLeft: 5,
+        marginBottom: 10,
+        width: '90%',
     },
     videosFlatList: {
         marginTop: hp(2),

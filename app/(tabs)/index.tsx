@@ -3,8 +3,6 @@ import {
     ScrollView,
     StyleSheet, Text, TouchableOpacity,
     View,
-    Image,
-    ImageBackground
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
@@ -23,8 +21,8 @@ import {Team} from "@/models/Team";
 import {router} from "expo-router";
 import RNPickerSelect from 'react-native-picker-select';
 import {TeamService} from "@/services/TeamService";
-import {StorageService} from "@/services/StorageService";
 import Spinner from "@/components/Spinner";
+import {Image, ImageBackground} from "expo-image";
 
 const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
 
@@ -154,36 +152,38 @@ const Home = () => {
 
 
     const _renderSportItem = memo(({item}: { item: UserSportResponse }) => {
-        const [iconSource, setIconSource] = useState<any>(null);
-
-        useEffect(() => {
-            const fetchIconSource = async () => {
-                try {
-                    let source;
-                    if (!item.iconUrl) {
-                        source = require('../../assets/images/sport/sport.png');
-                    } else {
-                        const data = await StorageService.downloadImageByName(item.iconUrl, true);
-                        if (data?.image) {
-                            source = {uri: Helpers.getImageSource(data.image)};
-                        } else {
-                            source = require('../../assets/images/sport/sport.png');
-                        }
-                    }
-                    setIconSource(source);
-                } catch (error) {
-                    setIconSource(require('../../assets/images/sport/sport.png'));
-                }
-            };
-            fetchIconSource();
-        }, [item.iconUrl]);
+        //const [iconSource, setIconSource] = useState<any>(null);
+        /* useEffect(() => {
+             const fetchIconSource = async () => {
+                 try {
+                     let source;
+                     if (!item.iconUrl) {
+                         source = require('../../assets/images/sport/sport.png');
+                     } else {
+                         const data = await StorageService.downloadImageByName(item.iconUrl, true);
+                         if (data?.image) {
+                             source = {uri: Helpers.getImageSource(data.image)};
+                         } else {
+                             source = require('../../assets/images/sport/sport.png');
+                         }
+                     }
+                     setIconSource(source);
+                 } catch (error) {
+                     setIconSource(require('../../assets/images/sport/sport.png'));
+                 }
+             };
+             fetchIconSource();
+         }, [item.iconUrl]);*/
 
         return (<TouchableOpacity
             style={{justifyContent: 'center', alignItems: 'center', alignContent: 'center'}}
             onPress={() => _onSelectSport(item.id)}>
             <View style={styles.circle}>
                 <Image
-                    source={iconSource} style={styles.iconImage}/>
+                    placeholder={require('../../assets/images/sport/sport.png')}
+                    placeholderContentFit={'contain'}
+                    source={{uri: item.iconUrl}}
+                    style={styles.iconImage}/>
             </View>
             <Text style={styles.tagText}>{item.sportName}</Text>
         </TouchableOpacity>);
@@ -222,14 +222,14 @@ const Home = () => {
             onPress={() => _onSelectPlayer(item)}>
             <View>
                 <View style={styles.cardImage}>
-                    {/*{item.imageUrl ? (
+                    {item.imageUrl ? (
                         <Avatar.Image size={60} source={{uri: item.imageUrl}}/>
-                    ) : (*/}
-                    <Avatar.Text
-                        size={60}
-                        label={(item.firstName.charAt(0) + item.lastName.charAt(1)).toUpperCase()}
-                    />
-                    {/*)}*/}
+                    ) : (
+                        <Avatar.Text
+                            size={60}
+                            label={(item.firstName.charAt(0) + item.lastName.charAt(1)).toUpperCase()}
+                        />
+                    )}
                 </View>
             </View>
             <Text style={{

@@ -42,10 +42,8 @@ const EditProfile = () => {
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
 
-    //const {availableSport}: { availableSport: Sport[] } = useSelector((state: any) => state.sport);
     const [sports, setSports] = useState<Sport[]>([]);
     const [selectedSports, setSelectedSports] = useState<UserInterestedSport[]>([]);
-    const [image, setImage] = useState<any>();
 
     const params = useLocalSearchParams();
 
@@ -87,7 +85,6 @@ const EditProfile = () => {
             }
         }
         fetchSport();
-        //setUser(userData);
     }, []);
 
     useEffect(() => {
@@ -208,8 +205,6 @@ const EditProfile = () => {
                         type: 'image/png'
                     });
                 const imageUrl = await StorageService.upload(userData.id, formData);
-                const data = await StorageService.downloadImageByName(imageUrl);
-                setImage(data.image);
             }).catch(err => {
                 console.error('Error during image manipulation:', err);
             });
@@ -271,7 +266,7 @@ const EditProfile = () => {
             <>
                 <View style={styles.profilePhotoContainer}>
                     {user.imageUrl ? (
-                        <Avatar.Image size={100} source={{uri: image}}/>
+                        <Avatar.Image size={100} source={{uri: editUser.imageUrl}}/>
                     ) : (
                         <Avatar.Text size={100} label={`${editUser.firstName[0] || ''}${editUser.lastName[0] || ''}`}/>
                     )}
