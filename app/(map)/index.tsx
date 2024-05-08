@@ -1,4 +1,4 @@
-import {Alert, Image, Keyboard, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Alert, Keyboard, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import MapView from "react-native-maps";
 import {StatusBar} from "expo-status-bar";
 import React, {useEffect, useRef, useState} from "react";
@@ -12,7 +12,6 @@ import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {List, RadioButton} from "react-native-paper";
 import {FlashList} from "@shopify/flash-list";
 import Checkbox from "expo-checkbox";
-import CustomButton from "@/components/CustomButton";
 import * as Location from 'expo-location';
 
 enum Filters {
@@ -91,7 +90,7 @@ const SportMap = () => {
         setExpandedFilter(old => old !== filter ? filter : undefined);
     }
     const _handleSelectedSport = (item: UserSportResponse) => {
-        setSelectedSportForSearch(item);
+        //setSelectedSportForSearch(item);
         setSelectedSportId(item.sportId);
     }
     const _handleSortByFilter = (item: RadioBoxFilter) => {
@@ -159,7 +158,7 @@ const SportMap = () => {
                                         renderItem={({item, index}) => (
                                             <View style={{flexDirection: 'row', alignItems: 'center'}}>
                                                 <RadioButton
-                                                    color='#2757CB'
+                                                    color={'#2757CB'}
                                                     value={item.sportId}
                                                     status={selectedSportId === item.sportId ? 'checked' : 'unchecked'}
                                                     onPress={() => _handleSelectedSport(item)}

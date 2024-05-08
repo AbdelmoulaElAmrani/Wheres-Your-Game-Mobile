@@ -68,7 +68,6 @@ const Calendar = () => {
         { title: 'All', isChecked: false }
 
     ]);
-    const [snackbarVisible, setSnackbarVisible] = useState(false);
 
     useEffect(() => {
         if (user?.id) {
@@ -189,32 +188,9 @@ const Calendar = () => {
         return ranges;
     };
 
-    const _verifyEvent = () => {
-        const errorMessages = [];
-        if (!event.name.trim() || event.name.length < 3) {
-            errorMessages.push('Event name is required and must be at least 3 characters');
-        }
-        if (!event.ageGroup) {
-            errorMessages.push('Age group is required');
-        }
-        if (selectedSportLevel.length === 0) {
-            errorMessages.push('Level of play is required');
-        }
-        if (options.filter(option => option.isChecked).length === 0) {
-            errorMessages.push('Event type is required');
-        }
-        if (errorMessages.length > 0) {
-            Alert.alert('Error', errorMessages.join('\n'));
-            return false;
-        }
-
-    }
 
     const _createEvent = async () => {
-
         if (_verifyEvent() === false) return;
-
-
         try {
             var createdEvent = await EventService.createEvent({
                 name: event.name,
@@ -617,14 +593,6 @@ const Calendar = () => {
                         </View>
                     )}
                 </Modal>
-
-                <CustomSnackbar
-                    visible={snackbarVisible}
-                    onDismissSnackBar={() => setSnackbarVisible(false)}
-                    duration={2000}
-                    content="Event Created Successfully"
-                    type="success"
-                />
             </SafeAreaView>
         </ImageBackground>
     </>
@@ -751,8 +719,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginLeft: 15,
     }
-
-
 }
 );
 export default Calendar;

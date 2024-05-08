@@ -10,8 +10,6 @@ import {useDispatch, useSelector} from "react-redux";
 import {getUserProfile, logout} from "@/redux/UserSlice";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {ActivityIndicator, MD2Colors} from 'react-native-paper';
-import {StorageService} from "@/services/StorageService";
-import {Helpers} from "@/constants/Helpers";
 
 const Profile = () => {
     const dispatch = useDispatch()
@@ -19,22 +17,22 @@ const Profile = () => {
     const loading = useSelector((state: any) => state.user.loading) as boolean;
     const [image, setImage] = useState<any>();
     const [refreshing, setRefreshing] = useState<boolean>(false);
-    const loadingImage = {isStart: false};
+    //const loadingImage = {isStart: false};
 
     useEffect(() => {
         (async () => {
             await dispatch(getUserProfile() as any)
-            if (userData?.imageUrl && !loadingImage.isStart) {
-                try {
-                    console.log('start downloading', userData?.imageUrl && !loadingImage.isStart);
-                    loadingImage.isStart = true
-                    const result = await StorageService.downloadImageByName(userData.imageUrl);
-                    setImage(result.image);
-                } catch (e) {
-                } finally {
-                    loadingImage.isStart = false;
-                }
-            }
+            /* if (userData?.imageUrl && !loadingImage.isStart) {
+                 try {
+                     console.log('start downloading', userData?.imageUrl && !loadingImage.isStart);
+                     loadingImage.isStart = true
+                     const result = await StorageService.downloadImageByName(userData.imageUrl);
+                     setImage(result.image);
+                 } catch (e) {
+                 } finally {
+                     loadingImage.isStart = false;
+                 }
+             }*/
         })()
     }, []);
 
@@ -91,7 +89,7 @@ const Profile = () => {
                     ) : (
                         <>
                             {image ? (
-                                <Avatar.Image size={100} source={{uri: Helpers.getImageSource(image)}}/>
+                                <Avatar.Image size={100} source={{uri: userData.imageUrl}}/>
                             ) : (
                                 <Avatar.Text
                                     size={100}
@@ -114,7 +112,8 @@ const Profile = () => {
                                 </Text>
                             </View>
                         </>
-                    )}
+                    )
+                    }
                 </View>
 
                 <View style={styles.cardContainer}>
@@ -178,7 +177,8 @@ const Profile = () => {
                 </View>
             </SafeAreaView>
         </ImageBackground>
-    );
+    )
+        ;
 }
 
 
