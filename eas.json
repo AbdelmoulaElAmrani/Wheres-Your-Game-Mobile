@@ -1,0 +1,24 @@
+{
+  "cli": {
+    "version": ">= 9.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {}
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "apps@digiboost.com",
+        "ascAppId": "6502469400",
+        "appleTeamId": "ZF76595MC3"
+      }
+    }
+  }
+}

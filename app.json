@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "sport-app",
-    "slug": "sport-app",
+    "name": "Sport-Games",
+    "slug": "Sport-Games",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -25,7 +25,8 @@
       },
       "config": {
         "googleMapsApiKey": "YOUR_API_KEY_HERE"
-      }
+      },
+      "bundleIdentifier": "com.digiboost.sportgames"
     },
     "android": {
       "adaptiveIcon": {
@@ -36,7 +37,12 @@
         "googleMaps": {
           "apiKey": "YOUR_API_KEY_HERE"
         }
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -55,6 +61,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "60a9ee1c-1996-41b3-85d5-4618a844fe7a"
+      }
     }
   }
 }
