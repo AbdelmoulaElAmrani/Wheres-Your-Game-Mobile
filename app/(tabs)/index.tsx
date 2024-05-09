@@ -7,13 +7,13 @@ import {
 import {StatusBar} from "expo-status-bar";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
-import React, {memo, useEffect, useMemo, useState} from "react";
+import React, {memo, useEffect, useState} from "react";
 import {AntDesign, Fontisto, Ionicons, MaterialIcons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {Helpers} from "@/constants/Helpers";
 import {Player} from "@/models/Player";
-import {Avatar} from "react-native-paper";
+import {ActivityIndicator, Avatar, MD2Colors} from "react-native-paper";
 import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {getUserProfile, getUserSports} from "@/redux/UserSlice";
 import UserType from "@/models/UserType";
@@ -31,12 +31,12 @@ const Home = () => {
     const loading = useSelector((state: any) => state.user.loading) as boolean;
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
     const dispatch = useDispatch();
-    const tags = ['Add Coach', 'Add Player', 'Add Team', 'Map View'];
     const [players, setPlayers] = useState<Player[]>([]);
     const [teams, setTeams] = useState<Team[]>([]);
     const [selectedTeam, setSelectedTeam] = useState<Team | undefined>(undefined);
     const [selectedChild, setSelectedChild] = useState<Player | undefined>(undefined)
-    const [children, setChildren] = useState<Player[]>([])
+    //const [children, setChildren] = useState<Player[]>([])
+    const [playersLoading, setPlayersLoading] = useState<boolean>(false)
 
     const childrens = [
         {
@@ -83,11 +83,17 @@ const Home = () => {
         try {
             const id = selectedTeam?.id ? selectedTeam.id : team?.id ? team.id : undefined;
             if (id) {
+                setPlayersLoading(true);
                 const teamPlayers = await TeamService.getTeamPlayers(id);
-                setPlayers(teamPlayers);
+                setPlayers(old => {
+                    setPlayersLoading(false);
+                    return teamPlayers;
+                });
             }
         } catch (e) {
             console.log('_getAllPlayerOfSelectedTeam', e);
+        } finally {
+            setPlayersLoading(false);
         }
     }
 
@@ -120,7 +126,6 @@ const Home = () => {
     }
 
     const _onSelectTeam = async (team: Team) => {
-        console.log('selected team');
         if (selectedTeam?.id == team.id) {
             setSelectedTeam(undefined);
             setPlayers([]);
@@ -134,15 +139,15 @@ const Home = () => {
         }
     }
     const _onSelectPlayer = (player: any) => {
-        console.log('Player');
+        console.log('Player', player);
     }
 
     const _onSelectCategory = (category: any) => {
-        console.log('Category')
+        console.log('Category', category)
     }
 
     const _onSelectSport = (id: any) => {
-        console.log('select sport');
+        console.log('select sport', id);
     }
 
     const isCoach = (): boolean => userData.role == UserType[UserType.COACH];
@@ -152,29 +157,6 @@ const Home = () => {
 
 
     const _renderSportItem = memo(({item}: { item: UserSportResponse }) => {
-        //const [iconSource, setIconSource] = useState<any>(null);
-        /* useEffect(() => {
-             const fetchIconSource = async () => {
-                 try {
-                     let source;
-                     if (!item.iconUrl) {
-                         source = require('../../assets/images/sport/sport.png');
-                     } else {
-                         const data = await StorageService.downloadImageByName(item.iconUrl, true);
-                         if (data?.image) {
-                             source = {uri: Helpers.getImageSource(data.image)};
-                         } else {
-                             source = require('../../assets/images/sport/sport.png');
-                         }
-                     }
-                     setIconSource(source);
-                 } catch (error) {
-                     setIconSource(require('../../assets/images/sport/sport.png'));
-                 }
-             };
-             fetchIconSource();
-         }, [item.iconUrl]);*/
-
         return (<TouchableOpacity
             style={{justifyContent: 'center', alignItems: 'center', alignContent: 'center'}}
             onPress={() => _onSelectSport(item.id)}>
@@ -304,7 +286,7 @@ const Home = () => {
                             placeholder={{}}
                             items={childrens}
                             onValueChange={value => {
-                                console.log(value)
+                                console.log(value);
                             }}
                             style={pickerSelectStyles}
                             value={selectedChild}
@@ -373,22 +355,24 @@ const Home = () => {
                                         <Text style={styles.menuTitle}>{isCoach() ? 'Your ' : ''}Players <Text
                                             style={styles.count}>{players?.length}</Text></Text>
                                     </View>
-                                    {isCoach() && <TouchableOpacity
+                                    {isCoach() && !playersLoading && <TouchableOpacity
                                         onPress={_onAddPlayer}
                                         style={styles.btnContainer}>
                                         <Text style={styles.btnText}>Add Player</Text>
                                         <AntDesign name="right" size={20} color="#4361EE"/>
                                     </TouchableOpacity>}
                                 </View>
-                                <FlatList
-                                    data={players}
-                                    renderItem={({item}) => <_renderPlayer item={item}/>}
-                                    keyExtractor={item => item.id}
-                                    horizontal={true}
-                                    showsHorizontalScrollIndicator={true}
-                                    focusable={true}
-                                    nestedScrollEnabled={true}
-                                />
+                                {playersLoading ? (
+                                        <ActivityIndicator animating={true} color={MD2Colors.blueA700} size={35}/>) :
+                                    (<FlatList
+                                        data={players}
+                                        renderItem={({item}) => <_renderPlayer item={item}/>}
+                                        keyExtractor={item => item.id}
+                                        horizontal={true}
+                                        showsHorizontalScrollIndicator={true}
+                                        focusable={true}
+                                        nestedScrollEnabled={true}
+                                    />)}
                             </View>}
 
                             <View style={[styles.menuContainer, {marginBottom: 100}]}>

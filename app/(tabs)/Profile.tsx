@@ -10,6 +10,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {getUserProfile, logout} from "@/redux/UserSlice";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {ActivityIndicator, MD2Colors} from 'react-native-paper';
+import {blueA700} from "react-native-paper/src/styles/themes/v2/colors";
 
 const Profile = () => {
     const dispatch = useDispatch()
@@ -85,7 +86,7 @@ const Profile = () => {
             <SafeAreaView>
                 <View style={styles.userInfoContainer}>
                     {loading ? (
-                        <ActivityIndicator animating={true} color={MD2Colors.purple200} size={50}/>
+                        <ActivityIndicator animating={true} color={MD2Colors.blueA700} size={50}/>
                     ) : (
                         <>
                             {image ? (
