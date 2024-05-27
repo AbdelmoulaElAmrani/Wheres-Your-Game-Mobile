@@ -118,7 +118,7 @@ const Home = () => {
     }
 
     const _onAddTeam = () => {
-        console.log('Add Team');
+        router.navigate('TeamForm');
     }
 
     const _onViewAll = () => {
