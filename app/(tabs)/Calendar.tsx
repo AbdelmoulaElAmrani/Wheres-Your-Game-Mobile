@@ -24,7 +24,6 @@ import Checkbox from "expo-checkbox";
 import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
 import {EventService} from "@/services/EventService";
 import {SportEvent} from "@/models/SportEvent";
-import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {SportEventRequest} from "@/models/requestObjects/SportEventRequest";
 
 
@@ -37,11 +36,11 @@ interface CheckboxProps {
 
 const Calendar = () => {
     const user = useSelector((state: any) => state.user.userData) as UserResponse;
-    const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
+    //const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
     const today = moment();
     const [selectedDate, setSelectedDate] = useState<moment.Moment>(today);
-    const minDate = today.clone().add(1, 'months').toDate();
-    const maxDate = today.clone().subtract(6, 'months').toDate();
+    const minDate = today.clone().add(12, 'months').toDate();
+    const maxDate = today.clone().subtract(12, 'months').toDate();
     const [markedToday, setMarkedToday] = useState<any>(
         [{
             date: today,
@@ -53,7 +52,7 @@ const Calendar = () => {
     // EVENT MODAL
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [open, setOpen] = useState(false);
-    const [eventDate, setEventDate] = useState<Date | null>(null);
+    //const [eventDate, setEventDate] = useState<Date | null>(null);
 
     const [event, setEvent] = useState<any>({
         name: '',
@@ -82,7 +81,7 @@ const Calendar = () => {
 
     ]);
 
-    const [snackbarVisible, setSnackbarVisible] = useState(false);
+    //const [snackbarVisible, setSnackbarVisible] = useState(false);
 
     useEffect(() => {
         if (user?.id) {
@@ -153,9 +152,9 @@ const Calendar = () => {
             description: item?.description
         });
 
-        if (item.date) {
+        /*if (item.date) {
             setEventDate(new Date(item?.date));
-        }
+        }*/
 
         if (item.time) {
             const [hours, minutes] = item.time.split(':');
@@ -238,7 +237,7 @@ const Calendar = () => {
 
             if (createdEvent) {
                 setEvents([...events, createdEvent]);
-                setSnackbarVisible(true);
+                //setSnackbarVisible(true);
                 // reset event state
                 setSelectedSportLevel([]);
                 setEvent({name: '', date: new Date(), time: '', type: [], level: [], ageGroup: ''});
@@ -301,7 +300,7 @@ const Calendar = () => {
         setCurrentModalStep(1);
         setEvent({name: '', date: new Date(), time: '', type: [], level: [], ageGroup: '', id: ''});
         setOpen(false);
-        setEventDate(null);
+        //setEventDate(null);
         setTimeOpen(false);
         setEditMode(false);
     }
@@ -356,7 +355,6 @@ const Calendar = () => {
         }
     };
 
-
     const _renderEvent = memo(({item}: { item: SportEvent }) => {
 
         return (
@@ -384,9 +382,7 @@ const Calendar = () => {
         );
     });
 
-
     const isCoach = (): boolean => user?.role == UserType[UserType.COACH];
-
 
     const getTitle = (): string => {
         if (isCoach())

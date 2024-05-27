@@ -24,7 +24,7 @@
         "NSPhotoLibraryUsageDescription ": "$(PRODUCT_NAME) requires access to your photo to allow you to upload photos"
       },
       "config": {
-        "googleMapsApiKey": "YOUR_API_KEY_HERE"
+        "googleMapsApiKey": "AIzaSyDlFo6upaajnGewXn4DX4-naBhsWPcn8VE"
       },
       "bundleIdentifier": "com.digiboost.sportgames"
     },
@@ -35,7 +35,7 @@
       },
       "config": {
         "googleMaps": {
-          "apiKey": "YOUR_API_KEY_HERE"
+          "apiKey": "AIzaSyDlFo6upaajnGewXn4DX4-naBhsWPcn8VE"
         }
       },
       "permissions": [
@@ -57,7 +57,8 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

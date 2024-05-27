@@ -21,9 +21,10 @@ import {router, useLocalSearchParams} from "expo-router";
 import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
 import {useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
-import {Style} from "domelementtype";
 
 const SportInterested = () => {
+
+
     const _stepTitles = [
         {
             title: 'Choose your sports',
@@ -32,6 +33,7 @@ const SportInterested = () => {
             title: 'Choose a level for sports',
             Header: 'Sports Level'
         }];
+
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [selectedSports, setSelectedSports] = useState<Map<string, UserInterestedSport>>(new Map([]));
     const [sports, setSports] = useState<Sport[] | undefined>([]);

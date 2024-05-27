@@ -1,24 +1,37 @@
-import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {ImageBackground} from "expo-image";
-import {router} from "expo-router";
-import {memo, useEffect, useState} from "react";
+import {router, useRouter} from "expo-router";
+import {memo, useEffect, useRef, useState} from "react";
 import {Conversation, Message} from "@/models/Conversation";
 import {FlashList} from "@shopify/flash-list";
-import {Avatar, Badge, Divider} from "react-native-paper";
+import {Avatar, Divider, Modal} from "react-native-paper";
 import {Helpers} from "@/constants/Helpers";
 import {heightPercentageToDP, widthPercentageToDP} from "react-native-responsive-screen";
 import {AntDesign, FontAwesome} from "@expo/vector-icons";
+import Spinner from "@/components/Spinner";
+import {ChatService} from "@/services/ChatService";
+import {UserService} from "@/services/UserService";
+import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
+
 
 const Chats = () => {
-
+    const MESSAGE_TIMER = 10 * 1000 * 10;
     const [recentChats, setRecentChats] = useState<Conversation[]>([]);
+    const _router = useRouter();
+    const [loading, setLoading] = useState<boolean>(false);
+    const [modalOpen, setModalOpen] = useState<boolean>(false);
 
 
     useEffect(() => {
+        //const intervalId = setInterval(() => {
+        //fetchConversations();
+        //}, MESSAGE_TIMER);
+
         const fakers = Conversation.generateFakeConversations(10);
         setRecentChats(fakers);
+        //return () => clearInterval(intervalId);
     }, []);
 
     const _handleGoBack = () => {
@@ -26,9 +39,85 @@ const Chats = () => {
             router.back();
     }
 
-    const _onOpenConversation = (chat: Conversation): void => {
-        console.log(chat);
+    const fetchConversations = async () => {
+        console.log('begin call');
+        const data = await ChatService.getConversation();
+        if (data)
+            setRecentChats(data);
     }
+
+    const _onOpenConversation = (chat: Conversation): void => {
+        const receptionId = chat.participant1?.id;
+        console.log('receptionId Id', receptionId);
+        _router.push({
+            pathname: '/UserConversation',
+            params: {data: receptionId},
+        });
+    }
+
+
+    const _showSearchUserModal = () => {
+        // console.log('here');
+        // _router.navigate('/UserChatSearchModal');
+        setModalOpen(true);
+    }
+    const _hideSearchUserModal = () => {
+        setModalOpen(false);
+    }
+
+    const _onSearchSubmit = async (searchQuery: string) => {
+        console.log('here');
+        //const data = await UserService.SearchUsersByFullName(searchQuery);
+    }
+    const _userSearchModal = memo(() => {
+        const [searchName, setSearchName] = useState('');
+
+        return (
+            <Modal visible={modalOpen}
+                   onDismiss={_hideSearchUserModal}
+                   contentContainerStyle={styles.modal}>
+                <KeyboardAwareScrollView
+                    style={{width: '100%', height: '100%', paddingVertical: 10, paddingHorizontal: 8}}
+                >
+                    <View style={{
+                        width: '95%',
+                        marginTop: heightPercentageToDP(1.5),
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        alignSelf: 'center'
+                    }}>
+                        <TextInput
+                            placeholder='Search name'
+                            placeholderTextColor='#bbb'
+                            onChangeText={(value) => setSearchName(value)}
+                            value={searchName}
+                            returnKeyType='search'
+                            autoFocus={true}
+                            onSubmitEditing={() => _onSearchSubmit(searchName)}
+                            clearButtonMode="while-editing"
+                            style={styles.searchText}
+                        />
+                        <TouchableOpacity
+                            onPress={_hideSearchUserModal}
+                        >
+                            <Text
+                                style={{
+                                    fontSize: 16,
+                                    fontWeight: 'bold',
+                                    color: 'blue'
+                                }}
+                            >Cancel</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <View>
+                        {/*TODO:: FlatList*/}
+                    </View>
+                </KeyboardAwareScrollView>
+            </Modal>
+        );
+    });
 
     const _renderConversation = memo(({item}: { item: Conversation }) => {
         return (
@@ -42,6 +131,7 @@ const Chats = () => {
                         ) : (
                             <Avatar.Text
                                 size={50}
+                                // @ts-ignore
                                 label={(item.participant1?.firstName?.charAt(0) + item.participant1?.lastName?.charAt(0)).toUpperCase()}/>
                         )}
                     </View>
@@ -81,38 +171,85 @@ const Chats = () => {
                 flex: 1,
                 width: '100%',
             }}
-            source={require('../../assets/images/signupBackGround.jpg')}
-        >
+            source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
+                {loading && (
+                    <Spinner visible={loading}/>
+                )}
                 <CustomNavigationHeader text={"Message"} goBackFunction={_handleGoBack} showBackArrow/>
-                <View style={{backgroundColor: 'white', height: '100%', width: '100%'}}>
-                    <FlashList
-                        data={recentChats}
-                        renderItem={({item, index}) => <_renderConversation item={item}/>}
-                        keyExtractor={item => item.conversationId}
-                        estimatedItemSize={10}
-                        contentContainerStyle={{backgroundColor: 'white', padding: 10}}
-                        ListFooterComponent={<View style={{height: heightPercentageToDP(20)}}>
-                            <View style={{flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
-                                <AntDesign name="checkcircle" size={20} color="#2757CB"/>
-                                <Text style={{
-                                    fontSize: 16,
-                                    fontWeight: 'bold',
-                                    marginLeft: 5,
-                                    color: '#2757CB'
-                                }}>End</Text>
-                            </View>
-                        </View>}
-                    />
+                <View style={styles.mainContainer}>
+                    <View style={styles.searchContainer}>
+                        <TouchableOpacity
+                            onPress={_showSearchUserModal}
+                            style={{alignItems: 'flex-end', marginRight: 15, marginTop: '4%'}}>
+                            <AntDesign name="pluscircle" size={30} color="#2757CB"/>
+                        </TouchableOpacity>
+                    </View>
+                    <View style={styles.conversationContainer}>
+                        <FlashList
+                            data={recentChats}
+                            renderItem={({item, index}) => <_renderConversation item={item}/>}
+                            keyExtractor={item => item.conversationId}
+                            estimatedItemSize={10}
+                            contentContainerStyle={{backgroundColor: 'white', padding: 10}}
+                            ListFooterComponent={<View style={{height: heightPercentageToDP(20)}}>
+                                <View style={styles.endContainer}>
+                                    <AntDesign name="checkcircle" size={20} color="#2757CB"/>
+                                    <Text style={styles.endText}>End</Text>
+                                </View>
+                            </View>}
+                        />
+                    </View>
                 </View>
+                {modalOpen && <_userSearchModal/>}
             </SafeAreaView>
         </ImageBackground>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
+    endText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginLeft: 5,
+        color: '#2757CB'
     },
+    mainContainer: {
+        backgroundColor: 'white',
+        height: '100%',
+        width: '100%'
+    },
+    endContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    conversationContainer: {
+        height: '90%',
+        width: '100%'
+    },
+    searchContainer: {
+        height: '6%'
+    },
+    modal: {
+        backgroundColor: 'white',
+        borderRadius: 20,
+        paddingHorizontal: 5,
+        width: '100%',
+        height: '80%',
+        alignItems: 'center',
+        alignSelf: 'center',
+        justifyContent: 'flex-start',
+        marginTop: 10,
+    },
+    searchText: {
+        fontSize: 16,
+        height: 30,
+        backgroundColor: 'grey',
+        width: '80%',
+        color: 'black',
+        padding: 10,
+        borderRadius: 5
+    }
 });
 export default Chats;

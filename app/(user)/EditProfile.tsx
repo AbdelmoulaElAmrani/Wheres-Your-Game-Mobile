@@ -157,7 +157,6 @@ const EditProfile = () => {
                 }
             }
         }
-
     }
 
     const goBackFunc = () => {
@@ -560,14 +559,9 @@ const EditProfile = () => {
                         sportName: selectedSport.name
                     }]);
             }
-
-            if (selectedSports.length === 0 && userSport.length === 0) {
+            if (selectedSports.length === 0 && userSport.length === 0)
                 return;
-            }
-
-
             await _handleContinue();
-
         }
 
 

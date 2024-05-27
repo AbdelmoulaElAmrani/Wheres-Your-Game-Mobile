@@ -30,7 +30,7 @@ const Notifications = () => {
         console.log(chat);
     }
 
-    const _renderConversation = memo(({item}: { item: Conversation }) => {
+    const _renderNotifications = memo(({item}: { item: Conversation }) => {
         return (
             <TouchableOpacity
                 onPress={() => _onOpenConversation(item)}
@@ -42,6 +42,7 @@ const Notifications = () => {
                         ) : (
                             <Avatar.Text
                                 size={50}
+                                // @ts-ignore
                                 label={(item.participant1?.firstName?.charAt(0) + item.participant1?.lastName?.charAt(0)).toUpperCase()}/>
                         )}
                     </View>
@@ -73,7 +74,7 @@ const Notifications = () => {
                     <View style={{height: '100%', width: '90%'}}>
                         <FlashList
                             data={recentChats}
-                            renderItem={({item, index}) => <_renderConversation item={item}/>}
+                            renderItem={({item, index}) => <_renderNotifications item={item}/>}
                             keyExtractor={item => item.conversationId}
                             estimatedItemSize={10}
                             contentContainerStyle={{backgroundColor: 'white', padding: 10}}

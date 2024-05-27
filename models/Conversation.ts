@@ -1,25 +1,23 @@
 import {UserResponse} from "@/models/responseObjects/UserResponse";
-import {timestamp} from "yaml/dist/schema/yaml-1.1/timestamp";
 import Gender from "@/models/Gender";
 
 export class Message {
     // @ts-ignore
-    public messageId: string;
+    public id: string;
     // @ts-ignore
-    public content: string;
+    public message: string;
     // @ts-ignore
     public timestamp: Date;
     // @ts-ignore
     public senderId: string;
     // @ts-ignore
-    public viewed: boolean = false;
+    public receiverId: string;
 
-    constructor(messageId?: string, senderId?: string, content?: string, viewed?: boolean, timestamp?: Date) {
-        this.messageId = messageId || '';
-        this.content = content || '';
+    constructor(messageId?: string, senderId?: string, content?: string, timestamp?: Date) {
+        this.id = messageId || '';
+        this.message = content || '';
         this.timestamp = timestamp || new Date();
         this.senderId = senderId || '';
-        this.viewed = viewed || false;
     }
 }
 
@@ -48,6 +46,7 @@ export class Conversation {
     static generateFakeConversations = (numConversations: number): Conversation[] => {
         return Array.from({length: numConversations}, (_, i) => new Conversation(
             `${i + 1}`,
+            // @ts-ignore
             {
                 id: `${i + 2}`,
                 role: 'PLAYER',
@@ -65,7 +64,7 @@ export class Conversation {
                 imageUrl: ''
             },
             [],
-            new Message(`${i + 1}`, `${i + 2}`, 'Hello, how are you doing?', !(i % 2)),
+            new Message(`${i + 1}`, `${i + 2}`, 'Hello, how are you doing?'),
             new Date(),
         ));
     }
