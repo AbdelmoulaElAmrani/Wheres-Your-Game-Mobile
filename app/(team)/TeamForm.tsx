@@ -23,6 +23,9 @@ import { TeamService } from '@/services/TeamService';
 import { UserResponse } from '@/models/responseObjects/UserResponse';
 import { getUserProfile } from '@/redux/UserSlice';
 import { router } from 'expo-router';
+import * as ImagePicker from "expo-image-picker";
+import {manipulateAsync, SaveFormat} from "expo-image-manipulator";
+import { StorageService } from '@/services/StorageService';
 
 
 function TeamForm() {
@@ -101,7 +104,7 @@ function TeamForm() {
             sportId: selectedSportId,
             players: selectedPlayers,
             accountId: userData.id,
-            imgUrl :''
+            imgUrl : team.imgUrl ? team.imgUrl : ''
         }).then((response) => {
             if (response) {
                 router.replace('/(tabs)');
@@ -110,6 +113,35 @@ function TeamForm() {
             }
         });
 
+    };
+
+    const _handleImagePicker = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.2
+        });
+        if (!result.canceled) {
+            manipulateAsync(result.assets[0].uri, [{resize: {height: 900, width: 900}}], {
+                compress: 0.2,
+                format: SaveFormat.PNG
+            }).then(async (manipulateImgResult) => {
+                const formData = new FormData();
+                // @ts-ignore
+                formData.append(
+                    'file',
+                    {
+                        uri: manipulateImgResult.uri,
+                        name: result.assets[0].fileName ? result.assets[0].fileName : 'teamImage.png',
+                        type: 'image/png'
+                    });
+                const imageUrl = await StorageService.upload(userData.id, formData, false);
+                setTeam({ ...team, imgUrl: imageUrl });
+            }).catch(err => {
+                console.error('Error during image manipulation:', err);
+            });
+        }
     };
 
 
@@ -164,7 +196,9 @@ function TeamForm() {
                                     placeholderTextColor={'grey'}
                                     left={<TextInput.Icon color={'#D3D3D3'} icon='image' />}
                                     underlineColor="transparent"
-                                    onPress={() => console.log('image')}
+                                    onPress={_handleImagePicker}
+                                    disabled={true}
+                                    value={team?.imgUrl ? 'Image selected' : 'select image'}
                                 />
                                 <Text style={styles.textLabel}>Players</Text>
                                 <MultiSelect
