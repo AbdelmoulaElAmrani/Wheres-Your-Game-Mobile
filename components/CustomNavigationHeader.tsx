@@ -1,8 +1,15 @@
-import { Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { Ionicons } from '@expo/vector-icons';
-import { router } from "expo-router";
+import {Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Ionicons} from '@expo/vector-icons';
+import {router} from "expo-router";
 
-const CustomNavigationHeader = ({ text, showBackArrow = true, showSkip = false, skipNavigation, showLogo = false, goBackFunction }: {
+const CustomNavigationHeader = ({
+                                    text,
+                                    showBackArrow = true,
+                                    showSkip = false,
+                                    skipNavigation,
+                                    showLogo = false,
+                                    goBackFunction
+                                }: {
     text?: string,
     showSkip?: boolean,
     skipNavigation?: () => void,
@@ -27,14 +34,16 @@ const CustomNavigationHeader = ({ text, showBackArrow = true, showSkip = false, 
 
     return (
         <View style={styles.container}>
-            {showBackArrow ?   <TouchableOpacity onPress={_handleGoBack}>
-                <Ionicons name="chevron-back" size={35} color="white" />
+            {showBackArrow ? <TouchableOpacity onPress={_handleGoBack}>
+                <Ionicons name="chevron-back" size={35} color="white"/>
             </TouchableOpacity> : <View></View>}
             <View>
                 {showLogo ?
-                    <Image source={require('../assets/images/ballwithoutText.png')} />
+                    <Image source={require('../assets/images/ballwithoutText.png')}/>
                     :
-                    <Text style={styles.text}>{text}</Text>
+                    <Text
+                        numberOfLines={1}
+                        style={styles.text}>{text}</Text>
                 }
             </View>
             {showSkip ?
@@ -62,12 +71,12 @@ const styles = StyleSheet.create({
     text: {
         fontWeight: 'bold',
         color: 'white',
-        fontSize: 25
+        fontSize: 22
     },
     textSkip: {
         fontWeight: 'bold',
         color: 'white',
-        fontSize: 20,
+        fontSize: 18,
     },
 });
 

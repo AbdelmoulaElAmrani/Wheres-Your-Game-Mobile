@@ -1,6 +1,7 @@
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import Requests from "./Requests";
 import {UserRequest} from "@/models/requestObjects/UserRequest";
+import UserType from "@/models/UserType";
 
 
 export class UserService {
@@ -48,11 +49,14 @@ export class UserService {
         }
     }
 
-    static async SearchUsersByFullName(searchName: string) {
+    static async SearchUsersByFullName(searchName: string, type: UserType | null = null) {
         try {
-            var res = await Requests.get(`user/search?fullName=${searchName}`);
+            let userTpe = 'ALL';
+            if (type != null)
+                userTpe = type.toString();
+            var res = await Requests.get(`user/search?fullName=${searchName}&type=${userTpe}`);
             if (res?.status === 200 && res?.data) {
-                return res?.data as UserResponse;
+                return res?.data as UserResponse [];
             }
             return undefined;
         } catch (error) {

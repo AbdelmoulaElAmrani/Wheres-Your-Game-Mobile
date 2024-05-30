@@ -20,6 +20,7 @@ import SockJS from "sockjs-client";
 import Stomp from "stompjs";
 import {useSelector} from "react-redux";
 import {UserService} from "@/services/UserService";
+import {useRoute} from "@react-navigation/core";
 
 const UserConversation = () => {
 
@@ -50,13 +51,23 @@ const UserConversation = () => {
         {id: '2', text: 'Hi! How are you?', sender: 'user2'},
         {id: '3', text: 'I am good, thanks!', sender: 'user1'},
     ]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const route = useRoute();
+    const paramData = route.params as any; // Retrieve the parameter
 
 
     useEffect(() => {
+        setLoading(true);
+        const receiverId = paramData?.data;
+        const fetchUserData = async () => {
+            const userData = await UserService.getUserProfileById(receiverId);
+            if (userData)
+                setReceiver(userData);
+            else
+                router.back();
+        }
 
-        // TODO:: Get the receiver
-        // const user: UserResponse =  await UserService.getUserProfileById('id');
-
+        fetchUserData();
         /* const socket = new SockJS('http://your-backend-url/ws');
          const client: Stomp.Client = Stomp.over(socket);
 
@@ -74,6 +85,7 @@ const UserConversation = () => {
                  client.disconnect(() => {});
              }
          };*/
+        setLoading(false);
     }, []);
 
     const handleSend = () => {

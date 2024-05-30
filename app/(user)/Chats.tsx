@@ -1,4 +1,4 @@
-import {Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
+import {FlatList, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {ImageBackground} from "expo-image";
@@ -13,7 +13,7 @@ import {AntDesign, FontAwesome} from "@expo/vector-icons";
 import Spinner from "@/components/Spinner";
 import {ChatService} from "@/services/ChatService";
 import {UserService} from "@/services/UserService";
-import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
+import {UserResponse} from "@/models/responseObjects/UserResponse";
 
 
 const Chats = () => {
@@ -57,28 +57,54 @@ const Chats = () => {
 
 
     const _showSearchUserModal = () => {
-        // console.log('here');
-        // _router.navigate('/UserChatSearchModal');
         setModalOpen(true);
     }
     const _hideSearchUserModal = () => {
         setModalOpen(false);
     }
 
-    const _onSearchSubmit = async (searchQuery: string) => {
-        console.log('here');
-        //const data = await UserService.SearchUsersByFullName(searchQuery);
+    const startChatWithUser = (item: UserResponse) => {
+        _hideSearchUserModal();
+        const receptionId = item.id;
+        _router.push({
+            pathname: '/UserConversation',
+            params: {data: receptionId},
+        });
     }
-    const _userSearchModal = memo(() => {
-        const [searchName, setSearchName] = useState('');
 
+
+    const _userSearchModal = memo(() => {
+        const [searchName, setSearchName] = useState<string>('');
+        const [people, setPeople] = useState<UserResponse[]>([]);
+
+        const _onSearchSubmit = async () => {
+            if (searchName.trim() === '') return;
+            console.log(searchName);
+            const data = await UserService.SearchUsersByFullName(searchName);
+            if (data)
+                setPeople(data);
+            else
+                setPeople([]);
+        }
+        const _renderUserItem = ({item}: { item: UserResponse }) => (
+            <TouchableOpacity style={styles.userItem} onPress={() => startChatWithUser(item)}>
+                {item.imageUrl ? (
+                    <Avatar.Image size={35} source={{uri: item.imageUrl}}/>
+                ) : (
+                    <Avatar.Text
+                        size={35}
+                        label={(item?.firstName?.charAt(0) + item?.lastName?.charAt(0)).toUpperCase()}
+                    />
+                )}
+                <Text style={styles.userName}>{`${item.firstName} ${item.lastName}`}</Text>
+            </TouchableOpacity>
+        );
         return (
             <Modal visible={modalOpen}
                    onDismiss={_hideSearchUserModal}
                    contentContainerStyle={styles.modal}>
-                <KeyboardAwareScrollView
-                    style={{width: '100%', height: '100%', paddingVertical: 10, paddingHorizontal: 8}}
-                >
+                <KeyboardAvoidingView
+                    style={{width: '100%', height: '100%', paddingVertical: 10, paddingHorizontal: 8}}>
                     <View style={{
                         width: '95%',
                         marginTop: heightPercentageToDP(1.5),
@@ -94,27 +120,27 @@ const Chats = () => {
                             value={searchName}
                             returnKeyType='search'
                             autoFocus={true}
-                            onSubmitEditing={() => _onSearchSubmit(searchName)}
+                            onSubmitEditing={_onSearchSubmit}
                             clearButtonMode="while-editing"
                             style={styles.searchText}
                         />
                         <TouchableOpacity
-                            onPress={_hideSearchUserModal}
-                        >
-                            <Text
-                                style={{
-                                    fontSize: 16,
-                                    fontWeight: 'bold',
-                                    color: 'blue'
-                                }}
-                            >Cancel</Text>
+                            onPress={_hideSearchUserModal}>
+                            <Text style={styles.cancelText}>Cancel</Text>
                         </TouchableOpacity>
                     </View>
 
-                    <View>
-                        {/*TODO:: FlatList*/}
+                    <View style={{width: '100%'}}>
+                        {people.length > 0 ? <FlatList
+                            data={people}
+                            keyExtractor={(item) => item.id.toString()}
+                            renderItem={_renderUserItem}
+                            style={styles.userList}
+                        /> : <Text
+                            style={{textAlign: 'center', fontWeight: 'bold', marginTop: heightPercentageToDP(30)}}>No
+                            User</Text>}
                     </View>
-                </KeyboardAwareScrollView>
+                </KeyboardAvoidingView>
             </Modal>
         );
     });
@@ -146,7 +172,10 @@ const Chats = () => {
                             </View>
                         </View>
                         <Text style={{color: 'grey', fontSize: 14, textAlign: 'auto', marginTop: 8}}
-                              numberOfLines={2}>Lorem
+                              numberOfLines={2}>
+                            {item.lastMessage?.message}
+                            {/*
+                            Lorem
                             ipsum dolor sit amet, consectetur adipiscing elit.
                             Etiam consequat purus vitae purus condimentum fermentum. Vivamus augue nunc, aliquam
                             quis
@@ -156,14 +185,15 @@ const Chats = () => {
                             Quisque elementum a arcu non pellentesque. Integer bibendum ut augue in congue. Praesent
                             ac
                             magna quis justo blandit porttitor.
-                            Donec eu turpis sit amet ex fermentum vehicula vel nec lorem. Sed et eros nunc.</Text>
+                            Donec eu turpis sit amet ex fermentum vehicula vel nec lorem. Sed et eros nunc.
+                            */}
+                        </Text>
                     </View>
                 </View>
                 <Divider/>
             </TouchableOpacity>
         );
     });
-
 
     return (
         <ImageBackground
@@ -229,7 +259,7 @@ const styles = StyleSheet.create({
         width: '100%'
     },
     searchContainer: {
-        height: '6%'
+        height: '6%',
     },
     modal: {
         backgroundColor: 'white',
@@ -243,13 +273,35 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     searchText: {
+        height: 40,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 5,
+        paddingLeft: 10,
+        color: '#000',
+        flex: 1,
+        marginRight: 10,
+    },
+    cancelText: {
         fontSize: 16,
-        height: 30,
-        backgroundColor: 'grey',
-        width: '80%',
-        color: 'black',
+        fontWeight: 'bold',
+        color: 'blue',
+    },
+    userList: {
+        marginTop: 20,
+    },
+    userItem: {
         padding: 10,
-        borderRadius: 5
-    }
+        borderBottomColor: '#ccc',
+        borderBottomWidth: 1,
+        alignItems: 'center',
+        flexDirection: 'row',
+        marginTop: heightPercentageToDP(1)
+    },
+    userName: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginLeft: widthPercentageToDP(2)
+    },
 });
 export default Chats;
