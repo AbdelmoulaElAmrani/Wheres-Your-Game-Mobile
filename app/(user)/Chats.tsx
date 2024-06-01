@@ -3,8 +3,8 @@ import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {ImageBackground} from "expo-image";
 import {router, useRouter} from "expo-router";
-import {memo, useEffect, useRef, useState} from "react";
-import {Conversation, Message} from "@/models/Conversation";
+import {memo, useEffect, useState} from "react";
+import {Conversation} from "@/models/Conversation";
 import {FlashList} from "@shopify/flash-list";
 import {Avatar, Divider, Modal} from "react-native-paper";
 import {Helpers} from "@/constants/Helpers";
@@ -25,13 +25,14 @@ const Chats = () => {
 
 
     useEffect(() => {
-        //const intervalId = setInterval(() => {
-        //fetchConversations();
-        //}, MESSAGE_TIMER);
-
-        const fakers = Conversation.generateFakeConversations(10);
-        setRecentChats(fakers);
-        //return () => clearInterval(intervalId);
+        setLoading(true);
+        const intervalId = setInterval(() => {
+            fetchConversations();
+        }, MESSAGE_TIMER);
+        //const fakers = Conversation.generateFakeConversations(10);
+        //setRecentChats(fakers);
+        setLoading(false);
+        return () => clearInterval(intervalId);
     }, []);
 
     const _handleGoBack = () => {
@@ -40,7 +41,6 @@ const Chats = () => {
     }
 
     const fetchConversations = async () => {
-        console.log('begin call');
         const data = await ChatService.getConversation();
         if (data)
             setRecentChats(data);
@@ -48,7 +48,6 @@ const Chats = () => {
 
     const _onOpenConversation = (chat: Conversation): void => {
         const receptionId = chat.participant1?.id;
-        console.log('receptionId Id', receptionId);
         _router.push({
             pathname: '/UserConversation',
             params: {data: receptionId},
@@ -79,7 +78,6 @@ const Chats = () => {
 
         const _onSearchSubmit = async () => {
             if (searchName.trim() === '') return;
-            console.log(searchName);
             const data = await UserService.SearchUsersByFullName(searchName);
             if (data)
                 setPeople(data);
@@ -174,19 +172,6 @@ const Chats = () => {
                         <Text style={{color: 'grey', fontSize: 14, textAlign: 'auto', marginTop: 8}}
                               numberOfLines={2}>
                             {item.lastMessage?.message}
-                            {/*
-                            Lorem
-                            ipsum dolor sit amet, consectetur adipiscing elit.
-                            Etiam consequat purus vitae purus condimentum fermentum. Vivamus augue nunc, aliquam
-                            quis
-                            nisi et,
-                            faucibus pellentesque tortor. Suspendisse dictum euismod ligula, vitae molestie nisl
-                            placerat quis.
-                            Quisque elementum a arcu non pellentesque. Integer bibendum ut augue in congue. Praesent
-                            ac
-                            magna quis justo blandit porttitor.
-                            Donec eu turpis sit amet ex fermentum vehicula vel nec lorem. Sed et eros nunc.
-                            */}
                         </Text>
                     </View>
                 </View>
@@ -216,9 +201,10 @@ const Chats = () => {
                         </TouchableOpacity>
                     </View>
                     <View style={styles.conversationContainer}>
+                        {recentChats.length > 0 ?
                         <FlashList
                             data={recentChats}
-                            renderItem={({item, index}) => <_renderConversation item={item}/>}
+                            renderItem={({item}) => <_renderConversation item={item}/>}
                             keyExtractor={item => item.conversationId}
                             estimatedItemSize={10}
                             contentContainerStyle={{backgroundColor: 'white', padding: 10}}
@@ -228,7 +214,8 @@ const Chats = () => {
                                     <Text style={styles.endText}>End</Text>
                                 </View>
                             </View>}
-                        />
+                        /> : <Text style={{alignSelf: 'center'}}>No Message</Text>
+                        }
                     </View>
                 </View>
                 {modalOpen && <_userSearchModal/>}

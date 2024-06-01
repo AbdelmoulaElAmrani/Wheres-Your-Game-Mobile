@@ -7,7 +7,6 @@ export class ChatService {
         try {
             var res = await Requests.get(`conversation`);
             if (res?.status === 200 && res?.data) {
-                console.log(res.data);
                 return res?.data as Conversation[];
             }
             return undefined;
