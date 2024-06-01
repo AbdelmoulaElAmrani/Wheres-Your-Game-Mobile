@@ -26,14 +26,14 @@ const Notifications = () => {
             router.back();
     }
 
-    const _onOpenConversation = (chat: Conversation): void => {
+    const _onOpenNotification = (chat: Conversation): void => {
         console.log(chat);
     }
 
     const _renderNotifications = memo(({item}: { item: Conversation }) => {
         return (
             <TouchableOpacity
-                onPress={() => _onOpenConversation(item)}
+                onPress={() => _onOpenNotification(item)}
                 style={styles.notification}>
                 <View style={{flexDirection: 'row', height: 60}}>
                     <View style={{backgroundColor: 'white', flex: 0.2, alignItems: 'center'}}>

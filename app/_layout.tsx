@@ -77,6 +77,7 @@ function RootLayoutNav() {
                         <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
                         <Stack.Screen name="(user)" options={{headerShown: false}}/>
                         <Stack.Screen name="(map)" options={{headerShown: false}}/>
+                        <Stack.Screen name="(team)" options={{headerShown: false}}/>
                     </Stack>
                 </SafeAreaProvider>
             </PersistGate>
