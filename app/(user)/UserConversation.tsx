@@ -21,6 +21,11 @@ import Stomp from "stompjs";
 import {useSelector} from "react-redux";
 import {UserService} from "@/services/UserService";
 import {useRoute} from "@react-navigation/core";
+import {Message} from "@/models/Conversation";
+import {AuthService} from "@/services/AuthService";
+
+
+const url = 'https://salmon-specials-prefer-meaningful.trycloudflare.com/ws';
 
 const UserConversation = () => {
 
@@ -46,14 +51,15 @@ const UserConversation = () => {
         zipCode: ""
     });
     const [message, setMessage] = useState<string>('');
-    const [messages, setMessages] = useState([
-        {id: '1', text: 'Hello!', sender: 'user1'},
+    const [messages, setMessages] = useState<Message[]>([
+        /*{id: '1', text: 'Hello!', sender: 'user1'},
         {id: '2', text: 'Hi! How are you?', sender: 'user2'},
-        {id: '3', text: 'I am good, thanks!', sender: 'user1'},
+        {id: '3', text: 'I am good, thanks!', sender: 'user1'},*/
     ]);
     const [loading, setLoading] = useState<boolean>(false);
+
     const route = useRoute();
-    const paramData = route.params as any; // Retrieve the parameter
+    const paramData = route.params as any;
 
 
     useEffect(() => {
@@ -66,26 +72,46 @@ const UserConversation = () => {
             else
                 router.back();
         }
-
         fetchUserData();
-        /* const socket = new SockJS('http://your-backend-url/ws');
-         const client: Stomp.Client = Stomp.over(socket);
+        /*  console.info('INIT Socket');
+          const socket = new SockJS(url);
+          console.info('INITED Socket');
+          console.info('INIT Stomp');
+          const client: Stomp.Client = Stomp.over(socket);
+          console.info('INITED Stomp');*/
 
-         client.connect({}, () => {
-             client.subscribe('/topic/messages', (message) => {
-                 const newMessage = JSON.parse(message.body);
-                 setMessages((prevMessages) => [...prevMessages, newMessage]);
-             });
-         });
+        /*AuthService.getAccessToken()
+            .then((token) => {
+                console.log('token and begin connection');
+                client.connect(
+                    {Authorizations: `Bearer ${token}`}, // Fixing the header key
+                    () => {
+                        client.subscribe('/topic/messages', (message) => {
+                            const newMessage = JSON.parse(message.body);
+                            if (newMessage) {
+                                setMessages((old) => [...old, newMessage]);
+                            }
+                        });
+                    },
+                    (error) => {
+                        console.error('Connection error', error);
+                        setLoading(false);
+                    }
+                );
 
-         setStompClient(client);
+                setStompClient(client);
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));*/
 
-         return () => {
+
+        /* return () => {
              if (client) {
-                 client.disconnect(() => {});
+                 client.disconnect(() => {
+                 });
              }
          };*/
-        setLoading(false);
+
     }, []);
 
     const handleSend = () => {
@@ -97,7 +123,7 @@ const UserConversation = () => {
                  timestamp: Date.now(),
              };*/
 
-            //stompClient.send('/app/chat', {}, JSON.stringify(message));
+            //stompClient.send('/app/chat.sendMessage', {}, JSON.stringify(message));
             setMessage('');
         }
     };
