@@ -16,8 +16,8 @@ import {useEffect, useRef, useState} from "react";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import Gender from "@/models/Gender";
 import {Ionicons} from "@expo/vector-icons";
-import SockJS from "sockjs-client";
-import Stomp from "stompjs";
+/*import SockJS from "sockjs-client";
+import Stomp from "stompjs";*/
 import {useSelector} from "react-redux";
 import {UserService} from "@/services/UserService";
 import {useRoute} from "@react-navigation/core";
@@ -29,7 +29,7 @@ const url = 'https://salmon-specials-prefer-meaningful.trycloudflare.com/ws';
 
 const UserConversation = () => {
 
-    const [stompClient, setStompClient] = useState<Stomp.Client | null>(null);
+    //const [stompClient, setStompClient] = useState<Stomp.Client | null>(null);
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
     const [receiver, setReceiver] = useState<UserResponse>({
         firstName: 'Bob',
@@ -115,7 +115,7 @@ const UserConversation = () => {
     }, []);
 
     const handleSend = () => {
-        if (stompClient && message.trim()) {
+        //if (stompClient && message.trim()) {
             /* const message = {
                  sender: { username },
                  receiver: { username: 'receiver-username' }, // Replace with actual receiver
@@ -124,8 +124,8 @@ const UserConversation = () => {
              };*/
 
             //stompClient.send('/app/chat.sendMessage', {}, JSON.stringify(message));
-            setMessage('');
-        }
+         //   setMessage('');
+       // }
     };
 
 
@@ -147,7 +147,7 @@ const UserConversation = () => {
     return (
         <ImageBackground
             style={StyleSheet.absoluteFill}
-            source={require('../../assets/images/signupBackGround.jpg')}>
+            source={require('../../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView style={{flex: 1}}>
                 <CustomNavigationHeader
                     text={`${receiver.firstName} ${receiver.lastName}`}

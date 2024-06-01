@@ -186,7 +186,7 @@ const Chats = () => {
                 flex: 1,
                 width: '100%',
             }}
-            source={require('../../assets/images/signupBackGround.jpg')}>
+            source={require('../../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
                 {loading && (
                     <Spinner visible={loading}/>

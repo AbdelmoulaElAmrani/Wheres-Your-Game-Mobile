@@ -1,9 +1,4 @@
-import ReactNative, {
-    FlatList,
-    ScrollView,
-    StyleSheet, Text, TouchableOpacity,
-    View
-} from "react-native";
+import ReactNative, {FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {StatusBar} from "expo-status-bar";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -18,7 +13,7 @@ import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {getUserProfile, getUserSports} from "@/redux/UserSlice";
 import UserType from "@/models/UserType";
 import {Team} from "@/models/Team";
-import {router} from "expo-router";
+import {router, useRouter} from "expo-router";
 import RNPickerSelect from 'react-native-picker-select';
 import {TeamService} from "@/services/TeamService";
 import Spinner from "@/components/Spinner";
@@ -37,6 +32,7 @@ const Home = () => {
     const [selectedChild, setSelectedChild] = useState<Player | undefined>(undefined)
     //const [children, setChildren] = useState<Player[]>([])
     const [playersLoading, setPlayersLoading] = useState<boolean>(false)
+    const _router = useRouter();
 
     const childrens = [
         {
@@ -111,6 +107,18 @@ const Home = () => {
 
     const _onOpenMap = () => {
         router.navigate('/(map)');
+    }
+
+    const _onSearchPlayer = () => {
+        router.navigate('/(user)/Chats');
+
+    }
+
+    const _onSearch = (searchType: UserType) => {
+        _router.push({
+            pathname: '/(user)/SearchUser',
+            params: {searchType: UserType[searchType]},
+        });
     }
 
     const _onAddPlayer = () => {
@@ -294,13 +302,18 @@ const Home = () => {
                     </View>
                     <View style={styles.mainContainer}>
                         <View style={{marginBottom: 10, flexDirection: 'row', justifyContent: 'center'}}>
-                            <TouchableOpacity style={styles.tag}>
+                            <TouchableOpacity
+                                onPress={() => _onSearch(UserType.COACH)}
+                                style={styles.tag}>
                                 <Text style={styles.tagText}>Add Coach</Text>
                             </TouchableOpacity>
-                            {isCoach() && <TouchableOpacity onPress={_onAddPlayer} style={styles.tag}>
+                            {isCoach() && <TouchableOpacity
+                                onPress={() => _onSearch(UserType.PLAYER)}
+                                style={styles.tag}>
                                 <Text style={styles.tagText}>Add Player</Text>
                             </TouchableOpacity>}
-                            {isCoach() && <TouchableOpacity onPress={_onAddTeam} style={styles.tag}>
+                            {isCoach() && <TouchableOpacity
+                                onPress={_onAddTeam} style={styles.tag}>
                                 <Text style={styles.tagText}>Add Team</Text>
                             </TouchableOpacity>}
                             <TouchableOpacity onPress={_onOpenMap} style={styles.tag}>
