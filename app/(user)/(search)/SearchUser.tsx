@@ -3,14 +3,15 @@ import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {ImageBackground} from "expo-image";
 import {router, useLocalSearchParams} from "expo-router";
-import {memo, useEffect, useState} from "react";
-import {Avatar, Divider, Modal} from "react-native-paper";
+import React, {memo, useEffect, useState} from "react";
+import {Avatar, Divider, Modal, Searchbar} from "react-native-paper";
 import {heightPercentageToDP, widthPercentageToDP} from "react-native-responsive-screen";
 import Spinner from "@/components/Spinner";
 import {UserService} from "@/services/UserService";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import UserType from "@/models/UserType";
 import {useRoute} from "@react-navigation/core";
+import {Ionicons} from "@expo/vector-icons";
 
 
 const SearchUser = () => {
@@ -22,10 +23,7 @@ const SearchUser = () => {
 
     useEffect(() => {
         const param = params?.searchType as keyof typeof UserType;
-        console.log('searchType => ', UserType[param]);
         setSearchType(UserType[param] as UserType);
-        setLoading(true);
-        setLoading(false);
     }, []);
 
     const _handleGoBack = () => {
@@ -38,23 +36,36 @@ const SearchUser = () => {
 
     const _onSearchSubmit = async () => {
         if (searchName.trim() === '') return;
-        const data = await UserService.SearchUsersByFullName(searchName);
+        setLoading(true);
+        const data = await UserService.SearchUsersByFullName(searchName, searchType);
         if (data)
             setPeople(data);
         else
             setPeople([]);
+        setLoading(false);
     }
+    const _onAddFriendOrRemove = (id: string) => {
+
+
+    }
+
     const _renderUserItem = ({item}: { item: UserResponse }) => (
         <TouchableOpacity style={styles.userItem}>
-            {item.imageUrl ? (
-                <Avatar.Image size={35} source={{uri: item.imageUrl}}/>
-            ) : (
-                <Avatar.Text
-                    size={35}
-                    label={(item?.firstName?.charAt(0) + item?.lastName?.charAt(0)).toUpperCase()}
-                />
-            )}
-            <Text style={styles.userName}>{`${item.firstName} ${item.lastName}`}</Text>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                {item.imageUrl ? (
+                    <Avatar.Image size={35} source={{uri: item.imageUrl}}/>
+                ) : (
+                    <Avatar.Text
+                        size={35}
+                        label={(item?.firstName?.charAt(0) + item?.lastName?.charAt(0)).toUpperCase()}
+                    />
+                )}
+                <Text style={styles.userName}>{`${item.firstName} ${item.lastName}`}</Text>
+            </View>
+            <Ionicons
+                onPress={() => _onAddFriendOrRemove(item.id)}
+                name="person-add-outline" size={24} color="black"/>
+            {/*name="person-remove-outline"*/}
         </TouchableOpacity>
     );
 
@@ -72,30 +83,23 @@ const SearchUser = () => {
                 )}
                 <CustomNavigationHeader text={`Search ${searchType ? UserType[searchType] : ''}`}
                                         goBackFunction={_handleGoBack} showBackArrow/>
+
+                <View style={styles.searchBarContainer}>
+                    <Searchbar
+                        placeholder='Search name'
+                        onChangeText={(value) => setSearchName(value)}
+                        value={searchName}
+                        onSubmitEditing={_onSearchSubmit}
+                        returnKeyType='search'
+                        clearButtonMode="while-editing"
+                        placeholderTextColor="#808080"
+                        iconColor="#808080"
+                        style={styles.searchBar}
+                    />
+                </View>
                 <View style={styles.mainContainer}>
                     <KeyboardAvoidingView
                         style={{width: '100%', height: '100%', paddingVertical: 10, paddingHorizontal: 8}}>
-                        <View style={{
-                            width: '95%',
-                            marginTop: heightPercentageToDP(1.5),
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            alignSelf: 'center'
-                        }}>
-                            <TextInput
-                                placeholder='Search name'
-                                placeholderTextColor='#bbb'
-                                onChangeText={(value) => setSearchName(value)}
-                                value={searchName}
-                                returnKeyType='search'
-                                autoFocus={true}
-                                onSubmitEditing={_onSearchSubmit}
-                                clearButtonMode="while-editing"
-                                style={styles.searchText}
-                            />
-                        </View>
-
                         <View style={{width: '100%'}}>
                             {people.length > 0 ? <FlatList
                                 data={people}
@@ -123,7 +127,9 @@ const styles = StyleSheet.create({
     mainContainer: {
         backgroundColor: 'white',
         height: '100%',
-        width: '100%'
+        width: '100%',
+        borderTopRightRadius: 20,
+        borderTopLeftRadius: 20
     },
     endContainer: {
         flexDirection: 'row',
@@ -172,12 +178,20 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         alignItems: 'center',
         flexDirection: 'row',
-        marginTop: heightPercentageToDP(1)
+        marginTop: heightPercentageToDP(1),
+        justifyContent: 'space-between'
     },
     userName: {
         fontSize: 16,
         fontWeight: 'bold',
         marginLeft: widthPercentageToDP(2)
+    },
+    searchBar: {
+        backgroundColor: 'white'
+    },
+    searchBarContainer: {
+        padding: 20,
+        justifyContent: 'center'
     },
 });
 export default SearchUser;
