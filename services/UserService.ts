@@ -53,7 +53,7 @@ export class UserService {
         try {
             let userTpe = 'ALL';
             if (type != null)
-                userTpe = type.toString();
+                userTpe = UserType[type];
             var res = await Requests.get(`user/search?fullName=${searchName}&type=${userTpe}`);
             if (res?.status === 200 && res?.data) {
                 return res?.data as UserResponse [];

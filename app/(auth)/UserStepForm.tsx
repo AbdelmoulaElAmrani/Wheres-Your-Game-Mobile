@@ -131,13 +131,6 @@ const UserStepForm = () => {
 
     const _verifySelectedType = (type: UserType): boolean => userData.role == type;
 
-    const _onResendOTPCode = async () => {
-        try {
-            const result = await AuthService.sendOTP();
-        } catch (e) {
-            console.log(e);
-        }
-    }
 
     const UserTypeForm = memo(() => (
         <>
@@ -207,23 +200,30 @@ const UserStepForm = () => {
         </>
     ));
 
-    const _verifyOTP = async (otpNumber: string) => {
-        Keyboard.dismiss();
-        if (otpNumber.trim().length !== 0) {
-            try {
-                const result = await AuthService.verifyOTP(otpNumber.trim());
-                if (!result) {
-                    Alert.alert('the code is not correct try again');
-                } else {
-                    setOtpCodeNotEmpty(true);
-                }
-            } catch (err) {
-                console.log(err);
-            }
-        }
-    }
 
     const OTPVerification = memo(() => {
+        const _onResendOTPCode = async () => {
+            try {
+                const result = await AuthService.sendOTP();
+            } catch (e) {
+                console.log(e);
+            }
+        }
+        const _verifyOTP = async (otpNumber: string) => {
+            Keyboard.dismiss();
+            if (otpNumber.trim().length !== 0) {
+                try {
+                    const result = await AuthService.verifyOTP(otpNumber.trim());
+                    if (!result) {
+                        Alert.alert('the code is not correct try again');
+                    } else {
+                        setOtpCodeNotEmpty(true);
+                    }
+                } catch (err) {
+                    console.log(err);
+                }
+            }
+        }
 
         return (
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
