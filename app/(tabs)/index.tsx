@@ -1,8 +1,8 @@
-import {
+import ReactNative, {
     FlatList,
     ScrollView,
     StyleSheet, Text, TouchableOpacity,
-    View,
+    View
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
@@ -255,8 +255,8 @@ const Home = () => {
                             </TouchableOpacity>
                         </View>
                         <View style={{marginLeft: 20}}>
-                            <Image style={styles.logoContainer}
-                                   source={require('../../assets/images/homeLogo.png')}/>
+                            <ReactNative.Image style={styles.logoContainer}
+                                               source={require('../../assets/images/homeLogo.png')}/>
                         </View>
                         <View style={styles.sideHiderContainer}>
                             <TouchableOpacity

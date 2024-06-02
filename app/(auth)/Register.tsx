@@ -74,7 +74,7 @@ const Register = () => {
         if (userData.password.trim() === '') {
             errors.push('Password is required');
         } else if (!Helpers._isPasswordValid(userData.password)) {
-            //errors.push('Password must be 6-20 characters long and contain at least one uppercase letter, one lowercase letter, and one number');
+            errors.push('Password must be 6-20 characters long and contain at least one uppercase letter, one lowercase letter, and one number');
         }
 
         if (userData.firstName.trim() === '') {
@@ -89,7 +89,7 @@ const Register = () => {
             errors.push('Phone number is required');
         }
         if (phoneInput.current?.isValidNumber(userData.phoneNumber) === false) {
-            //errors.push('Invalid phone number');
+            errors.push('Invalid phone number');
         }
 
 

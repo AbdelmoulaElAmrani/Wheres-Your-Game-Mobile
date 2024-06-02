@@ -5,8 +5,8 @@ import {logout} from "@/redux/UserSlice";
 
 
 const PREFIX = 'api'
-//export const API_URI = `https://mug-dodge-segment-feedback.trycloudflare.com/${PREFIX}/`
-export const API_URI = `https://sport-app-38dd22818116.herokuapp.com/${PREFIX}/`
+export const API_URI = `https://salmon-specials-prefer-meaningful.trycloudflare.com/${PREFIX}/`
+//export const API_URI = `https://sport-app-38dd22818116.herokuapp.com/${PREFIX}/`
 
 
 let store: any;
