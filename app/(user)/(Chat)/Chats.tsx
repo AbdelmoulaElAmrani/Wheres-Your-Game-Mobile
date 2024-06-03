@@ -62,7 +62,7 @@ const Chats = () => {
         setModalOpen(false);
     }
 
-    const startChatWithUser = (item: UserResponse) => {
+    const startChatWithUser = (item: UserSearchResponse) => {
         _hideSearchUserModal();
         const receptionId = item.id;
         _router.push({
@@ -74,7 +74,7 @@ const Chats = () => {
 
     const _userSearchModal = memo(() => {
         const [searchName, setSearchName] = useState<string>('');
-        const [people, setPeople] = useState<UserResponse[]>([]);
+        const [people, setPeople] = useState<UserSearchResponse[]>([]);
 
         const _onSearchSubmit = async () => {
             if (searchName.trim() === '') return;
@@ -84,7 +84,7 @@ const Chats = () => {
             else
                 setPeople([]);
         }
-        const _renderUserItem = ({item}: { item: UserResponse }) => (
+        const _renderUserItem = ({item}: { item: UserSearchResponse }) => (
             <TouchableOpacity style={styles.userItem} onPress={() => startChatWithUser(item)}>
                 {item.imageUrl ? (
                     <Avatar.Image size={35} source={{uri: item.imageUrl}}/>

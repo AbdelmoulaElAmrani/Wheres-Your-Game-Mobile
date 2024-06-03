@@ -12,10 +12,13 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import UserType from "@/models/UserType";
 import {useRoute} from "@react-navigation/core";
 import {Ionicons} from "@expo/vector-icons";
+import {useSelector} from "react-redux";
+import {FriendRequestService} from "@/services/FriendRequestService";
 
 
 const SearchUser = () => {
     const [loading, setLoading] = useState<boolean>(false);
+    const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
     const [searchType, setSearchType] = useState<UserType>();
     const route = useRoute();
     const params = route.params as any;
@@ -32,7 +35,7 @@ const SearchUser = () => {
     }
 
     const [searchName, setSearchName] = useState<string>('');
-    const [people, setPeople] = useState<UserResponse[]>([]);
+    const [people, setPeople] = useState<UserSearchResponse[]>([]);
 
     const _onSearchSubmit = async () => {
         if (searchName.trim() === '') return;
@@ -44,12 +47,20 @@ const SearchUser = () => {
             setPeople([]);
         setLoading(false);
     }
-    const _onAddFriendOrRemove = (id: string) => {
+    const _onAddFriendOrRemove = async (receiverId: string) => {
+        const senderId = currentUser.id;
+        await FriendRequestService.sendFriendRequest(senderId, receiverId);
+        setPeople(oldPeople => {
+            return oldPeople.map(person => {
+                if (person.id === receiverId) {
+                    return {...person, friend: true};
+                }
+                return person;
+            });
+        });
+    };
 
-
-    }
-
-    const _renderUserItem = ({item}: { item: UserResponse }) => (
+    const _renderUserItem = ({item}: { item: UserSearchResponse }) => (
         <TouchableOpacity style={styles.userItem}>
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
                 {item.imageUrl ? (
@@ -62,10 +73,14 @@ const SearchUser = () => {
                 )}
                 <Text style={styles.userName}>{`${item.firstName} ${item.lastName}`}</Text>
             </View>
-            <Ionicons
-                onPress={() => _onAddFriendOrRemove(item.id)}
-                name="person-add-outline" size={24} color="black"/>
-            {/*name="person-remove-outline"*/}
+            {item.friend ?
+                <Ionicons
+                    onPress={() => _onAddFriendOrRemove(item.id)}
+                    name="person-add-outline" size={24} color="black"/>
+                :
+                <Ionicons name="person-sharp" size={24} color="black"/>
+            }
+
         </TouchableOpacity>
     );
 
