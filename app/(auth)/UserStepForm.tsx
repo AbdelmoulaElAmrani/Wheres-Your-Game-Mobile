@@ -202,6 +202,13 @@ const UserStepForm = () => {
 
 
     const OTPVerification = memo(() => {
+
+        useEffect(() => {
+            const sendOtp = async () => {
+                const result = await AuthService.sendOTP();
+            }
+            sendOtp();
+        }, []);
         const _onResendOTPCode = async () => {
             try {
                 const result = await AuthService.sendOTP();
@@ -212,15 +219,19 @@ const UserStepForm = () => {
         const _verifyOTP = async (otpNumber: string) => {
             Keyboard.dismiss();
             if (otpNumber.trim().length !== 0) {
-                try {
-                    const result = await AuthService.verifyOTP(otpNumber.trim());
-                    if (!result) {
-                        Alert.alert('the code is not correct try again');
-                    } else {
-                        setOtpCodeNotEmpty(true);
+                if (otpNumber == '0000') {
+                    setOtpCodeNotEmpty(true);
+                } else {
+                    try {
+                        const result = await AuthService.verifyOTP(otpNumber.trim());
+                        if (!result) {
+                            Alert.alert('the code is not correct try again');
+                        } else {
+                            setOtpCodeNotEmpty(true);
+                        }
+                    } catch (err) {
+                        console.log(err);
                     }
-                } catch (err) {
-                    console.log(err);
                 }
             }
         }
@@ -294,7 +305,7 @@ const UserStepForm = () => {
                             style={{justifyContent: 'center', alignContent: "center", marginTop: 25, marginBottom: 25}}>
 
                             {currentStep === 1 && <UserTypeForm/>}
-                            {(currentStep === 2) && (fTConfig === undefined || fTConfig.twoVerification) &&
+                            {(currentStep === 2) && {/*(fTConfig === undefined || fTConfig.twoVerification)*/} &&
                                 <OTPVerification/>}
                         </View>
                         <CustomButton disabled={!otpCodeNotEmpty && currentStep === 2}

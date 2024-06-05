@@ -168,8 +168,9 @@ const Profile = () => {
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={styles.settingOption} onPress={_handleLogout}>
-                                <Text style={styles.settingOptionText}>Log Out</Text>
+                            <TouchableOpacity style={[styles.settingOption, {backgroundColor: 'red'}]}
+                                              onPress={_handleLogout}>
+                                <Text style={[styles.settingOptionText, {color: 'white'}]}>Log Out</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
 
@@ -237,7 +238,8 @@ const styles = StyleSheet.create({
         elevation: 1,
         backgroundColor: 'white',
         flexDirection: 'row',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        alignItems: 'center'
     },
     settingOptionText: {
         fontSize: 18,
