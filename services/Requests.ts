@@ -5,7 +5,7 @@ import {logout} from "@/redux/UserSlice";
 
 
 const PREFIX = 'api'
-export const API_URI = `https://shopzilla-adidas-intervals-excitement.trycloudflare.com/${PREFIX}/`
+export const API_URI = `https://vip-computed-fruits-xl.trycloudflare.com/${PREFIX}/`
 //export const API_URI = `https://sport-app-38dd22818116.herokuapp.com/${PREFIX}/`
 
 
@@ -24,7 +24,12 @@ const axiosInstance = axios.create({
 // Request Interceptor
 axiosInstance.interceptors.request.use(
     async (config) => {
-        const accessToken = await AuthService.getAccessToken();
+        let accessToken: string | null = '';
+        if (config.url?.includes('refreshtoken')) {
+            accessToken = await AuthService.getRefreshToken();
+        } else {
+            accessToken = await AuthService.getAccessToken();
+        }
         if (accessToken) {
             config.headers.Authorizations = `Bearer ${accessToken}`;
             config.headers = {...config.headers, Authorizations: `Bearer ${accessToken}`} as any;
@@ -64,7 +69,6 @@ axiosInstance.interceptors.response.use(
             }
         } else {
             if (error?.response?.status !== 500 && error?.response?.status !== 408 && error?.response?.status !== 502) {
-                console.log('logout');
                 store.dispatch(logout({}));
                 router.replace("/Login");
             }
@@ -75,7 +79,6 @@ axiosInstance.interceptors.response.use(
 
 const handleErrors = async (err: AxiosError) => {
     if (err && err.response && err.response.status === 401) {
-        console.log('logout');
         store.dispatch(logout({}));
         router.replace("/Login");
     }

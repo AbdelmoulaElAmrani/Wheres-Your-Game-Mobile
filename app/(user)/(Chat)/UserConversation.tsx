@@ -73,6 +73,7 @@ const UserConversation = () => {
                 router.back();
         }
         fetchUserData();
+
         /*  console.info('INIT Socket');
           const socket = new SockJS(url);
           console.info('INITED Socket');
@@ -103,7 +104,6 @@ const UserConversation = () => {
                 setLoading(false);
             })
             .catch(() => setLoading(false));*/
-
 
         /* return () => {
              if (client) {
