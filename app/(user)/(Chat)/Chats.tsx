@@ -13,11 +13,10 @@ import {AntDesign, FontAwesome} from "@expo/vector-icons";
 import Spinner from "@/components/Spinner";
 import {ChatService} from "@/services/ChatService";
 import {UserService} from "@/services/UserService";
-import {UserResponse} from "@/models/responseObjects/UserResponse";
 
 
+const MESSAGE_TIMER = 10 * 1000 * 60;
 const Chats = () => {
-    const MESSAGE_TIMER = 10 * 1000 * 10;
     const [recentChats, setRecentChats] = useState<Conversation[]>([]);
     const _router = useRouter();
     const [loading, setLoading] = useState<boolean>(false);
@@ -202,19 +201,19 @@ const Chats = () => {
                     </View>
                     <View style={styles.conversationContainer}>
                         {recentChats.length > 0 ?
-                        <FlashList
-                            data={recentChats}
-                            renderItem={({item}) => <_renderConversation item={item}/>}
-                            keyExtractor={item => item.conversationId}
-                            estimatedItemSize={10}
-                            contentContainerStyle={{backgroundColor: 'white', padding: 10}}
-                            ListFooterComponent={<View style={{height: heightPercentageToDP(20)}}>
-                                <View style={styles.endContainer}>
-                                    <AntDesign name="checkcircle" size={20} color="#2757CB"/>
-                                    <Text style={styles.endText}>End</Text>
-                                </View>
-                            </View>}
-                        /> : <Text style={{alignSelf: 'center'}}>No Message</Text>
+                            <FlashList
+                                data={recentChats}
+                                renderItem={({item}) => <_renderConversation item={item}/>}
+                                keyExtractor={item => item.conversationId}
+                                estimatedItemSize={10}
+                                contentContainerStyle={{backgroundColor: 'white', padding: 10}}
+                                ListFooterComponent={<View style={{height: heightPercentageToDP(20)}}>
+                                    <View style={styles.endContainer}>
+                                        <AntDesign name="checkcircle" size={20} color="#2757CB"/>
+                                        <Text style={styles.endText}>End</Text>
+                                    </View>
+                                </View>}
+                            /> : <Text style={{alignSelf: 'center'}}>No Message</Text>
                         }
                     </View>
                 </View>

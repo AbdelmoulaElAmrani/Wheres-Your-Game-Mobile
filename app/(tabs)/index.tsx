@@ -18,9 +18,10 @@ import RNPickerSelect from 'react-native-picker-select';
 import {TeamService} from "@/services/TeamService";
 import Spinner from "@/components/Spinner";
 import {Image, ImageBackground} from "expo-image";
+import {NotificationService} from "@/services/NotificationService";
 
 const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
-
+const REFRESH_NOTIFICATION_TIME = 5 * 1000 * 60;
 const Home = () => {
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const loading = useSelector((state: any) => state.user.loading) as boolean;
@@ -33,6 +34,7 @@ const Home = () => {
     //const [children, setChildren] = useState<Player[]>([])
     const [playersLoading, setPlayersLoading] = useState<boolean>(false)
     const _router = useRouter();
+    const [newNotif, setNewNotif] = useState<boolean>(false);
 
     const childrens = [
         {
@@ -63,6 +65,17 @@ const Home = () => {
             }
         }
         fetchData();
+
+
+        const intervalId = setInterval(async () => {
+            const res = await NotificationService.getNotifications();
+            if (res) {
+                const value = res.some(x => x.isRead);
+                setNewNotif(value);
+            } else setNewNotif(false);
+        }, REFRESH_NOTIFICATION_TIME);
+
+        return () => clearInterval(intervalId);
     }, [userData]);
 
 
@@ -98,6 +111,7 @@ const Home = () => {
         console.log('menu');
     }
     const _onOpenNotification = () => {
+        setNewNotif(false);
         router.navigate('/(user)/Notifications');
     }
 
@@ -107,11 +121,6 @@ const Home = () => {
 
     const _onOpenMap = () => {
         router.navigate('/(map)');
-    }
-
-    const _onSearchPlayer = () => {
-        router.navigate('/(user)/Chats');
-
     }
 
     const _onSearch = (searchType: UserType) => {
@@ -270,7 +279,7 @@ const Home = () => {
                             <TouchableOpacity
                                 onPress={_onOpenNotification}
                                 style={{marginRight: 20}}>
-                                <Fontisto name="bell" size={30} color="white"/>
+                                <Fontisto name="bell" size={30} color={newNotif ? "red" : "white"}/>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={_onOpenChat}

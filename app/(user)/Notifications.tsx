@@ -1,18 +1,19 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { ImageBackground } from "expo-image";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {ImageBackground} from "expo-image";
+import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import { router } from "expo-router";
-import { FlashList } from "@shopify/flash-list";
-import { heightPercentageToDP } from "react-native-responsive-screen";
-import { AntDesign, FontAwesome } from "@expo/vector-icons";
-import { memo, useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Avatar, Divider, MD2Colors } from "react-native-paper";
-import { Helpers } from "@/constants/Helpers";
-import { NotificationResponse } from "@/models/responseObjects/NotificationResponse";
-import { NotificationService } from "@/services/NotificationService";
+import {router} from "expo-router";
+import {FlashList} from "@shopify/flash-list";
+import {heightPercentageToDP} from "react-native-responsive-screen";
+import {AntDesign, FontAwesome} from "@expo/vector-icons";
+import {memo, useCallback, useEffect, useState} from "react";
+import {ActivityIndicator, Avatar, Divider, MD2Colors} from "react-native-paper";
+import {Helpers} from "@/constants/Helpers";
+import {NotificationResponse} from "@/models/responseObjects/NotificationResponse";
+import {NotificationService} from "@/services/NotificationService";
 import NotificationType from "@/models/NotificationType";
-import { FriendRequestService } from "@/services/FriendRequestService";
+import {FriendRequestService} from "@/services/FriendRequestService";
+
 
 const Notifications = () => {
     const [notifications, setNotifications] = useState<NotificationResponse[]>([]);
@@ -30,7 +31,6 @@ const Notifications = () => {
                 setLoading(false);
             }
         };
-
         fetchNotifications();
     }, []);
 
@@ -40,8 +40,8 @@ const Notifications = () => {
         }
     }, []);
 
-    const _onOpenNotification = useCallback((chat: NotificationResponse): void => {
-        console.log(chat);
+    const _onOpenNotification = useCallback((notification: NotificationResponse): void => {
+        console.log(notification);
     }, []);
 
     const _handleAcceptRequest = useCallback(async (requestId: string) => {
@@ -78,13 +78,13 @@ const Notifications = () => {
         }
     }, []);
 
-    const _renderNotifications = memo(({ item }: { item: NotificationResponse }) => {
+    const _renderNotifications = memo(({item}: { item: NotificationResponse }) => {
         return (
             <TouchableOpacity onPress={() => _onOpenNotification(item)} style={styles.notification}>
                 <View style={styles.notificationContent}>
                     <View style={styles.avatarContainer}>
                         {item.imageUrl ? (
-                            <Avatar.Image size={45} source={{ uri: item.imageUrl }} />
+                            <Avatar.Image size={45} source={{uri: item.imageUrl}}/>
                         ) : (
                             <Avatar.Text
                                 size={45}
@@ -98,10 +98,10 @@ const Notifications = () => {
                             {item.type === NotificationType.FRIEND_REQUEST && (
                                 <View style={styles.friendRequestActions}>
                                     <TouchableOpacity onPress={() => _handleAcceptRequest(item.requestId)}>
-                                        <FontAwesome name="check" size={24} style={styles.acceptIcon} />
+                                        <FontAwesome name="check" size={24} style={styles.acceptIcon}/>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => _handleDeclineRequest(item.requestId)}>
-                                        <FontAwesome name="times" size={24} style={styles.declineIcon} />
+                                        <FontAwesome name="times" size={24} style={styles.declineIcon}/>
                                     </TouchableOpacity>
                                 </View>
                             )}
@@ -116,22 +116,22 @@ const Notifications = () => {
     return (
         <ImageBackground style={styles.backgroundImage} source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                <CustomNavigationHeader text="Notification" goBackFunction={_handleGoBack} showBackArrow />
+                <CustomNavigationHeader text="Notification" goBackFunction={_handleGoBack} showBackArrow/>
                 <View style={styles.container}>
                     {loading ? (
-                        <ActivityIndicator animating color={MD2Colors.blueA700} size={50} />
+                        <ActivityIndicator animating color={MD2Colors.blueA700} size={50}/>
                     ) : (
                         <View style={styles.flashListContainer}>
                             <FlashList
                                 data={notifications}
-                                renderItem={({ item }) => <_renderNotifications item={item} />}
+                                renderItem={({item}) => <_renderNotifications item={item}/>}
                                 keyExtractor={item => item.id}
                                 estimatedItemSize={10}
                                 contentContainerStyle={styles.flashListContent}
                                 ListFooterComponent={
                                     <View style={styles.endFlashListContainer}>
                                         <View style={styles.endFlashList}>
-                                            <AntDesign name="checkcircle" size={20} color="#2757CB" />
+                                            <AntDesign name="checkcircle" size={20} color="#2757CB"/>
                                             <Text style={styles.endText}>End</Text>
                                         </View>
                                     </View>

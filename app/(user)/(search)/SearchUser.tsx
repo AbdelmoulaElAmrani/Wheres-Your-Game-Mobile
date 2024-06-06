@@ -3,7 +3,7 @@ import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {ImageBackground} from "expo-image";
 import {router, useLocalSearchParams} from "expo-router";
-import React, {memo, useEffect, useState} from "react";
+import React, {memo, useCallback, useEffect, useState} from "react";
 import {Avatar, Divider, Modal, Searchbar} from "react-native-paper";
 import {heightPercentageToDP, widthPercentageToDP} from "react-native-responsive-screen";
 import Spinner from "@/components/Spinner";
@@ -37,7 +37,7 @@ const SearchUser = () => {
     const [searchName, setSearchName] = useState<string>('');
     const [people, setPeople] = useState<UserSearchResponse[]>([]);
 
-    const _onSearchSubmit = async () => {
+    const _onSearchSubmit = useCallback(async () => {
         if (searchName.trim() === '') return;
         setLoading(true);
         const data = await UserService.SearchUsersByFullName(searchName, searchType);
@@ -46,7 +46,8 @@ const SearchUser = () => {
         else
             setPeople([]);
         setLoading(false);
-    }
+    }, [searchName, searchType]);
+
     const _onAddFriendOrRemove = async (receiverId: string) => {
         const senderId = currentUser.id;
         await FriendRequestService.sendFriendRequest(senderId, receiverId);
