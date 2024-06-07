@@ -2,7 +2,7 @@
   "expo": {
     "name": "Sport-Games",
     "slug": "Sport-Games",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "sport-app",
@@ -24,9 +24,10 @@
         "NSPhotoLibraryUsageDescription ": "$(PRODUCT_NAME) requires access to your photo to allow you to upload photos"
       },
       "config": {
-        "googleMapsApiKey": "YOUR_API_KEY_HERE"
+        "googleMapsApiKey": "AIzaSyDlFo6upaajnGewXn4DX4-naBhsWPcn8VE"
       },
-      "bundleIdentifier": "com.digiboost.sportgames"
+      "bundleIdentifier": "com.digiboost.sportgames",
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
@@ -35,7 +36,7 @@
       },
       "config": {
         "googleMaps": {
-          "apiKey": "YOUR_API_KEY_HERE"
+          "apiKey": "AIzaSyDlFo6upaajnGewXn4DX4-naBhsWPcn8VE"
         }
       },
       "permissions": [
@@ -57,7 +58,8 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

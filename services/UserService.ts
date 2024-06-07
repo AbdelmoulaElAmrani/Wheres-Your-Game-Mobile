@@ -1,13 +1,14 @@
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import Requests from "./Requests";
 import {UserRequest} from "@/models/requestObjects/UserRequest";
+import UserType from "@/models/UserType";
 
 
 export class UserService {
 
     static getUser = async (): Promise<UserResponse | undefined> => {
         try {
-           var res = await Requests.get('user/profile');
+            var res = await Requests.get('user/profile');
 
             if (res?.status === 200 && res?.data) {
                 return res?.data as UserResponse;
@@ -31,6 +32,35 @@ export class UserService {
             }
         } catch (error) {
             console.error('Error updating user:', error);
+            return undefined;
+        }
+    }
+
+    static async getUserProfileById(id: string) {
+        try {
+            var res = await Requests.get(`user/${id}`);
+            if (res?.status === 200 && res?.data) {
+                return res?.data as UserResponse;
+            }
+            return undefined;
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+            return undefined;
+        }
+    }
+
+    static async SearchUsersByFullName(searchName: string, type: UserType | null = null) {
+        try {
+            let userTpe = 'ALL';
+            if (type != null)
+                userTpe = UserType[type];
+            var res = await Requests.get(`user/search?fullName=${searchName}&type=${userTpe}`);
+            if (res?.status === 200 && res?.data) {
+                return res?.data as UserSearchResponse [];
+            }
+            return undefined;
+        } catch (error) {
+            console.error('Error fetching profile:', error);
             return undefined;
         }
     }

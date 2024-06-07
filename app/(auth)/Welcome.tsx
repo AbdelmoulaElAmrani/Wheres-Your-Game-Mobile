@@ -6,6 +6,7 @@ import {router} from "expo-router";
 import {Image, ImageBackground} from "expo-image";
 
 const Welcome = () => {
+
     const _handleGetStarted = () => {
         router.navigate('/(tabs)');
     }

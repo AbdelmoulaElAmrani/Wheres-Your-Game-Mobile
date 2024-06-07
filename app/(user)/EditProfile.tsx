@@ -34,6 +34,7 @@ import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {UserRequest} from "@/models/requestObjects/UserRequest";
 import {manipulateAsync, SaveFormat} from "expo-image-manipulator";
 import {StorageService} from "@/services/StorageService";
+import {useRoute} from "@react-navigation/core";
 
 
 const EditProfile = () => {
@@ -44,8 +45,6 @@ const EditProfile = () => {
 
     const [sports, setSports] = useState<Sport[]>([]);
     const [selectedSports, setSelectedSports] = useState<UserInterestedSport[]>([]);
-
-    const params = useLocalSearchParams();
 
     const [user, setUser] = useState<UserResponse>({
         address: "",
@@ -66,6 +65,9 @@ const EditProfile = () => {
         positionCoached: "",
         yearsOfExperience: 0
     });
+
+    const route = useRoute();
+    const paramData = route.params as any;
 
     const [currentStep, setCurrentStep] = useState<number>(1);
     registerTranslation("en", enGB);
@@ -88,7 +90,6 @@ const EditProfile = () => {
     }, []);
 
     useEffect(() => {
-        console.log(user);
         if (user?.id == '' || user?.id == undefined) {
             setUser(userData);
         } else {
@@ -132,12 +133,12 @@ const EditProfile = () => {
             if (currentStep >= 3) {
                 try {
                     await _handleUpdateUser();
-                    if (params?.previousScreenName)
+                    if (paramData?.data)
                         router.setParams({previousScreenName: 'profile'})
 
                     if (selectedSports.length > 0 && userSport.length === 0) {
                         const response = await SportService.registerUserToSport(selectedSports, userData.id);
-                        router.navigate('/(tabs)');
+                        //router.navigate('/(tabs)');
                     }
                     router.navigate('/(tabs)');
                 } catch (e) {
@@ -149,7 +150,7 @@ const EditProfile = () => {
             if (currentStep >= 2) {
                 try {
                     await _handleUpdateUser();
-                    if (params?.previousScreenName)
+                    if (paramData?.data)
                         router.setParams({previousScreenName: 'profile'})
                     router.navigate('/SportInterested');
                 } catch (e) {
@@ -157,7 +158,6 @@ const EditProfile = () => {
                 }
             }
         }
-
     }
 
     const goBackFunc = () => {
@@ -560,14 +560,9 @@ const EditProfile = () => {
                         sportName: selectedSport.name
                     }]);
             }
-
-            if (selectedSports.length === 0 && userSport.length === 0) {
+            if (selectedSports.length === 0 && userSport.length === 0)
                 return;
-            }
-
-
             await _handleContinue();
-
         }
 
 

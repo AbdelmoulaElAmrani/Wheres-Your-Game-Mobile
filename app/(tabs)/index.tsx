@@ -1,9 +1,4 @@
-import {
-    FlatList,
-    ScrollView,
-    StyleSheet, Text, TouchableOpacity,
-    View,
-} from "react-native";
+import ReactNative, {FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {StatusBar} from "expo-status-bar";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -18,14 +13,15 @@ import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {getUserProfile, getUserSports} from "@/redux/UserSlice";
 import UserType from "@/models/UserType";
 import {Team} from "@/models/Team";
-import {router} from "expo-router";
+import {router, useRouter} from "expo-router";
 import RNPickerSelect from 'react-native-picker-select';
 import {TeamService} from "@/services/TeamService";
 import Spinner from "@/components/Spinner";
 import {Image, ImageBackground} from "expo-image";
+import {NotificationService} from "@/services/NotificationService";
 
 const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
-
+const REFRESH_NOTIFICATION_TIME = 5 * 1000 * 60;
 const Home = () => {
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const loading = useSelector((state: any) => state.user.loading) as boolean;
@@ -37,6 +33,8 @@ const Home = () => {
     const [selectedChild, setSelectedChild] = useState<Player | undefined>(undefined)
     //const [children, setChildren] = useState<Player[]>([])
     const [playersLoading, setPlayersLoading] = useState<boolean>(false)
+    const _router = useRouter();
+    const [newNotif, setNewNotif] = useState<boolean>(false);
 
     const childrens = [
         {
@@ -67,6 +65,17 @@ const Home = () => {
             }
         }
         fetchData();
+
+
+        const intervalId = setInterval(async () => {
+            const res = await NotificationService.getNotifications();
+            if (res) {
+                const value = res.some(x => x.isRead);
+                setNewNotif(value);
+            } else setNewNotif(false);
+        }, REFRESH_NOTIFICATION_TIME);
+
+        return () => clearInterval(intervalId);
     }, [userData]);
 
 
@@ -102,6 +111,7 @@ const Home = () => {
         console.log('menu');
     }
     const _onOpenNotification = () => {
+        setNewNotif(false);
         router.navigate('/(user)/Notifications');
     }
 
@@ -113,12 +123,19 @@ const Home = () => {
         router.navigate('/(map)');
     }
 
+    const _onSearch = (searchType: UserType) => {
+        _router.push({
+            pathname: '/(user)/SearchUser',
+            params: {searchType: UserType[searchType]},
+        });
+    }
+
     const _onAddPlayer = () => {
         console.log('Add Player');
     }
 
     const _onAddTeam = () => {
-        console.log('Add Team');
+        router.navigate('TeamForm');
     }
 
     const _onViewAll = () => {
@@ -255,14 +272,14 @@ const Home = () => {
                             </TouchableOpacity>
                         </View>
                         <View style={{marginLeft: 20}}>
-                            <Image style={styles.logoContainer}
-                                   source={require('../../assets/images/homeLogo.png')}/>
+                            <ReactNative.Image style={styles.logoContainer}
+                                               source={require('../../assets/images/homeLogo.png')}/>
                         </View>
                         <View style={styles.sideHiderContainer}>
                             <TouchableOpacity
                                 onPress={_onOpenNotification}
                                 style={{marginRight: 20}}>
-                                <Fontisto name="bell" size={30} color="white"/>
+                                <Fontisto name="bell" size={30} color={newNotif ? "red" : "white"}/>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={_onOpenChat}
@@ -294,13 +311,18 @@ const Home = () => {
                     </View>
                     <View style={styles.mainContainer}>
                         <View style={{marginBottom: 10, flexDirection: 'row', justifyContent: 'center'}}>
-                            <TouchableOpacity style={styles.tag}>
+                            <TouchableOpacity
+                                onPress={() => _onSearch(UserType.COACH)}
+                                style={styles.tag}>
                                 <Text style={styles.tagText}>Add Coach</Text>
                             </TouchableOpacity>
-                            {isCoach() && <TouchableOpacity onPress={_onAddPlayer} style={styles.tag}>
+                            {isCoach() && <TouchableOpacity
+                                onPress={() => _onSearch(UserType.PLAYER)}
+                                style={styles.tag}>
                                 <Text style={styles.tagText}>Add Player</Text>
                             </TouchableOpacity>}
-                            {isCoach() && <TouchableOpacity onPress={_onAddTeam} style={styles.tag}>
+                            {isCoach() && <TouchableOpacity
+                                onPress={_onAddTeam} style={styles.tag}>
                                 <Text style={styles.tagText}>Add Team</Text>
                             </TouchableOpacity>}
                             <TouchableOpacity onPress={_onOpenMap} style={styles.tag}>

@@ -6,97 +6,151 @@ import {router} from "expo-router";
 import {FlashList} from "@shopify/flash-list";
 import {heightPercentageToDP} from "react-native-responsive-screen";
 import {AntDesign, FontAwesome} from "@expo/vector-icons";
-import {memo, useEffect, useState} from "react";
-import {Conversation} from "@/models/Conversation";
-import {Avatar, Divider} from "react-native-paper";
+import {memo, useCallback, useEffect, useState} from "react";
+import {ActivityIndicator, Avatar, Divider, MD2Colors} from "react-native-paper";
 import {Helpers} from "@/constants/Helpers";
+import {NotificationResponse} from "@/models/responseObjects/NotificationResponse";
+import {NotificationService} from "@/services/NotificationService";
+import NotificationType from "@/models/NotificationType";
+import {FriendRequestService} from "@/services/FriendRequestService";
+
 
 const Notifications = () => {
-
-    const [recentChats, setRecentChats] = useState<Conversation[]>([]);
-
+    const [notifications, setNotifications] = useState<NotificationResponse[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
-        const fakers = Conversation.generateFakeConversations(10);
-        setRecentChats(fakers);
+        const fetchNotifications = async () => {
+            setLoading(true);
+            try {
+                const res = await NotificationService.getNotifications();
+                if (res) {
+                    setNotifications(res);
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchNotifications();
     }, []);
 
-    const _handleGoBack = () => {
-        if (router.canGoBack())
+    const _handleGoBack = useCallback(() => {
+        if (router.canGoBack()) {
             router.back();
-    }
+        }
+    }, []);
 
-    const _onOpenConversation = (chat: Conversation): void => {
-        console.log(chat);
-    }
+    const _onOpenNotification = useCallback((notification: NotificationResponse): void => {
+        console.log(notification);
+    }, []);
 
-    const _renderConversation = memo(({item}: { item: Conversation }) => {
+    const _handleAcceptRequest = useCallback(async (requestId: string) => {
+        try {
+            const acceptResponse = await FriendRequestService.acceptFriendRequest(requestId);
+            if (acceptResponse) {
+                setLoading(true);
+                const notifications = await NotificationService.getNotifications();
+                if (notifications) {
+                    setNotifications(notifications);
+                }
+                setLoading(false);
+            }
+        } catch (error) {
+            console.error(error);
+            setLoading(false);
+        }
+    }, []);
+
+    const _handleDeclineRequest = useCallback(async (requestId: string) => {
+        try {
+            const declineResponse = await FriendRequestService.declineFriendRequest(requestId);
+            if (declineResponse) {
+                setLoading(true);
+                const notifications = await NotificationService.getNotifications();
+                if (notifications) {
+                    setNotifications(notifications);
+                }
+                setLoading(false);
+            }
+        } catch (error) {
+            console.error(error);
+            setLoading(false);
+        }
+    }, []);
+
+    const _renderNotifications = memo(({item}: { item: NotificationResponse }) => {
         return (
-            <TouchableOpacity
-                onPress={() => _onOpenConversation(item)}
-                style={styles.notification}>
-                <View style={{flexDirection: 'row', height: 60}}>
-                    <View style={{backgroundColor: 'white', flex: 0.2, alignItems: 'center'}}>
-                        {item.participant1?.imageUrl ? (
-                            <Avatar.Image size={50} source={{uri: item.participant1?.imageUrl}}/>
+            <TouchableOpacity onPress={() => _onOpenNotification(item)} style={styles.notification}>
+                <View style={styles.notificationContent}>
+                    <View style={styles.avatarContainer}>
+                        {item.imageUrl ? (
+                            <Avatar.Image size={45} source={{uri: item.imageUrl}}/>
                         ) : (
                             <Avatar.Text
-                                size={50}
-                                label={(item.participant1?.firstName?.charAt(0) + item.participant1?.lastName?.charAt(0)).toUpperCase()}/>
+                                size={45}
+                                label={(item.senderFullName?.charAt(0) + item.senderFullName?.split(' ')[1]?.charAt(0)).toUpperCase()}
+                            />
                         )}
                     </View>
-                    <View style={{flex: 0.8}}>
-                        <View style={{marginTop: 12, flexDirection: 'row', justifyContent: 'space-between'}}>
-                            <Text style={{fontWeight: 'bold', fontSize: 14}}>
-                                You receive the swimming notification
-                            </Text>
+                    <View style={styles.notificationTextContainer}>
+                        <View style={styles.notificationHeader}>
+                            <Text style={styles.notificationContentText}>{item.content}</Text>
+                            {item.type === NotificationType.FRIEND_REQUEST && (
+                                <View style={styles.friendRequestActions}>
+                                    <TouchableOpacity onPress={() => _handleAcceptRequest(item.requestId)}>
+                                        <FontAwesome name="check" size={24} style={styles.acceptIcon}/>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => _handleDeclineRequest(item.requestId)}>
+                                        <FontAwesome name="times" size={24} style={styles.declineIcon}/>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
                         </View>
-                        <Text
-                            style={styles.notifyDate}>{Helpers.formatNotificationDate(item.lastMessage?.timestamp, true)}</Text>
+                        <Text style={styles.notifyDate}>{Helpers.formatNotificationDate(item.creationDate, true)}</Text>
                     </View>
                 </View>
             </TouchableOpacity>
         );
     });
 
-
     return (
-        <ImageBackground
-            style={{
-                flex: 1,
-                width: '100%',
-            }}
-            source={require('../../assets/images/signupBackGround.jpg')}>
+        <ImageBackground style={styles.backgroundImage} source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                <CustomNavigationHeader text={"Notification"} goBackFunction={_handleGoBack} showBackArrow/>
+                <CustomNavigationHeader text="Notification" goBackFunction={_handleGoBack} showBackArrow/>
                 <View style={styles.container}>
-                    <View style={{height: '100%', width: '90%'}}>
-                        <FlashList
-                            data={recentChats}
-                            renderItem={({item, index}) => <_renderConversation item={item}/>}
-                            keyExtractor={item => item.conversationId}
-                            estimatedItemSize={10}
-                            contentContainerStyle={{backgroundColor: 'white', padding: 10}}
-                            ListFooterComponent={<View style={{height: heightPercentageToDP(20)}}>
-                                <View style={styles.endFlashList}>
-                                    <AntDesign name="checkcircle" size={20} color="#2757CB"/>
-                                    <Text style={styles.endText}>End</Text>
-                                </View>
-                            </View>}
-                        />
-                    </View>
+                    {loading ? (
+                        <ActivityIndicator animating color={MD2Colors.blueA700} size={50}/>
+                    ) : (
+                        <View style={styles.flashListContainer}>
+                            <FlashList
+                                data={notifications}
+                                renderItem={({item}) => <_renderNotifications item={item}/>}
+                                keyExtractor={item => item.id}
+                                estimatedItemSize={10}
+                                contentContainerStyle={styles.flashListContent}
+                                ListFooterComponent={
+                                    <View style={styles.endFlashListContainer}>
+                                        <View style={styles.endFlashList}>
+                                            <AntDesign name="checkcircle" size={20} color="#2757CB"/>
+                                            <Text style={styles.endText}>End</Text>
+                                        </View>
+                                    </View>
+                                }
+                            />
+                        </View>
+                    )}
                 </View>
             </SafeAreaView>
         </ImageBackground>
     );
-}
+};
 
 const styles = StyleSheet.create({
     container: {
         backgroundColor: 'white',
         height: '100%',
         width: '100%',
-        alignItems: 'center'
+        alignItems: 'center',
     },
     notification: {
         marginBottom: 3,
@@ -104,26 +158,75 @@ const styles = StyleSheet.create({
         paddingBottom: 3,
         paddingTop: 8,
         borderRadius: 10,
-        borderColor: '#cbcdd0'
+        borderColor: '#cbcdd0',
+    },
+    notificationContent: {
+        flexDirection: 'row',
+        height: 'auto',
+        padding: 5,
+    },
+    avatarContainer: {
+        backgroundColor: 'white',
+        flex: 0.2,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    notificationTextContainer: {
+        flex: 0.8,
+        paddingLeft: 5,
+    },
+    notificationHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    notificationContentText: {
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
+    friendRequestActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    acceptIcon: {
+        marginRight: 10,
+        color: 'grey',
+    },
+    declineIcon: {
+        color: 'grey',
+        marginRight: 5,
     },
     notifyDate: {
         color: 'grey',
         fontSize: 14,
-        textAlign: 'auto',
-        marginTop: 8
     },
     endFlashList: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 15
+        marginTop: 15,
     },
     endText: {
         fontSize: 16,
         fontWeight: 'bold',
         marginLeft: 5,
-        color: '#2757CB'
-    }
+        color: '#2757CB',
+    },
+    backgroundImage: {
+        flex: 1,
+        width: '100%',
+    },
+    flashListContainer: {
+        height: '100%',
+        width: '95%',
+    },
+    flashListContent: {
+        backgroundColor: 'white',
+        padding: 10,
+    },
+    endFlashListContainer: {
+        height: heightPercentageToDP(20),
+    },
 });
 
 export default Notifications;

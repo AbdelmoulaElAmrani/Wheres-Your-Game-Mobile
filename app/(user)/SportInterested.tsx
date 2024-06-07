@@ -1,4 +1,4 @@
-import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
 import {
     Keyboard, ScrollView,
     StyleSheet,
@@ -7,23 +7,26 @@ import {
     TouchableWithoutFeedback,
     View
 } from "react-native";
-import {ImageBackground} from "expo-image";
-import {SafeAreaView} from "react-native-safe-area-context";
-import {memo, useCallback, useEffect, useState} from "react";
+import { ImageBackground } from "expo-image";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { memo, useCallback, useEffect, useState } from "react";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import {Chip, RadioButton, TextInput} from "react-native-paper";
-import {AntDesign} from '@expo/vector-icons';
+import { Chip, RadioButton, TextInput } from "react-native-paper";
+import { AntDesign } from '@expo/vector-icons';
 import Sport from "@/models/Sport";
-import SportLevel, {convertStringToEnumValue} from "@/models/SportLevel";
-import {UserInterestedSport} from "@/models/UserInterestedSport";
-import {SportService} from "@/services/SportService";
-import {router, useLocalSearchParams} from "expo-router";
-import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
-import {useSelector} from "react-redux";
-import {UserResponse} from "@/models/responseObjects/UserResponse";
-import {Style} from "domelementtype";
+import SportLevel, { convertStringToEnumValue } from "@/models/SportLevel";
+import { UserInterestedSport } from "@/models/UserInterestedSport";
+import { SportService } from "@/services/SportService";
+import { router, useLocalSearchParams } from "expo-router";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { useDispatch, useSelector } from "react-redux";
+import { UserResponse } from "@/models/responseObjects/UserResponse";
+import { UserSportResponse } from "@/models/responseObjects/UserSportResponse";
+import { getUserSports } from "@/redux/UserSlice";
 
 const SportInterested = () => {
+
+
     const _stepTitles = [
         {
             title: 'Choose your sports',
@@ -32,23 +35,37 @@ const SportInterested = () => {
             title: 'Choose a level for sports',
             Header: 'Sports Level'
         }];
+
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [selectedSports, setSelectedSports] = useState<Map<string, UserInterestedSport>>(new Map([]));
     const [sports, setSports] = useState<Sport[] | undefined>([]);
     const params = useLocalSearchParams();
     const user = useSelector((state: any) => state.user.userData) as UserResponse;
+    const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
+    const dispatch = useDispatch();
 
     useEffect(() => {
-        const fetchSport = async () => {
+        const fetchData = async () => {
             try {
                 const data = await SportService.getAllSports();
                 setSports(data);
+
+                if (user?.id) {
+                    dispatch(getUserSports(user.id) as any);
+
+                    if (userSport) {
+                        const userSports = new Map(userSport.map(x => [x.sportId, x]));
+                        setSelectedSports(userSports);
+                    }
+                }
+
             } catch (ex) {
                 console.log(ex);
             }
         }
-        fetchSport();
-    }, []);
+
+        fetchData();
+    }, [dispatch, user]);
 
 
     const _handleContinue = () => {
@@ -105,8 +122,12 @@ const SportInterested = () => {
                 const newSelectedSports = new Map(prevSelectedSports);
 
                 if (sport.id) {
+                    const isUserSportSelected = userSport.some(x => x.sportId === sport.id);
+                    
                     if (newSelectedSports.has(sport.id)) {
-                        newSelectedSports.delete(sport.id);
+                        if (!isUserSportSelected) {
+                            newSelectedSports.delete(sport.id);
+                        }
                     } else {
                         newSelectedSports.set(sport.id, {
                             score: 0,
@@ -133,7 +154,7 @@ const SportInterested = () => {
                         placeholderTextColor='#9BA0AB'
                         error={false}
                         underlineColor="transparent"
-                        left={<TextInput.Icon size={50} color='#9BA0AB' icon="magnify"/>}
+                        left={<TextInput.Icon size={50} color='#9BA0AB' icon="magnify" />}
                     />
                     <KeyboardAwareScrollView
                         scrollEnabled={true}>
@@ -143,14 +164,14 @@ const SportInterested = () => {
                                 return (<Chip
                                     key={sport.id}
                                     icon={() => (
-                                        isSelected && <AntDesign name="check" size={16} color="white"/>
+                                        isSelected && <AntDesign name="check" size={16} color="white" />
                                     )}
                                     mode="outlined"
-                                    style={[styles.sportItem, {backgroundColor: isSelected ? '#2757CB' : 'white'}]}
+                                    style={[styles.sportItem, { backgroundColor: isSelected ? '#2757CB' : 'white' }]}
                                     onPress={() => toggleSport(sport)}
                                 >
                                     <Text
-                                        style={[styles.sportText, {color: isSelected ? 'white' : 'black'}]}>{sport.name}</Text>
+                                        style={[styles.sportText, { color: isSelected ? 'white' : 'black' }]}>{sport.name}</Text>
                                 </Chip>)
                             })}
                         </View>
@@ -173,7 +194,7 @@ const SportInterested = () => {
                 const updatedSports = new Map(prevSelectedSports);
                 if (updatedSports.has(id)) {
                     const sport = updatedSports.get(id);
-                    updatedSports.set(id, {...sport, sportLevel: v});
+                    updatedSports.set(id, { ...sport, sportLevel: v });
                 }
                 return updatedSports;
             });
@@ -189,11 +210,11 @@ const SportInterested = () => {
         }, [selectedSports])
 
 
-        const _RenderItem = memo(({item}: { item: UserInterestedSport }) => {
+        const _RenderItem = memo(({ item }: { item: UserInterestedSport }) => {
 
             return (
                 <View style={styles.lvlContainer}>
-                    <Text style={{fontWeight: 'bold', fontSize: 16}}>{item.sportName}</Text>
+                    <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{item.sportName}</Text>
                     <View>
                         {sportLevels.map((value, key) => (
                             <View
@@ -209,7 +230,7 @@ const SportInterested = () => {
                                     status={_checkIfSelected(item.sportId, value) ? 'checked' : 'unchecked'}
                                     onPress={() => _onSelectSportLevel(item.sportId, value)}
                                 />
-                                <Text style={{fontSize: 16, marginLeft: 10}}>{value}</Text>
+                                <Text style={{ fontSize: 16, marginLeft: 10 }}>{value}</Text>
                             </View>
                         ))}
                     </View>
@@ -220,20 +241,20 @@ const SportInterested = () => {
         return (
             <View>
                 <View>
-                    <Text style={{fontSize: 14, marginVertical: 3}}><Text style={styles.headInfoText}>Beginner: </Text>New
+                    <Text style={{ fontSize: 14, marginVertical: 3 }}><Text style={styles.headInfoText}>Beginner: </Text>New
                         To Sport, Learning Basic Rules Or Skills Or Social League</Text>
-                    <Text style={{fontSize: 14, marginVertical: 3}}><Text
+                    <Text style={{ fontSize: 14, marginVertical: 3 }}><Text
                         style={styles.headInfoText}>Intermediate: </Text> Solid Understanding Of Rules, Refine
                         Techniques, Level Up Competitive Experience</Text>
-                    <Text style={{fontSize: 14, marginVertical: 3}}><Text style={styles.headInfoText}>Advance: </Text>Mastery
+                    <Text style={{ fontSize: 14, marginVertical: 3 }}><Text style={styles.headInfoText}>Advance: </Text>Mastery
                         Of Rules And Skills, High Level Competition</Text>
                 </View>
-                <View style={{maxHeight: hp(53), height: hp(50)}}>
+                <View style={{ maxHeight: hp(53), height: hp(50) }}>
                     <ScrollView
                         scrollEnabled={true}
                     >
                         {[...selectedSports.values()].map((item => <_RenderItem
-                            key={item.sportName + ' ' + Math.random()} item={item}/>))}
+                            key={item.sportName + ' ' + Math.random()} item={item} />))}
                     </ScrollView>
                 </View>
             </View>
@@ -245,28 +266,28 @@ const SportInterested = () => {
         <ImageBackground
             style={StyleSheet.absoluteFill}
             source={require('../../assets/images/signupBackGround.jpg')}>
-            <SafeAreaView style={{flex: 1}}>
-                <CustomNavigationHeader text={"Sport"} goBackFunction={_handleGoBack()} showBackArrow/>
+            <SafeAreaView style={{ flex: 1 }}>
+                <CustomNavigationHeader text={"Sport"} goBackFunction={_handleGoBack()} showBackArrow />
                 <Text style={styles.stepText}>Step {currentStep}/2</Text>
                 <View style={styles.mainContainer}>
                     <KeyboardAwareScrollView
-                        style={{flex: 1}}
-                        contentContainerStyle={{flexGrow: 1}}
+                        style={{ flex: 1 }}
+                        contentContainerStyle={{ flexGrow: 1 }}
                         keyboardShouldPersistTaps="handled"
                     >
-                        {currentStep === 1 && <_RenderSportCatalog/>}
-                        {currentStep === 2 && <_RenderUserSportLevel/>}
+                        {currentStep === 1 && <_RenderSportCatalog />}
+                        {currentStep === 2 && <_RenderUserSportLevel />}
                         <View style={styles.btnContainer}>
                             <TouchableOpacity
                                 onPress={_handleGoBack()}
                                 style={styles.btn}>
-                                <Text style={{textAlign: 'center', fontSize: 18, color: '#2757CB'}}>Back</Text>
+                                <Text style={{ textAlign: 'center', fontSize: 18, color: '#2757CB' }}>Back</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => _onNext()}
-                                style={[styles.btn, {backgroundColor: '#2757CB'}]}
+                                style={[styles.btn, { backgroundColor: '#2757CB' }]}
                             >
-                                <Text style={{textAlign: 'center', fontSize: 18, color: 'white'}}>Continue</Text>
+                                <Text style={{ textAlign: 'center', fontSize: 18, color: 'white' }}>Continue</Text>
                             </TouchableOpacity>
                         </View>
                     </KeyboardAwareScrollView>
@@ -363,7 +384,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 15,
         shadowColor: 'grey',
-        shadowOffset: {width: 8, height: 8},
+        shadowOffset: { width: 8, height: 8 },
         shadowOpacity: 0.1,
         shadowRadius: 8,
         elevation: 5,

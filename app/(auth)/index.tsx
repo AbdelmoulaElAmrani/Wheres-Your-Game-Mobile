@@ -44,6 +44,7 @@ const Intro = () => {
     useEffect(() => {
         const checkIntroViewed = async () => {
             const isIntroViewed = await LocalStorageService.getItem<boolean>('intro');
+            //const isIntroViewed = false;
             if (user?.id) {
                 router.replace("/(tabs)/");
             } else {
@@ -53,12 +54,11 @@ const Intro = () => {
             }
         };
         checkIntroViewed();
-
     }, [user]);
 
 
-    const _navigateToLoginPage = (): void => {
-        LocalStorageService.storeItem<boolean>("intro", true);
+    const _navigateToLoginPage = async (): Promise<void> => {
+        await LocalStorageService.storeItem<boolean>("intro", true);
         router.replace("/Login");
     }
 
@@ -95,12 +95,14 @@ const Intro = () => {
                                         </View>
                                         <Text style={{
                                             fontWeight: 'bold',
-                                            fontSize: 50,
+                                            fontSize: 35,
                                             alignSelf: 'center'
                                         }}>{item.title}</Text>
-                                        <Text style={styles.text}>{item.first}</Text>
-                                        <Text style={styles.text}>{item.second}</Text>
-                                        <Text style={styles.text}>{item.third}</Text>
+                                        <View style={{alignItems: 'center', marginTop: hp(1.5)}}>
+                                            <Text style={styles.text}>{item.first}</Text>
+                                            <Text style={styles.text}>{item.second}</Text>
+                                            <Text style={styles.text}>{item.third}</Text>
+                                        </View>
                                     </View>
                                 )}
                             />
@@ -177,15 +179,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center"
     },
-    nextBtn: {
-        backgroundColor: "#2757CB",
-        width: wp(80),
-        height: 55,
-        borderRadius: 30,
-        marginTop: 20,
-        alignSelf: "center",
-        justifyContent: "center",
-    },
     slide: {
         flex: 1,
         justifyContent: 'center',
@@ -193,7 +186,7 @@ const styles = StyleSheet.create({
         width: windowWidth,
     },
     text: {
-        fontSize: 20,
+        fontSize: 16,
         color: 'black',
     },
     dotContainer: {

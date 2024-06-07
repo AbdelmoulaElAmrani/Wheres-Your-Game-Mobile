@@ -91,7 +91,6 @@ export class AuthService {
 
     static verifyOTP = async (code: string): Promise<boolean | undefined> => {
         const res = await Requests.get(`auth/verifyOTP?otp=${code}`);
-        console.log(res);
         if (res?.status !== 200) {
             return false;
         }
@@ -103,7 +102,6 @@ export class AuthService {
         if (res?.status !== 200) {
             return false;
         }
-        console.log(res.data);
         return res.data;
     }
 

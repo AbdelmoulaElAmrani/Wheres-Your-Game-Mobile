@@ -17,7 +17,8 @@ export class Helpers {
     }
 
     static _isPasswordValid = (password: string): boolean => {
-        const re = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/;
+        //const re = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/;
+        const re = /^(?=.*[A-Z]).{6,}$/;
         return re.test(password);
     }
 

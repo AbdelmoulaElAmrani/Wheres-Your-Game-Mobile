@@ -5,12 +5,11 @@ import {Avatar} from 'react-native-paper';
 import {SafeAreaView} from "react-native-safe-area-context";
 import {AntDesign, Octicons} from '@expo/vector-icons';
 import {ImageBackground} from "expo-image";
-import {router} from "expo-router";
+import {router, useRouter} from "expo-router";
 import {useDispatch, useSelector} from "react-redux";
 import {getUserProfile, logout} from "@/redux/UserSlice";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {ActivityIndicator, MD2Colors} from 'react-native-paper';
-import {blueA700} from "react-native-paper/src/styles/themes/v2/colors";
 
 const Profile = () => {
     const dispatch = useDispatch()
@@ -18,6 +17,7 @@ const Profile = () => {
     const loading = useSelector((state: any) => state.user.loading) as boolean;
     const [image, setImage] = useState<any>();
     const [refreshing, setRefreshing] = useState<boolean>(false);
+    const _router = useRouter();
     //const loadingImage = {isStart: false};
 
     useEffect(() => {
@@ -59,19 +59,19 @@ const Profile = () => {
     }, [userData]);*/
 
     const _handleEditProfile = () => {
-        router.setParams({previousScreenName: 'profile'})
-        router.navigate('EditProfile');
+        _router.push({
+            pathname: '/EditProfile',
+            params: {data: 'profile'},
+        });
     }
 
     const _handleLogout = () => {
-        console.log('logout');
         dispatch(logout({}));
         router.replace('/Login');
     }
 
     const _refreshProfile = () => {
         setRefreshing(true)
-        console.log('refresh');
         setTimeout(() => {
             setRefreshing(false)
         }, 3000);
@@ -168,8 +168,9 @@ const Profile = () => {
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={styles.settingOption} onPress={_handleLogout}>
-                                <Text style={styles.settingOptionText}>Log Out</Text>
+                            <TouchableOpacity style={[styles.settingOption, {backgroundColor: 'red'}]}
+                                              onPress={_handleLogout}>
+                                <Text style={[styles.settingOptionText, {color: 'white'}]}>Log Out</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
 
@@ -237,7 +238,8 @@ const styles = StyleSheet.create({
         elevation: 1,
         backgroundColor: 'white',
         flexDirection: 'row',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        alignItems: 'center'
     },
     settingOptionText: {
         fontSize: 18,
