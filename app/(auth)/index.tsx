@@ -43,8 +43,8 @@ const Intro = () => {
 
     useEffect(() => {
         const checkIntroViewed = async () => {
-            //const isIntroViewed = await LocalStorageService.getItem<boolean>('intro');
-            const isIntroViewed = false;
+            const isIntroViewed = await LocalStorageService.getItem<boolean>('intro');
+            //const isIntroViewed = false;
             if (user?.id) {
                 router.replace("/(tabs)/");
             } else {
@@ -57,8 +57,8 @@ const Intro = () => {
     }, [user]);
 
 
-    const _navigateToLoginPage = (): void => {
-        LocalStorageService.storeItem<boolean>("intro", true);
+    const _navigateToLoginPage = async (): Promise<void> => {
+        await LocalStorageService.storeItem<boolean>("intro", true);
         router.replace("/Login");
     }
 
