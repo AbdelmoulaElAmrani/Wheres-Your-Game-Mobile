@@ -97,18 +97,18 @@ const EditProfile = () => {
         }
     }, [userData]);
 
-    const {
-        firstName,
-        lastName,
-        bio,
-        zipCode,
-        address,
-        gender,
-        dateOfBirth,
-        isCertified,
-        yearsOfExperience,
-        positionCoached
-    } = user;
+    /* const {
+         firstName,
+         lastName,
+         bio,
+         zipCode,
+         address,
+         gender,
+         dateOfBirth,
+         isCertified,
+         yearsOfExperience,
+         positionCoached
+     } = user;
 
     const userRequest: UserRequest = {
         firstName,
@@ -121,9 +121,10 @@ const EditProfile = () => {
         isCertified,
         yearsOfExperience,
         positionCoached
-    };
+    };*/
 
     const _handleUpdateUser = async () => {
+        const userRequest: UserRequest = user as UserRequest;
         dispatch(updateUserProfile(userRequest) as any);
     }
 
