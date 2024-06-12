@@ -598,7 +598,7 @@ const EditProfile = () => {
                                 />
                                 <Text style={styles.textLabel}>Position Coach</Text>
                                 <TextInput
-                                    style={styles.inputStyle}
+                                    style={[styles.inputStyle, {paddingLeft: 0}]}
                                     placeholder={'Position Coached'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
@@ -732,7 +732,8 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 20,
         borderBottomLeftRadius: 20,
         borderColor: '#D3D3D3',
-        borderWidth: 1
+        borderWidth: 1,
+        paddingLeft: 15
     },
     mgTop: {
         marginTop: 5
@@ -875,7 +876,8 @@ const styles = StyleSheet.create({
     },
     inputInfoStyle: {
         backgroundColor: 'white',
-        height: 120,
+        textAlign: 'left',
+        // height: 120,
         fontSize: 16,
         marginTop: 5,
         color: 'black',
