@@ -90,7 +90,7 @@ const EditProfile = () => {
     }, []);
 
     useEffect(() => {
-        if (user?.id == '' || user?.id == undefined) {
+        if (user?.id == '' || user?.id == undefined || user?.id == null || user?.id != userData?.id) {
             setUser(userData);
         } else {
             dispatch(getUserSports(userData.id) as any);
