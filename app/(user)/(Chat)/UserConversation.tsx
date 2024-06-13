@@ -16,8 +16,8 @@ import {useEffect, useRef, useState} from "react";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import Gender from "@/models/Gender";
 import {Ionicons} from "@expo/vector-icons";
-/*import SockJS from "sockjs-client";
-import Stomp from "stompjs";*/
+import SockJS from 'sockjs-client';
+import {Client, IMessage} from '@stomp/stompjs';
 import {useSelector} from "react-redux";
 import {UserService} from "@/services/UserService";
 import {useRoute} from "@react-navigation/core";
@@ -25,116 +25,117 @@ import {Message} from "@/models/Conversation";
 import {AuthService} from "@/services/AuthService";
 
 
-const url = 'https://salmon-specials-prefer-meaningful.trycloudflare.com/ws';
+const url = 'https://sounds-kind-acres-ca.trycloudflare.com/ws';
 
 const UserConversation = () => {
 
-    //const [stompClient, setStompClient] = useState<Stomp.Client | null>(null);
+    const [stompClient, setStompClient] = useState<Client | null>(null);
+    const [connected, setConnected] = useState(false);
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
-    const [receiver, setReceiver] = useState<UserResponse>({
-        firstName: 'Bob',
-        lastName: 'Mike',
-        address: "",
-        age: 0,
-        bio: "",
-        countryCode: "",
-        dateOfBirth: new Date(),
-        email: "",
-        gender: Gender.MALE,
-        id: "",
-        imageUrl: "",
-        isCertified: false,
-        phoneNumber: "",
-        positionCoached: "",
-        role: "",
-        yearsOfExperience: 0,
-        zipCode: ""
-    });
-    const [message, setMessage] = useState<string>('');
+    const [receiver, setReceiver] = useState<UserResponse>();
+    const [newMessage, setNewMessage] = useState<string>('');
     const [messages, setMessages] = useState<Message[]>([
         /*{id: '1', text: 'Hello!', sender: 'user1'},
         {id: '2', text: 'Hi! How are you?', sender: 'user2'},
         {id: '3', text: 'I am good, thanks!', sender: 'user1'},*/
     ]);
     const [loading, setLoading] = useState<boolean>(false);
+    const [token, setToken] = useState<string | null>(null);
 
     const route = useRoute();
     const paramData = route.params as any;
-
 
     useEffect(() => {
         setLoading(true);
         const receiverId = paramData?.data;
         const fetchUserData = async () => {
+            const storedToken = await AuthService.getAccessToken();
             const userData = await UserService.getUserProfileById(receiverId);
-            if (userData)
+            setLoading(false);
+            if (userData) {
                 setReceiver(userData);
-            else
+                setToken(storedToken);
+            } else {
                 router.back();
+            }
         }
         fetchUserData();
-
-        /*  console.info('INIT Socket');
-          const socket = new SockJS(url);
-          console.info('INITED Socket');
-          console.info('INIT Stomp');
-          const client: Stomp.Client = Stomp.over(socket);
-          console.info('INITED Stomp');*/
-
-        /*AuthService.getAccessToken()
-            .then((token) => {
-                console.log('token and begin connection');
-                client.connect(
-                    {Authorizations: `Bearer ${token}`}, // Fixing the header key
-                    () => {
-                        client.subscribe('/topic/messages', (message) => {
-                            const newMessage = JSON.parse(message.body);
-                            if (newMessage) {
-                                setMessages((old) => [...old, newMessage]);
-                            }
-                        });
-                    },
-                    (error) => {
-                        console.error('Connection error', error);
-                        setLoading(false);
-                    }
-                );
-
-                setStompClient(client);
-                setLoading(false);
-            })
-            .catch(() => setLoading(false));*/
-
-        /* return () => {
-             if (client) {
-                 client.disconnect(() => {
-                 });
-             }
-         };*/
-
     }, []);
 
-    const handleSend = () => {
-        //if (stompClient && message.trim()) {
-            /* const message = {
-                 sender: { username },
-                 receiver: { username: 'receiver-username' }, // Replace with actual receiver
-                 content: newMessage,
-                 timestamp: Date.now(),
-             };*/
+    useEffect(() => {
+        console.info('INIT Socket');
+        // @ts-ignore
+        const socket = new SockJS(url);
+        console.info('INITED Socket');
+        console.info('INIT Stomp');
+        const client = new Client({
+            webSocketFactory: () => socket,
+            connectHeaders: {
+                Authorization: `Bearer ${token}`,
+            },
+            debug: (str) => {
+                console.log('debug => ', str);
+            },
+            onConnect: () => {
+                console.log('Connected');
+                setConnected(true);
+                client.subscribe('/ws-chat/queue/messages', (message: IMessage) => {
+                    console.log('here messages => ');
+                    console.log(message);
+                    const msg: Message = JSON.parse(message.body);
+                    //setMessages((prevMessages) => [...prevMessages, msg]);
+                });
+            },
+            onStompError: (frame) => {
+                console.error('Broker reported error: ' + frame.headers['message']);
+                console.error('Additional details: ' + frame.body);
+            },
+        });
 
-            //stompClient.send('/app/chat.sendMessage', {}, JSON.stringify(message));
-         //   setMessage('');
-       // }
-    };
+        console.info('INITED Stomp');
+        client.activate();
+        console.info('activated');
+        setStompClient(client);
+
+        return () => {
+            client.deactivate();
+        };
+
+    }, [token]);
+
+    const onMessageReceived = (message: any) => {
+        const newMessage = JSON.parse(message.body);
+        if (newMessage) {
+            setMessages((old) => [...old, newMessage]);
+        }
+    }
+
+    const onSendMessage = () => {
+        console.log('verify message', connected);
+        if (newMessage.trim() && receiver && stompClient && connected) {
+            const message: Message = {
+                senderId: currentUser.id,
+                receiverId: receiver.id,
+                message: newMessage,
+                timestamp: new Date(),
+            };
+            console.log('good');
+            stompClient.publish({
+                destination: '/app/chat',
+                body: JSON.stringify(message),
+            });
+            setNewMessage('');
+            setMessages(old => [message, ...old]);
+        }
+    }
 
 
-    const _renderMessage = ({item}: { item: any }) => {
-        const isCurrentUser = item.sender === 'user1';
+    const _renderMessage = ({item}: { item: Message }) => {
+        const isCurrentUser = item.senderId === currentUser.id;
         return (
             <View
                 style={[styles.messageContainer, isCurrentUser ? styles.currentUserMessage : styles.otherUserMessage]}>
-                <Text style={[styles.messageText, {color: isCurrentUser ? 'white' : 'black'}]}>{item?.text}</Text>
+                <Text style={[styles.messageText, {color: isCurrentUser ? 'white' : 'black'}]}>{item.message}</Text>
             </View>
         );
     };
@@ -150,7 +151,7 @@ const UserConversation = () => {
             source={require('../../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView style={{flex: 1}}>
                 <CustomNavigationHeader
-                    text={`${receiver.firstName} ${receiver.lastName}`}
+                    text={`${receiver?.firstName} ${receiver?.lastName}`}
                     goBackFunction={_handleGoBack} showBackArrow/>
 
                 <KeyboardAvoidingView
@@ -161,7 +162,7 @@ const UserConversation = () => {
                         <FlatList
                             data={messages}
                             renderItem={_renderMessage}
-                            keyExtractor={item => item.id}
+                            keyExtractor={item => item.id + item.timestamp.toString()}
                             inverted
                         />
                     </View>
@@ -169,10 +170,10 @@ const UserConversation = () => {
                         <TextInput
                             style={styles.textInput}
                             placeholder='Type your message'
-                            value={message}
-                            onChangeText={setMessage}
+                            value={newMessage}
+                            onChangeText={setNewMessage}
                         />
-                        <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
+                        <TouchableOpacity style={styles.sendButton} onPress={onSendMessage}>
                             <Ionicons name="send" size={24} color="white"/>
                         </TouchableOpacity>
                     </View>
