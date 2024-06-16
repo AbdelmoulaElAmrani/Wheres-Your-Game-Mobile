@@ -3,7 +3,7 @@ import Gender from "@/models/Gender";
 
 export class Message {
     // @ts-ignore
-    public id: string;
+    public id?: string;
     // @ts-ignore
     public message: string;
     // @ts-ignore
