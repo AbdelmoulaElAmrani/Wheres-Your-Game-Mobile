@@ -60,9 +60,14 @@ const UserConversation = () => {
 
     const _getNewMessages = async () => {
         try {
-            if (receiver == null || currentUser == null) return;
-            const msgs = await ChatService.getLastMessages(currentUser.id, receiver.id);
-            console.log('get');
+            if (!receiver || !currentUser) return;
+            let from = null;
+            if (messages.length > 0) {
+                from = new Date(Math.max(...messages.map(m => new m.timestamp)));
+            }
+            console.log('MAX => ', from);
+            const msgs = await ChatService.getLastMessages(currentUser.id, receiver.id, from);
+            console.log(msgs);
             if (msgs && msgs.length > 0)
                 setMessages(old => [...msgs, ...old])
         } catch (e) {

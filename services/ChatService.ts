@@ -26,9 +26,9 @@ export class ChatService {
         }
     }
 
-    static async getLastMessages(sender: string, receiver: string) {
+    static async getLastMessages(userId1: string, userId2: string, from: any) {
         try {
-            var res = await Requests.get(`chat/lastMessages?sender=${sender}&receiver=${receiver}`);
+            var res = await Requests.get(`chat/lastMessages?userId1=${userId1}&userId2=${userId2}&from=${from}`);
             if (res?.status === 200 && res?.data) {
                 return res.data as Message[];
             }
