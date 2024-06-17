@@ -10,20 +10,18 @@ export class ChatService {
             }
             return undefined;
         } catch (error) {
-            console.error('Error fetching profile:', error);
             return undefined;
         }
     }
 
-    static async getMessages(sender: string, receiver: string, page = 0, size = 100) {
+    static async getMessages(userId1: string, userId2: string, page = 0, size = 100) {
         try {
-            var res = await Requests.get(`chat/messages?sender=${sender}&receiver=${receiver}&page=${page}&size=${size}`);
+            var res = await Requests.get(`chat/messages?userId1=${userId1}&userId2=${userId2}&page=${page}&size=${size}`);
             if (res?.status === 200 && res?.data) {
                 return res.data
             }
-            return [];
+            return undefined;
         } catch (error) {
-            console.error('Error fetching profile:', error);
             return undefined;
         }
     }
@@ -36,7 +34,6 @@ export class ChatService {
             }
             return [];
         } catch (error) {
-            console.error('Error fetching profile:', error);
             return undefined;
         }
     }

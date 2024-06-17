@@ -51,19 +51,12 @@ const UserConversation = () => {
             }
         }
         fetchUserDataAndMessages();
-        loadMessages();
         /* const lastMessageInterval = setInterval(_getNewMessages, 10000);
          return () => {
              clearInterval(lastMessageInterval);
          }*/
     }, []);
 
-
-    const onMessageReceived = (message: Message[]) => {
-        if (message) {
-            setMessages((old) => [...message, ...old]);
-        }
-    }
 
     const _getNewMessages = async () => {
         try {
@@ -120,20 +113,27 @@ const UserConversation = () => {
         if (loading || !hasMore || receiver == null) return;
         setLoading(true);
         try {
-            const data = await ChatService.getMessages(currentUser.id, receiver?.id, page);
-            setMessages((prevMessages) => [...prevMessages, ...data.content]);
-            setPage((prevPage) => prevPage + 1);
-            if (data.content.length < 100) {
+            const data = await ChatService.getMessages(currentUser.id, receiver.id, page);
+            if (data?.content?.length) {
+                setMessages((prevMessages) => [...prevMessages, ...data.content]);
+                if (data.empty || data.last || data.content.length < 100) {
+                    setHasMore(false);
+                } else {
+                    setPage((prevPage) => prevPage + 1);
+                }
+            } else {
                 setHasMore(false);
             }
         } catch (error) {
             console.error('Error fetching messages:', error);
+            setHasMore(false);
         } finally {
             setLoading(false);
         }
     };
 
     const handleLoadMore = () => {
+        console.log('loading more');
         if (!loading && hasMore) {
             loadMessages();
         }
