@@ -16,7 +16,7 @@ import {UserService} from "@/services/UserService";
 import moment from 'moment-timezone';
 
 
-const MESSAGE_TIMER = 15 * 1000;
+const MESSAGE_TIMER = CONVERSATION_REFRESH_TIMER * 1000;
 const Chats = () => {
     const [recentChats, setRecentChats] = useState<Conversation[]>([]);
     const _router = useRouter();

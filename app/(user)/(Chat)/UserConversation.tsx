@@ -22,7 +22,8 @@ import {Message} from "@/models/Conversation";
 import moment from 'moment-timezone';
 import {ChatService} from "@/services/ChatService";
 import {Helpers} from "@/constants/Helpers";
-import {changePlaceholderInTemplate} from "@react-native-community/cli/build/commands/init/editTemplate";
+
+const MAX_REFRESH_TIME: number = CHAT_REFRESH_TIMER * 1000;
 
 const UserConversation = () => {
 
@@ -51,10 +52,10 @@ const UserConversation = () => {
             }
         }
         fetchUserDataAndMessages();
-        /* const lastMessageInterval = setInterval(_getNewMessages, 10000);
+        const lastMessageInterval = setInterval(_getNewMessages, MAX_REFRESH_TIME);
          return () => {
              clearInterval(lastMessageInterval);
-         }*/
+         }
     }, []);
 
 
@@ -67,7 +68,7 @@ const UserConversation = () => {
             }
             console.log('MAX => ', from);
             const msgs = await ChatService.getLastMessages(currentUser.id, receiver.id, from);
-            console.log(msgs);
+            console.log('new messages => ', msgs);
             if (msgs && msgs.length > 0)
                 setMessages(old => [...msgs, ...old])
         } catch (e) {
