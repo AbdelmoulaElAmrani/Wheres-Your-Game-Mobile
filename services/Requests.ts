@@ -5,7 +5,7 @@ import {logout} from "@/redux/UserSlice";
 
 
 const PREFIX = 'api'
-export const API_URI = `https://sounds-kind-acres-ca.trycloudflare.com/${PREFIX}/`
+export const API_URI = `https://institution-starts-nm-atmosphere.trycloudflare.com/${PREFIX}/`
 //export const API_URI = `https://sport-app-38dd22818116.herokuapp.com/${PREFIX}/`
 
 

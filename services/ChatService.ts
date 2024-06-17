@@ -1,18 +1,49 @@
 import Requests from "@/services/Requests";
-import {UserResponse} from "@/models/responseObjects/UserResponse";
-import {Conversation} from "@/models/Conversation";
+import {Conversation, Message} from "@/models/Conversation";
 
 export class ChatService {
     static async getConversation() {
         try {
-            var res = await Requests.get(`conversation`);
+            var res = await Requests.get(`chat/conversation`);
             if (res?.status === 200 && res?.data) {
-                return res?.data as Conversation[];
+                return res.data as Conversation[];
             }
             return undefined;
         } catch (error) {
-            console.error('Error fetching profile:', error);
             return undefined;
         }
     }
+
+    static async getMessages(userId1: string, userId2: string, page = 0, size = 100) {
+        try {
+            var res = await Requests.get(`chat/messages?userId1=${userId1}&userId2=${userId2}&page=${page}&size=${size}`);
+            if (res?.status === 200 && res?.data) {
+                return res.data
+            }
+            return undefined;
+        } catch (error) {
+            return undefined;
+        }
+    }
+
+    static async getLastMessages(userId1: string, userId2: string, from: any) {
+        try {
+            var res = await Requests.get(`chat/lastMessages?userId1=${userId1}&userId2=${userId2}&from=${from}`);
+            if (res?.status === 200 && res?.data) {
+                return res.data as Message[];
+            }
+            return [];
+        } catch (error) {
+            return undefined;
+        }
+    }
+
+    static async sendMessage(message: Message) {
+        const res = await Requests.post('chat/message', message);
+        if (res?.status === 200 && res?.data) {
+            return res.data as Message;
+        }
+        throw Error();
+    }
+
 }

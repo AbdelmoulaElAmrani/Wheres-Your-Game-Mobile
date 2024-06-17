@@ -22,7 +22,7 @@ export class Helpers {
         return re.test(password);
     }
 
-    static formatNotificationDate = (timestamp: Date | undefined, isNotification?: boolean | false): string => {
+    static formatNotificationDate = (timestamp: Date | undefined, isNotification: boolean = false): string => {
         const messageDate = timestamp ? new Date(timestamp) : new Date();
         const currentDate = new Date();
         const yesterdayDate = new Date(currentDate.getTime() - (24 * 60 * 60 * 1000));
@@ -32,10 +32,16 @@ export class Helpers {
             if (diffMinutes < 1) {
                 return "Now";
             }
-            if (isNotification)
-                return `${messageDate.getHours()}h ago`;
-            else
-                return `${messageDate.getHours()}:${messageDate.getMinutes().toString().padStart(2, '0')}`;
+            if (isNotification) {
+                const diffHours = Math.floor(diffMinutes / 60);
+                return `${diffHours}h ago`;
+            } else {
+                const hours = messageDate.getHours();
+                const minutes = messageDate.getMinutes().toString().padStart(2, '0');
+                const period = hours >= 12 ? 'PM' : 'AM';
+                const formattedHours = hours % 12 || 12;
+                return `${formattedHours}:${minutes} ${period}`;
+            }
         }
 
         if (messageDate.toDateString() === yesterdayDate.toDateString()) {

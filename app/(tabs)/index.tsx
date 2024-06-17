@@ -21,7 +21,7 @@ import {Image, ImageBackground} from "expo-image";
 import {NotificationService} from "@/services/NotificationService";
 
 const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
-const REFRESH_NOTIFICATION_TIME = 5 * 1000 * 60;
+const REFRESH_NOTIFICATION_TIME = NOTIFICATION_REFRESH_TIMER * 1000;
 const Home = () => {
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const loading = useSelector((state: any) => state.user.loading) as boolean;
@@ -65,7 +65,6 @@ const Home = () => {
             }
         }
         fetchData();
-
 
         const intervalId = setInterval(async () => {
             const res = await NotificationService.getNotifications();
