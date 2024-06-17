@@ -6,7 +6,7 @@ import {
     Text,
     TouchableOpacity,
     TextInput,
-    View
+    View, Alert, ActivityIndicator
 } from "react-native";
 import {ImageBackground} from "expo-image";
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -14,33 +14,26 @@ import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {router} from "expo-router";
 import {useEffect, useRef, useState} from "react";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
-import Gender from "@/models/Gender";
 import {Ionicons} from "@expo/vector-icons";
-import SockJS from 'sockjs-client';
-import {Client, IMessage} from '@stomp/stompjs';
 import {useSelector} from "react-redux";
 import {UserService} from "@/services/UserService";
 import {useRoute} from "@react-navigation/core";
 import {Message} from "@/models/Conversation";
-import {AuthService} from "@/services/AuthService";
-
-
-const url = 'https://sounds-kind-acres-ca.trycloudflare.com/ws';
+import moment from 'moment-timezone';
+import {ChatService} from "@/services/ChatService";
+import {Helpers} from "@/constants/Helpers";
+import {changePlaceholderInTemplate} from "@react-native-community/cli/build/commands/init/editTemplate";
 
 const UserConversation = () => {
 
-    const [stompClient, setStompClient] = useState<Client | null>(null);
-    const [connected, setConnected] = useState(false);
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
-    const [receiver, setReceiver] = useState<UserResponse>();
+    const [receiver, setReceiver] = useState<UserResponse | null>(null);
     const [newMessage, setNewMessage] = useState<string>('');
-    const [messages, setMessages] = useState<Message[]>([
-        /*{id: '1', text: 'Hello!', sender: 'user1'},
-        {id: '2', text: 'Hi! How are you?', sender: 'user2'},
-        {id: '3', text: 'I am good, thanks!', sender: 'user1'},*/
-    ]);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
-    const [token, setToken] = useState<string | null>(null);
+
+    const [page, setPage] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
 
     const route = useRoute();
     const paramData = route.params as any;
@@ -48,102 +41,107 @@ const UserConversation = () => {
     useEffect(() => {
         setLoading(true);
         const receiverId = paramData?.data;
-        const fetchUserData = async () => {
-            const storedToken = await AuthService.getAccessToken();
+        const fetchUserDataAndMessages = async () => {
             const userData = await UserService.getUserProfileById(receiverId);
             setLoading(false);
             if (userData) {
                 setReceiver(userData);
-                setToken(storedToken);
             } else {
                 router.back();
             }
         }
-        fetchUserData();
+        fetchUserDataAndMessages();
+        loadMessages();
+        /* const lastMessageInterval = setInterval(_getNewMessages, 10000);
+         return () => {
+             clearInterval(lastMessageInterval);
+         }*/
     }, []);
 
-    useEffect(() => {
-        console.info('INIT Socket');
-        // @ts-ignore
-        const socket = new SockJS(url);
-        console.info('INITED Socket');
-        console.info('INIT Stomp');
-        const client = new Client({
-            webSocketFactory: () => socket,
-            connectHeaders: {
-                Authorization: `Bearer ${token}`,
-            },
-            debug: (str) => {
-                console.log('debug => ', str);
-            },
-            onConnect: () => {
-                console.log('Connected');
-                setConnected(true);
-                client.subscribe('/ws-chat/queue/messages', (message: IMessage) => {
-                    console.log('here messages => ');
-                    console.log(message);
-                    const msg: Message = JSON.parse(message.body);
-                    //setMessages((prevMessages) => [...prevMessages, msg]);
-                });
-            },
-            onStompError: (frame) => {
-                console.error('Broker reported error: ' + frame.headers['message']);
-                console.error('Additional details: ' + frame.body);
-            },
-        });
 
-        console.info('INITED Stomp');
-        client.activate();
-        console.info('activated');
-        setStompClient(client);
-
-        return () => {
-            client.deactivate();
-        };
-
-    }, [token]);
-
-    const onMessageReceived = (message: any) => {
-        const newMessage = JSON.parse(message.body);
-        if (newMessage) {
-            setMessages((old) => [...old, newMessage]);
+    const onMessageReceived = (message: Message[]) => {
+        if (message) {
+            setMessages((old) => [...message, ...old]);
         }
     }
 
-    const onSendMessage = () => {
-        console.log('verify message', connected);
-        if (newMessage.trim() && receiver && stompClient && connected) {
-            const message: Message = {
-                senderId: currentUser.id,
-                receiverId: receiver.id,
-                message: newMessage,
-                timestamp: new Date(),
-            };
-            console.log('good');
-            stompClient.publish({
-                destination: '/app/chat',
-                body: JSON.stringify(message),
-            });
-            setNewMessage('');
-            setMessages(old => [message, ...old]);
+    const _getNewMessages = async () => {
+        try {
+            if (receiver == null || currentUser == null) return;
+            const msgs = await ChatService.getLastMessages(currentUser.id, receiver.id);
+            console.log('get');
+            if (msgs && msgs.length > 0)
+                setMessages(old => [...msgs, ...old])
+        } catch (e) {
+            console.log(e);
         }
     }
+    const onSendMessage = async () => {
+        const timestamp = moment.tz(moment.tz.guess()).format();
+        try {
 
+            if (newMessage.trim() && receiver) {
+                const message: Message = {
+                    senderId: currentUser.id,
+                    receiverId: receiver.id,
+                    message: newMessage,
+                    timestamp: timestamp,
+                };
+                const response = await ChatService.sendMessage(message);
+                setNewMessage('');
+                setMessages(old => [message, ...old]);
+            }
+        } catch (error) {
+            console.error('Error sending message:', error);
+            Alert.alert('Error', 'Failed to send message');
+        }
+    }
 
     const _renderMessage = ({item}: { item: Message }) => {
         const isCurrentUser = item.senderId === currentUser.id;
+        const userTimeZone = moment.tz.guess();
+        const formattedDate = moment(item.timestamp).tz(userTimeZone).toDate()
+
         return (
+            /* <View
+                 style={[styles.messageContainer, isCurrentUser ? styles.currentUserMessage : styles.otherUserMessage]}>
+                 <Text style={[styles.messageText, {color: isCurrentUser ? 'white' : 'black'}]}>{item.message}</Text>
+             </View>*/
             <View
                 style={[styles.messageContainer, isCurrentUser ? styles.currentUserMessage : styles.otherUserMessage]}>
                 <Text style={[styles.messageText, {color: isCurrentUser ? 'white' : 'black'}]}>{item.message}</Text>
+                <Text style={styles.timestampText}>{Helpers.formatNotificationDate(formattedDate, true)}</Text>
             </View>
         );
+    };
+
+
+    const loadMessages = async () => {
+        if (loading || !hasMore || receiver == null) return;
+        setLoading(true);
+        try {
+            const data = await ChatService.getMessages(currentUser.id, receiver?.id, page);
+            setMessages((prevMessages) => [...prevMessages, ...data.content]);
+            setPage((prevPage) => prevPage + 1);
+            if (data.content.length < 100) {
+                setHasMore(false);
+            }
+        } catch (error) {
+            console.error('Error fetching messages:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleLoadMore = () => {
+        if (!loading && hasMore) {
+            loadMessages();
+        }
     };
     const _handleGoBack = () => {
         if (router.canGoBack())
             router.back();
     }
-
 
     return (
         <ImageBackground
@@ -164,6 +162,9 @@ const UserConversation = () => {
                             renderItem={_renderMessage}
                             keyExtractor={item => item.id + item.timestamp.toString()}
                             inverted
+                            onEndReached={handleLoadMore}
+                            onEndReachedThreshold={0.5} // Adjust the threshold as needed
+                            ListFooterComponent={loading ? <ActivityIndicator size="large"/> : null}
                         />
                     </View>
                     <View style={styles.inputContainer}>
@@ -181,6 +182,7 @@ const UserConversation = () => {
             </SafeAreaView>
         </ImageBackground>);
 }
+
 const styles = StyleSheet.create({
     chatContainer: {
         backgroundColor: 'white',
@@ -207,6 +209,11 @@ const styles = StyleSheet.create({
     },
     messageText: {
         fontSize: 16,
+    },
+    timestampText: {
+        fontSize: 12,
+        color: 'grey',
+        marginTop: 5,
     },
     inputContainer: {
         flexDirection: 'row',
