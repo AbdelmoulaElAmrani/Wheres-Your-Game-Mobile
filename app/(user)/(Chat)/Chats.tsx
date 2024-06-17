@@ -161,7 +161,7 @@ const Chats = () => {
                             <Avatar.Text
                                 size={50}
                                 // @ts-ignore
-                                label={(item.receiver?.firstName?.charAt(0) + item.receiver?.lastName?.charAt(0)).toUpperCase()}/>
+                                label={(item.user?.firstName?.charAt(0) + item.user?.lastName?.charAt(0)).toUpperCase()}/>
                         )}
                     </View>
                     <View style={{flex: 0.8}}>
@@ -170,7 +170,7 @@ const Chats = () => {
                                 {item.user?.firstName + ' ' + item.user?.lastName}
                             </Text>
                             <View style={{flexDirection: "row", alignItems: 'center'}}>
-                                <Text>{Helpers.formatNotificationDate(formattedDate)}</Text>
+                                <Text>{Helpers.formatNotificationDate(formattedDate, true)}</Text>
                             </View>
                         </View>
                         <Text style={{color: 'grey', fontSize: 14, textAlign: 'auto', marginTop: 8}}
