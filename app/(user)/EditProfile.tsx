@@ -16,7 +16,7 @@ import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-nativ
 import {SafeAreaView} from "react-native-safe-area-context";
 import {Octicons} from '@expo/vector-icons';
 import * as ImagePicker from "expo-image-picker";
-import {router, useLocalSearchParams} from "expo-router";
+import {router} from "expo-router";
 import Gender from "@/models/Gender";
 import MaleIcon from "@/assets/images/svg/MaleIcon";
 import FemaleIcon from "@/assets/images/svg/FemaleIcon";

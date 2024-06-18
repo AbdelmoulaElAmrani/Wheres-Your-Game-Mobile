@@ -5,7 +5,7 @@ import {logout} from "@/redux/UserSlice";
 
 
 const PREFIX = 'api'
-//export const API_URI = `https://national-tomatoes-regression-albania.trycloudflare.com/${PREFIX}/`
+//export const API_URI = `https://committee-dg-doom-elephant.trycloudflare.com/${PREFIX}/`
 export const API_URI = `https://sport-app-38dd22818116.herokuapp.com/${PREFIX}/`
 
 
@@ -19,7 +19,7 @@ const axiosInstance = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
-    timeout: 3000
+    timeout: 5000
 });
 // Request Interceptor
 axiosInstance.interceptors.request.use(
