@@ -14,6 +14,7 @@ import Spinner from "@/components/Spinner";
 import {ChatService} from "@/services/ChatService";
 import {UserService} from "@/services/UserService";
 import moment from 'moment-timezone';
+import {CONVERSATION_REFRESH_TIMER} from "@/appTimersConfig";
 
 
 const MESSAGE_TIMER = CONVERSATION_REFRESH_TIMER * 1000;

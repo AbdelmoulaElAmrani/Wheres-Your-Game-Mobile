@@ -23,6 +23,10 @@ const EditCoachProfile = () => {
     const {availableSport}: { availableSport: Sport[] } = useSelector((state: any) => state.sport);
     const dispatch = useDispatch();
     const [user, setUser] = useState<UserResponse>({
+        countryCode: "",
+        isCertified: false,
+        positionCoached: "",
+        yearsOfExperience: 0,
         address: "",
         age: 0,
         bio: "",
@@ -31,7 +35,6 @@ const EditCoachProfile = () => {
         gender: Gender.DEFAULT,
         imageUrl: "",
         lastName: "",
-        phoneCountryCode: "",
         phoneNumber: "",
         role: "",
         zipCode: "",
@@ -59,7 +62,6 @@ const EditCoachProfile = () => {
     };
 
     const _handleContinue = async () => {
-        console.log({...user});
         setCurrentStep(oldValue => Math.min(3, oldValue + 1));
         if (currentStep >= 3) {
             try {

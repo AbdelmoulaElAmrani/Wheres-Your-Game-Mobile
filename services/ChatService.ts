@@ -32,7 +32,7 @@ export class ChatService {
             if (res?.status === 200 && res?.data) {
                 return res.data as Message[];
             }
-            return [];
+            return undefined;
         } catch (error) {
             return undefined;
         }

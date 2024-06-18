@@ -22,6 +22,7 @@ import {Message} from "@/models/Conversation";
 import moment from 'moment-timezone';
 import {ChatService} from "@/services/ChatService";
 import {Helpers} from "@/constants/Helpers";
+import {CHAT_REFRESH_TIMER} from "@/appTimersConfig";
 
 const MAX_REFRESH_TIME: number = CHAT_REFRESH_TIMER * 1000;
 
@@ -53,28 +54,38 @@ const UserConversation = () => {
         }
         fetchUserDataAndMessages();
         const lastMessageInterval = setInterval(_getNewMessages, MAX_REFRESH_TIME);
-         return () => {
-             clearInterval(lastMessageInterval);
-         }
+        return () => {
+            clearInterval(lastMessageInterval);
+        }
     }, []);
 
 
     const _getNewMessages = async () => {
         try {
             if (!receiver || !currentUser) return;
-            let from = null;
+            let from: Date | null = null;
+
             if (messages.length > 0) {
-                from = new Date(Math.max(...messages.map(m => new m.timestamp)));
+                const maxTimestamp = Math.max(...messages.map(m => new Date(m.timestamp).getTime()));
+                from = new Date(maxTimestamp);
             }
-            console.log('MAX => ', from);
-            const msgs = await ChatService.getLastMessages(currentUser.id, receiver.id, from);
-            console.log('new messages => ', msgs);
-            if (msgs && msgs.length > 0)
-                setMessages(old => [...msgs, ...old])
+
+            const fromISOString = from?.toISOString();
+
+            const msgs = await ChatService.getLastMessages(currentUser.id, receiver.id, fromISOString);
+
+            if (msgs && msgs.length > 0) {
+                setMessages(oldMessages => {
+                    const existingMessageIds = new Set(oldMessages.map(m => m.id));
+                    const newMessages = msgs.filter(m => !existingMessageIds.has(m.id));
+                    return [...newMessages, ...oldMessages];
+                });
+            }
         } catch (e) {
             console.log(e);
         }
-    }
+    };
+
     const onSendMessage = async () => {
         const timestamp = moment.tz(moment.tz.guess()).format();
         try {
@@ -88,7 +99,7 @@ const UserConversation = () => {
                 };
                 const response = await ChatService.sendMessage(message);
                 setNewMessage('');
-                setMessages(old => [message, ...old]);
+                setMessages(old => [response, ...old]);
             }
         } catch (error) {
             console.error('Error sending message:', error);
@@ -98,18 +109,14 @@ const UserConversation = () => {
 
     const _renderMessage = ({item}: { item: Message }) => {
         const isCurrentUser = item.senderId === currentUser.id;
-        const userTimeZone = moment.tz.guess();
-        const formattedDate = moment(item.timestamp).tz(userTimeZone).toDate()
+        //const userTimeZone = moment.tz.guess();
+        //const formattedDate = moment(item.timestamp).tz(userTimeZone).toDate()
 
         return (
-            /* <View
-                 style={[styles.messageContainer, isCurrentUser ? styles.currentUserMessage : styles.otherUserMessage]}>
-                 <Text style={[styles.messageText, {color: isCurrentUser ? 'white' : 'black'}]}>{item.message}</Text>
-             </View>*/
             <View
                 style={[styles.messageContainer, isCurrentUser ? styles.currentUserMessage : styles.otherUserMessage]}>
                 <Text style={[styles.messageText, {color: isCurrentUser ? 'white' : 'black'}]}>{item.message}</Text>
-                <Text style={styles.timestampText}>{Helpers.formatNotificationDate(formattedDate, true)}</Text>
+                {/*<Text style={styles.timestampText}>{Helpers.formatNotificationDate(formattedDate, true)}</Text>*/}
             </View>
         );
     };
@@ -139,8 +146,8 @@ const UserConversation = () => {
     };
 
     const handleLoadMore = () => {
-        console.log('loading more');
         if (!loading && hasMore) {
+            console.log('loading more', hasMore);
             loadMessages();
         }
     };
