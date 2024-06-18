@@ -26,6 +26,7 @@ import { router } from 'expo-router';
 import * as ImagePicker from "expo-image-picker";
 import {manipulateAsync, SaveFormat} from "expo-image-manipulator";
 import { StorageService } from '@/services/StorageService';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 
 function TeamForm() {
@@ -76,10 +77,17 @@ function TeamForm() {
 
 
 
-    const renderPlayerItem = (item: any) => {
+    const renderPlayerItem = (item: { label: string, value: any }, selected?: boolean) => {
         return (
             <View style={styles.item}>
-                <Text style={styles.selectedTextStyle}>{item.label}</Text>
+                {
+                    selected ? (
+                        <Text style={{fontSize:14, color: 'white', fontWeight: 'bold'}}>{item.label}</Text>
+                    )
+                      : <Text style={{fontSize:14,}}>{item.label}</Text>
+                }
+
+
             </View>
         );
     };
@@ -155,6 +163,7 @@ function TeamForm() {
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                     <View style={styles.cardContainer}>
                         <Text style={styles.title}>{isAddTeam ? 'Create Team' : 'Edit Team'}</Text>
+                        <KeyboardAwareScrollView style={{flex: 1}}>
                         <View style={styles.formContainer}>
                             <View style={styles.mgTop}>
                                 <Text style={styles.textLabel}>Name</Text>
@@ -174,7 +183,7 @@ function TeamForm() {
                                         <TextInput style={styles.inputStyle} placeholder={'Loading...'} cursorColor={'black'} placeholderTextColor={'grey'} editable={false} />
                                     ) : (
                                         <RNPickerSelect
-                                            style={{ inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle }}
+                                            style={{ inputIOS: [styles.inputStyle, {paddingLeft: 15}], inputAndroid: [styles.inputStyle, {paddingLeft: 15}] }}
                                             items={availableSport.map((sport: Sport) => ({
                                                 label: sport.name,
                                                 value: sport.id,
@@ -207,6 +216,7 @@ function TeamForm() {
                                     selectedTextStyle={styles.selectedTextStyle}
                                     inputSearchStyle={styles.inputSearchStyle}
                                     containerStyle={styles.containerStyle}
+                                    
 
                                     data={players.map((player: any) => ({
                                         label: player.firstName + ' ' + player.lastName,
@@ -231,6 +241,7 @@ function TeamForm() {
                                     )}
                                     renderItem={renderPlayerItem}
                                     selectedStyle={styles.selectedStyle}
+                                    activeColor='#4564f5'
                                 />
                                 <View style={{ marginTop: 90 }}>
                                     <CustomButton text='Create' onPress={_onCreateTeam} />
@@ -239,6 +250,7 @@ function TeamForm() {
 
                             </View>
                         </View>
+                        </KeyboardAwareScrollView>
                     </View>
                 </TouchableWithoutFeedback>
             </SafeAreaView>
@@ -301,7 +313,7 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 5,
         borderBottomLeftRadius: 5,
         borderColor: '#D3D3D3',
-        borderWidth: 1,
+        borderWidth: 1
     },
     placeholderStyle: {
         color: 'grey',

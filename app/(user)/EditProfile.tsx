@@ -74,7 +74,7 @@ const EditProfile = () => {
 
 
     useEffect(() => {
-        dispatch(getUserProfile() as any)
+        dispatch(getUserProfile() as any);
         if (userData?.id)
             dispatch(getUserSports(userData?.id) as any);
         const fetchSport = async () => {
@@ -90,40 +90,15 @@ const EditProfile = () => {
     }, []);
 
     useEffect(() => {
-        if (user?.id == '' || user?.id == undefined) {
+        if (user?.id == '' || user?.id == undefined || user?.id != userData?.id) {
             setUser(userData);
         } else {
             dispatch(getUserSports(userData.id) as any);
         }
     }, [userData]);
 
-    const {
-        firstName,
-        lastName,
-        bio,
-        zipCode,
-        address,
-        gender,
-        dateOfBirth,
-        isCertified,
-        yearsOfExperience,
-        positionCoached
-    } = user;
-
-    const userRequest: UserRequest = {
-        firstName,
-        lastName,
-        bio,
-        zipCode,
-        address,
-        gender,
-        dateOfBirth,
-        isCertified,
-        yearsOfExperience,
-        positionCoached
-    };
-
     const _handleUpdateUser = async () => {
+        const userRequest: UserRequest = user as UserRequest;
         dispatch(updateUserProfile(userRequest) as any);
     }
 
@@ -406,8 +381,8 @@ const EditProfile = () => {
             </>
         </TouchableWithoutFeedback>);
     }
-    const UserGenderEdit = memo(() => {
 
+    const UserGenderEdit = memo(() => {
         const [selectedGender, setSelectedGender] = useState<Gender>(user?.gender);
 
         useEffect(() => {
@@ -469,48 +444,8 @@ const EditProfile = () => {
         );
     });
 
-    /*   const UserAgeEdit = () => {
-           const refAge = useRef<ScrollPickerHandle>(null);
-           const [selectedAgeIndex, setSelectedAgeIndex] = useState(user?.age - 1);
-           const ages = Array.from({length: 100}, (_, i) => i + 1);
 
-           const _onAgeChange = (index: number) => {
-               setSelectedAgeIndex(index - 1);
-               setUser({...user, age: ages[index - 1]});
-           };
-
-           return (<View>
-                   <View style={styles.genericContainer}>
-                       <Text style={styles.textFirst}>How old are you ?</Text>
-                       <Text style={styles.textSecond}>This will help us create personalized plan</Text>
-                       <View style={styles.ageList}>
-                           <ScrollPicker
-                               ref={refAge}
-                               dataSource={ages}
-                               selectedIndex={selectedAgeIndex}
-                               onValueChange={(selectedIndex) => _onAgeChange(selectedIndex)}
-                               wrapperHeight={180}
-                               wrapperBackground={'#ffffff'}
-                               itemHeight={70}
-                               highlightColor={'#2757cb'}
-                               highlightBorderWidth={5}
-                               itemTextStyle={{color: '#ccc', fontSize: 25}}
-                               activeItemTextStyle={{color: '#2757cb', fontSize: 50, fontWeight: 'bold'}}
-                           />
-                       </View>
-                       <View style={styles.sideBySideButtons}>
-                           <CustomButton text="Back" onPress={goToPreviousStep} style={styles.backButton}
-                                         textStyle={styles.buttonText}/>
-                           <CustomButton text="Continue" onPress={_handleContinue} style={styles.continueButton}/>
-                       </View>
-                   </View>
-               </View>
-           );
-       }
-
-   */
     const CoachSportInfoEdit = () => {
-
 
         const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
         const [positionCoach, setPositionCoach] = useState<string>(user.positionCoached);
@@ -597,7 +532,7 @@ const EditProfile = () => {
                                 />
                                 <Text style={styles.textLabel}>Position Coach</Text>
                                 <TextInput
-                                    style={styles.inputStyle}
+                                    style={[styles.inputStyle, {paddingLeft: 0}]}
                                     placeholder={'Position Coached'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
@@ -731,7 +666,8 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 20,
         borderBottomLeftRadius: 20,
         borderColor: '#D3D3D3',
-        borderWidth: 1
+        borderWidth: 1,
+        paddingLeft: 15
     },
     mgTop: {
         marginTop: 5
@@ -874,7 +810,8 @@ const styles = StyleSheet.create({
     },
     inputInfoStyle: {
         backgroundColor: 'white',
-        height: 120,
+        textAlign: 'left',
+        // height: 120,
         fontSize: 16,
         marginTop: 5,
         color: 'black',

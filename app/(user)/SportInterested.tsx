@@ -211,7 +211,6 @@ const SportInterested = () => {
 
 
         const _RenderItem = memo(({ item }: { item: UserInterestedSport }) => {
-
             return (
                 <View style={styles.lvlContainer}>
                     <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{item.sportName}</Text>
@@ -226,6 +225,7 @@ const SportInterested = () => {
                                     justifyContent: 'flex-start'
                                 }}>
                                 <RadioButton
+
                                     value={value.toString()}
                                     status={_checkIfSelected(item.sportId, value) ? 'checked' : 'unchecked'}
                                     onPress={() => _onSelectSportLevel(item.sportId, value)}

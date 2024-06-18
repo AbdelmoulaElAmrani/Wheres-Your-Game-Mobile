@@ -6,7 +6,6 @@ import {UserService} from "@/services/UserService";
 import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 import {SportService} from "@/services/SportService";
 import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
-import {persistor} from "@/redux/ReduxConfig";
 
 
 export const getUserProfile = createAsyncThunk('user/getUserProfile', async () => {
@@ -33,17 +32,9 @@ export const getUserSports = createAsyncThunk<UserSportResponse[], string, { rej
 );
 
 export const updateUserProfile = createAsyncThunk('user/updateUserProfile', async (user: UserRequest) => {
-    console.log('in update user profile');
-    console.log(user);
     const response = await UserService.updateUser(user);
     return response;
 });
-
-/*export const logout = createAsyncThunk('user/logout', async () => {
-    AuthService.logOut();
-    persistor.purge();
-    persistor.flush();
-});*/
 
 
 const initialState = {

@@ -6,7 +6,7 @@ import {
     Text,
     TouchableOpacity,
     TextInput,
-    View
+    View, Alert, ActivityIndicator
 } from "react-native";
 import {ImageBackground} from "expo-image";
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -14,135 +14,147 @@ import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {router} from "expo-router";
 import {useEffect, useRef, useState} from "react";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
-import Gender from "@/models/Gender";
 import {Ionicons} from "@expo/vector-icons";
-/*import SockJS from "sockjs-client";
-import Stomp from "stompjs";*/
 import {useSelector} from "react-redux";
 import {UserService} from "@/services/UserService";
 import {useRoute} from "@react-navigation/core";
 import {Message} from "@/models/Conversation";
-import {AuthService} from "@/services/AuthService";
+import moment from 'moment-timezone';
+import {ChatService} from "@/services/ChatService";
+import {Helpers} from "@/constants/Helpers";
+import {CHAT_REFRESH_TIMER} from "@/appTimersConfig";
 
-
-const url = 'https://salmon-specials-prefer-meaningful.trycloudflare.com/ws';
+const MAX_REFRESH_TIME: number = CHAT_REFRESH_TIMER * 1000;
 
 const UserConversation = () => {
 
-    //const [stompClient, setStompClient] = useState<Stomp.Client | null>(null);
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
-    const [receiver, setReceiver] = useState<UserResponse>({
-        firstName: 'Bob',
-        lastName: 'Mike',
-        address: "",
-        age: 0,
-        bio: "",
-        countryCode: "",
-        dateOfBirth: new Date(),
-        email: "",
-        gender: Gender.MALE,
-        id: "",
-        imageUrl: "",
-        isCertified: false,
-        phoneNumber: "",
-        positionCoached: "",
-        role: "",
-        yearsOfExperience: 0,
-        zipCode: ""
-    });
-    const [message, setMessage] = useState<string>('');
-    const [messages, setMessages] = useState<Message[]>([
-        /*{id: '1', text: 'Hello!', sender: 'user1'},
-        {id: '2', text: 'Hi! How are you?', sender: 'user2'},
-        {id: '3', text: 'I am good, thanks!', sender: 'user1'},*/
-    ]);
+    const [receiver, setReceiver] = useState<UserResponse | null>(null);
+    const [newMessage, setNewMessage] = useState<string>('');
+    const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+
+    const [page, setPage] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
 
     const route = useRoute();
     const paramData = route.params as any;
 
-
     useEffect(() => {
         setLoading(true);
         const receiverId = paramData?.data;
-        const fetchUserData = async () => {
+        const fetchUserDataAndMessages = async () => {
             const userData = await UserService.getUserProfileById(receiverId);
-            if (userData)
+            setLoading(false);
+            if (userData) {
                 setReceiver(userData);
-            else
+            } else {
                 router.back();
+            }
         }
-        fetchUserData();
-
-        /*  console.info('INIT Socket');
-          const socket = new SockJS(url);
-          console.info('INITED Socket');
-          console.info('INIT Stomp');
-          const client: Stomp.Client = Stomp.over(socket);
-          console.info('INITED Stomp');*/
-
-        /*AuthService.getAccessToken()
-            .then((token) => {
-                console.log('token and begin connection');
-                client.connect(
-                    {Authorizations: `Bearer ${token}`}, // Fixing the header key
-                    () => {
-                        client.subscribe('/topic/messages', (message) => {
-                            const newMessage = JSON.parse(message.body);
-                            if (newMessage) {
-                                setMessages((old) => [...old, newMessage]);
-                            }
-                        });
-                    },
-                    (error) => {
-                        console.error('Connection error', error);
-                        setLoading(false);
-                    }
-                );
-
-                setStompClient(client);
-                setLoading(false);
-            })
-            .catch(() => setLoading(false));*/
-
-        /* return () => {
-             if (client) {
-                 client.disconnect(() => {
-                 });
-             }
-         };*/
-
+        fetchUserDataAndMessages();
+        const lastMessageInterval = setInterval(_getNewMessages, MAX_REFRESH_TIME);
+        return () => {
+            clearInterval(lastMessageInterval);
+        }
     }, []);
 
-    const handleSend = () => {
-        //if (stompClient && message.trim()) {
-            /* const message = {
-                 sender: { username },
-                 receiver: { username: 'receiver-username' }, // Replace with actual receiver
-                 content: newMessage,
-                 timestamp: Date.now(),
-             };*/
 
-            //stompClient.send('/app/chat.sendMessage', {}, JSON.stringify(message));
-         //   setMessage('');
-       // }
+    const _getNewMessages = async () => {
+        try {
+            if (!receiver || !currentUser) return;
+            let from: Date | null = null;
+
+            if (messages.length > 0) {
+                const maxTimestamp = Math.max(...messages.map(m => new Date(m.timestamp).getTime()));
+                from = new Date(maxTimestamp);
+            }
+
+            const fromISOString = from?.toISOString();
+
+            const msgs = await ChatService.getLastMessages(currentUser.id, receiver.id, fromISOString);
+
+            if (msgs && msgs.length > 0) {
+                setMessages(oldMessages => {
+                    const existingMessageIds = new Set(oldMessages.map(m => m.id));
+                    const newMessages = msgs.filter(m => !existingMessageIds.has(m.id));
+                    return [...newMessages, ...oldMessages];
+                });
+            }
+        } catch (e) {
+            console.log(e);
+        }
     };
 
+    const onSendMessage = async () => {
+        const timestamp = moment.tz(moment.tz.guess()).format();
+        try {
 
-    const _renderMessage = ({item}: { item: any }) => {
-        const isCurrentUser = item.sender === 'user1';
+            if (newMessage.trim() && receiver) {
+                const message: Message = {
+                    senderId: currentUser.id,
+                    receiverId: receiver.id,
+                    message: newMessage,
+                    timestamp: timestamp,
+                };
+                const response = await ChatService.sendMessage(message);
+                setNewMessage('');
+                setMessages(old => [response, ...old]);
+            }
+        } catch (error) {
+            console.error('Error sending message:', error);
+            Alert.alert('Error', 'Failed to send message');
+        }
+    }
+
+    const _renderMessage = ({item}: { item: Message }) => {
+        const isCurrentUser = item.senderId === currentUser.id;
+        //const userTimeZone = moment.tz.guess();
+        //const formattedDate = moment(item.timestamp).tz(userTimeZone).toDate()
+
         return (
             <View
                 style={[styles.messageContainer, isCurrentUser ? styles.currentUserMessage : styles.otherUserMessage]}>
-                <Text style={[styles.messageText, {color: isCurrentUser ? 'white' : 'black'}]}>{item?.text}</Text>
+                <Text style={[styles.messageText, {color: isCurrentUser ? 'white' : 'black'}]}>{item.message}</Text>
+                {/*<Text style={styles.timestampText}>{Helpers.formatNotificationDate(formattedDate, true)}</Text>*/}
             </View>
         );
+    };
+
+
+    const loadMessages = async () => {
+        if (loading || !hasMore || receiver == null) return;
+        setLoading(true);
+        try {
+            const data = await ChatService.getMessages(currentUser.id, receiver.id, page);
+            if (data?.content?.length) {
+                setMessages((prevMessages) => [...prevMessages, ...data.content]);
+                if (data.empty || data.last || data.content.length < 100) {
+                    setHasMore(false);
+                } else {
+                    setPage((prevPage) => prevPage + 1);
+                }
+            } else {
+                setHasMore(false);
+            }
+        } catch (error) {
+            console.error('Error fetching messages:', error);
+            setHasMore(false);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleLoadMore = () => {
+        if (!loading && hasMore) {
+            console.log('loading more', hasMore);
+            loadMessages();
+        }
     };
     const _handleGoBack = () => {
         if (router.canGoBack())
             router.back();
     }
-
 
     return (
         <ImageBackground
@@ -150,7 +162,7 @@ const UserConversation = () => {
             source={require('../../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView style={{flex: 1}}>
                 <CustomNavigationHeader
-                    text={`${receiver.firstName} ${receiver.lastName}`}
+                    text={`${receiver?.firstName} ${receiver?.lastName}`}
                     goBackFunction={_handleGoBack} showBackArrow/>
 
                 <KeyboardAvoidingView
@@ -161,18 +173,21 @@ const UserConversation = () => {
                         <FlatList
                             data={messages}
                             renderItem={_renderMessage}
-                            keyExtractor={item => item.id}
+                            keyExtractor={item => item.id + item.timestamp.toString()}
                             inverted
+                            onEndReached={handleLoadMore}
+                            onEndReachedThreshold={0.5} // Adjust the threshold as needed
+                            ListFooterComponent={loading ? <ActivityIndicator size="large"/> : null}
                         />
                     </View>
                     <View style={styles.inputContainer}>
                         <TextInput
                             style={styles.textInput}
                             placeholder='Type your message'
-                            value={message}
-                            onChangeText={setMessage}
+                            value={newMessage}
+                            onChangeText={setNewMessage}
                         />
-                        <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
+                        <TouchableOpacity style={styles.sendButton} onPress={onSendMessage}>
                             <Ionicons name="send" size={24} color="white"/>
                         </TouchableOpacity>
                     </View>
@@ -180,6 +195,7 @@ const UserConversation = () => {
             </SafeAreaView>
         </ImageBackground>);
 }
+
 const styles = StyleSheet.create({
     chatContainer: {
         backgroundColor: 'white',
@@ -206,6 +222,11 @@ const styles = StyleSheet.create({
     },
     messageText: {
         fontSize: 16,
+    },
+    timestampText: {
+        fontSize: 12,
+        color: 'grey',
+        marginTop: 5,
     },
     inputContainer: {
         flexDirection: 'row',
