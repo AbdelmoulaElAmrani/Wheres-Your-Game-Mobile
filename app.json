@@ -2,7 +2,7 @@
   "expo": {
     "name": "Sport-Games",
     "slug": "Sport-Games",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "sport-app",
@@ -27,7 +27,7 @@
         "googleMapsApiKey": "AIzaSyDlFo6upaajnGewXn4DX4-naBhsWPcn8VE"
       },
       "bundleIdentifier": "com.digiboost.sportgames",
-      "buildNumber": "2"
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
