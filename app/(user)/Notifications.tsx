@@ -24,9 +24,8 @@ const Notifications = () => {
             setLoading(true);
             try {
                 const res = await NotificationService.getNotifications();
-                if (res) {
+                if (res)
                     setNotifications(res);
-                }
             } finally {
                 setLoading(false);
             }
@@ -40,9 +39,12 @@ const Notifications = () => {
         }
     }, []);
 
-    const _onOpenNotification = useCallback((notification: NotificationResponse): void => {
-        console.log(notification);
-    }, []);
+    const _onOpenNotification = async (notification: NotificationResponse): Promise<void> => {
+        try {
+            await NotificationService.markNotificationAsRead(notification.requestId);
+        } catch (ignored) {
+        }
+    };
 
     const _handleAcceptRequest = useCallback(async (requestId: string) => {
         try {
@@ -53,12 +55,13 @@ const Notifications = () => {
                 if (notifications) {
                     setNotifications(notifications);
                 }
-                setLoading(false);
             }
         } catch (error) {
             console.error(error);
+        } finally {
             setLoading(false);
         }
+
     }, []);
 
     const _handleDeclineRequest = useCallback(async (requestId: string) => {
@@ -70,12 +73,13 @@ const Notifications = () => {
                 if (notifications) {
                     setNotifications(notifications);
                 }
-                setLoading(false);
             }
         } catch (error) {
             console.error(error);
+        } finally {
             setLoading(false);
         }
+
     }, []);
 
     const _renderNotifications = memo(({item}: { item: NotificationResponse }) => {

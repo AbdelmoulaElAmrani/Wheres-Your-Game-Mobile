@@ -11,16 +11,13 @@ export class FriendRequestService {
 
     }
     static acceptFriendRequest = async (requestId: string) => {
-        
-        const res = await Requests.post(`friendRequest/accept?requestId=${requestId}` ,{});
+        const res = await Requests.post(`friendRequest/accept?requestId=${requestId}`, {});
         if (res?.status !== 200) {
             return undefined;
         }
         return res?.data;
-
-
     }
-    
+
     static sendFriendRequest = async (senderId: string, receiverId: string) => {
         const res = await Requests.post(`friendRequest/send?senderId=${senderId}&receiverId=${receiverId}`, {});
         if (res?.status !== 200) {
@@ -28,7 +25,6 @@ export class FriendRequestService {
         }
         return res?.data;
     }
-
 
 
 }
