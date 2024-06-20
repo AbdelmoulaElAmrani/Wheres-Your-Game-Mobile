@@ -66,18 +66,22 @@ const Home = () => {
             }
         }
         fetchData();
+        checkForNotification();
 
-        const intervalId = setInterval(async () => {
-            const res = await NotificationService.getNotifications();
-            if (res) {
-                const value = res.some(x => x.isRead);
-                setNewNotif(value);
-            } else setNewNotif(false);
-        }, REFRESH_NOTIFICATION_TIME);
+        const intervalId = setInterval(checkForNotification, REFRESH_NOTIFICATION_TIME);
 
         return () => clearInterval(intervalId);
     }, [userData]);
 
+    const checkForNotification = async () => {
+        try {
+            if (!newNotif) {
+                const res = await NotificationService.getNotifications();
+                setNewNotif(res ? res.some(x => !x.isRead) : false);
+            }
+        } catch (e) {
+        }
+    }
 
     const _getMyTeams = async () => {
         try {
@@ -279,7 +283,8 @@ const Home = () => {
                             <TouchableOpacity
                                 onPress={_onOpenNotification}
                                 style={{marginRight: 20}}>
-                                <Fontisto name="bell" size={30} color={newNotif ? "red" : "white"}/>
+                                <Fontisto name={newNotif ? "bell-alt" : "bell"} size={30}
+                                          color={newNotif ? "red" : "white"}/>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={_onOpenChat}
