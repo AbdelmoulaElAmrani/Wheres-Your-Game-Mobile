@@ -98,19 +98,24 @@ const Notifications = () => {
                     </View>
                     <View style={styles.notificationTextContainer}>
                         <View style={styles.notificationHeader}>
-                            <Text style={styles.notificationContentText}>{item.content}</Text>
+                            <View style={{width: item.type === NotificationType.FRIEND_REQUEST ? '70%' : '100%'}}>
+                                <Text
+                                    numberOfLines={2}
+                                    ellipsizeMode={"tail"}
+                                    style={styles.notificationContentText}>{item.content}</Text>
+                            </View>
                             {item.type === NotificationType.FRIEND_REQUEST && (
-                                <View style={styles.friendRequestActions}>
+                                <View style={{flexDirection: 'row', justifyContent: 'space-around', width: '30%'}}>
                                     <TouchableOpacity onPress={() => _handleAcceptRequest(item.requestId)}>
-                                        <FontAwesome name="check" size={24} style={styles.acceptIcon}/>
+                                        <FontAwesome name="check" size={26} style={styles.acceptIcon}/>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => _handleDeclineRequest(item.requestId)}>
-                                        <FontAwesome name="times" size={24} style={styles.declineIcon}/>
+                                        <FontAwesome name="times" size={26} style={styles.declineIcon}/>
                                     </TouchableOpacity>
-                                </View>
-                            )}
+                                </View>)}
                         </View>
-                        <Text style={styles.notifyDate}>{Helpers.formatNotificationDate(item.creationDate, true)}</Text>
+                        <Text
+                            style={styles.notifyDate}>{Helpers.formatDateOnNotificationOrChat(item.creationDate, true)}</Text>
                     </View>
                 </View>
             </TouchableOpacity>
@@ -183,26 +188,25 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        marginBottom: 10
     },
     notificationContentText: {
-        fontWeight: 'bold',
+        fontWeight: '500',
         fontSize: 14,
-    },
-    friendRequestActions: {
-        flexDirection: 'row',
-        alignItems: 'center',
     },
     acceptIcon: {
         marginRight: 10,
-        color: 'grey',
+        color: '#2757CB',
     },
     declineIcon: {
-        color: 'grey',
+        color: 'red',
         marginRight: 5,
     },
     notifyDate: {
         color: 'grey',
         fontSize: 14,
+        textAlign: 'right',
+        marginRight: 15
     },
     endFlashList: {
         flexDirection: 'row',

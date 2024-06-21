@@ -45,6 +45,7 @@ const Chats = () => {
     }
 
     const fetchConversations = async () => {
+        if (modalOpen) return;
         const data = await ChatService.getConversation();
         if (data)
             setRecentChats(data);
@@ -90,6 +91,7 @@ const Chats = () => {
         }
         const _renderUserItem = ({item}: { item: UserSearchResponse }) => (
             <TouchableOpacity style={styles.userItem} onPress={() => startChatWithUser(item)}>
+
                 {item.imageUrl ? (
                     <Avatar.Image size={35} source={{uri: item.imageUrl}}/>
                 ) : (
@@ -171,7 +173,7 @@ const Chats = () => {
                                 {item.user?.firstName + ' ' + item.user?.lastName}
                             </Text>
                             <View style={{flexDirection: "row", alignItems: 'center'}}>
-                                <Text>{Helpers.formatNotificationDate(formattedDate, true)}</Text>
+                                <Text>{Helpers.formatDateOnNotificationOrChat(formattedDate)}</Text>
                             </View>
                         </View>
                         <Text style={{color: 'grey', fontSize: 14, textAlign: 'auto', marginTop: 8}}

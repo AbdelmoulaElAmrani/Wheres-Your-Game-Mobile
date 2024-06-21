@@ -15,7 +15,6 @@ const Profile = () => {
     const dispatch = useDispatch()
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const loading = useSelector((state: any) => state.user.loading) as boolean;
-    const [image, setImage] = useState<any>();
     const [refreshing, setRefreshing] = useState<boolean>(false);
     const _router = useRouter();
     //const loadingImage = {isStart: false};
@@ -23,40 +22,8 @@ const Profile = () => {
     useEffect(() => {
         (async () => {
             await dispatch(getUserProfile() as any)
-            /* if (userData?.imageUrl && !loadingImage.isStart) {
-                 try {
-                     console.log('start downloading', userData?.imageUrl && !loadingImage.isStart);
-                     loadingImage.isStart = true
-                     const result = await StorageService.downloadImageByName(userData.imageUrl);
-                     setImage(result.image);
-                 } catch (e) {
-                 } finally {
-                     loadingImage.isStart = false;
-                 }
-             }*/
         })()
     }, []);
-
-
-    /*useEffect(() => {
-        (async () => {
-            if (userData?.imageUrl && !loadingImage.isStart) {
-                try {
-                    console.log('start downloading', userData?.imageUrl && !loadingImage.isStart);
-                    loadingImage.isStart = true
-                    const result = await StorageService.downloadImageByName(userData.imageUrl);
-                    console.log('donwloaded');
-                    console.log(result);
-                    setImage(result);
-                } catch (e) {
-
-                } finally {
-                    loadingImage.isStart = false;
-                }
-
-            }
-        })();
-    }, [userData]);*/
 
     const _handleEditProfile = () => {
         _router.push({
@@ -89,7 +56,7 @@ const Profile = () => {
                         <ActivityIndicator animating={true} color={MD2Colors.blueA700} size={50}/>
                     ) : (
                         <>
-                            {image ? (
+                            {userData?.imageUrl ? (
                                 <Avatar.Image size={100} source={{uri: userData.imageUrl}}/>
                             ) : (
                                 <Avatar.Text

@@ -22,35 +22,88 @@ export class Helpers {
         return re.test(password);
     }
 
-    static formatNotificationDate = (timestamp: Date | undefined, isNotification: boolean = false): string => {
-        const messageDate = timestamp ? new Date(timestamp) : new Date();
-        const currentDate = new Date();
-        const yesterdayDate = new Date(currentDate.getTime() - (24 * 60 * 60 * 1000));
+    static timeAgo = (date: Date): string => {
+        const now = new Date();
+        const givenDate = new Date(date);
+        const diffInSeconds = Math.floor((now.getTime() - givenDate.getTime()) / 1000);
 
-        if (messageDate.toDateString() === currentDate.toDateString()) {
-            const diffMinutes = (currentDate.getTime() - messageDate.getTime()) / (1000 * 60);
-            if (diffMinutes < 1) {
-                return "Now";
-            }
-            if (isNotification) {
-                const diffHours = Math.floor(diffMinutes / 60);
-                return `${diffHours}h ago`;
-            } else {
-                const hours = messageDate.getHours();
-                const minutes = messageDate.getMinutes().toString().padStart(2, '0');
-                const period = hours >= 12 ? 'PM' : 'AM';
-                const formattedHours = hours % 12 || 12;
-                return `${formattedHours}:${minutes} ${period}`;
-            }
+        const secondsInMinute = 60;
+        const secondsInHour = 60 * secondsInMinute;
+        const secondsInDay = 24 * secondsInHour;
+        const secondsInWeek = 7 * secondsInDay;
+        const secondsInYear = 365 * secondsInDay;
+
+        if (diffInSeconds < secondsInMinute) {
+            return `${diffInSeconds}s`;
+        } else if (diffInSeconds < secondsInHour) {
+            const minutes = Math.floor(diffInSeconds / secondsInMinute);
+            return `${minutes}min`;
+        } else if (diffInSeconds < secondsInDay) {
+            const hours = Math.floor(diffInSeconds / secondsInHour);
+            return `${hours}h`;
+        } else if (diffInSeconds < secondsInWeek) {
+            const days = Math.floor(diffInSeconds / secondsInDay);
+            return `${days}d`;
+        } else if (diffInSeconds < secondsInYear) {
+            const weeks = Math.floor(diffInSeconds / secondsInWeek);
+            return `${weeks}w`;
+        } else {
+            const years = Math.floor(diffInSeconds / secondsInYear);
+            return `${years}y`;
+        }
+    }
+    static formatDateTime = (date: Date): string => {
+        const now = new Date();
+        const givenDate = new Date(date);
+
+        // Helper function to add leading zero
+        const addLeadingZero = (num: number) => (num < 10 ? `0${num}` : num);
+
+        // Check if the date is today
+        if (
+            now.getDate() === givenDate.getDate() &&
+            now.getMonth() === givenDate.getMonth() &&
+            now.getFullYear() === givenDate.getFullYear()
+        ) {
+            const hours = givenDate.getHours();
+            const minutes = addLeadingZero(givenDate.getMinutes());
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const formattedHours = hours % 12 || 12; // Convert 0 to 12 for 12 AM
+            return `${formattedHours}:${minutes} ${ampm}`;
         }
 
-        if (messageDate.toDateString() === yesterdayDate.toDateString()) {
-            return "Yesterday";
+        // Check if the date is yesterday
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        if (
+            yesterday.getDate() === givenDate.getDate() &&
+            yesterday.getMonth() === givenDate.getMonth() &&
+            yesterday.getFullYear() === givenDate.getFullYear()
+        ) {
+            return 'yesterday';
         }
 
-        return `${messageDate.getMonth() + 1}/${messageDate.getDate()}`;
+        // Check if the date is within the past week
+        const dayDiff = Math.floor((now.getTime() - givenDate.getTime()) / (1000 * 60 * 60 * 24));
+        if (dayDiff < 7) {
+            const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            return daysOfWeek[givenDate.getDay()];
+        }
+
+        // Otherwise, return the date in DD/MM/yyyy format
+        const day = addLeadingZero(givenDate.getDate());
+        const month = addLeadingZero(givenDate.getMonth() + 1); // Months are zero-based
+        const year = givenDate.getFullYear();
+        return `${day}/${month}/${year}`;
     }
 
+    static formatDateOnNotificationOrChat = (date: Date, isNotification: boolean = false): string => {
+        if (isNotification) {
+            return Helpers.timeAgo(date);
+        } else {
+            return Helpers.formatDateTime(date);
+        }
+    }
 
     static getImageSource = (imgSource: any) => {
         return `data:image/jpeg;base64,${imgSource}`
