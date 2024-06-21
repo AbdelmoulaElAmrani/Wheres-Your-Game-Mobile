@@ -11,8 +11,6 @@
       "distribution": "internal",
       "developmentClient": true,
       "releaseChannel": "staging"
-      
-
     },
     "production": {}
   },

@@ -1,9 +1,18 @@
-import {FlatList, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
+import {
+    ActivityIndicator,
+    FlatList,
+    KeyboardAvoidingView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
+} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {ImageBackground} from "expo-image";
 import {router, useRouter} from "expo-router";
-import {memo, useEffect, useState} from "react";
+import {memo, useEffect, useRef, useState} from "react";
 import {Conversation} from "@/models/Conversation";
 import {FlashList} from "@shopify/flash-list";
 import {Avatar, Divider, Modal} from "react-native-paper";
@@ -23,21 +32,46 @@ const Chats = () => {
     const _router = useRouter();
     const [loading, setLoading] = useState<boolean>(false);
     const [modalOpen, setModalOpen] = useState<boolean>(false);
-
+    const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        setLoading(true);
-        fetchConversations();
-        setLoading(false);
+        (async () => {
+            try {
+                setLoading(true);
+                await fetchConversations();
+            } catch (ignored) {
 
-        const intervalId = setInterval(() => {
-            fetchConversations();
-        }, MESSAGE_TIMER);
+            } finally {
+                setLoading(false);
+            }
+        })();
+    }, []);
+
+    useEffect(() => {
+        if (modalOpen)
+            startInterval();
+        else
+            startInterval();
 
         return () => {
-            clearInterval(intervalId)
+            stopInterval();
         };
-    }, []);
+    }, [modalOpen]);
+
+
+    const startInterval = () => {
+        if (!intervalIdRef.current) {
+            intervalIdRef.current = setInterval(fetchConversations, MESSAGE_TIMER);
+        }
+    };
+
+    const stopInterval = () => {
+        if (intervalIdRef.current) {
+            clearInterval(intervalIdRef.current);
+            intervalIdRef.current = null;
+        }
+    };
+
 
     const _handleGoBack = () => {
         if (router.canGoBack())
@@ -45,10 +79,11 @@ const Chats = () => {
     }
 
     const fetchConversations = async () => {
-        if (modalOpen) return;
-        const data = await ChatService.getConversation();
-        if (data)
-            setRecentChats(data);
+        if (!modalOpen) {
+            const data = await ChatService.getConversation();
+            if (data)
+                setRecentChats(data);
+        }
     }
 
     const _onOpenConversation = (chat: Conversation): void => {
@@ -59,13 +94,9 @@ const Chats = () => {
         });
     }
 
+    const _showSearchUserModal = () => setModalOpen(true);
 
-    const _showSearchUserModal = () => {
-        setModalOpen(true);
-    }
-    const _hideSearchUserModal = () => {
-        setModalOpen(false);
-    }
+    const _hideSearchUserModal = () => setModalOpen(false);
 
     const startChatWithUser = (item: UserSearchResponse) => {
         _hideSearchUserModal();
@@ -76,7 +107,6 @@ const Chats = () => {
         });
     }
 
-
     const _userSearchModal = memo(() => {
         const [searchName, setSearchName] = useState<string>('');
         const [people, setPeople] = useState<UserSearchResponse[]>([]);
@@ -84,11 +114,9 @@ const Chats = () => {
         const _onSearchSubmit = async () => {
             if (searchName.trim() === '') return;
             const data = await UserService.SearchUsersByFullName(searchName);
-            if (data)
-                setPeople(data);
-            else
-                setPeople([]);
+            setPeople(data || []);
         }
+
         const _renderUserItem = ({item}: { item: UserSearchResponse }) => (
             <TouchableOpacity style={styles.userItem} onPress={() => startChatWithUser(item)}>
 
@@ -134,12 +162,14 @@ const Chats = () => {
                         </TouchableOpacity>
                     </View>
 
-                    <View style={{width: '100%'}}>
+                    <View style={{width: '100%', height: '90%'}}>
                         {people.length > 0 ? <FlatList
                             data={people}
                             keyExtractor={(item) => item.id.toString()}
                             renderItem={_renderUserItem}
                             style={styles.userList}
+                            ListFooterComponent={<View style={{height: 50}}/>}
+
                         /> : <Text
                             style={{textAlign: 'center', fontWeight: 'bold', marginTop: heightPercentageToDP(30)}}>No
                             User</Text>}
@@ -212,7 +242,7 @@ const Chats = () => {
                             <FlashList
                                 data={recentChats}
                                 renderItem={({item}) => <_renderConversation item={item}/>}
-                                keyExtractor={item => item.user?.id + "- 1"}
+                                keyExtractor={(item, index) => item.user?.id + "-" + index}
                                 estimatedItemSize={10}
                                 contentContainerStyle={{backgroundColor: 'white', padding: 10}}
                                 ListFooterComponent={<View style={{height: heightPercentageToDP(20)}}>
