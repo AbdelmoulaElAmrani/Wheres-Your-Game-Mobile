@@ -2,11 +2,7 @@ import axios, {AxiosError, AxiosResponse} from 'axios';
 import {AuthService} from './AuthService';
 import {router} from 'expo-router';
 import {logout} from "@/redux/UserSlice";
-
-
-const PREFIX = 'api'
-//export const API_URI = `https://committee-dg-doom-elephant.trycloudflare.com/${PREFIX}/`
-export const API_URI = `https://sport-app-38dd22818116.herokuapp.com/${PREFIX}/`
+import {API_URI} from "@/appTimersConfig";
 
 
 let store: any;
