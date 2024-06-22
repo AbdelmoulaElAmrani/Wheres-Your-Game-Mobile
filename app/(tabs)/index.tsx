@@ -112,7 +112,6 @@ const Home = () => {
 
 
     const _handleOnOpenMenu = () => {
-        console.log('menu');
     }
     const _onOpenNotification = () => {
         setNewNotif(false);
@@ -135,7 +134,6 @@ const Home = () => {
     }
 
     const _onAddPlayer = () => {
-        console.log('Add Player');
     }
 
     const _onAddTeam = () => {
@@ -143,7 +141,6 @@ const Home = () => {
     }
 
     const _onViewAll = () => {
-        console.log('View All');
     }
 
     const _onSelectTeam = async (team: Team) => {
@@ -160,15 +157,12 @@ const Home = () => {
         }
     }
     const _onSelectPlayer = (player: any) => {
-        console.log('Player', player);
     }
 
     const _onSelectCategory = (category: any) => {
-        console.log('Category', category)
     }
 
     const _onSelectSport = (id: any) => {
-        console.log('select sport', id);
     }
 
     const isCoach = (): boolean => userData.role == UserType[UserType.COACH];

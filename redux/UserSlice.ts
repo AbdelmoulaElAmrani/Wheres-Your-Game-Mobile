@@ -82,12 +82,10 @@ const userSlice = createSlice({
                 state.loading = false;
                 if (action.payload) {
                     state.userData = action.payload as UserResponse;
-                } else
-                    console.log('not good profile');
+                }
             })
             .addCase(getUserProfile.rejected, (state) => {
                 state.loading = false;
-                console.log('bad');
             })
             .addCase(updateUserProfile.pending, (state) => {
                 state.loading = true;
