@@ -4,7 +4,6 @@ export class StorageService {
     static async upload(id: string, formData: FormData, isUser: boolean = true): Promise<any> {
         try {
             const response = await Requests.post(`/storage/upload/${id}/${isUser}`, formData);
-            console.log(response?.data);
             if (response?.status === 200) {
                 return response?.data;
             } else {

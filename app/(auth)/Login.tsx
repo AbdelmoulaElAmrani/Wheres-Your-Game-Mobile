@@ -38,8 +38,6 @@ const Login = () => {
     useEffect(() => {
         const fetchData = async () => {
             const token = await AuthService.getAccessToken();
-            //console.log('token => ', token);
-            //console.log('user => ', user);
             if (token && user?.id) {
                 router.replace("/(tabs)/");
             } else {
@@ -51,7 +49,6 @@ const Login = () => {
     }, [user]);
 
     const _handleSignInWithGoogle = () => {
-        console.log('Sign in with Google');
     }
 
 
@@ -85,7 +82,6 @@ const Login = () => {
 
 
     const _handleForgotPassword = () => {
-        console.log('Forgot Password');
     }
 
     const _handleSignUp = () => {

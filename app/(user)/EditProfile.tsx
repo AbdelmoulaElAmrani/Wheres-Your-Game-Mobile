@@ -113,11 +113,10 @@ const EditProfile = () => {
 
                     if (selectedSports.length > 0 && userSport.length === 0) {
                         const response = await SportService.registerUserToSport(selectedSports, userData.id);
-                        //router.navigate('/(tabs)');
                     }
                     router.navigate('/(tabs)');
                 } catch (e) {
-                    console.log('update user page', e);
+                    console.log(e);
                 }
             }
         } else {
@@ -129,7 +128,7 @@ const EditProfile = () => {
                         router.setParams({previousScreenName: 'profile'})
                     router.navigate('/SportInterested');
                 } catch (e) {
-                    console.log('update user page', e);
+                    console.log(e);
                 }
             }
         }
@@ -456,13 +455,6 @@ const EditProfile = () => {
         const [editUser, setEditUser] = useState<UserResponse>({...user});
 
         const _handleCoachSportInfoEdit = async () => {
-            console.log({
-                ...editUser,
-                bio: editUser.bio,
-                positionCoached: positionCoach,
-                yearsOfExperience: yearsOfExperience,
-                isCertified: isCertified
-            });
             setUser(({
                 ...editUser,
                 bio: editUser.bio,

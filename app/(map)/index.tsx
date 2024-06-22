@@ -84,7 +84,6 @@ const SportMap = () => {
     const _hideModal = () => setModalVisible(false);
     const _openModal = () => setModalVisible(true);
     const _handleSearch = () => {
-        console.log('search');
     }
     const _handleSelectedFilter = (filter: Filters) => {
         setExpandedFilter(old => old !== filter ? filter : undefined);
