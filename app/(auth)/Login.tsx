@@ -24,6 +24,12 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {Helpers} from "@/constants/Helpers";
 import {persistor} from "@/redux/ReduxConfig";
 import Spinner from '@/components/Spinner';
+import {
+    ConfigureParams,
+    GoogleSignin,
+    User,
+  } from "@react-native-google-signin/google-signin";
+
 
 
 const Login = () => {
@@ -34,6 +40,16 @@ const Login = () => {
     const [errorMessages, setErrorMessages] = useState<string>('');
     const user = useSelector((state: any) => state.user.userData) as UserResponse;
     const [loading, setLoading] = useState<boolean>(false);
+    const [googleUserInfo, setGoogleUserInfo] = useState<User>();
+
+    const configureGoogleSignIn = () => {
+        GoogleSignin.configure({
+            webClientId: "798054162153-5ceu8fakl487r4n7vvltapdubbuag6g6.apps.googleusercontent.com",
+            iosClientId: "798054162153-e99bjqq6709aqhfe922ab9fhl7nv3f7q.apps.googleusercontent.com",
+            androidClientId: "798054162153-lvbugkqi5jvmsb1evnttt5bn6esir3bi.apps.googleusercontent.com",
+        } as ConfigureParams);
+    };
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -48,10 +64,22 @@ const Login = () => {
             }
         }
         fetchData();
+        configureGoogleSignIn();
     }, [user]);
 
-    const _handleSignInWithGoogle = () => {
-        console.log('Sign in with Google');
+    const _handleSignInWithGoogle = async () => {
+        
+        // try {
+        //     console.log('Sign in with Google');
+        //     await GoogleSignin.hasPlayServices();
+        //     const userInfo = await GoogleSignin.signIn();
+        //     setGoogleUserInfo(userInfo);
+        //     console.log(userInfo);
+        // }
+        // catch (error) {
+        //     console.log('Error => ', error);
+        // }
+
     }
 
 
