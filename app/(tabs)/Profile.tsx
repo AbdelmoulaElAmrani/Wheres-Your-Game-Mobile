@@ -85,8 +85,10 @@ const Profile = () => {
                 </View>
 
                 <View style={styles.cardContainer}>
-                    <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={_refreshProfile}/>}
-                                contentContainerStyle={{flexGrow: 1}} bounces={true}>
+                    <ScrollView
+                        showsVerticalScrollIndicator={false}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={_refreshProfile}/>}
+                        contentContainerStyle={{flexGrow: 1}} bounces={true}>
                         <View style={{
                             flex: 1,
                             justifyContent: 'center',
