@@ -69,16 +69,22 @@ const Login = () => {
 
     const _handleSignInWithGoogle = async () => {
         
-        // try {
-        //     console.log('Sign in with Google');
-        //     await GoogleSignin.hasPlayServices();
-        //     const userInfo = await GoogleSignin.signIn();
-        //     setGoogleUserInfo(userInfo);
-        //     console.log(userInfo);
-        // }
-        // catch (error) {
-        //     console.log('Error => ', error);
-        // }
+        try {
+            console.log('Sign in with Google');
+            await GoogleSignin.hasPlayServices();
+            const userInfo = await GoogleSignin.signIn();
+            setGoogleUserInfo(userInfo);
+            console.log(userInfo);
+            
+            var checkEmail = await AuthService.verifyEmail(userInfo.user.email);
+
+            
+
+
+        }
+        catch (error) {
+            console.log('Error => ', error);
+        }
 
     }
 
