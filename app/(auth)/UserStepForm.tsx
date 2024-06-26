@@ -202,7 +202,6 @@ const UserStepForm = () => {
 
 
     const OTPVerification = memo(() => {
-
         useEffect(() => {
             const sendOtp = async () => {
                 const result = await AuthService.sendOTP();

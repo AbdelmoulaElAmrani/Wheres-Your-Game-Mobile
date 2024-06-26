@@ -21,15 +21,13 @@ import {AuthService} from '@/services/AuthService';
 import {useDispatch, useSelector} from 'react-redux';
 import {getUserProfile, logout} from '@/redux/UserSlice';
 import {UserResponse} from "@/models/responseObjects/UserResponse";
-import {Helpers} from "@/constants/Helpers";
 import {persistor} from "@/redux/ReduxConfig";
 import Spinner from '@/components/Spinner';
 import {
     ConfigureParams,
     GoogleSignin,
     User,
-  } from "@react-native-google-signin/google-signin";
-
+} from "@react-native-google-signin/google-signin";
 
 
 const Login = () => {
@@ -40,7 +38,6 @@ const Login = () => {
     const [errorMessages, setErrorMessages] = useState<string>('');
     const user = useSelector((state: any) => state.user.userData) as UserResponse;
     const [loading, setLoading] = useState<boolean>(false);
-    const [googleUserInfo, setGoogleUserInfo] = useState<User>();
 
     const configureGoogleSignIn = () => {
         GoogleSignin.configure({
@@ -54,8 +51,6 @@ const Login = () => {
     useEffect(() => {
         const fetchData = async () => {
             const token = await AuthService.getAccessToken();
-            //console.log('token => ', token);
-            //console.log('user => ', user);
             if (token && user?.id) {
                 router.replace("/(tabs)/");
             } else {
@@ -68,26 +63,33 @@ const Login = () => {
     }, [user]);
 
     const _handleSignInWithGoogle = async () => {
-        
         try {
-            console.log('Sign in with Google');
             await GoogleSignin.hasPlayServices();
-            const userInfo = await GoogleSignin.signIn();
-            setGoogleUserInfo(userInfo);
+            const userInfo: User = await GoogleSignin.signIn();
             console.log(userInfo);
-            
-            var checkEmail = await AuthService.verifyEmail(userInfo.user.email);
+            setLoading(true);
+            const checkEmail = await AuthService.verifyEmail(userInfo.user.email);
+            if (checkEmail) {
+                const data = await AuthService.loginOrSignWithGoogle(userInfo);
+                if (!data)
+                    throw new Error('Invalid login credentials');
 
-            
-
-
+                dispatch(getUserProfile() as any)
+                setLoading(false);
+                router.replace('/Welcome');
+            } else {
+                //TODO:: Create Account
+                //TODO:: User need to select his role
+            }
+        } catch (error) {
+            console.error('Login failed:', error);
+            setErrorMessages('Something went wrong');
+            setTimeout(() => {
+                setErrorMessages('');
+            }, 5000);
+            setLoading(false);
         }
-        catch (error) {
-            console.log('Error => ', error);
-        }
-
     }
-
 
     const _handleLogin = async () => {
         if (_isLoginFormNotValid()) {
@@ -127,7 +129,6 @@ const Login = () => {
     }
 
     const _isLoginFormNotValid = (): boolean => (email.trim() === '' || password.trim() === '');
-
 
     return (
         <>
