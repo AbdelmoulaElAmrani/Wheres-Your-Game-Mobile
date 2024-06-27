@@ -22,6 +22,8 @@ import {updateUserRegisterData, logout} from "@/redux/UserSlice";
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {Helpers} from "@/constants/Helpers";
 import {AuthService} from "@/services/AuthService";
+import LocalStorageService from "@/services/LocalStorageService";
+import { User } from "@react-native-google-signin/google-signin";
 
 
 const Register = () => {
@@ -40,11 +42,36 @@ const Register = () => {
         role: UserType.DEFAULT,
     });
     const phoneInput = useRef<PhoneInput>(null);
+    const [showPasswordInput, setShowPasswordInput] = useState<boolean>(true);
 
     useEffect(() => {
         dispatch(logout({}) as any);
+
+        LocalStorageService.getItem<User>('googleUser').then((userInfo) => {
+            if (userInfo) {
+                setShowPasswordInput(false);
+                setUserData({
+                    email: userInfo.user.email,
+                    password: '',
+                    firstName: userInfo.user.givenName || '',
+                    lastName: userInfo.user.familyName || '',
+                    phoneNumber: '',
+                    countryCode: '+1',
+                    address: '',
+                    zipCode: '',
+                    bio: '',
+                    verified: false,
+                    role: UserType.DEFAULT,
+                });
+                
+            }
+        }).catch((e) => {
+            console.log(e);
+        });
+
     }, []);
 
+    
 
     const _handleOnNext = async (): Promise<void> => {
         const errors = await _verifyRequiredData(userData);
@@ -155,6 +182,7 @@ const Register = () => {
                                     }}
                                 />
                             </View>
+                            {showPasswordInput && (
                             <View style={styles.mgTop}>
                                 <Text style={styles.textLabel}>Password</Text>
                                 <TextInput
@@ -168,6 +196,7 @@ const Register = () => {
                                     }}
                                 />
                             </View>
+                            )}
                             <View style={styles.mgTop}>
                                 <Text style={styles.textLabel}>Phone number</Text>
                                 <PhoneInput

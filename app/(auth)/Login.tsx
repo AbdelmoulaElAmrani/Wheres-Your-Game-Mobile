@@ -28,6 +28,7 @@ import {
     GoogleSignin,
     User,
 } from "@react-native-google-signin/google-signin";
+import LocalStorageService from '@/services/LocalStorageService';
 
 
 const Login = () => {
@@ -80,6 +81,11 @@ const Login = () => {
             } else {
                 //TODO:: Create Account
                 //TODO:: User need to select his role
+                LocalStorageService.storeItem('googleUser', userInfo);
+                setLoading(false);
+                router.replace('/Register');
+                
+
             }
         } catch (error) {
             console.error('Login failed:', error);
