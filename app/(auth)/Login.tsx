@@ -21,9 +21,15 @@ import {AuthService} from '@/services/AuthService';
 import {useDispatch, useSelector} from 'react-redux';
 import {getUserProfile, logout} from '@/redux/UserSlice';
 import {UserResponse} from "@/models/responseObjects/UserResponse";
-import {Helpers} from "@/constants/Helpers";
 import {persistor} from "@/redux/ReduxConfig";
 import Spinner from '@/components/Spinner';
+import {
+    ConfigureParams,
+    GoogleSignin,
+    User,
+} from "@react-native-google-signin/google-signin";
+import LocalStorageService from '@/services/LocalStorageService';
+import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
 
 
 const Login = () => {
@@ -34,6 +40,15 @@ const Login = () => {
     const [errorMessages, setErrorMessages] = useState<string>('');
     const user = useSelector((state: any) => state.user.userData) as UserResponse;
     const [loading, setLoading] = useState<boolean>(false);
+
+    const configureGoogleSignIn = () => {
+        GoogleSignin.configure({
+            webClientId: "798054162153-5ceu8fakl487r4n7vvltapdubbuag6g6.apps.googleusercontent.com",
+            iosClientId: "798054162153-e99bjqq6709aqhfe922ab9fhl7nv3f7q.apps.googleusercontent.com",
+            androidClientId: "798054162153-lvbugkqi5jvmsb1evnttt5bn6esir3bi.apps.googleusercontent.com",
+        } as ConfigureParams);
+    };
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -46,11 +61,37 @@ const Login = () => {
             }
         }
         fetchData();
+        configureGoogleSignIn();
     }, [user]);
 
-    const _handleSignInWithGoogle = () => {
+    const _handleSignInWithGoogle = async () => {
+        try {
+            await GoogleSignin.hasPlayServices();
+            const userInfo: User = await GoogleSignin.signIn();
+            setLoading(true);
+            const checkEmail = await AuthService.verifyEmail(userInfo.user.email);
+            if (checkEmail) {
+                const body: GoogleUserRequest = {googleUser: userInfo, userData: undefined};
+                const data = await AuthService.loginOrSignWithGoogle(body);
+                if (!data)
+                    throw new Error('Invalid login credentials');
+                dispatch(getUserProfile() as any)
+                setLoading(false);
+                router.replace('/Welcome');
+            } else {
+                await LocalStorageService.storeItem('googleUser', userInfo);
+                setLoading(false);
+                router.replace('/Register');
+            }
+        } catch (error) {
+            console.error('Login failed:', error);
+            setErrorMessages('Something went wrong');
+            setTimeout(() => {
+                setErrorMessages('');
+            }, 5000);
+            setLoading(false);
+        }
     }
-
 
     const _handleLogin = async () => {
         if (_isLoginFormNotValid()) {
@@ -89,7 +130,6 @@ const Login = () => {
     }
 
     const _isLoginFormNotValid = (): boolean => (email.trim() === '' || password.trim() === '');
-
 
     return (
         <>

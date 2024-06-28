@@ -21,7 +21,14 @@
         "NSLocationWhenInUseUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to allow you to get the position of your current location.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to allow you to get the position of your current location.",
         "NSLocationUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to allow you to get the position of your current location.",
-        "NSPhotoLibraryUsageDescription ": "$(PRODUCT_NAME) requires access to your photo to allow you to upload photos"
+        "NSPhotoLibraryUsageDescription ": "$(PRODUCT_NAME) requires access to your photo to allow you to upload photos",
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.798054162153-e99bjqq6709aqhfe922ab9fhl7nv3f7q"
+            ]
+          }
+        ]
       },
       "config": {
         "googleMapsApiKey": "AIzaSyDlFo6upaajnGewXn4DX4-naBhsWPcn8VE"
