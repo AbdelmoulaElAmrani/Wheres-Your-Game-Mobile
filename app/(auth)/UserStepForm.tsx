@@ -80,8 +80,16 @@ const UserStepForm = () => {
         if (step === 1) {
             return _verifyUserSelectedHisRule();
         } else {
-            dispatch(getUserProfile() as any)
-            return true;
+            try {
+                dispatch(getUserProfile() as any)
+                return true;
+            }
+            catch (e) {
+                console.log(e);
+                Alert.alert('Error', 'Something went wrong');
+                return false;
+            }
+            
         }
     }
 

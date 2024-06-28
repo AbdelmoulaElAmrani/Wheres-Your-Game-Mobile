@@ -95,13 +95,13 @@ const Register = () => {
         } catch (e) {
             console.log(e);
         }
-
-        if (userData.password.trim() === '') {
-            errors.push('Password is required');
-        } else if (!Helpers._isPasswordValid(userData.password)) {
-            errors.push('Password must be 6-20 characters long and contain at least one uppercase letter, one lowercase letter, and one number');
+        if(showPasswordInput) {
+            if (userData.password.trim() === '' ) {
+                errors.push('Password is required');
+            } else if (!Helpers._isPasswordValid(userData.password)) {
+                errors.push('Password must be 6-20 characters long and contain at least one uppercase letter, one lowercase letter, and one number');
+            }
         }
-
         if (userData.firstName.trim() === '') {
             errors.push('First name is required');
         }
