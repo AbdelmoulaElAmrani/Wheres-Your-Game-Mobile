@@ -70,7 +70,7 @@ const EditCoachProfile = () => {
                     router.setParams({previousScreenName: 'profile'})
                 router.navigate('/Profile');
             } catch (e) {
-                console.log('update user page', e);
+                console.log(e);
             }
         }
     }

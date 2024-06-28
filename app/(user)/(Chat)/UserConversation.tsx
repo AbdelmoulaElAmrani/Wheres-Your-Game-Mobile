@@ -147,7 +147,6 @@ const UserConversation = () => {
 
     const handleLoadMore = () => {
         if (!loading && hasMore) {
-            console.log('loading more', hasMore);
             loadMessages();
         }
     };

@@ -58,7 +58,6 @@ const SportInterested = () => {
                         setSelectedSports(userSports);
                     }
                 }
-
             } catch (ex) {
                 console.log(ex);
             }
@@ -99,7 +98,6 @@ const SportInterested = () => {
         try {
             const userId = user?.id;
             const response = await SportService.registerUserToSport([...selectedSports.values()], userId);
-            console.log('params:', params);
             if (params?.previousScreenName) {
                 router.navigate('/(tabs)');
             } else {
@@ -198,7 +196,6 @@ const SportInterested = () => {
                 }
                 return updatedSports;
             });
-            console.log(id, value);
         }, [])
 
         const _checkIfSelected = useCallback((id: string | undefined, value: string | SportLevel): boolean => {

@@ -75,7 +75,6 @@ const Login = () => {
                 const data = await AuthService.loginOrSignWithGoogle(body);
                 if (!data)
                     throw new Error('Invalid login credentials');
-
                 dispatch(getUserProfile() as any)
                 setLoading(false);
                 router.replace('/Welcome');
@@ -124,7 +123,6 @@ const Login = () => {
 
 
     const _handleForgotPassword = () => {
-        console.log('Forgot Password');
     }
 
     const _handleSignUp = () => {

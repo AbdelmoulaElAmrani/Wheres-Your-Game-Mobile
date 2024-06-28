@@ -137,7 +137,6 @@ const Calendar = () => {
     }
 
     const _onClickEvent = (event: any): void => {
-        console.log('clicked event');
     }
 
     function _onEditEvent(item: any): void {
