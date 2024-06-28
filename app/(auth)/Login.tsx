@@ -29,6 +29,7 @@ import {
     User,
 } from "@react-native-google-signin/google-signin";
 import LocalStorageService from '@/services/LocalStorageService';
+import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
 
 
 const Login = () => {
@@ -67,11 +68,11 @@ const Login = () => {
         try {
             await GoogleSignin.hasPlayServices();
             const userInfo: User = await GoogleSignin.signIn();
-            console.log(userInfo);
             setLoading(true);
             const checkEmail = await AuthService.verifyEmail(userInfo.user.email);
             if (checkEmail) {
-                const data = await AuthService.loginOrSignWithGoogle(userInfo);
+                const body: GoogleUserRequest = {googleUser: userInfo, userData: undefined};
+                const data = await AuthService.loginOrSignWithGoogle(body);
                 if (!data)
                     throw new Error('Invalid login credentials');
 
@@ -79,13 +80,9 @@ const Login = () => {
                 setLoading(false);
                 router.replace('/Welcome');
             } else {
-                //TODO:: Create Account
-                //TODO:: User need to select his role
-                LocalStorageService.storeItem('googleUser', userInfo);
+                await LocalStorageService.storeItem('googleUser', userInfo);
                 setLoading(false);
                 router.replace('/Register');
-                
-
             }
         } catch (error) {
             console.error('Login failed:', error);

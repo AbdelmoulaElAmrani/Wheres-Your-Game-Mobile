@@ -23,7 +23,7 @@ import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {Helpers} from "@/constants/Helpers";
 import {AuthService} from "@/services/AuthService";
 import LocalStorageService from "@/services/LocalStorageService";
-import { User } from "@react-native-google-signin/google-signin";
+import {User} from "@react-native-google-signin/google-signin";
 
 
 const Register = () => {
@@ -46,7 +46,6 @@ const Register = () => {
 
     useEffect(() => {
         dispatch(logout({}) as any);
-
         LocalStorageService.getItem<User>('googleUser').then((userInfo) => {
             if (userInfo) {
                 setShowPasswordInput(false);
@@ -63,7 +62,7 @@ const Register = () => {
                     verified: false,
                     role: UserType.DEFAULT,
                 });
-                
+
             }
         }).catch((e) => {
             console.log(e);
@@ -71,7 +70,6 @@ const Register = () => {
 
     }, []);
 
-    
 
     const _handleOnNext = async (): Promise<void> => {
         const errors = await _verifyRequiredData(userData);
@@ -183,19 +181,19 @@ const Register = () => {
                                 />
                             </View>
                             {showPasswordInput && (
-                            <View style={styles.mgTop}>
-                                <Text style={styles.textLabel}>Password</Text>
-                                <TextInput
-                                    style={styles.inputStyle}
-                                    placeholder={'Password'}
-                                    secureTextEntry={true}
-                                    placeholderTextColor={'grey'}
-                                    value={userData.password}
-                                    onChangeText={(value) => {
-                                        setUserData(oldValue => ({...oldValue, password: value}))
-                                    }}
-                                />
-                            </View>
+                                <View style={styles.mgTop}>
+                                    <Text style={styles.textLabel}>Password</Text>
+                                    <TextInput
+                                        style={styles.inputStyle}
+                                        placeholder={'Password'}
+                                        secureTextEntry={true}
+                                        placeholderTextColor={'grey'}
+                                        value={userData.password}
+                                        onChangeText={(value) => {
+                                            setUserData(oldValue => ({...oldValue, password: value}))
+                                        }}
+                                    />
+                                </View>
                             )}
                             <View style={styles.mgTop}>
                                 <Text style={styles.textLabel}>Phone number</Text>

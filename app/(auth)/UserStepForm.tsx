@@ -27,6 +27,10 @@ import {useDispatch, useSelector} from 'react-redux'
 import {getUserProfile, updateUserRegisterData} from "@/redux/UserSlice";
 import {AuthService} from "@/services/AuthService";
 import {FeatureTogglingConfig} from "@/models/responseObjects/FeatureTogglingConfig";
+import LocalStorageService from "@/services/LocalStorageService";
+import {User} from "@react-native-google-signin/google-signin";
+import {ca} from "react-native-paper-dates";
+import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
 
 
 const UserStepForm = () => {
@@ -82,10 +86,20 @@ const UserStepForm = () => {
     }
 
     const createUser = async () => {
-        try {
-            await AuthService.register(userData);
-        } catch (error) {
-            console.log(error);
+        const storedUser = await LocalStorageService.getItem<User>('googleUser');
+        if (storedUser) {
+            const googleUser: GoogleUserRequest = {googleUser: storedUser, userData: userData};
+            try {
+                await AuthService.loginOrSignWithGoogle(googleUser);
+            } catch (e) {
+                console.log(e);
+            }
+        } else {
+            try {
+                await AuthService.register(userData);
+            } catch (error) {
+                console.log(error);
+            }
         }
     }
 
@@ -118,19 +132,17 @@ const UserStepForm = () => {
         return currentStep === 1 ? undefined : goToPreviousStep;
     }
 
-
     const goToPreviousStep = () => {
         setCurrentStep(oldValue => Math.max(1, oldValue - 1));
     };
+
     const handleSubmit = () => {
         if (_verifyUserStepDate(currentStep)) {
             router.navigate('/EditProfile')
         }
     };
 
-
     const _verifySelectedType = (type: UserType): boolean => userData.role == type;
-
 
     const UserTypeForm = memo(() => (
         <>
@@ -199,7 +211,6 @@ const UserStepForm = () => {
             </View>
         </>
     ));
-
 
     const OTPVerification = memo(() => {
         useEffect(() => {

@@ -4,8 +4,8 @@ import LocalStorageService from "./LocalStorageService";
 import Requests from "./Requests";
 import {persistor} from "@/redux/ReduxConfig";
 import {FeatureTogglingConfig} from "@/models/responseObjects/FeatureTogglingConfig";
-import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
 import {User} from "@react-native-google-signin/google-signin";
+import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
 
 
 export class AuthService {
@@ -110,7 +110,7 @@ export class AuthService {
         return res.data;
     }
 
-    static async loginOrSignWithGoogle(request: User) {
+    static async loginOrSignWithGoogle(request: GoogleUserRequest) {
         const res = await Requests.post('auth/google', request);
         if (res.status !== 200 || !res.data) {
             return undefined;
