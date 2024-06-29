@@ -81,8 +81,18 @@ const Chats = () => {
     const fetchConversations = async () => {
         if (!modalOpen) {
             const data = await ChatService.getConversation();
-            if (data)
-                setRecentChats(data);
+            if (data) {
+                try {
+                    const sortedData = data.sort((a, b) => {
+                        const dateA = new Date(a.lastActiveDate);
+                        const dateB = new Date(b.lastActiveDate);
+                        return dateB.getTime() - dateA.getTime();
+                    });
+                    setRecentChats(sortedData);
+                } catch (e) {
+                    setRecentChats(data);
+                }
+            }
         }
     }
 
