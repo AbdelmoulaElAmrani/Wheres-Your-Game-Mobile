@@ -29,7 +29,6 @@ import {AuthService} from "@/services/AuthService";
 import {FeatureTogglingConfig} from "@/models/responseObjects/FeatureTogglingConfig";
 import LocalStorageService from "@/services/LocalStorageService";
 import {User} from "@react-native-google-signin/google-signin";
-import {ca} from "react-native-paper-dates";
 import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
 
 
@@ -83,13 +82,12 @@ const UserStepForm = () => {
             try {
                 dispatch(getUserProfile() as any)
                 return true;
-            }
-            catch (e) {
+            } catch (e) {
                 console.log(e);
                 Alert.alert('Error', 'Something went wrong');
                 return false;
             }
-            
+
         }
     }
 
@@ -136,13 +134,6 @@ const UserStepForm = () => {
             handleSubmit();
         }
     }
-    const goBackFunc = () => {
-        return currentStep === 1 ? undefined : goToPreviousStep;
-    }
-
-    const goToPreviousStep = () => {
-        setCurrentStep(oldValue => Math.max(1, oldValue - 1));
-    };
 
     const handleSubmit = () => {
         if (_verifyUserStepDate(currentStep)) {
@@ -220,7 +211,7 @@ const UserStepForm = () => {
         </>
     ));
 
-    const OTPVerification = memo(() => {
+    const OTPVerification = () => {
         useEffect(() => {
             const sendOtp = async () => {
                 const result = await AuthService.sendOTP();
@@ -243,7 +234,7 @@ const UserStepForm = () => {
                     try {
                         const result = await AuthService.verifyOTP(otpNumber.trim());
                         if (!result) {
-                            Alert.alert('the code is not correct try again');
+                            Alert.alert('the verification code is not correct');
                         } else {
                             setOtpCodeNotEmpty(true);
                         }
@@ -269,6 +260,7 @@ const UserStepForm = () => {
                     <OtpInput
                         numberOfDigits={4}
                         focusColor={'#2757CB'}
+                        onTextChange={(t) => console.log(t)}
                         onFilled={(value) => _verifyOTP(value)}
                         focusStickBlinkingDuration={400}
                         theme={{
@@ -303,7 +295,7 @@ const UserStepForm = () => {
                 </View>
             </TouchableWithoutFeedback>
         );
-    });
+    };
 
     return (
         <ImageBackground
