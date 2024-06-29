@@ -4,6 +4,8 @@ import LocalStorageService from "./LocalStorageService";
 import Requests from "./Requests";
 import {persistor} from "@/redux/ReduxConfig";
 import {FeatureTogglingConfig} from "@/models/responseObjects/FeatureTogglingConfig";
+import {User} from "@react-native-google-signin/google-signin";
+import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
 
 
 export class AuthService {
@@ -41,7 +43,6 @@ export class AuthService {
         LocalStorageService.storeItem<string>('refreshToken', token);
     }
 
-
     static setAuthTokens = (tokens: AuthenticationResponse): void => {
         AuthService.setAccessToken(tokens.token);
         AuthService.setRefreshToken(tokens.refreshToken);
@@ -63,13 +64,10 @@ export class AuthService {
         if (res?.status !== 200) {
             return undefined;
         }
-
         if (res.data) {
             AuthService.setAuthTokens(res.data);
         }
-
         return res.data;
-
     }
 
     static register = async (request: RegisterRequest): Promise<AuthenticationResponse | undefined> => {
@@ -81,7 +79,6 @@ export class AuthService {
             AuthService.setAuthTokens(res.data);
         }
         return res.data;
-
     }
 
     static sendOTP = async (): Promise<boolean | undefined> => {
@@ -113,5 +110,13 @@ export class AuthService {
         return res.data;
     }
 
+    static async loginOrSignWithGoogle(request: GoogleUserRequest) {
+        const res = await Requests.post('auth/google', request);
+        if (res.status !== 200 || !res.data) {
+            return undefined;
+        }
+        AuthService.setAuthTokens(res.data);
+        return res.data;
+    }
 }
 
