@@ -55,7 +55,6 @@ const UserStepForm = () => {
 
     const buttonText = ['Continue', 'Verify'];
 
-
     useEffect(() => {
         (async () => {
             try {
@@ -65,7 +64,6 @@ const UserStepForm = () => {
             }
         })();
     }, []);
-
 
     const _showModal = () => {
         if (_verifyUserStepDate(currentStep)) {
@@ -93,20 +91,17 @@ const UserStepForm = () => {
 
     const createUser = async () => {
         const storedUser = await LocalStorageService.getItem<User>('googleUser');
-        if (storedUser) {
-            const googleUser: GoogleUserRequest = {googleUser: storedUser, userData: userData};
-            try {
+        try {
+            if (storedUser) {
+                const googleUser: GoogleUserRequest = {googleUser: storedUser, userData: userData};
                 await AuthService.loginOrSignWithGoogle(googleUser);
-            } catch (e) {
-                console.log(e);
-            }
-        } else {
-            try {
+            } else {
                 await AuthService.register(userData);
-            } catch (error) {
-                console.log(error);
             }
+        } catch (e) {
+            console.log(e);
         }
+
     }
 
     const _verifyUserSelectedHisRule = () => {
