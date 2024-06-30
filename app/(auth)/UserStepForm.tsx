@@ -310,7 +310,7 @@ const UserStepForm = () => {
                             style={{justifyContent: 'center', alignContent: "center", marginTop: 25, marginBottom: 25}}>
 
                             {currentStep === 1 && <UserTypeForm/>}
-                            {(currentStep === 2) && {/*(fTConfig === undefined || fTConfig.twoVerification)*/} &&
+                            {(currentStep === 2) && (fTConfig === undefined || fTConfig.twoVerification) &&
                                 <OTPVerification/>}
                         </View>
                         <CustomButton disabled={!otpCodeNotEmpty && currentStep === 2}
