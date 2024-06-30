@@ -70,7 +70,6 @@ function RootLayoutNav() {
     return (
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
-
                 <SafeAreaProvider>
                     <Stack>
                         <Stack.Screen name="(auth)" options={{headerShown: false}}/>
