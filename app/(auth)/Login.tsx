@@ -30,6 +30,7 @@ import {
 } from "@react-native-google-signin/google-signin";
 import LocalStorageService from '@/services/LocalStorageService';
 import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
+import {googleAndroidClientId, googleIosClientId, googleWebClientId} from "@/appTimersConfig";
 
 
 const Login = () => {
@@ -43,9 +44,9 @@ const Login = () => {
 
     const configureGoogleSignIn = () => {
         GoogleSignin.configure({
-            webClientId: "798054162153-5ceu8fakl487r4n7vvltapdubbuag6g6.apps.googleusercontent.com",
-            iosClientId: "798054162153-e99bjqq6709aqhfe922ab9fhl7nv3f7q.apps.googleusercontent.com",
-            androidClientId: "798054162153-lvbugkqi5jvmsb1evnttt5bn6esir3bi.apps.googleusercontent.com",
+            webClientId: googleWebClientId,
+            iosClientId: googleIosClientId,
+            androidClientId: googleAndroidClientId,
         } as ConfigureParams);
     };
 
@@ -217,13 +218,13 @@ const Login = () => {
                                 {/* Social Media Icons */}
                                 <View style={{flexDirection: 'row', justifyContent: 'space-around', marginTop: 30}}>
                                     <TouchableOpacity disabled={true}>
-                                        <FontAwesome5 name="facebook" size={40} color="blue"/>
+                                        <FontAwesome5 name="facebook" size={40} color="grey"/>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={_handleSignInWithGoogle}>
                                         <AntDesign name="google" size={40} color="blue"/>
                                     </TouchableOpacity>
                                     <TouchableOpacity disabled={true}>
-                                        <AntDesign name="twitter" size={40} color="blue"/>
+                                        <AntDesign name="twitter" size={40} color="grey"/>
                                     </TouchableOpacity>
                                 </View>
 

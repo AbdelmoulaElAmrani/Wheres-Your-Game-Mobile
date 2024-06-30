@@ -4,7 +4,6 @@ import LocalStorageService from "./LocalStorageService";
 import Requests from "./Requests";
 import {persistor} from "@/redux/ReduxConfig";
 import {FeatureTogglingConfig} from "@/models/responseObjects/FeatureTogglingConfig";
-import {User} from "@react-native-google-signin/google-signin";
 import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
 
 
