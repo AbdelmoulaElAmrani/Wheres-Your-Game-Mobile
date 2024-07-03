@@ -66,7 +66,11 @@ const Register = () => {
             }
         }).catch((e) => {
             console.log(e);
+        })
+        .finally(() => {
+            LocalStorageService.removeItem('googleUser');
         });
+        
 
     }, []);
 
