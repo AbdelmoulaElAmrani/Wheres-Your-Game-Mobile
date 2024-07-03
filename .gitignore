@@ -3,6 +3,10 @@
 # dependencies
 node_modules/
 
+#remove the ios and android folders if you're not building for iOS or Android
+ios/
+android/
+
 # Expo
 .expo/
 dist/

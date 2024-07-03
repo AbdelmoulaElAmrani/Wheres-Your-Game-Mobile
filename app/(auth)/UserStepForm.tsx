@@ -101,6 +101,9 @@ const UserStepForm = () => {
         } catch (e) {
             console.log(e);
         }
+        finally {
+            await LocalStorageService.removeItem('googleUser');
+        }
 
     }
 
