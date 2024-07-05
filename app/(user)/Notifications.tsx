@@ -53,6 +53,7 @@ const Notifications = () => {
                 setLoading(true);
                 const notifications = await NotificationService.getNotifications();
                 if (notifications) {
+                    notifications.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime());
                     setNotifications(notifications);
                 }
             }

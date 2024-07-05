@@ -1,5 +1,4 @@
 import {
-    ActivityIndicator,
     FlatList,
     KeyboardAvoidingView,
     StyleSheet,
@@ -58,7 +57,6 @@ const Chats = () => {
         };
     }, [modalOpen]);
 
-
     const startInterval = () => {
         if (!intervalIdRef.current) {
             intervalIdRef.current = setInterval(fetchConversations, MESSAGE_TIMER);
@@ -71,7 +69,6 @@ const Chats = () => {
             intervalIdRef.current = null;
         }
     };
-
 
     const _handleGoBack = () => {
         if (router.canGoBack())
@@ -141,6 +138,7 @@ const Chats = () => {
                 <Text style={styles.userName}>{`${item.firstName} ${item.lastName}`}</Text>
             </TouchableOpacity>
         );
+
         return (
             <Modal visible={modalOpen}
                    onDismiss={_hideSearchUserModal}
@@ -172,14 +170,13 @@ const Chats = () => {
                         </TouchableOpacity>
                     </View>
 
-                    <View style={{width: '100%', height: '90%'}}>
+                    <View style={{width: '100%', height: '90%', marginBottom: 30}}>
                         {people.length > 0 ? <FlatList
                             data={people}
                             keyExtractor={(item) => item.id.toString()}
                             renderItem={_renderUserItem}
                             style={styles.userList}
                             ListFooterComponent={<View style={{height: 50}}/>}
-
                         /> : <Text
                             style={{textAlign: 'center', fontWeight: 'bold', marginTop: heightPercentageToDP(30)}}>No
                             User</Text>}
