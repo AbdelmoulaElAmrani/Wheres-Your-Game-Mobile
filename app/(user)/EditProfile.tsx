@@ -1,6 +1,6 @@
 import CustomButton from "@/components/CustomButton";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import React, {memo, useCallback, useEffect, useRef, useState} from "react";
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {
     Alert,
     Keyboard,
@@ -381,65 +381,79 @@ const EditProfile = () => {
         </TouchableWithoutFeedback>);
     }
 
-    const UserGenderEdit = memo(() => {
-        const [selectedGender, setSelectedGender] = useState<Gender>(user?.gender);
-
+    const UserGenderEdit = (() => {
+        const [selectedGender, setSelectedGender] = useState(user?.gender || Gender.DEFAULT);
         useEffect(() => {
             setSelectedGender(user?.gender);
-        }, [user.gender]);
+        }, [user.gender , user]);
 
         const _handleContinueGenderEdit = async () => {
             setUser({...user, gender: selectedGender});
             await _handleContinue();
         };
-        const _verifySelectedGender = (sex: Gender): boolean => {
-            return selectedGender === sex;
-        };
+       
+        const isMaleSelected = useMemo(() => selectedGender === Gender.MALE, [selectedGender]);
+        const isFemaleSelected = useMemo(() => selectedGender === Gender.FEMALE, [selectedGender]);
 
         return (
             <View style={styles.genericContainer}>
-                <View style={{justifyContent: 'center', alignContent: 'center'}}>
-                    <Text style={[styles.textFirst, {textAlign: 'center'}]}>Tell us about yourself</Text>
-                    <Text style={[styles.textSecond, {textAlign: 'center'}]}>To give you a better experience and
-                        results, we need to know your
-                        gender</Text>
-                </View>
-                <View style={styles.genderSelection}>
-                    <TouchableOpacity
-                        style={[
-                            styles.genderOption,
-                            _verifySelectedGender(Gender.MALE) ? styles.selectedGender : {},
-                        ]}
-                        onPress={() => setSelectedGender(Gender.MALE)}
-                    >
-                        <MaleIcon fill={_verifySelectedGender(Gender.MALE) ? 'white' : 'black'}/>
-                        <Text style={[
-                            styles.genderLabel,
-                            {color: _verifySelectedGender(Gender.MALE) ? 'white' : 'black'}
-                        ]}>Male</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[
-                            styles.genderOption,
-                            _verifySelectedGender(Gender.FEMALE) ? styles.selectedGender : {},
-                        ]}
-                        onPress={() => setSelectedGender(Gender.FEMALE)}
-                    >
-                        <FemaleIcon fill={_verifySelectedGender(Gender.FEMALE) ? 'white' : 'black'}/>
-                        <Text style={[
-                            styles.genderLabel,
-                            {color: _verifySelectedGender(Gender.FEMALE) ? 'white' : 'black'}
-                        ]}>Female</Text>
-                    </TouchableOpacity>
-                </View>
-                <View style={styles.sideBySideButtons}>
-                    <CustomButton text="Back" onPress={goToPreviousStep} style={styles.backButton}
-                                  textStyle={styles.buttonText}/>
-                    <CustomButton disabled={selectedGender === Gender.DEFAULT}
-                                  text="Continue" onPress={_handleContinueGenderEdit}
-                                  style={styles.continueButton}/>
-                </View>
+            <View style={{ justifyContent: 'center', alignContent: 'center' }}>
+                <Text style={[styles.textFirst, { textAlign: 'center' }]}>Tell us about yourself</Text>
+                <Text style={[styles.textSecond, { textAlign: 'center' }]}>
+                    To give you a better experience and results, we need to know your gender
+                </Text>
             </View>
+            <View style={styles.genderSelection}>
+                <TouchableOpacity
+                    style={[
+                        styles.genderOption,
+                        isMaleSelected ? styles.selectedGender : {},
+                    ]}
+                    onPress={() => setSelectedGender(Gender.MALE)}
+                >
+                    <MaleIcon fill={isMaleSelected ? 'white' : 'black'} />
+                    <Text
+                        style={[
+                            styles.genderLabel,
+                            { color: isMaleSelected ? 'white' : 'black' },
+                        ]}
+                    >
+                        Male
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[
+                        styles.genderOption,
+                        isFemaleSelected ? styles.selectedGender : {},
+                    ]}
+                    onPress={() => setSelectedGender(Gender.FEMALE)}
+                >
+                    <FemaleIcon fill={isFemaleSelected ? 'white' : 'black'} />
+                    <Text
+                        style={[
+                            styles.genderLabel,
+                            { color: isFemaleSelected ? 'white' : 'black' },
+                        ]}
+                    >
+                        Female
+                    </Text>
+                </TouchableOpacity>
+            </View>
+            <View style={styles.sideBySideButtons}>
+                <CustomButton
+                    text="Back"
+                    onPress={goToPreviousStep}
+                    style={styles.backButton}
+                    textStyle={styles.buttonText}
+                />
+                <CustomButton
+                    disabled={selectedGender === Gender.DEFAULT}
+                    text="Continue"
+                    onPress={_handleContinueGenderEdit}
+                    style={styles.continueButton}
+                />
+            </View>
+        </View>
         );
     });
 
