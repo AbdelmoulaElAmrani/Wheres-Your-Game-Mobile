@@ -23,9 +23,15 @@ const Notifications = () => {
         const fetchNotifications = async () => {
             setLoading(true);
             try {
-                const res = await NotificationService.getNotifications();
-                if (res)
-                    setNotifications(res);
+                const data = await NotificationService.getNotifications();
+                if (data){
+                    const sortedData = data.sort((a, b) => {
+                        const dateA = new Date(a.creationDate);
+                        const dateB = new Date(b.creationDate);
+                        return dateB.getTime() - dateA.getTime(); 
+                    });
+                    setNotifications(sortedData);
+                }
             } finally {
                 setLoading(false);
             }
@@ -51,10 +57,14 @@ const Notifications = () => {
             const acceptResponse = await FriendRequestService.acceptFriendRequest(requestId);
             if (acceptResponse) {
                 setLoading(true);
-                const notifications = await NotificationService.getNotifications();
-                if (notifications) {
-                    notifications.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime());
-                    setNotifications(notifications);
+                const data = await NotificationService.getNotifications();
+                if (data) {
+                    const sortedData = data.sort((a, b) => {
+                        const dateA = new Date(a.creationDate);
+                        const dateB = new Date(b.creationDate);
+                        return dateB.getTime() - dateA.getTime(); 
+                    });
+                    setNotifications(sortedData);
                 }
             }
         } catch (error) {
@@ -70,9 +80,14 @@ const Notifications = () => {
             const declineResponse = await FriendRequestService.declineFriendRequest(requestId);
             if (declineResponse) {
                 setLoading(true);
-                const notifications = await NotificationService.getNotifications();
-                if (notifications) {
-                    setNotifications(notifications);
+                const data = await NotificationService.getNotifications();
+                if (data) {
+                    const sortedData = data.sort((a, b) => {
+                        const dateA = new Date(a.creationDate);
+                        const dateB = new Date(b.creationDate);
+                        return dateB.getTime() - dateA.getTime(); 
+                    });
+                    setNotifications(sortedData);
                 }
             }
         } catch (error) {
