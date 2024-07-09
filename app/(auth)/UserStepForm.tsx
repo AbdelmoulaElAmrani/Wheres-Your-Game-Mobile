@@ -100,8 +100,7 @@ const UserStepForm = () => {
             }
         } catch (e) {
             console.log(e);
-        }
-        finally {
+        } finally {
             await LocalStorageService.removeItem('googleUser');
         }
 
@@ -156,8 +155,8 @@ const UserStepForm = () => {
                             style={[styles.userTypeTitle, {color: _verifySelectedType(UserType.PARENT) ? 'white' : 'black'}]}>Parents</Text>
                     </View>
                     <Text
-                        style={[styles.userTypeDescIcon, {color: _verifySelectedType(UserType.PARENT) ? 'white' : 'black'}]}>I
-                        am creating a parent profile</Text>
+                        style={[styles.userTypeDescIcon, {color: _verifySelectedType(UserType.PARENT) ? 'white' : 'black'}]}>I'm
+                        creating a parent or (child/children) profile</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.PLAYER}))}
                                   style={[styles.squareContainer, {backgroundColor: _verifySelectedType(UserType.PLAYER) ? '#2757CB' : 'white'}]}>
@@ -172,7 +171,7 @@ const UserStepForm = () => {
                     </View>
                     <Text
                         style={[styles.userTypeDescIcon, {color: _verifySelectedType(UserType.PLAYER) ? 'white' : 'black'}]}>I
-                        am creating a parent profile</Text>
+                        am creating a player profile</Text>
                 </TouchableOpacity>
             </View>
             <View style={styles.rowContainer}>

@@ -1,11 +1,11 @@
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
+import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {ImageBackground} from "expo-image";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import Checkbox from 'expo-checkbox';
-import { useState } from "react";
-import { router, useLocalSearchParams } from "expo-router";
+import {useState} from "react";
+import {router} from "expo-router";
 
 
 interface TermsPolicy {
@@ -14,22 +14,21 @@ interface TermsPolicy {
 }
 
 const TermsPolicies = () => {
-    const params = useLocalSearchParams();
 
-    const [userAgrements, setUserAgrements] = useState<TermsPolicy>({
+    const [userAgreements, setUserAgreements] = useState<TermsPolicy>({
         terms: false,
         privacy: false
     })
 
     const _verifyUserInput = (): boolean => {
-        return userAgrements.terms && userAgrements.privacy;
+        return userAgreements.terms && userAgreements.privacy;
     }
 
     const _handlerAccept = () => {
         if (_verifyUserInput())
             router.navigate('/UserStepForm');
         else
-            Alert.alert('You need to accepte the term and policy');
+            Alert.alert('You need to accept the term and policy');
     }
 
     const _handleDecline = () => {
@@ -38,14 +37,14 @@ const TermsPolicies = () => {
 
     return (
         <ImageBackground
-            style={{ height: hp(100) }}
+            style={{height: hp(100)}}
             source={require('../../assets/images/signupBackGround.jpg')}
         >
             <SafeAreaView>
                 <CustomNavigationHeader showLogo={true} showBackArrow/>
                 <View style={styles.card}>
                     <Text style={styles.cardTitle}>Terms of Services</Text>
-                    <View style={{ height: hp(56), paddingTop: 10 }}>
+                    <View style={{height: hp(56), paddingTop: 10}}>
                         <ScrollView showsVerticalScrollIndicator={true}>
                             <Text style={styles.termsTitle}>1. Terms</Text>
                             <Text style={styles.termsText}>
@@ -68,24 +67,10 @@ const TermsPolicies = () => {
                                 the social sports network application. By using the application, users affirm that they
                                 meet the age requirement.
                             </Text>
-                            <Text style={styles.termsTitle}>2. Privacy Policy</Text>
-                            <Text style={styles.termsText}>
-                                Don't misuse our services. You may use our services only as permitted by law, including
-                                applicable export and re-export control laws and regulations. We may suspend or stop
-                                providing our services to you if you do not comply with our terms or policies or if we
-                                are investigating suspected misconduct.
-                            </Text>
                             <Text style={styles.termsTitle}>4. Acceptance of Terms</Text>
                             <Text style={styles.termsText}>
                                 Users must accept and comply with the terms of service, community guidelines, and
                                 privacy policy to access and use the application.
-                            </Text>
-                            <Text style={styles.termsTitle}>2. Privacy Policy</Text>
-                            <Text style={styles.termsText}>
-                                Don't misuse our services. You may use our services only as permitted by law, including
-                                applicable export and re-export control laws and regulations. We may suspend or stop
-                                providing our services to you if you do not comply with our terms or policies or if we
-                                are investigating suspected misconduct.
                             </Text>
                             <Text style={styles.termsTitle}>5. Your Access to and Use of Our Services</Text>
                             <Text style={styles.termsText}>
@@ -112,12 +97,14 @@ const TermsPolicies = () => {
                                 responsibly and in compliance with all applicable laws and regulations. The application
                                 reserves the right to restrict or remove content related to regulated goods or
                                 commercial activities that may cause harm or violate laws.
-                            </Text><Text style={styles.termsTitle}>9. Privacy and Data Collection</Text>
+                            </Text>
+                            <Text style={styles.termsTitle}>9. Privacy and Data Collection</Text>
                             <Text style={styles.termsText}>
                                 The application collects and processes user data for the purpose of providing
                                 sports-related features and services. Users have the right to review, delete, and manage
-                                their data in accordance with the privacy policy
-                            </Text><Text style={styles.termsTitle}>10. Children's Information and COPPA
+                                their data in accordance with the privacy policy.
+                            </Text>
+                            <Text style={styles.termsTitle}>10. Children's Information and COPPA
                                 Compliance</Text>
                             <Text style={styles.termsText}>
                                 The application complies with the Children's Online Privacy Protection Act (COPPA).
@@ -125,7 +112,8 @@ const TermsPolicies = () => {
                                 the application. Parents will send an access code to their child, approving their
                                 communication on the app once the child is 13 years or older. Parents are responsible
                                 for overseeing their child's communication activities.
-                            </Text><Text style={styles.termsTitle}>11. Parental Consent for Communication (Ages 13 and
+                            </Text>
+                            <Text style={styles.termsTitle}>11. Parental Consent for Communication (Ages 13 and
                                 Older)</Text>
                             <Text style={styles.termsText}>
                                 Users aged 13 and older require parental consent for access to communication features.
@@ -134,15 +122,100 @@ const TermsPolicies = () => {
                             </Text>
                             <Text style={styles.termsTitle}>12. Paid Tiers and Subscription Services</Text>
                             <Text style={styles.termsText}>
-                                The application offers paid tiers with additional features and benefits. Users
-                                subscribing to paid tiers agree to the specified subscription terms, including billing
+                                The application offers paid tiers with additional features and benefits.
+                                Users subscribing to paid tiers agree to the specified subscription terms, including
+                                billing
                                 cycles, fees, and renewal conditions.
                             </Text>
                             <Text style={styles.termsTitle}>13. Payment and Billing</Text>
                             <Text style={styles.termsText}>
-                                UUsers agree to provide accurate and up-to-date payment information for subscription
+                                Users agree to provide accurate and up-to-date payment information for subscription
                                 fees. The application may use third-party payment processors, and users acknowledge that
-                                their financial information is subject to the processor's terms and policies
+                                their financial information is subject to the processor's terms and policies.
+                            </Text>
+                            <Text style={styles.termsTitle}>14. Cancellation and Refunds</Text>
+                            <Text style={styles.termsText}>
+                                Users can cancel their subscription at any time, and cancellation will be effective at
+                                the end of the current billing cycle. Refunds are not provided for partial subscription
+                                periods, but users retain access to paid features until the end of the billing cycle.
+                            </Text>
+                            <Text style={styles.termsTitle}>15. Modification of Paid Tiers</Text>
+                            <Text style={styles.termsText}>
+                                The application reserves the right to modify, add, or remove features from paid tiers,
+                                providing notice to users in advance.
+                            </Text>
+                            <Text style={styles.termsTitle}>16. Termination of Paid Services</Text>
+                            <Text style={styles.termsText}>
+                                The application reserves the right to terminate or suspend paid services for users who
+                                violate terms or engage in unauthorized activities.
+                            </Text>
+                            <Text style={styles.termsTitle}>17. Security of Paid Features</Text>
+                            <Text style={styles.termsText}>
+                                Users are responsible for maintaining the confidentiality of their account credentials
+                                and ensuring the security of paid features associated with their account.
+                            </Text>
+                            <Text style={styles.termsTitle}>18. Disciplinary Actions</Text>
+                            <Text style={styles.termsText}>
+                                The application reserves the right to take disciplinary actions, including but not
+                                limited to warnings, suspensions, or permanent bans, against users who violate the
+                                terms, rules, or community guidelines. Disciplinary actions are at the sole discretion
+                                of the application and may vary based on the severity and frequency of violations.
+                            </Text>
+
+
+                            <Text style={styles.termsTitle}>Disclaimer</Text>
+                            <Text style={styles.termsTitle}>No Guarantees</Text>
+                            <Text style={styles.termsText}>
+                                While we take measures to protect user data and maintain a positive sports community, we
+                                cannot guarantee absolute security.
+                            </Text>
+                            <Text style={styles.termsTitle}>Third-Party Content</Text>
+                            <Text style={styles.termsText}>
+                                The application may contain links or content from third parties, and we are not
+                                responsible for the privacy practices of these entities.
+                            </Text>
+                            <Text style={styles.termsTitle}>Communication Responsibility</Text>
+                            <Text style={styles.termsText}>
+                                Parents acknowledge and agree that by allowing their child access to the application,
+                                including communication features, they are granting their child the ability to
+                                communicate with other users on the platform. Parents are responsible for monitoring and
+                                overseeing their child's interactions within the application.
+                            </Text>
+                            <Text style={styles.termsTitle}>Advertisement Tailoring</Text>
+                            <Text style={styles.termsText}>
+                                Users understand that the application may use information provided by them to generate
+                                personalized advertisements aligned with their interests and sports preferences. The
+                                purpose of personalized advertisements is to enhance the user experience within the
+                                application.
+                            </Text>
+
+                            <Text style={styles.termsTitle}>Legal Matters</Text>
+                            <Text style={styles.termsTitle}>Exclusion of Warranties</Text>
+                            <Text style={styles.termsText}>
+                                The application is provided "as is," and we make no warranties or representations about
+                                the accuracy or completeness of the content or the suitability of the services for a
+                                particular purpose.
+                            </Text>
+                            <Text style={styles.termsTitle}>Limitation of Liability</Text>
+                            <Text style={styles.termsText}>
+                                We are not liable for any indirect, incidental, special, consequential, or punitive
+                                damages arising out of or in connection with the use of the application.
+                            </Text>
+                            <Text style={styles.termsTitle}>Data Protection Laws Compliance</Text>
+                            <Text style={styles.termsText}>
+                                The application complies with relevant data protection laws, ensuring the lawful and
+                                secure processing of user information.
+                            </Text>
+                            <Text style={styles.termsTitle}>Dispute Resolution</Text>
+                            <Text style={styles.termsText}>
+                                Any disputes arising out of or related to the use of the application will be resolved
+                                through arbitration, following the rules and procedures of [chosen arbitration
+                                institution].
+                            </Text>
+                            <Text style={styles.termsTitle}>Changes to Terms</Text>
+                            <Text style={styles.termsText}>
+                                We reserve the right to update these terms and the privacy policy. Users will be
+                                notified of any changes.
                             </Text>
                         </ScrollView>
                     </View>
@@ -150,9 +223,9 @@ const TermsPolicies = () => {
                         <View>
                             <View style={styles.checkBoxZone}>
                                 <Checkbox
-                                    onValueChange={(value) => setUserAgrements({ ...userAgrements, terms: value })}
-                                    value={userAgrements.terms}
-                                    style={styles.checkBox} />
+                                    onValueChange={(value) => setUserAgreements({...userAgreements, terms: value})}
+                                    value={userAgreements.terms}
+                                    style={styles.checkBox}/>
                                 <View style={styles.termsPolicyAgreement}>
                                     <Text style={styles.text}>I accept with the </Text>
                                     <Text style={[styles.boldText, styles.text]}>Terms and Conditions</Text>
@@ -160,9 +233,9 @@ const TermsPolicies = () => {
                             </View>
                             <View style={styles.checkBoxZone}>
                                 <Checkbox
-                                    onValueChange={(value) => setUserAgrements({ ...userAgrements, privacy: value })}
-                                    value={userAgrements.privacy}
-                                    style={styles.checkBox} />
+                                    onValueChange={(value) => setUserAgreements({...userAgreements, privacy: value})}
+                                    value={userAgreements.privacy}
+                                    style={styles.checkBox}/>
                                 <View style={styles.termsPolicyAgreement}>
                                     <Text style={styles.text}>I agree with the </Text>
                                     <Text style={[styles.boldText, styles.text]}>Privacy Policy</Text>
@@ -177,12 +250,12 @@ const TermsPolicies = () => {
                                     borderColor: 'grey',
                                     borderWidth: 1
                                 }]}>
-                                <Text style={[styles.btnText, { color: 'grey' }]}>Decline</Text>
+                                <Text style={[styles.btnText, {color: 'grey'}]}>Decline</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={_handlerAccept}
-                                style={[styles.btnStyle, { backgroundColor: '#2757CB' }]}>
-                                <Text style={[styles.btnText, { color: 'white' }]}>Accept</Text>
+                                style={[styles.btnStyle, {backgroundColor: '#2757CB'}]}>
+                                <Text style={[styles.btnText, {color: 'white'}]}>Accept</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -208,8 +281,7 @@ const styles = StyleSheet.create({
         textAlign: "center",
         fontSize: 25
     },
-    cardFooter: {
-    },
+    cardFooter: {},
     btnGroup: {
         flexDirection: "row",
         justifyContent: "space-around",

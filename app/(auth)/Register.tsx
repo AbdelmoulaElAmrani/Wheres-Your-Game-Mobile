@@ -67,10 +67,10 @@ const Register = () => {
         }).catch((e) => {
             console.log(e);
         })
-        .finally(() => {
-            LocalStorageService.removeItem('googleUser');
-        });
-        
+            .finally(() => {
+                LocalStorageService.removeItem('googleUser');
+            });
+
 
     }, []);
 
@@ -99,11 +99,11 @@ const Register = () => {
         } catch (e) {
             console.log(e);
         }
-        if(showPasswordInput) {
-            if (userData.password.trim() === '' ) {
+        if (showPasswordInput) {
+            if (userData.password.trim() === '') {
                 errors.push('Password is required');
             } else if (!Helpers._isPasswordValid(userData.password)) {
-                errors.push('Password must be 6-20 characters long and contain at least one uppercase letter, one lowercase letter, and one number');
+                errors.push('Password must be at least 6 characters long and include at least one uppercase letter.');
             }
         }
         if (userData.firstName.trim() === '') {
@@ -116,8 +116,7 @@ const Register = () => {
 
         if (userData.phoneNumber.trim() === '') {
             errors.push('Phone number is required');
-        }
-        if (phoneInput.current?.isValidNumber(userData.phoneNumber) === false) {
+        } else if (phoneInput.current?.isValidNumber(userData.phoneNumber) === false) {
             errors.push('Invalid phone number');
         }
 
