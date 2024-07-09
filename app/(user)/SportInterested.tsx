@@ -41,12 +41,9 @@ const SportInterested = () => {
                 setSports(data);
 
                 if (user?.id) {
-                    console.log('user => ', user);
                     dispatch(getUserSports(user.id) as any);
                     if (userSport) {
-                        console.log('userSport => ', userSport);
                         const userSports = new Map(userSport.map(x => [x.sportId, x]));
-                        console.log('userSport Map => ', userSport);
                         setSelectedSports(userSports);
                     }
                 }

@@ -15,7 +15,6 @@ import {TextInput} from "react-native-paper";
 import {AntDesign} from '@expo/vector-icons';
 import CustomButton from '@/components/CustomButton';
 import {Divider} from "react-native-paper";
-import {FontAwesome5} from '@expo/vector-icons';
 import {router} from "expo-router";
 import {AuthService} from '@/services/AuthService';
 import {useDispatch, useSelector} from 'react-redux';
@@ -258,7 +257,7 @@ const styles = StyleSheet.create({
     },
     logoContainer: {
         width: wp(85),
-        height: hp(25),
+        height: 190,
         alignContent: 'center',
         marginTop: hp(-30),
 

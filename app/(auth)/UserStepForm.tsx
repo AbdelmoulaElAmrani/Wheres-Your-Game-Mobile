@@ -26,7 +26,6 @@ import {RegisterRequest} from "@/models/requestObjects/RegisterRequest";
 import {useDispatch, useSelector} from 'react-redux'
 import {getUserProfile, updateUserRegisterData} from "@/redux/UserSlice";
 import {AuthService} from "@/services/AuthService";
-import {FeatureTogglingConfig} from "@/models/responseObjects/FeatureTogglingConfig";
 import LocalStorageService from "@/services/LocalStorageService";
 import {User} from "@react-native-google-signin/google-signin";
 import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
@@ -51,19 +50,9 @@ const UserStepForm = () => {
             modalTitle: 'Your account has been successfully verified',
             modalSubTitle: 'Now you can start to create your profile.'
         }];
-    const [fTConfig, setFTConfig] = useState<FeatureTogglingConfig | undefined>(undefined);
 
     const buttonText = ['Continue', 'Verify'];
 
-    useEffect(() => {
-        (async () => {
-            try {
-                const result = await AuthService.featureTogglingConfig();
-                setFTConfig(result);
-            } catch (e) {
-            }
-        })();
-    }, []);
 
     const _showModal = () => {
         if (_verifyUserStepDate(currentStep)) {
@@ -107,17 +96,19 @@ const UserStepForm = () => {
     }
 
     const _verifyUserSelectedHisRule = () => {
-        const res = userData.role !== UserType.DEFAULT;
-        if (!res) Alert.alert("You need to select a type");
-        return res;
+        try {
+            const res = userData.role !== UserType.DEFAULT;
+            if (!res) Alert.alert("You need to select a type");
+            return res;
+        } catch (e) {
+            console.error(e);
+            return false;
+        }
     }
 
     const goToNextStep = async () => {
         await createUser();
         setCurrentStep(oldValue => Math.max(2, oldValue - 1));
-        if (fTConfig !== undefined && !fTConfig.twoVerification) {
-            handleSubmit();
-        }
     };
 
     const _onNext = async () => {
@@ -310,10 +301,8 @@ const UserStepForm = () => {
                         </View>
                         <View
                             style={{justifyContent: 'center', alignContent: "center", marginTop: 25, marginBottom: 25}}>
-
                             {currentStep === 1 && <UserTypeForm/>}
-                            {(currentStep === 2) && (fTConfig === undefined || fTConfig.twoVerification) &&
-                                <OTPVerification/>}
+                            {(currentStep === 2) && <OTPVerification/>}
                         </View>
                         <CustomButton disabled={!otpCodeNotEmpty && currentStep === 2}
                                       text={buttonText[currentStep - 1]} onPress={_showModal}/>

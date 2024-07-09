@@ -1,6 +1,6 @@
 import CustomButton from "@/components/CustomButton";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {
     Alert,
     Keyboard,
@@ -11,7 +11,6 @@ import {
 } from "react-native"
 import {ImageBackground} from "expo-image";
 import {Avatar, Text, TextInput} from "react-native-paper";
-import PhoneInput from "react-native-phone-number-input";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {SafeAreaView} from "react-native-safe-area-context";
 import {Octicons} from '@expo/vector-icons';
@@ -187,9 +186,7 @@ const EditProfile = () => {
 
     const UserInfoEdit = () => {
         const [editUser, setEditUser] = useState<UserResponse>({...user});
-        const phoneInput = useRef<PhoneInput>(null);
         const [open, setOpen] = useState(false);
-
 
         const onDismissSingle = useCallback(() => {
             setOpen(false);

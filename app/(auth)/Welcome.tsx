@@ -39,10 +39,7 @@ const Welcome = () => {
                     onPress={_handleGetStarted}
                     style={styles.getStartedButton}
                 />
-
-
             </ImageBackground>
-
         </>
     )
 }
