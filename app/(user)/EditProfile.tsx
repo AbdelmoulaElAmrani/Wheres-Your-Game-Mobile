@@ -64,6 +64,7 @@ const EditProfile = () => {
         positionCoached: "",
         yearsOfExperience: 0
     });
+    type GenderOrNull = Gender | null;
 
     const route = useRoute();
     const paramData = route.params as any;
@@ -96,17 +97,26 @@ const EditProfile = () => {
         }
     }, [userData]);
 
-    const _handleUpdateUser = async () => {
-        const userRequest: UserRequest = user as UserRequest;
-        dispatch(updateUserProfile(userRequest) as any);
-    }
+    const _handleUpdateUser = async (selectedGender: GenderOrNull = null) => {
+        try {
+            let updatedUser = { ...user };
+            if (selectedGender !== null) {
+                updatedUser = { ...updatedUser, gender: selectedGender };
+            }            
+            const userRequest = updatedUser as UserRequest;
+            dispatch(updateUserProfile(userRequest) as any);
+        } catch (error) {
+            console.error('Failed to update user:', error);
+        }
+    };
 
-    const _handleContinue = async () => {
+    const _handleContinue = async (selectedGender: GenderOrNull = null) => {
+
         if (userData?.role === 'COACH') {
             setCurrentStep(oldValue => Math.min(3, oldValue + 1));
             if (currentStep >= 3) {
                 try {
-                    await _handleUpdateUser();
+                    await _handleUpdateUser(selectedGender);
                     if (paramData?.data)
                         router.setParams({previousScreenName: 'profile'})
 
@@ -122,7 +132,7 @@ const EditProfile = () => {
             setCurrentStep(oldValue => Math.min(2, oldValue + 1));
             if (currentStep >= 2) {
                 try {
-                    await _handleUpdateUser();
+                    await _handleUpdateUser(selectedGender);
                     if (paramData?.data)
                         router.setParams({previousScreenName: 'profile'})
                     router.navigate('/SportInterested');
@@ -184,6 +194,7 @@ const EditProfile = () => {
         }
     }
 
+    
     const UserInfoEdit = () => {
         const [editUser, setEditUser] = useState<UserResponse>({...user});
         const [open, setOpen] = useState(false);
@@ -385,9 +396,10 @@ const EditProfile = () => {
         }, [user.gender , user]);
 
         const _handleContinueGenderEdit = async () => {
-            setUser({...user, gender: selectedGender});
-            await _handleContinue();
+                setUser((prevEditUser) => ({ ...prevEditUser, gender: selectedGender }));
+            await _handleContinue(selectedGender);
         };
+        
        
         const isMaleSelected = useMemo(() => selectedGender === Gender.MALE, [selectedGender]);
         const isFemaleSelected = useMemo(() => selectedGender === Gender.FEMALE, [selectedGender]);
