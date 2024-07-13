@@ -391,6 +391,7 @@ const EditProfile = () => {
 
     const UserGenderEdit = (() => {
         const [selectedGender, setSelectedGender] = useState(user?.gender || Gender.DEFAULT);
+
         useEffect(() => {
             setSelectedGender(user?.gender);
         }, [user.gender , user]);
