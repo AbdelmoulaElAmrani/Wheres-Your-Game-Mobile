@@ -9,7 +9,6 @@ import {router} from "expo-router";
 import CustomButton from "@/components/CustomButton";
 import {useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
-import {Helpers} from "@/constants/Helpers";
 
 
 const windowWidth = Dimensions.get('window').width;
@@ -31,7 +30,7 @@ const data = [
     {
         img: require('../../assets/images/introIcon3.png'),
         title: 'Enroll',
-        first: "Enroll yourself/child/both to stay ",
+        first: "Enroll yourself/child/both",
         second: "JOIN THE COMMUNITY NOW",
         third: "find your next challenge"
     }];

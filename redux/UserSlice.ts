@@ -53,7 +53,6 @@ const initialState = {
     userData: {} as UserResponse,
     userSport: [{}] as UserSportResponse[],
     loading: false,
-
 };
 
 const userSlice = createSlice({
@@ -68,7 +67,9 @@ const userSlice = createSlice({
         },
         logout: (state, action) => {
             state.loading = false;
-            state = initialState;
+            state.userData = initialState.userData;
+            state.userSport = initialState.userSport;
+            state.userRegister = initialState.userRegister;
             AuthService.logOut();
         }
     },

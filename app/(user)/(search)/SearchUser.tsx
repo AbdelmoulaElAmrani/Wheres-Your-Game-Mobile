@@ -121,12 +121,13 @@ const SearchUser = () => {
                 <View style={styles.mainContainer}>
                     <KeyboardAvoidingView
                         style={{width: '100%', height: '100%', paddingVertical: 10, paddingHorizontal: 8}}>
-                        <View style={{width: '100%'}}>
+                        <View style={{width: '100%', marginBottom: 30}}>
                             {people.length > 0 ? <FlatList
                                 data={people}
                                 keyExtractor={(item) => item.id.toString()}
                                 renderItem={_renderUserItem}
                                 style={styles.userList}
+                                ListFooterComponent={<View style={{height: 50}}/>}
                             /> : <Text
                                 style={{textAlign: 'center', fontWeight: 'bold', marginTop: heightPercentageToDP(30)}}>No
                                 User</Text>}

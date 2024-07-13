@@ -15,7 +15,6 @@ import {TextInput} from "react-native-paper";
 import {AntDesign} from '@expo/vector-icons';
 import CustomButton from '@/components/CustomButton';
 import {Divider} from "react-native-paper";
-import {FontAwesome5} from '@expo/vector-icons';
 import {router} from "expo-router";
 import {AuthService} from '@/services/AuthService';
 import {useDispatch, useSelector} from 'react-redux';
@@ -216,16 +215,16 @@ const Login = () => {
                                 </View>
 
                                 {/* Social Media Icons */}
-                                <View style={{flexDirection: 'row', justifyContent: 'space-around', marginTop: 30}}>
-                                    <TouchableOpacity disabled={true}>
+                                <View style={{flexDirection: 'row', justifyContent: 'center', marginTop: 30}}>
+                                    {/*<TouchableOpacity disabled={true}>
                                         <FontAwesome5 name="facebook" size={40} color="grey"/>
-                                    </TouchableOpacity>
+                                    </TouchableOpacity>*/}
                                     <TouchableOpacity onPress={_handleSignInWithGoogle}>
                                         <AntDesign name="google" size={40} color="blue"/>
                                     </TouchableOpacity>
-                                    <TouchableOpacity disabled={true}>
+                                    {/*<TouchableOpacity disabled={true}>
                                         <AntDesign name="twitter" size={40} color="grey"/>
-                                    </TouchableOpacity>
+                                    </TouchableOpacity>*/}
                                 </View>
 
                                 <View style={styles.dontHaveAccountText}>
@@ -258,7 +257,7 @@ const styles = StyleSheet.create({
     },
     logoContainer: {
         width: wp(85),
-        height: hp(25),
+        height: 190,
         alignContent: 'center',
         marginTop: hp(-30),
 

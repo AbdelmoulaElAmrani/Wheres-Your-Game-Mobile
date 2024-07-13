@@ -18,7 +18,4 @@ export interface UserResponse {
     yearsOfExperience: number;
     isCertified: boolean;
     positionCoached: string;
-
-
-
 }

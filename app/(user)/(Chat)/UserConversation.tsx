@@ -21,7 +21,6 @@ import {useRoute} from "@react-navigation/core";
 import {Message} from "@/models/Conversation";
 import moment from 'moment-timezone';
 import {ChatService} from "@/services/ChatService";
-import {Helpers} from "@/constants/Helpers";
 import {CHAT_REFRESH_TIMER} from "@/appTimersConfig";
 
 const MAX_REFRESH_TIME: number = CHAT_REFRESH_TIMER * 1000;
@@ -89,7 +88,6 @@ const UserConversation = () => {
     const onSendMessage = async () => {
         const timestamp = moment.tz(moment.tz.guess()).format();
         try {
-
             if (newMessage.trim() && receiver) {
                 const message: Message = {
                     senderId: currentUser.id,
@@ -116,11 +114,9 @@ const UserConversation = () => {
             <View
                 style={[styles.messageContainer, isCurrentUser ? styles.currentUserMessage : styles.otherUserMessage]}>
                 <Text style={[styles.messageText, {color: isCurrentUser ? 'white' : 'black'}]}>{item.message}</Text>
-                {/*<Text style={styles.timestampText}>{Helpers.formatNotificationDate(formattedDate, true)}</Text>*/}
             </View>
         );
     };
-
 
     const loadMessages = async () => {
         if (loading || !hasMore || receiver == null) return;
@@ -144,7 +140,6 @@ const UserConversation = () => {
             setLoading(false);
         }
     };
-
     const handleLoadMore = () => {
         if (!loading && hasMore) {
             loadMessages();
@@ -163,7 +158,6 @@ const UserConversation = () => {
                 <CustomNavigationHeader
                     text={`${receiver?.firstName} ${receiver?.lastName}`}
                     goBackFunction={_handleGoBack} showBackArrow/>
-
                 <KeyboardAvoidingView
                     style={styles.chatContainer}
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -176,7 +170,8 @@ const UserConversation = () => {
                             inverted
                             onEndReached={handleLoadMore}
                             onEndReachedThreshold={0.5} // Adjust the threshold as needed
-                            ListFooterComponent={loading ? <ActivityIndicator size="large"/> : null}
+                            ListFooterComponent={loading ?
+                                <ActivityIndicator style={{margin: 10}} size="small"/> : null}
                         />
                     </View>
                     <View style={styles.inputContainer}>
