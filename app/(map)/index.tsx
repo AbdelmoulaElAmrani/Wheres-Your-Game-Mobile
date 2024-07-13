@@ -123,7 +123,7 @@ const SportMap = () => {
                 ref={mapRef}
                 showsUserLocation={true}
                 onPress={Keyboard.dismiss}
-                //provider={PROVIDER_GOOGLE}
+                provider={PROVIDER_GOOGLE}
                 style={StyleSheet.absoluteFill}/>
 
             <StatusBar style={"dark"}/>
