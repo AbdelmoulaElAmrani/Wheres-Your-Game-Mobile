@@ -11,10 +11,10 @@ import {
 import {ImageBackground} from "expo-image";
 import {SafeAreaView} from "react-native-safe-area-context";
 import Modal from "react-native-modal";
-import {memo, useEffect, useState} from "react";
+import {memo, useEffect, useRef, useState} from "react";
 import CustomButton from "@/components/CustomButton";
 import {AntDesign} from "@expo/vector-icons";
-import {OtpInput} from "react-native-otp-entry";
+import {OtpInput, OtpInputRef} from "react-native-otp-entry";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import UserType from "@/models/UserType";
 import ParentIcon from "../../assets/images/svg/ParentIcon";
@@ -36,6 +36,7 @@ const UserStepForm = () => {
     const [visible, setVisible] = useState<boolean>(false);
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [otpCodeNotEmpty, setOtpCodeNotEmpty] = useState<boolean>(false);
+    const [otpCode, setOtpCode] = useState<string>('');
     const userRegister = useSelector((state: any) => state.user.userRegister);
     const [userData, setUserData] = useState<RegisterRequest>(userRegister);
     const _stepTitles = [
@@ -200,12 +201,20 @@ const UserStepForm = () => {
     ));
 
     const OTPVerification = () => {
+        const otpRef = useRef<OtpInputRef>();
+
         useEffect(() => {
             const sendOtp = async () => {
-                const result = await AuthService.sendOTP();
+                if (!otpCodeNotEmpty && otpCode.trim().length === 0) {
+                    const result = await AuthService.sendOTP();
+                }
             }
             sendOtp();
+            if (otpCodeNotEmpty) {
+                otpRef.current?.setValue(otpCode);
+            }
         }, []);
+
         const _onResendOTPCode = async () => {
             try {
                 const result = await AuthService.sendOTP();
@@ -216,6 +225,7 @@ const UserStepForm = () => {
         const _verifyOTP = async (otpNumber: string) => {
             Keyboard.dismiss();
             if (otpNumber.trim().length !== 0) {
+                setOtpCode(otpNumber);
                 if (otpNumber == '0000') {
                     setOtpCodeNotEmpty(true);
                 } else {
@@ -248,7 +258,9 @@ const UserStepForm = () => {
                     <OtpInput
                         numberOfDigits={4}
                         focusColor={'#2757CB'}
-                        onTextChange={(t) => console.log(t)}
+                        autoFocus={true}
+                        // @ts-ignore
+                        ref={otpRef}
                         onFilled={(value) => _verifyOTP(value)}
                         focusStickBlinkingDuration={400}
                         theme={{
