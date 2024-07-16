@@ -15,7 +15,6 @@ export class StorageService {
         }
     }
 
-
     static async downloadImageByName(imageName: string, isIcon: boolean = false): Promise<any> {
         try {
             const response = await Requests.get(`/storage/download/${imageName}/${isIcon}`);

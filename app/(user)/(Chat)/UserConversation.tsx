@@ -32,6 +32,7 @@ const UserConversation = () => {
     const [newMessage, setNewMessage] = useState<string>('');
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+    const [enabledSend, setEnabledSend] = useState<boolean>(true);
 
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
@@ -87,6 +88,7 @@ const UserConversation = () => {
 
     const onSendMessage = async () => {
         const timestamp = moment.tz(moment.tz.guess()).format();
+        setEnabledSend(false);
         try {
             if (newMessage.trim() && receiver) {
                 const message: Message = {
@@ -102,13 +104,13 @@ const UserConversation = () => {
         } catch (error) {
             console.error('Error sending message:', error);
             Alert.alert('Error', 'Failed to send message');
+        } finally {
+            setEnabledSend(true);
         }
     }
 
     const _renderMessage = ({item}: { item: Message }) => {
         const isCurrentUser = item.senderId === currentUser.id;
-        //const userTimeZone = moment.tz.guess();
-        //const formattedDate = moment(item.timestamp).tz(userTimeZone).toDate()
 
         return (
             <View
@@ -181,7 +183,7 @@ const UserConversation = () => {
                             value={newMessage}
                             onChangeText={setNewMessage}
                         />
-                        <TouchableOpacity style={styles.sendButton} onPress={onSendMessage}>
+                        <TouchableOpacity style={styles.sendButton} disabled={!enabledSend} onPress={onSendMessage}>
                             <Ionicons name="send" size={24} color="white"/>
                         </TouchableOpacity>
                     </View>
