@@ -110,10 +110,9 @@ function TeamForm() {
             if (response) {
                 if (manipulatedImageUri) {
                     const formData = new FormData();
-                    formData.append('file', manipulatedImageUri);
 
                     try {
-                        const imageUrl = await StorageService.upload(userData.id, formData, false);
+                        const imageUrl = await StorageService.upload(response.id, formData, false);
                     } catch (err) {
                         console.error('Error during image upload:', err);
                     }
