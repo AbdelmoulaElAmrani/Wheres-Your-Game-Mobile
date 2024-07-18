@@ -21,7 +21,7 @@ import {useRoute} from "@react-navigation/core";
 import {Message} from "@/models/Conversation";
 import moment from 'moment-timezone';
 import {ChatService} from "@/services/ChatService";
-import {CHAT_REFRESH_TIMER} from "@/appTimersConfig";
+import {CHAT_REFRESH_TIMER} from "@/appConfig";
 
 const MAX_REFRESH_TIME: number = CHAT_REFRESH_TIMER * 1000;
 

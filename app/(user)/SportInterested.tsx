@@ -23,6 +23,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {getUserSports} from "@/redux/UserSlice";
+import Spinner from "@/components/Spinner";
 
 const SportInterested = () => {
 
@@ -33,10 +34,12 @@ const SportInterested = () => {
     const user = useSelector((state: any) => state.user.userData) as UserResponse;
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
     const dispatch = useDispatch();
+    const [loading, setLoading] = useState<boolean>(false)
 
     useEffect(() => {
         const fetchData = async () => {
             try {
+                setLoading(true);
                 const data = await SportService.getAllSports();
                 setSports(data);
 
@@ -49,6 +52,8 @@ const SportInterested = () => {
                 }
             } catch (ex) {
                 console.log(ex);
+            } finally {
+                setLoading(false);
             }
         }
         fetchData();
@@ -128,7 +133,7 @@ const SportInterested = () => {
 
         return (
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View>
+                <View style={{height: '70%', width: '100%'}}>
                     <TextInput
                         placeholder="Search Sports"
                         style={styles.search}
@@ -141,6 +146,10 @@ const SportInterested = () => {
                         left={<TextInput.Icon size={50} color='#9BA0AB' icon="magnify"/>}
                     />
                     <KeyboardAwareScrollView
+                        contentContainerStyle={{paddingBottom: 30}}
+                        nestedScrollEnabled={true}
+                        showsVerticalScrollIndicator={true}
+                        style={{flex: 1}}
                         scrollEnabled={true}>
                         <View style={styles.sportContainer}>
                             {sports?.filter(x => x.name.toLowerCase().includes(query)).map(sport => {
@@ -230,8 +239,7 @@ const SportInterested = () => {
                 </View>
                 <View style={{maxHeight: hp(53), height: hp(50)}}>
                     <ScrollView
-                        scrollEnabled={true}
-                    >
+                        scrollEnabled={true}>
                         {[...selectedSports.values()].map((item => <_RenderItem
                             key={item.sportName + ' ' + Math.random()} item={item}/>))}
                     </ScrollView>
@@ -245,30 +253,30 @@ const SportInterested = () => {
             style={StyleSheet.absoluteFill}
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView style={{flex: 1}}>
+                <Spinner visible={loading}/>
                 <CustomNavigationHeader text={"Sport"} goBackFunction={_handleGoBack()} showBackArrow/>
                 <Text style={styles.stepText}>Step {currentStep}/2</Text>
                 <View style={styles.mainContainer}>
-                    <KeyboardAwareScrollView
+                    {/*<KeyboardAwareScrollView
+                        nestedScrollEnabled={true}
                         style={{flex: 1}}
                         contentContainerStyle={{flexGrow: 1}}
-                        keyboardShouldPersistTaps="handled"
-                    >
-                        {currentStep === 1 && <_RenderSportCatalog/>}
-                        {currentStep === 2 && <_RenderUserSportLevel/>}
-                        <View style={styles.btnContainer}>
-                            <TouchableOpacity
-                                onPress={_handleGoBack()}
-                                style={styles.btn}>
-                                <Text style={{textAlign: 'center', fontSize: 18, color: '#2757CB'}}>Back</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={() => _onNext()}
-                                style={[styles.btn, {backgroundColor: '#2757CB'}]}
-                            >
-                                <Text style={{textAlign: 'center', fontSize: 18, color: 'white'}}>Continue</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </KeyboardAwareScrollView>
+                        keyboardShouldPersistTaps="handled">*/}
+                    {currentStep === 1 && <_RenderSportCatalog/>}
+                    {currentStep === 2 && <_RenderUserSportLevel/>}
+                    <View style={styles.btnContainer}>
+                        <TouchableOpacity
+                            onPress={_handleGoBack()}
+                            style={styles.btn}>
+                            <Text style={{textAlign: 'center', fontSize: 18, color: '#2757CB'}}>Back</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => _onNext()}
+                            style={[styles.btn, {backgroundColor: '#2757CB'}]}>
+                            <Text style={{textAlign: 'center', fontSize: 18, color: 'white'}}>Continue</Text>
+                        </TouchableOpacity>
+                    </View>
+                    {/*</KeyboardAwareScrollView>*/}
                 </View>
             </SafeAreaView>
         </ImageBackground>
@@ -323,7 +331,7 @@ const styles = StyleSheet.create({
         paddingBottom: 20,
         flexDirection: 'row',
         flexWrap: "wrap",
-        height: hp(50)
+        //height: hp(50)
     },
     sportItem: {
         margin: 5,

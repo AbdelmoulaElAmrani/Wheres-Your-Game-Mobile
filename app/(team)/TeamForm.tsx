@@ -27,12 +27,14 @@ import * as ImagePicker from "expo-image-picker";
 import {manipulateAsync, SaveFormat} from "expo-image-manipulator";
 import {StorageService} from '@/services/StorageService';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import Spinner from "@/components/Spinner";
 
 
 function TeamForm() {
     const dispatch = useDispatch();
     const [isAddTeam, setIsAddTeam] = useState(true);
     const [loading, setLoading] = useState(true);
+    const [creating, setCreating] = useState(false);
     const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
     const [selectedSportId, setSelectedSportId] = useState<string | null>(null);
     const [players, setPlayers] = useState<any[]>([]);
@@ -99,6 +101,7 @@ function TeamForm() {
         }
 
         try {
+            setCreating(true);
             const response = await TeamService.createTeam({
                 ...team,
                 sportId: selectedSportId,
@@ -110,18 +113,22 @@ function TeamForm() {
             if (response) {
                 if (manipulatedImageUri) {
                     const formData = new FormData();
-
+                    formData.append('file', manipulatedImageUri);
                     try {
                         const imageUrl = await StorageService.upload(response.id, formData, false);
                     } catch (err) {
                         console.error('Error during image upload:', err);
                     }
                 }
-                router.replace('/(tabs)');
-            } else
-                Alert.alert('Error', 'Failed to create team');
+                setCreating(false);
 
+                router.replace('/(tabs)');
+            } else {
+                setCreating(false);
+                Alert.alert('Error', 'Failed to create team');
+            }
         } catch (e) {
+            setCreating(false);
             console.error(e);
             Alert.alert('Error', 'Something went wrong');
         }
@@ -165,100 +172,105 @@ function TeamForm() {
             source={require('../../assets/images/signupBackGround.jpg')}
         >
             <SafeAreaView style={{flex: 1}}>
+                {creating && <Spinner visible={creating}/>}
                 <CustomNavigationHeader text={isAddTeam ? 'Create Team' : 'Edit Team'} showBackArrow/>
-                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <View style={styles.cardContainer}>
-                        <Text style={styles.title}>{isAddTeam ? 'Create Team' : 'Edit Team'}</Text>
-                        <KeyboardAwareScrollView style={{flex: 1}}>
-                            <View style={styles.formContainer}>
-                                <View style={styles.mgTop}>
-                                    <Text style={styles.textLabel}>Name</Text>
-                                    <TextInput
-                                        style={styles.inputStyle}
-                                        placeholder={'Name'}
-                                        cursorColor={'black'}
-                                        placeholderTextColor={'grey'}
-                                        left={<TextInput.Icon color={'#D3D3D3'} icon='trophy-outline'/>}
-                                        underlineColor="transparent"
-                                        value={team?.name}
-                                        onChangeText={(text) => setTeam({...team, name: text})}
-                                    />
-                                    <Text style={styles.textLabel}>Sport type</Text>
-                                    {(loading || !availableSport || availableSport.length === 0)
-                                        ? (
-                                            <TextInput style={styles.inputStyle} placeholder={'Loading...'}
-                                                       cursorColor={'black'} placeholderTextColor={'grey'}
-                                                       editable={false}/>
-                                        ) : (
-                                            <RNPickerSelect
-                                                style={{
-                                                    inputIOS: [styles.inputStyle, {paddingLeft: 15}],
-                                                    inputAndroid: [styles.inputStyle, {paddingLeft: 15}]
-                                                }}
-                                                items={availableSport.map((sport: Sport) => ({
-                                                    label: sport.name,
-                                                    value: sport.id,
-                                                    key: sport.id
-                                                }))}
-                                                placeholder={{label: 'Select sport', value: null}}
-                                                onValueChange={(value) =>
-                                                    setSelectedSportId(value)
-                                                }
-                                                value={selectedSportId}
-                                            />
-                                        )}
-                                    <Text style={styles.textLabel}>Image</Text>
-                                    <TextInput
-                                        style={styles.inputStyle}
-                                        placeholder={'Image'}
-                                        cursorColor={'black'}
-                                        placeholderTextColor={'grey'}
-                                        left={<TextInput.Icon color={'#D3D3D3'} icon='image'/>}
-                                        underlineColor="transparent"
-                                        onPress={_handleImagePicker}
-                                        disabled={true}
-                                        value={team?.imgUrl ? 'Image selected' : 'select image'}
-                                    />
-                                    <Text style={styles.textLabel}>Players</Text>
-                                    <MultiSelect
-                                        style={styles.inputStyle}
-                                        placeholderStyle={styles.placeholderStyle}
-                                        selectedTextStyle={styles.selectedTextStyle}
-                                        inputSearchStyle={styles.inputSearchStyle}
-                                        containerStyle={styles.containerStyle}
-                                        data={players.map((player: any) => ({
-                                            label: player.firstName + ' ' + player.lastName,
-                                            value: player.id
-                                        }))}
-                                        placeholder="Select players"
-                                        value={selectedPlayers}
-                                        search
-                                        labelField="label"
-                                        valueField="value"
-                                        onChange={item => {
+                <View style={styles.cardContainer}>
+                    <KeyboardAwareScrollView
+                        contentContainerStyle={{paddingBottom: 90}}
+                        style={{flex: 1}}>
+                        <View style={styles.formContainer}>
+                            <Text style={styles.title}>{isAddTeam ? 'Create Team' : 'Edit Team'}</Text>
+                            <View style={styles.mgTop}>
+                                <Text style={styles.textLabel}>Name</Text>
+                                <TextInput
+                                    style={styles.inputStyle}
+                                    placeholder={'Name'}
+                                    cursorColor={'black'}
+                                    placeholderTextColor={'grey'}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='trophy-outline'/>}
+                                    underlineColor="transparent"
+                                    value={team?.name}
+                                    onChangeText={(text) => setTeam({...team, name: text})}
+                                />
+                                <Text style={styles.textLabel}>Sport type</Text>
+                                {(loading || !availableSport || availableSport.length === 0)
+                                    ? (
+                                        <TextInput style={styles.inputStyle} placeholder={'Loading...'}
+                                                   cursorColor={'black'} placeholderTextColor={'grey'}
+                                                   editable={false}/>
+                                    ) : (
+                                        <RNPickerSelect
+                                            style={{
+                                                inputIOS: [styles.inputStyle, {paddingLeft: 15}],
+                                                inputAndroid: [styles.inputStyle, {paddingLeft: 15}]
+                                            }}
+                                            items={availableSport.map((sport: Sport) => ({
+                                                label: sport.name,
+                                                value: sport.id,
+                                                key: sport.id
+                                            }))}
+                                            placeholder={{label: 'Select sport', value: null}}
+                                            onValueChange={(value) =>
+                                                setSelectedSportId(value)
+                                            }
+
+                                            value={selectedSportId}
+                                        />
+                                    )}
+                                <Text style={styles.textLabel}>Image</Text>
+                                <TextInput
+                                    style={styles.inputStyle}
+                                    placeholder={'Image'}
+                                    cursorColor={'black'}
+                                    placeholderTextColor={'grey'}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='image'/>}
+                                    underlineColor="transparent"
+                                    onPress={_handleImagePicker}
+                                    disabled={true}
+                                    value={(manipulatedImageUri || team?.imgUrl) ? 'Image selected' : 'select image'}
+                                />
+                                <Text style={styles.textLabel}>Players</Text>
+                                <MultiSelect
+                                    style={styles.inputStyle}
+                                    placeholderStyle={styles.placeholderStyle}
+                                    selectedTextStyle={styles.selectedTextStyle}
+                                    inputSearchStyle={styles.inputSearchStyle}
+                                    containerStyle={styles.containerStyle}
+                                    data={players.map((player: any) => ({
+                                        label: player.firstName + ' ' + player.lastName,
+                                        value: player.id
+                                    }))}
+                                    placeholder="Select players"
+                                    value={selectedPlayers}
+                                    search
+                                    labelField="label"
+                                    valueField="value"
+                                    onChange={item => {
+                                        if (item.length < 15)
                                             setSelectedPlayers(item);
-                                        }}
-                                        iconStyle={styles.iconStyle}
-                                        renderLeftIcon={() => (
-                                            <AntDesign
-                                                style={styles.icon}
-                                                color="black"
-                                                name="user"
-                                                size={20}
-                                            />
-                                        )}
-                                        renderItem={renderPlayerItem}
-                                        selectedStyle={styles.selectedStyle}
-                                        activeColor='#4564f5'
-                                    />
-                                    <View style={{marginTop: 90}}>
-                                        <CustomButton text='Create' onPress={_onCreateTeam}/>
-                                    </View>
+                                        else
+                                            Alert.alert("The maximum number of players allowed is 15. You have reached this limit.");
+                                    }}
+                                    iconStyle={styles.iconStyle}
+                                    renderLeftIcon={() => (
+                                        <AntDesign
+                                            style={styles.icon}
+                                            color="black"
+                                            name="user"
+                                            size={20}
+                                        />
+                                    )}
+                                    renderItem={renderPlayerItem}
+                                    selectedStyle={styles.selectedStyle}
+                                    activeColor='#4564f5'
+                                />
+                                <View style={{marginTop: 90}}>
+                                    <CustomButton text='Create' onPress={_onCreateTeam}/>
                                 </View>
                             </View>
-                        </KeyboardAwareScrollView>
-                    </View>
-                </TouchableWithoutFeedback>
+                        </View>
+                    </KeyboardAwareScrollView>
+                </View>
             </SafeAreaView>
         </ImageBackground>
     );
@@ -274,34 +286,31 @@ const styles = StyleSheet.create({
     cardContainer: {
         width: wp('100%'),
         height: hp('80%'),
+        position: "absolute",
         justifyContent: 'center',
         backgroundColor: 'white',
         borderRadius: 40,
-        padding: 20,
-        marginTop: hp('10%'),
+        paddingHorizontal: 20,
+        marginTop: hp('22%'),
+        flex: 1
     },
     title: {
         fontSize: 19,
         color: 'black',
         textAlign: 'center',
         alignSelf: 'center',
-        marginBottom: 20,
         fontFamily: 'mon-b',
-        position: 'absolute',
-        top: 10,
         width: '100%',
-        padding: 10,
     },
     formContainer: {
         padding: 3,
         width: '100%',
-        position: 'absolute',
-        top: 50,
+        top: 30,
         alignSelf: 'center',
-
     },
     mgTop: {
         marginTop: hp('2%'),
+        height: '100%'
     },
     textLabel: {
         color: 'black',

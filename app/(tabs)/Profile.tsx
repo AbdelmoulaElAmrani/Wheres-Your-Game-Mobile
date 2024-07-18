@@ -18,7 +18,6 @@ const Profile = () => {
     const loading = useSelector((state: any) => state.user.loading) as boolean;
     const [refreshing, setRefreshing] = useState<boolean>(false);
     const _router = useRouter();
-    //const loadingImage = {isStart: false};
 
     useEffect(() => {
         (async () => {

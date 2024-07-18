@@ -2,7 +2,7 @@ import axios, {AxiosError, AxiosResponse} from 'axios';
 import {AuthService} from './AuthService';
 import {router} from 'expo-router';
 import {logout} from "@/redux/UserSlice";
-import {API_URI, AXIOS_TIMEOUT} from "@/appTimersConfig";
+import {API_URI, AXIOS_TIMEOUT} from "@/appConfig";
 
 
 let store: any;

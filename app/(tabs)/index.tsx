@@ -19,7 +19,7 @@ import {TeamService} from "@/services/TeamService";
 import Spinner from "@/components/Spinner";
 import {Image, ImageBackground} from "expo-image";
 import {NotificationService} from "@/services/NotificationService";
-import {NOTIFICATION_REFRESH_TIMER} from "@/appTimersConfig";
+import {NOTIFICATION_REFRESH_TIMER} from "@/appConfig";
 
 const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
 const REFRESH_NOTIFICATION_TIME = NOTIFICATION_REFRESH_TIMER * 1000;
@@ -186,14 +186,15 @@ const Home = () => {
         </TouchableOpacity>);
     });
 
-    const _renderTeam = memo(({item}: { item: Team }) => (
+    const _renderTeam = memo(({item}: { item: Team }) => {
+        return (
         <TouchableOpacity
             style={[styles.card, selectedTeam?.id == item.id ? styles.selectedTag : null]}
             onPress={() => _onSelectTeam(item)}>
             <View>
                 <View style={styles.cardImage}>
-                    {item.imageUrl ? (
-                        <Avatar.Image size={60} source={{uri: item.imageUrl}}/>
+                    {item.imgUrl ? (
+                        <Avatar.Image size={60} source={{uri: item.imgUrl}}/>
                     ) : (
                         <Avatar.Text
                             size={60}
@@ -211,7 +212,8 @@ const Home = () => {
                 color: selectedTeam?.id == item.id ? 'white' : 'black'
             }}>{item.name}</Text>
         </TouchableOpacity>
-    ));
+        )
+    });
 
     const _renderPlayer = memo(({item}: { item: Player }) => (
         <TouchableOpacity
