@@ -34,7 +34,30 @@ import {UserRequest} from "@/models/requestObjects/UserRequest";
 import {manipulateAsync, SaveFormat} from "expo-image-manipulator";
 import {StorageService} from "@/services/StorageService";
 import {useRoute} from "@react-navigation/core";
+import UserType from "@/models/UserType";
+import {MultiSelect} from "react-native-element-dropdown";
 
+
+const _AgeGroup = [
+    {label: '1', value: '1'},
+    {label: '2', value: '2'},
+    {label: '3', value: '3'},
+    {label: '4', value: '4'},
+    {label: '5', value: '5'},
+    {label: '6', value: '6'},
+    {label: '7', value: '7'},
+    {label: '8', value: '8'},
+    {label: '9', value: '9'},
+    {label: '10', value: '10'},
+    {label: '11', value: '11'},
+    {label: '12', value: '12'},
+    {label: '13', value: '13'},
+    {label: '14', value: '14'},
+    {label: '15', value: '15'},
+    {label: '16', value: '16'},
+    {label: '17', value: '17'},
+    {label: '18', value: '18'}
+];
 
 const EditProfile = () => {
 
@@ -99,10 +122,10 @@ const EditProfile = () => {
 
     const _handleUpdateUser = async (selectedGender: GenderOrNull = null) => {
         try {
-            let updatedUser = { ...user };
+            let updatedUser = {...user};
             if (selectedGender !== null) {
-                updatedUser = { ...updatedUser, gender: selectedGender };
-            }            
+                updatedUser = {...updatedUser, gender: selectedGender};
+            }
             const userRequest = updatedUser as UserRequest;
             dispatch(updateUserProfile(userRequest) as any);
         } catch (error) {
@@ -112,9 +135,25 @@ const EditProfile = () => {
 
     const _handleContinue = async (selectedGender: GenderOrNull = null) => {
 
-        if (userData?.role === 'COACH') {
+        if (userData?.role == UserType[UserType.COACH]) {
             setCurrentStep(oldValue => Math.min(3, oldValue + 1));
             if (currentStep >= 3) {
+                try {
+                    await _handleUpdateUser(selectedGender);
+                    if (paramData?.data)
+                        router.setParams({previousScreenName: 'profile'})
+
+                    if (selectedSports.length > 0 && userSport.length === 0) {
+                        const response = await SportService.registerUserToSport(selectedSports, userData.id);
+                    }
+                    router.navigate('/(tabs)');
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+        } else if (userData?.role == UserType[UserType.ORGANIZATION]) {
+            setCurrentStep(oldValue => Math.min(4, oldValue + 1));
+            if (currentStep >= 4) {
                 try {
                     await _handleUpdateUser(selectedGender);
                     if (paramData?.data)
@@ -194,7 +233,6 @@ const EditProfile = () => {
         }
     }
 
-    
     const UserInfoEdit = () => {
         const [editUser, setEditUser] = useState<UserResponse>({...user});
         const [open, setOpen] = useState(false);
@@ -342,19 +380,6 @@ const EditProfile = () => {
                                     underlineColor={"transparent"}
 
                                 />
-                                {/* <PhoneInput
-                                    disabled={true}
-                                    ref={phoneInput}
-                                    defaultCode={phoneInput?.current?.getCountryCode() || 'US'}
-                                    layout="first"
-                                    defaultValue="US"
-                                    withDarkTheme
-                                    placeholder="Enter phone number"
-                                    value={editUser.phoneNumber}
-                                    onChangeText={(text) => setEditUser({...editUser, phoneNumber: text})}
-                                    containerStyle={styles.phoneInputContainer}
-                                    textContainerStyle={styles.textPhoneInputContainer}
-                                />*/}
                                 <Text style={styles.textLabel}>Address</Text>
                                 <TextInput
                                     style={styles.inputStyle}
@@ -394,79 +419,72 @@ const EditProfile = () => {
 
         useEffect(() => {
             setSelectedGender(user?.gender);
-        }, [user.gender , user]);
+        }, [user.gender, user]);
 
         const _handleContinueGenderEdit = async () => {
-                setUser((prevEditUser) => ({ ...prevEditUser, gender: selectedGender }));
+            setUser((prevEditUser) => ({...prevEditUser, gender: selectedGender}));
             await _handleContinue(selectedGender);
         };
-        
-       
+
+
         const isMaleSelected = useMemo(() => selectedGender === Gender.MALE, [selectedGender]);
         const isFemaleSelected = useMemo(() => selectedGender === Gender.FEMALE, [selectedGender]);
 
         return (
             <View style={styles.genericContainer}>
-            <View style={{ justifyContent: 'center', alignContent: 'center' }}>
-                <Text style={[styles.textFirst, { textAlign: 'center' }]}>Tell us about yourself</Text>
-                <Text style={[styles.textSecond, { textAlign: 'center' }]}>
-                    To give you a better experience and results, we need to know your gender
-                </Text>
-            </View>
-            <View style={styles.genderSelection}>
-                <TouchableOpacity
-                    style={[
-                        styles.genderOption,
-                        isMaleSelected ? styles.selectedGender : {},
-                    ]}
-                    onPress={() => setSelectedGender(Gender.MALE)}
-                >
-                    <MaleIcon fill={isMaleSelected ? 'white' : 'black'} />
-                    <Text
-                        style={[
-                            styles.genderLabel,
-                            { color: isMaleSelected ? 'white' : 'black' },
-                        ]}
-                    >
-                        Male
+                <View style={{justifyContent: 'center', alignContent: 'center'}}>
+                    <Text style={[styles.textFirst, {textAlign: 'center'}]}>Tell us about yourself</Text>
+                    <Text style={[styles.textSecond, {textAlign: 'center'}]}>
+                        To give you a better experience and results, we need to know your gender
                     </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[
-                        styles.genderOption,
-                        isFemaleSelected ? styles.selectedGender : {},
-                    ]}
-                    onPress={() => setSelectedGender(Gender.FEMALE)}
-                >
-                    <FemaleIcon fill={isFemaleSelected ? 'white' : 'black'} />
-                    <Text
+                </View>
+                <View style={styles.genderSelection}>
+                    <TouchableOpacity
                         style={[
-                            styles.genderLabel,
-                            { color: isFemaleSelected ? 'white' : 'black' },
+                            styles.genderOption,
+                            isMaleSelected ? styles.selectedGender : {},
                         ]}
-                    >
-                        Female
-                    </Text>
-                </TouchableOpacity>
+                        onPress={() => setSelectedGender(Gender.MALE)}>
+                        <MaleIcon fill={isMaleSelected ? 'white' : 'black'}/>
+                        <Text
+                            style={[
+                                styles.genderLabel,
+                                {color: isMaleSelected ? 'white' : 'black'},
+                            ]}>
+                            Male
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[
+                            styles.genderOption,
+                            isFemaleSelected ? styles.selectedGender : {},
+                        ]}
+                        onPress={() => setSelectedGender(Gender.FEMALE)}>
+                        <FemaleIcon fill={isFemaleSelected ? 'white' : 'black'}/>
+                        <Text
+                            style={[
+                                styles.genderLabel,
+                                {color: isFemaleSelected ? 'white' : 'black'},
+                            ]}>Female</Text>
+                    </TouchableOpacity>
+                </View>
+                <View style={styles.sideBySideButtons}>
+                    <CustomButton
+                        text="Back"
+                        onPress={goToPreviousStep}
+                        style={styles.backButton}
+                        textStyle={styles.buttonText}
+                    />
+                    <CustomButton
+                        disabled={selectedGender === Gender.DEFAULT}
+                        text="Continue"
+                        onPress={_handleContinueGenderEdit}
+                        style={styles.continueButton}
+                    />
+                </View>
             </View>
-            <View style={styles.sideBySideButtons}>
-                <CustomButton
-                    text="Back"
-                    onPress={goToPreviousStep}
-                    style={styles.backButton}
-                    textStyle={styles.buttonText}
-                />
-                <CustomButton
-                    disabled={selectedGender === Gender.DEFAULT}
-                    text="Continue"
-                    onPress={_handleContinueGenderEdit}
-                    style={styles.continueButton}
-                />
-            </View>
-        </View>
         );
     });
-
 
     const CoachSportInfoEdit = () => {
 
@@ -486,10 +504,7 @@ const EditProfile = () => {
                 yearsOfExperience: yearsOfExperience,
                 isCertified: isCertified
             }));
-
-
             if (userSport.length === 0) {
-
                 if (!selectedSport) {
                     Alert.alert('Please select a sport');
                     return;
@@ -502,7 +517,6 @@ const EditProfile = () => {
                 const convertedSportLevel = convertStringToEnumValue(SportLevel, sportLevel);
                 if (convertedSportLevel === null)
                     return;
-
                 setSelectedSports([...selectedSports,
                     {
                         sportId: selectedSport.id,
@@ -515,7 +529,6 @@ const EditProfile = () => {
                 return;
             await _handleContinue();
         }
-
 
         const _generateSportLevelItems = (): { label: string; value: string; key: string }[] => {
             return Object.keys(SportLevel).filter((key: string) => !isNaN(Number(SportLevel[key as keyof typeof SportLevel]))).map((key: string) => ({
@@ -533,7 +546,6 @@ const EditProfile = () => {
                             <Text style={{color: 'black', fontSize: 20, fontWeight: 'bold', marginTop: 5}}>Sport
                                 Info</Text>
                             <View style={styles.mgTop}>
-
                                 <Text style={styles.textLabel}>Your Sport</Text>
                                 <RNPickerSelect
                                     style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
@@ -618,6 +630,148 @@ const EditProfile = () => {
     }
 
 
+    const OrganizationInfoEdit = () => {
+
+        const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
+        const [organizationName, setOrganizationName] = useState<string>(user.positionCoached);
+        const [sportLevel, setSportLevel] = useState<SportLevel>(SportLevel.Beginner);
+        const [yearsOfExperience, setYearsOfExperience] = useState<number>(user.yearsOfExperience);
+        const [isCertified, setIsCertified] = useState<boolean>(user.isCertified);
+
+        const [editUser, setEditUser] = useState<UserResponse>({...user});
+
+        const _handleOrganizationInfoEdit = async () => {
+            setUser(({
+                ...editUser,
+                bio: editUser.bio,
+                positionCoached: organizationName,
+                yearsOfExperience: yearsOfExperience,
+                isCertified: isCertified
+            }));
+            if (userSport.length === 0) {
+                if (sportLevel === 0) {
+                    Alert.alert('Please Skill Level');
+                    return;
+                }
+
+                const convertedSportLevel = convertStringToEnumValue(SportLevel, sportLevel);
+                if (convertedSportLevel === null)
+                    return;
+                setSelectedSports([...selectedSports,
+                    {
+                        sportId: selectedSport.id,
+                        sportLevel: convertedSportLevel,
+                        createAt: new Date(),
+                        sportName: selectedSport.name
+                    }]);
+            }
+            if (selectedSports.length === 0 && userSport.length === 0)
+                return;
+            await _handleContinue();
+        }
+
+        const _generateSportLevelItems = (): { label: string; value: string; key: string }[] => {
+            return Object.keys(SportLevel).filter((key: string) => !isNaN(Number(SportLevel[key as keyof typeof SportLevel]))).map((key: string) => ({
+                label: key,
+                value: key,
+                key: SportLevel[key as keyof typeof SportLevel].toString()
+            }));
+        };
+
+
+        return (
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <>
+                    <KeyboardAwareScrollView style={{flex: 1}}>
+                        <View style={styles.formContainer}>
+                            <Text style={{color: 'black', fontSize: 20, fontWeight: 'bold', marginTop: 5}}>Organization
+                                Details</Text>
+                            <View style={styles.mgTop}>
+                                <Text style={styles.textLabel}>Organization Name</Text>
+                                <TextInput
+                                    style={[styles.inputStyle, {paddingLeft: 0}]}
+                                    placeholder={'Organization Name'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    underlineColor={"transparent"}
+                                    value={organizationName}
+                                    onChangeText={(text) => setOrganizationName(text)}
+                                />
+                                <Text style={styles.textLabel}>Admin Name</Text>
+                                <TextInput
+                                    style={[styles.inputStyle, {paddingLeft: 0}]}
+                                    placeholder={'Admin Name'}
+                                    disabled={true}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    underlineColor={"transparent"}
+                                    value={`${userData?.firstName} ${userData?.lastName}`}
+                                />
+                                <Text style={styles.textLabel}>Age group</Text>
+                                {/*TODO:: Multi selection*/}
+                                <MultiSelect
+                                    style={styles.inputStyle}
+                                    placeholderStyle={styles.placeholderStyle}
+                                    selectedTextStyle={styles.selectedTextStyle}
+                                    inputSearchStyle={styles.inputSearchStyle}
+                                    containerStyle={styles.containerStyle}
+                                    data={_AgeGroup}
+                                    placeholder="Select age group"
+                                    value={selectedPlayers}
+                                    labelField="label"
+                                    valueField="value"
+                                    onChange={item => {
+                                        setSelectedPlayers(item);
+                                    }}
+                                    iconStyle={styles.iconStyle}
+                                    selectedStyle={styles.selectedStyle}
+                                    activeColor='#4564f5'
+                                />
+                                <Text style={styles.textLabel}>Skill Level</Text>
+                                {/*TODO:: Multi selection*/}
+                                <MultiSelect
+                                    style={styles.inputStyle}
+                                    placeholderStyle={styles.placeholderStyle}
+                                    selectedTextStyle={styles.selectedTextStyle}
+                                    inputSearchStyle={styles.inputSearchStyle}
+                                    containerStyle={styles.containerStyle}
+                                    data={_generateSportLevelItems()}
+                                    placeholder="Select Skill Level"
+                                    value={selectedPlayers}
+                                    labelField="label"
+                                    valueField="value"
+                                    onChange={item => {
+                                        setSelectedPlayers(item);
+                                    }}
+                                    iconStyle={styles.iconStyle}
+                                    selectedStyle={styles.selectedStyle}
+                                    activeColor='#4564f5'
+                                />
+                                <Text style={styles.textLabel}>Tell us about yourself</Text>
+                                <TextInput
+                                    style={styles.inputInfoStyle}
+                                    placeholder={'Tell us about yourself'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    value={editUser.bio}
+                                    onChangeText={(text) => setEditUser({...editUser, bio: text})}
+                                    underlineColor={"transparent"}
+                                    multiline={true}
+                                    numberOfLines={4}
+                                />
+
+                                <View style={{marginTop: 30}}>
+                                    <CustomButton text="Continue" onPress={_handleCoachSportInfoEdit}/>
+                                </View>
+                            </View>
+                        </View>
+                    </KeyboardAwareScrollView>
+                </>
+            </TouchableWithoutFeedback>
+        )
+    }
+
+
     return (
         <ImageBackground
             style={StyleSheet.absoluteFill}
@@ -629,8 +783,9 @@ const EditProfile = () => {
                 <Text style={styles.stepText}>Step {currentStep}/3</Text>
                 <View style={styles.cardContainer}>
                     {currentStep === 1 && <UserInfoEdit/>}
-                    {currentStep === 2 && <UserGenderEdit/>}
-                    {currentStep === 3 && <CoachSportInfoEdit/>}
+                    {currentStep === 2 && userData?.role != UserType[UserType.ORGANIZATION] && <UserGenderEdit/>}
+                    {currentStep === 2 && userData?.role == UserType[UserType.ORGANIZATION] && <OrganizationInfoEdit/>}
+                    {currentStep === 3 && userData?.role != UserType[UserType.ORGANIZATION] && <CoachSportInfoEdit/>}
                 </View>
             </SafeAreaView>
         </ImageBackground>

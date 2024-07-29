@@ -18,4 +18,10 @@ export interface UserResponse {
     yearsOfExperience: number;
     isCertified: boolean;
     positionCoached: string;
+    organizationName?: string;
+    ageGroup?: string[];
+    skillLevel?: string[];
+    country?: string;
+    stateRegion?: string;
+    city?: string;
 }

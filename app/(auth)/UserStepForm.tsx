@@ -6,14 +6,14 @@ import {
     TouchableOpacity,
     TouchableWithoutFeedback,
     Keyboard,
-    Alert
+    Alert, ScrollView
 } from "react-native";
 import {ImageBackground} from "expo-image";
 import {SafeAreaView} from "react-native-safe-area-context";
 import Modal from "react-native-modal";
 import {memo, useEffect, useRef, useState} from "react";
 import CustomButton from "@/components/CustomButton";
-import {AntDesign} from "@expo/vector-icons";
+import {AntDesign, Entypo, Ionicons} from "@expo/vector-icons";
 import {OtpInput, OtpInputRef} from "react-native-otp-entry";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import UserType from "@/models/UserType";
@@ -29,6 +29,10 @@ import {AuthService} from "@/services/AuthService";
 import LocalStorageService from "@/services/LocalStorageService";
 import {User} from "@react-native-google-signin/google-signin";
 import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
+import OrganizationIcon from "@/assets/images/svg/OrganizationIcon";
+import CampIcon from "@/assets/images/svg/CampIcon";
+import CoachIconV2 from "@/assets/images/svg/CoachIconV2";
+import BusinessIconV2 from "@/assets/images/svg/BusinessIconV2";
 
 
 const UserStepForm = () => {
@@ -71,11 +75,10 @@ const UserStepForm = () => {
                 dispatch(getUserProfile() as any)
                 return true;
             } catch (e) {
-                console.log(e);
+                console.error(e);
                 Alert.alert('Error', 'Something went wrong');
                 return false;
             }
-
         }
     }
 
@@ -89,7 +92,7 @@ const UserStepForm = () => {
                 await AuthService.register(userData);
             }
         } catch (e) {
-            console.log(e);
+            console.error(e);
         } finally {
             await LocalStorageService.removeItem('googleUser');
         }
@@ -133,7 +136,7 @@ const UserStepForm = () => {
     const _verifySelectedType = (type: UserType): boolean => userData.role == type;
 
     const UserTypeForm = memo(() => (
-        <>
+        <ScrollView>
             <View style={styles.rowContainer}>
                 <TouchableOpacity onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.PARENT}))}
                                   style={[styles.squareContainer, {backgroundColor: _verifySelectedType(UserType.PARENT) ? '#2757CB' : 'white'}]}>
@@ -173,31 +176,129 @@ const UserStepForm = () => {
                         <AntDesign name="checkcircle" size={20} color="white"/>
                     </View>}
                     <View>
-                        <CoachIcon style={styles.userTypeIcon}
-                                   fill={_verifySelectedType(UserType.COACH) ? '#FFF' : '#000'}/>
+                        <CoachIconV2 style={styles.userTypeIcon}
+                                     fill={_verifySelectedType(UserType.COACH) ? '#FFF' : '#000'}/>
                         <Text
-                            style={[styles.userTypeTitle, {color: _verifySelectedType(UserType.COACH) ? 'white' : 'black'}]}>Coach/Trainer</Text>
+                            style={[styles.userTypeTitle, {color: _verifySelectedType(UserType.COACH) ? 'white' : 'black'}]}>Coach</Text>
                     </View>
                     <Text
                         style={[styles.userTypeDescIcon, {color: _verifySelectedType(UserType.COACH) ? 'white' : 'black'}]}>Camps/Games
                         Leagues Officiating Organization</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.BUSINESS}))}
-                                  style={[styles.squareContainer, {backgroundColor: _verifySelectedType(UserType.BUSINESS) ? '#2757CB' : 'white'}]}>
-                    {_verifySelectedType(UserType.BUSINESS) && <View style={styles.checkIcon}>
+                <TouchableOpacity onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.ORGANIZATION}))}
+                                  style={[styles.squareContainer, {backgroundColor: _verifySelectedType(UserType.ORGANIZATION) ? '#2757CB' : 'white'}]}>
+                    {_verifySelectedType(UserType.ORGANIZATION) && <View style={styles.checkIcon}>
                         <AntDesign name="checkcircle" size={20} color="white"/>
                     </View>}
                     <View>
-                        <BusinessIcon style={styles.userTypeIcon}
-                                      fill={_verifySelectedType(UserType.BUSINESS) ? '#FFF' : '#000'}/>
+                        <OrganizationIcon style={styles.userTypeIcon}
+                                          fill={_verifySelectedType(UserType.ORGANIZATION) ? '#FFF' : '#000'}/>
                         <Text
-                            style={[styles.userTypeTitle, {color: _verifySelectedType(UserType.BUSINESS) ? 'white' : 'black'}]}>Business/Advertising
-                            Consultant</Text>
+                            style={[styles.userTypeTitle, {color: _verifySelectedType(UserType.ORGANIZATION) ? 'white' : 'black'}]}>Organization</Text>
                     </View>
                     <Text style={{marginTop: 15}}></Text>
                 </TouchableOpacity>
             </View>
-        </>
+            <View style={styles.rowContainer}>
+                <TouchableOpacity
+                    disabled={true}
+                    onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.TOURNAMENTS}))}
+                    style={[styles.squareContainer, styles.disabled]}>
+                    {_verifySelectedType(UserType.TOURNAMENTS) && <View style={styles.checkIcon}>
+                        <AntDesign name="checkcircle" size={20} color="white"/>
+                    </View>}
+                    <View>
+                        <Ionicons
+                            style={styles.userTypeIcon}
+                            color={_verifySelectedType(UserType.TOURNAMENTS) ? '#FFF' : '#000'}
+                            name="trophy-outline" size={55}/>
+                        <Text
+                            style={[styles.userTypeTitle, {color: _verifySelectedType(UserType.TOURNAMENTS) ? 'white' : 'black'}]}>Tournaments</Text>
+                    </View>
+                    <Text
+                        style={[styles.userTypeDescIcon, {color: _verifySelectedType(UserType.TOURNAMENTS) ? 'white' : 'black'}]}>Coming
+                        soon</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    disabled={true}
+                    onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.TRAINER_CAMP_TRAINING}))}
+                    style={[styles.squareContainer, styles.disabled]}>
+                    {_verifySelectedType(UserType.TRAINER_CAMP_TRAINING) && <View style={styles.checkIcon}>
+                        <AntDesign name="checkcircle" size={20} color="white"/>
+                    </View>}
+                    <View>
+                        <CampIcon style={styles.userTypeIcon}
+                                  fill={_verifySelectedType(UserType.TRAINER_CAMP_TRAINING) ? '#FFF' : '#000'}/>
+                        <Text
+                            style={[styles.userTypeTitle, {color: _verifySelectedType(UserType.TRAINER_CAMP_TRAINING) ? 'white' : 'black'}]}>Trainer/Camp/Training</Text>
+                    </View>
+                    <Text
+                        style={[styles.userTypeDescIcon, {color: _verifySelectedType(UserType.TRAINER_CAMP_TRAINING) ? 'white' : 'black'}]}>Coming
+                        soon</Text>
+                </TouchableOpacity>
+            </View>
+            <View style={styles.rowContainer}>
+                <TouchableOpacity
+                    disabled={true}
+                    onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.LEAGUE}))}
+                    style={[styles.squareContainer, styles.disabled]}>
+                    {_verifySelectedType(UserType.LEAGUE) && <View style={styles.checkIcon}>
+                        <AntDesign name="checkcircle" size={20} color="white"/>
+                    </View>}
+                    <View>
+                        <Ionicons
+                            style={styles.userTypeIcon}
+                            color={_verifySelectedType(UserType.LEAGUE) ? '#FFF' : '#000'}
+                            name="trophy-outline" size={55}/>
+                        <Text
+                            style={[styles.userTypeTitle, {color: _verifySelectedType(UserType.LEAGUE) ? 'white' : 'black'}]}>League</Text>
+                    </View>
+                    <Text
+                        style={[styles.userTypeDescIcon, {color: _verifySelectedType(UserType.LEAGUE) ? 'white' : 'black'}]}>Coming
+                        soon</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    disabled={true}
+                    onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.REFEREES_OFFICIALS_UMPIRES}))}
+                    style={[styles.squareContainer, styles.disabled]}>
+                    {_verifySelectedType(UserType.REFEREES_OFFICIALS_UMPIRES) && <View style={styles.checkIcon}>
+                        <AntDesign name="checkcircle" size={20} color="white"/>
+                    </View>}
+                    <View>
+                        <CoachIcon style={styles.userTypeIcon}
+                                   fill={_verifySelectedType(UserType.REFEREES_OFFICIALS_UMPIRES) ? '#FFF' : '#000'}/>
+                        <Text
+                            style={[styles.userTypeTitle, {color: _verifySelectedType(UserType.REFEREES_OFFICIALS_UMPIRES) ? 'white' : 'black'}]}>Referees/Officials/Umpires</Text>
+                    </View>
+                    <Text
+                        style={[styles.userTypeDescIcon, {color: _verifySelectedType(UserType.REFEREES_OFFICIALS_UMPIRES) ? 'white' : 'black'}]}>Coming
+                        soon</Text>
+                </TouchableOpacity>
+            </View>
+            <View style={styles.rowContainer}>
+                <TouchableOpacity
+                    disabled={true}
+                    onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.BUSINESS}))}
+                    style={[styles.squareContainer, styles.disabled]}>
+                    {_verifySelectedType(UserType.BUSINESS) && <View style={styles.checkIcon}>
+                        <AntDesign name="checkcircle" size={20} color="white"/>
+                    </View>}
+                    <View>
+                        <BusinessIconV2
+                            style={styles.userTypeIcon}
+                            // @ts-ignore
+                            fillColor={_verifySelectedType(UserType.BUSINESS) ? '#FFF' : '#000'}/>
+                        <Text
+                            style={[styles.userTypeTitle, {color: _verifySelectedType(UserType.BUSINESS) ? 'white' : 'black'}]}>Business/Advertising
+                            Consultant</Text>
+                    </View>
+                    <Text
+                        style={[styles.userTypeDescIcon, {color: _verifySelectedType(UserType.BUSINESS) ? 'white' : 'black'}]}>Coming
+                        soon</Text>
+                </TouchableOpacity>
+            </View>
+            <View style={{marginTop: 220}}/>
+        </ScrollView>
     ));
 
     const OTPVerification = () => {
@@ -206,7 +307,7 @@ const UserStepForm = () => {
         useEffect(() => {
             const sendOtp = async () => {
                 if (!otpCodeNotEmpty && otpCode.trim().length === 0) {
-                    const result = await AuthService.sendOTP();
+                    const ignored = await AuthService.sendOTP();
                 }
             }
             sendOtp();
@@ -217,9 +318,9 @@ const UserStepForm = () => {
 
         const _onResendOTPCode = async () => {
             try {
-                const result = await AuthService.sendOTP();
+                const ignored = await AuthService.sendOTP();
             } catch (e) {
-                console.log(e);
+                console.error(e);
             }
         }
         const _verifyOTP = async (otpNumber: string) => {
@@ -290,7 +391,6 @@ const UserStepForm = () => {
                                 color: '#3E4FEF'
                             }}> Resend</Text>
                         </TouchableOpacity>
-
                     </View>
                 </View>
             </TouchableWithoutFeedback>
@@ -312,7 +412,13 @@ const UserStepForm = () => {
                             <Text style={styles.subTitle}>{_stepTitles[currentStep - 1].subTitle}</Text>
                         </View>
                         <View
-                            style={{justifyContent: 'center', alignContent: "center", marginTop: 25, marginBottom: 25}}>
+                            style={{
+                                justifyContent: 'center',
+                                alignContent: "center",
+                                marginTop: 25,
+                                marginBottom: 25,
+                                height: '60%'
+                            }}>
                             {currentStep === 1 && <UserTypeForm/>}
                             {(currentStep === 2) && <OTPVerification/>}
                         </View>
@@ -435,6 +541,9 @@ const styles = StyleSheet.create({
         alignSelf: "center",
         position: "absolute",
         bottom: hp(8)
+    },
+    disabled: {
+        backgroundColor: 'rgba(196,192,192,0.2)'
     }
 });
 
