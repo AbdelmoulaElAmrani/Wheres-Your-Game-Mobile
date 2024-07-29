@@ -153,7 +153,7 @@ const EditProfile = () => {
             }
         } else if (userData?.role == UserType[UserType.ORGANIZATION]) {
             setCurrentStep(oldValue => Math.min(4, oldValue + 1));
-            if (currentStep >= 3) {
+            if (currentStep >= 4) {
                 try {
                     await _handleUpdateUser(selectedGender);
                     if (paramData?.data)
@@ -648,17 +648,23 @@ const EditProfile = () => {
                 bio: editUser.bio,
                 positionCoached: organizationName,
                 yearsOfExperience: yearsOfExperience,
-                isCertified: isCertified
+                isCertified: isCertified,
+                ageGroup: selectedAgeGroup,
+                skillLevel: selectedSportLevel
             }));
+
+
             if (userSport.length === 0) {
                 if (selectedSportLevel.length === 0) {
                     Alert.alert('Please Skill Level');
                     return;
                 }
 
-                const convertedSportLevel = convertStringToEnumValue(SportLevel, selectedSportLevel[0].value);
+                const convertedSportLevel = convertStringToEnumValue(SportLevel, selectedSportLevel[0]);
+
                 if (convertedSportLevel === null)
                     return;
+
                 setSelectedSports([...selectedSports,
                     {
                         sportId: selectedSport?.id,
@@ -667,15 +673,11 @@ const EditProfile = () => {
                         sportName: selectedSport?.name
                     }]);
             }
-            if (selectedSports.length === 0 && userSport.length === 0)
-                return;
+            //this condition is not working because we are seting the global state
+            // if (selectedSports.length === 0 && userSport.length === 0)
+            //     return;
 
-            console.log({...editUser,
-                bio: editUser.bio,
-                positionCoached: organizationName,
-                yearsOfExperience: yearsOfExperience,
-                isCertified: isCertified});
-
+        
             await _handleContinue();
         }
 
