@@ -153,7 +153,7 @@ const EditProfile = () => {
             }
         } else if (userData?.role == UserType[UserType.ORGANIZATION]) {
             setCurrentStep(oldValue => Math.min(4, oldValue + 1));
-            if (currentStep >= 4) {
+            if (currentStep >= 3) {
                 try {
                     await _handleUpdateUser(selectedGender);
                     if (paramData?.data)
@@ -637,7 +637,8 @@ const EditProfile = () => {
         const [sportLevel, setSportLevel] = useState<SportLevel>(SportLevel.Beginner);
         const [yearsOfExperience, setYearsOfExperience] = useState<number>(user.yearsOfExperience);
         const [isCertified, setIsCertified] = useState<boolean>(user.isCertified);
-
+        const [selectedPlayers, setSelectedPlayers] = useState<any[]>([]);
+        const [selectedSportLevel, setSelectedSportLevel] = useState<any[]>([]);
         const [editUser, setEditUser] = useState<UserResponse>({...user});
 
         const _handleOrganizationInfoEdit = async () => {
@@ -649,24 +650,31 @@ const EditProfile = () => {
                 isCertified: isCertified
             }));
             if (userSport.length === 0) {
-                if (sportLevel === 0) {
+                if (selectedSportLevel.length === 0) {
                     Alert.alert('Please Skill Level');
                     return;
                 }
 
-                const convertedSportLevel = convertStringToEnumValue(SportLevel, sportLevel);
+                const convertedSportLevel = convertStringToEnumValue(SportLevel, selectedSportLevel[0].value);
                 if (convertedSportLevel === null)
                     return;
                 setSelectedSports([...selectedSports,
                     {
-                        sportId: selectedSport.id,
+                        sportId: selectedSport?.id,
                         sportLevel: convertedSportLevel,
                         createAt: new Date(),
-                        sportName: selectedSport.name
+                        sportName: selectedSport?.name
                     }]);
             }
             if (selectedSports.length === 0 && userSport.length === 0)
                 return;
+
+            console.log({...editUser,
+                bio: editUser.bio,
+                positionCoached: organizationName,
+                yearsOfExperience: yearsOfExperience,
+                isCertified: isCertified});
+
             await _handleContinue();
         }
 
@@ -716,7 +724,7 @@ const EditProfile = () => {
                                     inputSearchStyle={styles.inputSearchStyle}
                                     containerStyle={styles.containerStyle}
                                     data={_AgeGroup}
-                                    placeholder="Select age group"
+                                    placeholder={selectedPlayers.length > 0 ? `Selected ${selectedPlayers.map((item) => item).join(', ')}` : 'Select Age Group'}
                                     value={selectedPlayers}
                                     labelField="label"
                                     valueField="value"
@@ -726,6 +734,7 @@ const EditProfile = () => {
                                     iconStyle={styles.iconStyle}
                                     selectedStyle={styles.selectedStyle}
                                     activeColor='#4564f5'
+                                    visibleSelectedItem={false}
                                 />
                                 <Text style={styles.textLabel}>Skill Level</Text>
                                 {/*TODO:: Multi selection*/}
@@ -736,16 +745,18 @@ const EditProfile = () => {
                                     inputSearchStyle={styles.inputSearchStyle}
                                     containerStyle={styles.containerStyle}
                                     data={_generateSportLevelItems()}
-                                    placeholder="Select Skill Level"
-                                    value={selectedPlayers}
+                                    placeholder= {selectedSportLevel.length > 0 ? `Selected ${selectedSportLevel.map((item) => item).join(', ')}` : 'Select Skill Level'}
+                                    value={selectedSportLevel}
                                     labelField="label"
                                     valueField="value"
                                     onChange={item => {
-                                        setSelectedPlayers(item);
+                                        setSelectedSportLevel(item);
                                     }}
                                     iconStyle={styles.iconStyle}
                                     selectedStyle={styles.selectedStyle}
                                     activeColor='#4564f5'
+                                    visibleSelectedItem={false}
+
                                 />
                                 <Text style={styles.textLabel}>Tell us about yourself</Text>
                                 <TextInput
@@ -761,7 +772,7 @@ const EditProfile = () => {
                                 />
 
                                 <View style={{marginTop: 30}}>
-                                    <CustomButton text="Continue" onPress={_handleCoachSportInfoEdit}/>
+                                    <CustomButton text="Continue" onPress={_handleOrganizationInfoEdit}/>
                                 </View>
                             </View>
                         </View>
@@ -1004,8 +1015,44 @@ const styles = StyleSheet.create({
     editPhotoIcon: {
         marginLeft: 10,
         marginTop: 20
-    }
+    },
+    placeholderStyle: {
+        color: 'grey',
+        fontSize: 16
+    },
+    selectedTextStyle: {
+        fontSize: 14,
+    },
+    inputSearchStyle: {
+        height: 40,
+        fontSize: 16,
+        color: 'grey',
+        borderRadius: 10
+    },
+    containerStyle: {
+        borderRadius: 15,
+        shadowColor: 'black',
+        shadowOffset: {width: 0, height: 2},
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5
+    },
+    iconStyle: {
+        width: 20,
+        height: 20
+    },
+    selectedStyle: {
+        borderRadius: 15,
+        backgroundColor: 'white',
+        borderColor: 'grey',
+        borderWidth: 0.3,
+        shadowColor: 'black',
+        shadowOffset: {width: 0, height: 1},
+        shadowOpacity: 0.25,
+        shadowRadius: 2.50,
+        elevation: 5
 
+    }
 })
 
 
