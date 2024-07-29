@@ -639,6 +639,7 @@ const EditProfile = () => {
         const [isCertified, setIsCertified] = useState<boolean>(user.isCertified);
         const [selectedPlayers, setSelectedPlayers] = useState<any[]>([]);
         const [selectedSportLevel, setSelectedSportLevel] = useState<any[]>([]);
+        const [selectedAgeGroup, setSelectedAgeGroup] = useState<string[]>([]);
         const [editUser, setEditUser] = useState<UserResponse>({...user});
 
         const _handleOrganizationInfoEdit = async () => {
@@ -724,13 +725,14 @@ const EditProfile = () => {
                                     inputSearchStyle={styles.inputSearchStyle}
                                     containerStyle={styles.containerStyle}
                                     data={_AgeGroup}
-                                    placeholder={selectedPlayers.length > 0 ? `Selected ${selectedPlayers.map((item) => item).join(', ')}` : 'Select Age Group'}
-                                    value={selectedPlayers}
+                                    placeholder={selectedAgeGroup.length > 0 ? `Selected ${selectedAgeGroup.map((item) => item).join(', ')}` : 'Select Age Group'}
+                                    value={selectedAgeGroup}
                                     labelField="label"
                                     valueField="value"
                                     onChange={item => {
-                                        setSelectedPlayers(item);
-                                    }}
+                                        setSelectedAgeGroup(item);
+                                    }
+                                    }
                                     iconStyle={styles.iconStyle}
                                     selectedStyle={styles.selectedStyle}
                                     activeColor='#4564f5'
