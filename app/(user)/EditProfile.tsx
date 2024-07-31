@@ -750,8 +750,9 @@ const EditProfile = () => {
         const [selectedTypeOfGame, setSelectedTypeOfGame] = useState<[]>([]);
         const [seasonDuration, setSeasonDuration] = useState<any>();
         const [location, setLocation] = useState<string>();
+
         const sportsList = sports
-            .filter(sport => !selectedSport.find(x => x.id === sport.id))
+            .filter(sport => !selectedSport.find((x: any) => x.id === sport.id))
             .map(sport => ({
                 label: sport.name,
                 value: sport.id,
@@ -785,7 +786,7 @@ const EditProfile = () => {
 
         const _handleSubmit = async (): Promise<void> => {
 
-            //TODO:: Call the back end on sport intresst
+            //TODO:: Call the back end on sport interest
 
         }
 
@@ -805,7 +806,6 @@ const EditProfile = () => {
                                     onValueChange={(value) => setSelectedSport(value)}
                                     value={selectedSport.value || null}
                                 />
-                                {/*Disable selected sports if found on user*/}
                                 <Text style={styles.textLabel}>Estimated Cost</Text>
                                 <TextInput
                                     style={styles.inputInfoStyle}
@@ -818,12 +818,13 @@ const EditProfile = () => {
                                     underlineColor={"transparent"}
                                 />
                                 <Text style={styles.textLabel}>Type of Game</Text>
+                                {/*TODO:: Change it to multi select*/}
                                 <RNPickerSelect
                                     style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
                                     items={_typeOfGame}
                                     placeholder={{label: 'Select sport', value: null}}
-                                    onValueChange={(value) => setSelectedTpeOfGame(value.value)}
-                                    value={selectedTpeOfGame || null}
+                                    onValueChange={(value) => setSelectedTypeOfGame(value.value)}
+                                    value={selectedTypeOfGame || null}
                                 />
                                 <Text style={styles.textLabel}>Season Duration</Text>
                                 <RNPickerSelect
@@ -838,8 +839,8 @@ const EditProfile = () => {
                                     style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
                                     items={_locationOfGame}
                                     placeholder={{label: 'Location(s) of Game', value: null}}
-                                    onValueChange={(value) => setSeasonDuration(value.value)}
-                                    value={seasonDuration || null}
+                                    onValueChange={(value) => setLocation(value.value)}
+                                    value={location || null}
                                 />
 
                                 <View style={{marginTop: 30}}>
