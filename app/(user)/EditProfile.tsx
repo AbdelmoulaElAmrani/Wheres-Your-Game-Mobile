@@ -746,30 +746,43 @@ const EditProfile = () => {
     const OrganizationSport = () => {
         const [estimatedCost, setEstimatedCost] = useState<number>();
         const [selectedSport, setSelectedSport] = useState<any>();
-        const [selectedSports, setSelectedSports] = useState<Sport[]>([]);
+        const [selectedSports, setSelectedSports] = useState<any>(userSport);
         const [selectedTypeOfGame, setSelectedTypeOfGame] = useState<[]>([]);
         const [seasonDuration, setSeasonDuration] = useState<any>();
         const [location, setLocation] = useState<string>();
+        const [sportsList, setSportsList] = useState<any>([]);
 
-        const sportsList = sports
-            .filter(sport => !selectedSport.find((x: any) => x.id === sport.id))
-            .map(sport => ({
-                label: sport.name,
-                value: sport.id,
-                key: sport.id
-            }));
+        useEffect(() => {
+            const filteredSportsList = sports
+                .filter(sport => !selectedSports.find((selected: any) => selected.id === sport.id))
+                .map(sport => ({
+                    label: sport.name,
+                    value: sport.id,
+                    key: sport.id
+                }));
+            setSportsList(filteredSportsList);
+        }, [selectedSports]);
+
 
         const [globalState, setGlobalState] = useState<UserInterestedSport[]>([]);
 
 
         const _handleAddAnotherSport = (): void => {
+
+            if (!selectedSport) {
+                Alert.alert('You must select a sport');
+                return;
+            }
+
+            setSelectedSports((value: any) => [...value, selectedSport]);
+
             const newEntry: UserInterestedSport = {
                 typeOfGame: selectedTypeOfGame,
                 seasonDuration: seasonDuration,
                 estimatedCost: estimatedCost,
                 sportName: selectedSport.name,
                 sportLevel: SportLevel.Advance,
-                createAt: new Date,
+                createAt: new Date(),
                 sportId: selectedSport.id,
                 locationOfGame: location,
                 score: 0,
@@ -777,16 +790,17 @@ const EditProfile = () => {
 
             setGlobalState(prevState => [...prevState, newEntry]);
 
-            setSelectedSport([]);
-            setSelectedSport(undefined);
+            setSelectedSport(null);
+            setSelectedTypeOfGame([]);
             setSeasonDuration(undefined);
-            setEstimatedCost(0);
+            setEstimatedCost(undefined);
             setLocation(undefined);
-        }
+        };
 
         const _handleSubmit = async (): Promise<void> => {
-
+            _handleAddAnotherSport();
             //TODO:: Call the back end on sport interest
+            console.log(global);
 
         }
 
