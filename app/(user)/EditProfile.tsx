@@ -16,7 +16,7 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {useDispatch, useSelector} from "react-redux";
 import {getUserProfile, getUserSports, updateUserProfile} from "@/redux/UserSlice";
 import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
-import {DatePickerModal, enGB, registerTranslation} from 'react-native-paper-dates';
+import {DatePickerModal, enGB, registerTranslation, tr} from 'react-native-paper-dates';
 import Sport from "@/models/Sport";
 import RNPickerSelect from 'react-native-picker-select';
 import {SportService} from "@/services/SportService";
@@ -28,6 +28,8 @@ import {manipulateAsync, SaveFormat} from "expo-image-manipulator";
 import {StorageService} from "@/services/StorageService";
 import {useRoute} from "@react-navigation/core";
 import UserType from "@/models/UserType";
+import { MultiSelect } from "react-native-element-dropdown";
+import _ from "lodash";
 
 
 const _AgeGroup = [
@@ -153,7 +155,6 @@ const EditProfile = () => {
     };
 
     const _handleContinue = async (selectedGender: GenderOrNull = null) => {
-
         if (userData?.role == UserType[UserType.COACH]) {
             setCurrentStep(oldValue => Math.min(3, oldValue + 1));
             if (currentStep >= 3) {
@@ -656,9 +657,7 @@ const EditProfile = () => {
         const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
         const [organizationName, setOrganizationName] = useState<string>(user.positionCoached);
         const [sportLevel, setSportLevel] = useState<SportLevel>(SportLevel.Beginner);
-        const [yearsOfExperience, setYearsOfExperience] = useState<number>(user.yearsOfExperience);
         const [isCertified, setIsCertified] = useState<boolean>(user.isCertified);
-        const [selectedPlayers, setSelectedPlayers] = useState<any[]>([]);
         const [selectedSportLevel, setSelectedSportLevel] = useState<any[]>([]);
         const [selectedAgeGroup, setSelectedAgeGroup] = useState<string[]>([]);
         const [editUser, setEditUser] = useState<UserResponse>({...user});
@@ -668,7 +667,6 @@ const EditProfile = () => {
                 ...editUser,
                 bio: editUser.bio,
                 positionCoached: organizationName,
-                yearsOfExperience: yearsOfExperience,
                 isCertified: isCertified,
                 ageGroup: selectedAgeGroup,
                 skillLevel: selectedSportLevel
@@ -697,7 +695,7 @@ const EditProfile = () => {
             //this condition is not working because we are seting the global state
             // if (selectedSports.length === 0 && userSport.length === 0)
             //     return;
-
+            
         
             await _handleContinue();
         }
@@ -740,9 +738,62 @@ const EditProfile = () => {
                                     value={`${userData?.firstName} ${userData?.lastName}`}
                                 />
                                 <Text style={styles.textLabel}>Age group</Text>
+                                {/*TODO:: Multi selection*/}
+                                <MultiSelect
+                                    style={styles.inputStyle}
+                                    placeholderStyle={styles.placeholderStyle}
+                                    selectedTextStyle={styles.selectedTextStyle}
+                                    inputSearchStyle={styles.inputSearchStyle}
+                                    containerStyle={styles.containerStyle}
+                                    data={_AgeGroup}
+                                    placeholder={selectedAgeGroup.length > 0 ? `Selected ${selectedAgeGroup.map((item) => item).join(', ')}` : 'Select Age Group'}
+                                    value={selectedAgeGroup}
+                                    labelField="label"
+                                    valueField="value"
+                                    onChange={item => {
+                                        setSelectedAgeGroup(item);
+                                    }
+                                    }
+                                    iconStyle={styles.iconStyle}
+                                    selectedStyle={styles.selectedStyle}
+                                    activeColor='#4564f5'
+                                    visibleSelectedItem={false}
+                                />
+                                <Text style={styles.textLabel}>Skill Level</Text>
+                                {/*TODO:: Multi selection*/}
+                                <MultiSelect
+                                    style={styles.inputStyle}
+                                    placeholderStyle={styles.placeholderStyle}
+                                    selectedTextStyle={styles.selectedTextStyle}
+                                    inputSearchStyle={styles.inputSearchStyle}
+                                    containerStyle={styles.containerStyle}
+                                    data={_generateSportLevelItems()}
+                                    placeholder= {selectedSportLevel.length > 0 ? `Selected ${selectedSportLevel.map((item) => item).join(', ')}` : 'Select Skill Level'}
+                                    value={selectedSportLevel}
+                                    labelField="label"
+                                    valueField="value"
+                                    onChange={item => {
+                                        setSelectedSportLevel(item);
+                                    }}
+                                    iconStyle={styles.iconStyle}
+                                    selectedStyle={styles.selectedStyle}
+                                    activeColor='#4564f5'
+                                    visibleSelectedItem={false}
+                                />
+                                <Text style={styles.textLabel}>Tell us about yourself</Text>
+                                <TextInput
+                                    style={styles.inputInfoStyle}
+                                    placeholder={'Tell us about yourself'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    value={editUser.bio}
+                                    onChangeText={(text) => setEditUser({...editUser, bio: text})}
+                                    underlineColor={"transparent"}
+                                    multiline={true}
+                                    numberOfLines={4}
+                                />
                                 <View style={{marginTop: 30}}>
-                                    <CustomButton text="Continue" onPress={() => {
-                                    }}/>
+                                    <CustomButton text="Continue" onPress={_handleOrganizationInfoEdit}/>
                                 </View>
                             </View>
                         </View>
@@ -753,10 +804,10 @@ const EditProfile = () => {
     }
 
     const OrganizationSport = () => {
-        const [estimatedCost, setEstimatedCost] = useState<number>();
+        const [estimatedCost, setEstimatedCost] = useState<number>(0);
         const [selectedSport, setSelectedSport] = useState<any>();
         const [selectedSports, setSelectedSports] = useState<any>(userSport);
-        const [selectedTypeOfGame, setSelectedTypeOfGame] = useState<[]>([]);
+        const [selectedTypeOfGame, setSelectedTypeOfGame] = useState<Array<string>>([]);
         const [seasonDuration, setSeasonDuration] = useState<any>();
         const [location, setLocation] = useState<string>();
         const [sportsList, setSportsList] = useState<any>([]);
@@ -799,17 +850,34 @@ const EditProfile = () => {
 
             setGlobalState(prevState => [...prevState, newEntry]);
 
+
             setSelectedSport(null);
             setSelectedTypeOfGame([]);
             setSeasonDuration(undefined);
-            setEstimatedCost(undefined);
+            setEstimatedCost(0);
             setLocation(undefined);
         };
 
         const _handleSubmit = async (): Promise<void> => {
             _handleAddAnotherSport();
             //TODO:: Call the back end on sport interest
-            console.log(global);
+            console.log(globalState);
+
+            if (globalState.length > 0) {
+                try {
+                const response = await SportService.registerUserToSport(globalState, userData.id);
+                // console.log(response);
+                }
+                catch (e) {
+                    console.log(e);
+                }
+
+                _handleContinue();
+            }
+            
+
+    
+
 
         }
 
@@ -826,12 +894,14 @@ const EditProfile = () => {
                                     style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
                                     items={sportsList}
                                     placeholder={{label: 'Select sport', value: null}}
-                                    onValueChange={(value) => setSelectedSport(value)}
-                                    value={selectedSport.value || null}
+                                    onValueChange={(value) => 
+                                        setSelectedSport(sports.find(sport => sport.id === value) || null)
+                                    }
+                                    value={selectedSport?.value}
                                 />
                                 <Text style={styles.textLabel}>Estimated Cost</Text>
                                 <TextInput
-                                    style={styles.inputInfoStyle}
+                                    style={[styles.inputInfoStyle, {height: 40, borderTopLeftRadius: 20, borderTopRightRadius: 20 , borderBottomRightRadius: 20, borderBottomLeftRadius: 20}]}
                                     placeholder={'Estimated Cost'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
@@ -840,21 +910,30 @@ const EditProfile = () => {
                                     onChangeText={(value) => setEstimatedCost(Number(value))}
                                     underlineColor={"transparent"}
                                 />
-                                <Text style={styles.textLabel}>Type of Game</Text>
-                                {/*TODO:: Change it to multi select*/}
-                                <RNPickerSelect
-                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
-                                    items={_typeOfGame}
-                                    placeholder={{label: 'Select sport', value: null}}
-                                    onValueChange={(value) => setSelectedTypeOfGame(value.value)}
-                                    value={selectedTypeOfGame || null}
+                                <Text style={styles.textLabel}>Type of Game</Text>                                
+                                <MultiSelect 
+                                    style={styles.inputStyle}
+                                    placeholderStyle={styles.placeholderStyle}
+                                    selectedTextStyle={styles.selectedTextStyle}
+                                    inputSearchStyle={styles.inputSearchStyle }
+                                    containerStyle={styles.containerStyle}
+                                    data={_typeOfGame}
+                                    placeholder={selectedTypeOfGame.length > 0 ? `Selected ${selectedTypeOfGame.map((item) => item).join(', ')}` : 'Select Type of Game'}
+                                    value={selectedTypeOfGame}
+                                    labelField="label"
+                                    valueField="value"
+                                    onChange={item => { setSelectedTypeOfGame(item); }}
+                                    iconStyle={styles.iconStyle}
+                                    selectedStyle={styles.selectedStyle}
+                                    activeColor='#4564f5'
+                                    visibleSelectedItem={false}
                                 />
                                 <Text style={styles.textLabel}>Season Duration</Text>
                                 <RNPickerSelect
                                     style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
                                     items={_seasonDuration}
                                     placeholder={{label: 'Season Duration', value: null}}
-                                    onValueChange={(value) => setSeasonDuration(value.value)}
+                                    onValueChange={(value) => setSeasonDuration(value)}
                                     value={seasonDuration || null}
                                 />
                                 <Text style={styles.textLabel}>Location(s) of Game</Text>
@@ -862,13 +941,13 @@ const EditProfile = () => {
                                     style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
                                     items={_locationOfGame}
                                     placeholder={{label: 'Location(s) of Game', value: null}}
-                                    onValueChange={(value) => setLocation(value.value)}
+                                    onValueChange={(value) => setLocation(value)}
                                     value={location || null}
                                 />
 
-                                <View style={{marginTop: 30}}>
+                                <View style={{marginTop: 20}}>
                                     <CustomButton text="Add another sport" onPress={_handleAddAnotherSport}/>
-                                    <CustomButton text="Finish" onPress={_handleSubmit}/>
+                                    <CustomButton text="Finish" onPress={_handleSubmit} style={{marginTop: 10}}/>
                                 </View>
                             </View>
                         </View>
@@ -948,6 +1027,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         paddingLeft: 15
     },
+  
     mgTop: {
         marginTop: 5
     },
@@ -1148,7 +1228,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 2.50,
         elevation: 5
-
     }
 })
 
