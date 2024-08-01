@@ -658,7 +658,9 @@ const EditProfile = () => {
         const [sportLevel, setSportLevel] = useState<SportLevel>(SportLevel.Beginner);
         const [yearsOfExperience, setYearsOfExperience] = useState<number>(user.yearsOfExperience);
         const [isCertified, setIsCertified] = useState<boolean>(user.isCertified);
-
+        const [selectedPlayers, setSelectedPlayers] = useState<any[]>([]);
+        const [selectedSportLevel, setSelectedSportLevel] = useState<any[]>([]);
+        const [selectedAgeGroup, setSelectedAgeGroup] = useState<string[]>([]);
         const [editUser, setEditUser] = useState<UserResponse>({...user});
 
         const _handleOrganizationInfoEdit = async () => {
@@ -667,27 +669,36 @@ const EditProfile = () => {
                 bio: editUser.bio,
                 positionCoached: organizationName,
                 yearsOfExperience: yearsOfExperience,
-                isCertified: isCertified
+                isCertified: isCertified,
+                ageGroup: selectedAgeGroup,
+                skillLevel: selectedSportLevel
             }));
+
+
             if (userSport.length === 0) {
-                if (sportLevel === 0) {
+                if (selectedSportLevel.length === 0) {
                     Alert.alert('Please Skill Level');
                     return;
                 }
 
-                const convertedSportLevel = convertStringToEnumValue(SportLevel, sportLevel);
+                const convertedSportLevel = convertStringToEnumValue(SportLevel, selectedSportLevel[0]);
+
                 if (convertedSportLevel === null)
                     return;
+
                 setSelectedSports([...selectedSports,
                     {
-                        sportId: selectedSport.id,
+                        sportId: selectedSport?.id,
                         sportLevel: convertedSportLevel,
                         createAt: new Date(),
-                        sportName: selectedSport.name
+                        sportName: selectedSport?.name
                     }]);
             }
-            if (selectedSports.length === 0 && userSport.length === 0)
-                return;
+            //this condition is not working because we are seting the global state
+            // if (selectedSports.length === 0 && userSport.length === 0)
+            //     return;
+
+        
             await _handleContinue();
         }
 
@@ -729,8 +740,6 @@ const EditProfile = () => {
                                     value={`${userData?.firstName} ${userData?.lastName}`}
                                 />
                                 <Text style={styles.textLabel}>Age group</Text>
-
-
                                 <View style={{marginTop: 30}}>
                                     <CustomButton text="Continue" onPress={() => {
                                     }}/>
@@ -1103,8 +1112,44 @@ const styles = StyleSheet.create({
     editPhotoIcon: {
         marginLeft: 10,
         marginTop: 20
-    }
+    },
+    placeholderStyle: {
+        color: 'grey',
+        fontSize: 16
+    },
+    selectedTextStyle: {
+        fontSize: 14,
+    },
+    inputSearchStyle: {
+        height: 40,
+        fontSize: 16,
+        color: 'grey',
+        borderRadius: 10
+    },
+    containerStyle: {
+        borderRadius: 15,
+        shadowColor: 'black',
+        shadowOffset: {width: 0, height: 2},
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5
+    },
+    iconStyle: {
+        width: 20,
+        height: 20
+    },
+    selectedStyle: {
+        borderRadius: 15,
+        backgroundColor: 'white',
+        borderColor: 'grey',
+        borderWidth: 0.3,
+        shadowColor: 'black',
+        shadowOffset: {width: 0, height: 1},
+        shadowOpacity: 0.25,
+        shadowRadius: 2.50,
+        elevation: 5
 
+    }
 })
 
 
