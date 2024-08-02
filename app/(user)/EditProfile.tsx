@@ -173,7 +173,7 @@ const EditProfile = () => {
             }
         } else if (userData?.role == UserType[UserType.ORGANIZATION]) {
             setCurrentStep(oldValue => Math.min(4, oldValue + 1));
-            if (currentStep >= 4) {
+            if (currentStep >= 3) {
                 try {
                     await _handleUpdateUser(selectedGender);
                     if (paramData?.data)
