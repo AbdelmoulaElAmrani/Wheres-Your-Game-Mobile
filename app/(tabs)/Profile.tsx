@@ -11,6 +11,7 @@ import {getUserProfile, logout} from "@/redux/UserSlice";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {ActivityIndicator, MD2Colors} from 'react-native-paper';
 import Gender from "@/models/Gender";
+import UserType from "@/models/UserType";
 
 const Profile = () => {
     const dispatch = useDispatch()
@@ -75,9 +76,11 @@ const Profile = () => {
                                 </View>
                                 <Text
                                     style={styles.userInfo}>Age: {new Date().getFullYear() - new Date(userData.dateOfBirth).getFullYear()}</Text>
-                                <Text style={styles.userInfo}>
-                                    Gender: {userData.gender === Gender.MALE ? "Male" : "Female"}
-                                </Text>
+                                {userData.role != UserType[UserType.ORGANIZATION] && (
+                                    <Text style={styles.userInfo}>
+                                        Gender: {userData.gender === Gender.MALE ? "Male" : "Female"}
+                                    </Text>
+                                )}
                             </View>
                         </>
                     )

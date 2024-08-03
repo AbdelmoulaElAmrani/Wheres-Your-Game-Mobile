@@ -30,6 +30,7 @@ import {useRoute} from "@react-navigation/core";
 import UserType from "@/models/UserType";
 import { MultiSelect } from "react-native-element-dropdown";
 import _ from "lodash";
+import { UserService } from "@/services/UserService";
 
 
 const _AgeGroup = [
@@ -205,14 +206,14 @@ const EditProfile = () => {
                 updatedUser = {...updatedUser, gender: selectedGender};
             }
             const userRequest = updatedUser as UserRequest;
-            dispatch(updateUserProfile(userRequest) as any);
+            //dispatch(updateUserProfile(userRequest) as any);
+            await UserService.updateUser(userRequest)
         } catch (error) {
             console.error('Failed to update user:', error);
         }
     };
 
     const _handleContinue = async (selectedGender: GenderOrNull = null) => {
-        
         if (userData?.role == UserType[UserType.COACH]) {
             setCurrentStep(oldValue => Math.min(3, oldValue + 1));
             if (currentStep >= 3) {
@@ -231,11 +232,15 @@ const EditProfile = () => {
             }
         } else if (userData?.role == UserType[UserType.ORGANIZATION]) {
             setCurrentStep(oldValue => Math.min(4, oldValue + 1));
-            if (currentStep > 3) {
+            if (currentStep >= 2) {
                 try {
-                    await _handleUpdateUser(selectedGender);
+
+                    
                     if (paramData?.data)
                         router.setParams({previousScreenName: 'profile'})
+
+                    
+
                 } catch (e) {
                     console.log(e);
                 }
@@ -708,11 +713,11 @@ const EditProfile = () => {
     const OrganizationInfoEdit = () => {
 
         const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
-        const [organizationName, setOrganizationName] = useState<string>(user.positionCoached);
+        const [organizationName, setOrganizationName] = useState<string>(user.organizationName || '');
         const [sportLevel, setSportLevel] = useState<SportLevel>(SportLevel.Beginner);
         const [isCertified, setIsCertified] = useState<boolean>(user.isCertified);
-        const [selectedSportLevel, setSelectedSportLevel] = useState<any[]>([]);
-        const [selectedAgeGroup, setSelectedAgeGroup] = useState<string[]>([]);
+        const [selectedSportLevel, setSelectedSportLevel] = useState<any[]>(user.skillLevel || []);
+        const [selectedAgeGroup, setSelectedAgeGroup] = useState<string[]>(user.ageGroup || []);
         const [editUser, setEditUser] = useState<UserResponse>({...user});
 
         const _handleOrganizationInfoEdit = async () => {
@@ -752,7 +757,7 @@ const EditProfile = () => {
             // if (selectedSports.length === 0 && userSport.length === 0)
             //     return;
             
-        
+            
             await _handleContinue();
         }
 
@@ -928,7 +933,10 @@ const EditProfile = () => {
                 locationOfGame: location,
                 score: 0,
             };
-            setGlobalState((value: UserInterestedSport[]) => [...value, newEntry]);
+            setGlobalState((value: UserInterestedSport[]) => {
+                const updatedState = [...value, newEntry];
+                return updatedState;
+            });
             setSelectedSport(undefined);
             setSelectedTypeOfGame([]);
             setSeasonDuration(undefined);
@@ -942,17 +950,28 @@ const EditProfile = () => {
             if (!res) {
                 return;
             }
-            const prev = [...globalState, res];
-            if (prev.length > 0) {
-                try {
-                const response = await SportService.registerUserToSport(globalState, userData.id);
+        
+            try {
+                const updatedGlobalState = await new Promise<UserInterestedSport[]>((resolve) =>
+                    setGlobalState((prevState: UserInterestedSport[]) => {
+                        const newState = [...prevState];
+                        resolve(newState);
+                        return newState;
+                    })
+                );
+        
+                if (updatedGlobalState.length > 0) {
+                    await SportService.registerUserToSport(updatedGlobalState, userData.id);
+                    await _handleUpdateUser();
+                }
+
                 router.navigate('/(tabs)');
-                }
-                catch (e) {
-                    console.log(e);
-                }
+                
+
+            } catch (e) {
+                console.log(e);
             }
-        }
+        };
 
         return (
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
