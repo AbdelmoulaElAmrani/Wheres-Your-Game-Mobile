@@ -1,4 +1,5 @@
 import Gender from "../Gender";
+import SportLevel from "../SportLevel";
 
 export interface UserResponse {
     id: string;
@@ -20,7 +21,7 @@ export interface UserResponse {
     positionCoached: string;
     organizationName?: string;
     ageGroup?: string[];
-    skillLevel?: string[];
+    skillLevel?: SportLevel[];
     country?: string;
     stateRegion?: string;
     city?: string;

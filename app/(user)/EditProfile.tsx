@@ -80,6 +80,63 @@ const _locationOfGame = [
     {key: 'Not available', label: 'Not available', value: 'Not available'},
 ]
 
+const _countries = [
+    {label: 'United States', value: 'United States', key: 'US'},
+    {label: 'China', value: 'China', key: 'CN'},
+    {label: 'India', value: 'India', key: 'IN'},
+    {label: 'Japan', value: 'Japan', key: 'JP'},
+    {label: 'Germany', value: 'Germany', key: 'DE'},
+    {label: 'United Kingdom', value: 'United Kingdom', key: 'GB'},
+    {label: 'France', value: 'France', key: 'FR'},
+    {label: 'Italy', value: 'Italy', key: 'IT'},
+    {label: 'Brazil', value: 'Brazil', key: 'BR'},
+    {label: 'Canada', value: 'Canada', key: 'CA'},
+    {label: 'Russia', value: 'Russia', key: 'RU'},
+    {label: 'South Korea', value: 'South Korea', key: 'KR'},
+    {label: 'Australia', value: 'Australia', key: 'AU'},
+    {label: 'Spain', value: 'Spain', key: 'ES'},
+    {label: 'Mexico', value: 'Mexico', key: 'MX'},
+    {label: 'Indonesia', value: 'Indonesia', key: 'ID'},
+    {label: 'Netherlands', value: 'Netherlands', key: 'NL'},
+    {label: 'Saudi Arabia', value: 'Saudi Arabia', key: 'SA'},
+    {label: 'Turkey', value: 'Turkey', key: 'TR'},
+    {label: 'Switzerland', value: 'Switzerland', key: 'CH'},
+    {label: 'Argentina', value: 'Argentina', key: 'AR'},
+    {label: 'Sweden', value: 'Sweden', key: 'SE'},
+    {label: 'Poland', value: 'Poland', key: 'PL'},
+    {label: 'Belgium', value: 'Belgium', key: 'BE'},
+    {label: 'Thailand', value: 'Thailand', key: 'TH'},
+    {label: 'Nigeria', value: 'Nigeria', key: 'NG'},
+    {label: 'Austria', value: 'Austria', key: 'AT'},
+    {label: 'Iran', value: 'Iran', key: 'IR'},
+    {label: 'Norway', value: 'Norway', key: 'NO'},
+    {label: 'United Arab Emirates', value: 'United Arab Emirates', key: 'AE'},
+    {label: 'South Africa', value: 'South Africa', key: 'ZA'},
+    {label: 'Israel', value: 'Israel', key: 'IL'},
+    {label: 'Denmark', value: 'Denmark', key: 'DK'},
+    {label: 'Singapore', value: 'Singapore', key: 'SG'},
+    {label: 'Malaysia', value: 'Malaysia', key: 'MY'},
+    {label: 'Morocco', value: 'Morocco', key: 'MA'},
+    {label: 'Philippines', value: 'Philippines', key: 'PH'},
+    {label: 'Colombia', value: 'Colombia', key: 'CO'},
+    {label: 'Pakistan', value: 'Pakistan', key: 'PK'},
+    {label: 'Ireland', value: 'Ireland', key: 'IE'},
+    {label: 'Chile', value: 'Chile', key: 'CL'},
+    {label: 'Finland', value: 'Finland', key: 'FI'},
+    {label: 'Egypt', value: 'Egypt', key: 'EG'},
+    {label: 'Portugal', value: 'Portugal', key: 'PT'},
+    {label: 'Vietnam', value: 'Vietnam', key: 'VN'},
+    {label: 'Czech Republic', value: 'Czech Republic', key: 'CZ'},
+    {label: 'Romania', value: 'Romania', key: 'RO'},
+    {label: 'Bangladesh', value: 'Bangladesh', key: 'BD'},
+    {label: 'New Zealand', value: 'New Zealand', key: 'NZ'},
+    {label: 'Hungary', value: 'Hungary', key: 'HU'},
+    {label: 'Other', value: 'Other', key: 'OTHER'}
+];
+
+
+
+
 const EditProfile = () => {
 
     const dispatch = useDispatch();
@@ -155,6 +212,7 @@ const EditProfile = () => {
     };
 
     const _handleContinue = async (selectedGender: GenderOrNull = null) => {
+        
         if (userData?.role == UserType[UserType.COACH]) {
             setCurrentStep(oldValue => Math.min(3, oldValue + 1));
             if (currentStep >= 3) {
@@ -173,16 +231,11 @@ const EditProfile = () => {
             }
         } else if (userData?.role == UserType[UserType.ORGANIZATION]) {
             setCurrentStep(oldValue => Math.min(4, oldValue + 1));
-            if (currentStep >= 3) {
+            if (currentStep > 3) {
                 try {
                     await _handleUpdateUser(selectedGender);
                     if (paramData?.data)
                         router.setParams({previousScreenName: 'profile'})
-
-                    if (selectedSports.length > 0 && userSport.length === 0) {
-                        const response = await SportService.registerUserToSport(selectedSports, userData.id);
-                    }
-                    router.navigate('/(tabs)');
                 } catch (e) {
                     console.log(e);
                 }
@@ -666,10 +719,13 @@ const EditProfile = () => {
             setUser(({
                 ...editUser,
                 bio: editUser.bio,
-                positionCoached: organizationName,
+                organizationName : organizationName,
                 isCertified: isCertified,
                 ageGroup: selectedAgeGroup,
-                skillLevel: selectedSportLevel
+                skillLevel: selectedSportLevel,
+                country: editUser.country,
+                stateRegion: editUser.stateRegion,
+                city: editUser.city
             }));
 
 
@@ -792,6 +848,34 @@ const EditProfile = () => {
                                     multiline={true}
                                     numberOfLines={4}
                                 />
+                                <Text style={styles.textLabel}>Country</Text>
+                                <RNPickerSelect
+                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
+                                    items={_countries}
+                                    placeholder={{label: 'Select country', value: null}}
+                                    onValueChange={(value) => setEditUser({...editUser, country: value})}
+                                    value={editUser?.country || null}
+                                />
+                                <Text style={styles.textLabel}>State/Region</Text>
+                                <TextInput
+                                    style={[styles.inputStyle, {paddingLeft: 0}]}
+                                    placeholder={'State/Region'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    underlineColor={"transparent"}
+                                    value={editUser.stateRegion}
+                                    onChangeText={(text) => setEditUser({...editUser, stateRegion: text})}
+                                />
+                                <Text style={styles.textLabel}>City</Text>
+                                <TextInput
+                                    style={[styles.inputStyle, {paddingLeft: 0}]}
+                                    placeholder={'City'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    underlineColor={"transparent"}
+                                    value={editUser.city}
+                                    onChangeText={(text) => setEditUser({...editUser, city: text})}
+                                />
                                 <View style={{marginTop: 30}}>
                                     <CustomButton text="Continue" onPress={_handleOrganizationInfoEdit}/>
                                 </View>
@@ -827,15 +911,12 @@ const EditProfile = () => {
         const [globalState, setGlobalState] = useState<UserInterestedSport[]>([]);
 
 
-        const _handleAddAnotherSport = (): void => {
-
+        const _handleAddAnotherSport = (): UserInterestedSport | null => {
             if (!selectedSport) {
                 Alert.alert('You must select a sport');
-                return;
+                return null;
             }
-
-            setSelectedSports((value: any) => [...value, selectedSport]);
-
+            setSelectedSports([...selectedSports, selectedSport]);
             const newEntry: UserInterestedSport = {
                 typeOfGame: selectedTypeOfGame,
                 seasonDuration: seasonDuration,
@@ -847,38 +928,30 @@ const EditProfile = () => {
                 locationOfGame: location,
                 score: 0,
             };
-
-            setGlobalState(prevState => [...prevState, newEntry]);
-
-
-            setSelectedSport(null);
+            setGlobalState((value: UserInterestedSport[]) => [...value, newEntry]);
+            setSelectedSport(undefined);
             setSelectedTypeOfGame([]);
             setSeasonDuration(undefined);
             setEstimatedCost(0);
             setLocation(undefined);
+            return newEntry;
         };
 
         const _handleSubmit = async (): Promise<void> => {
-            _handleAddAnotherSport();
-            //TODO:: Call the back end on sport interest
-            console.log(globalState);
-
-            if (globalState.length > 0) {
+            const res = _handleAddAnotherSport();
+            if (!res) {
+                return;
+            }
+            const prev = [...globalState, res];
+            if (prev.length > 0) {
                 try {
                 const response = await SportService.registerUserToSport(globalState, userData.id);
-                // console.log(response);
+                router.navigate('/(tabs)');
                 }
                 catch (e) {
                     console.log(e);
                 }
-
-                _handleContinue();
             }
-            
-
-    
-
-
         }
 
         return (
