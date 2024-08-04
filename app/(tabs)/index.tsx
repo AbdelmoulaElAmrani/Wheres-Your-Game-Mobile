@@ -72,7 +72,7 @@ const Home = () => {
         const intervalId = setInterval(checkForNotification, REFRESH_NOTIFICATION_TIME);
 
         return () => clearInterval(intervalId);
-    }, [userData]);
+    }, []); // no dependencies to avoid the crash
 
     const checkForNotification = async () => {
         try {

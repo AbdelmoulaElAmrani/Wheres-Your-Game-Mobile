@@ -206,8 +206,8 @@ const EditProfile = () => {
                 updatedUser = {...updatedUser, gender: selectedGender};
             }
             const userRequest = updatedUser as UserRequest;
-            //dispatch(updateUserProfile(userRequest) as any);
-            await UserService.updateUser(userRequest)
+            dispatch(updateUserProfile(userRequest) as any);// this will update the global state on redux store
+            //await UserService.updateUser(userRequest) if the app crashes on the update user use this but you lose the global state update on redux store
         } catch (error) {
             console.error('Failed to update user:', error);
         }
@@ -916,9 +916,12 @@ const EditProfile = () => {
         const [globalState, setGlobalState] = useState<UserInterestedSport[]>([]);
 
 
-        const _handleAddAnotherSport = (): UserInterestedSport | null => {
-            if (!selectedSport) {
-                Alert.alert('You must select a sport');
+        const _handleAddAnotherSport = (): UserInterestedSport | null | undefined => {
+            if (!selectedSport && userSport.length === 0) {
+                Alert.alert('No sport selected', 'Please select a sport', [{text: 'OK'}], {cancelable: false});
+                return null;
+            }
+            else if (userSport.length > 0 && !selectedSport) {
                 return null;
             }
             setSelectedSports([...selectedSports, selectedSport]);
@@ -929,7 +932,7 @@ const EditProfile = () => {
                 sportName: selectedSport.name,
                 sportLevel: SportLevel.Advance,
                 createAt: new Date(),
-                sportId: selectedSport.id,
+                sportId: selectedSport?.id,
                 locationOfGame: location,
                 score: 0,
             };
@@ -948,7 +951,8 @@ const EditProfile = () => {
         const _handleSubmit = async (): Promise<void> => {
             const res = _handleAddAnotherSport();
             if (!res) {
-                return;
+                _handleUpdateUser();
+                router.navigate('/(tabs)');
             }
         
             try {
@@ -962,9 +966,9 @@ const EditProfile = () => {
         
                 if (updatedGlobalState.length > 0) {
                     await SportService.registerUserToSport(updatedGlobalState, userData.id);
-                    await _handleUpdateUser();
+                    
                 }
-
+                await _handleUpdateUser();
                 router.navigate('/(tabs)');
                 
 
