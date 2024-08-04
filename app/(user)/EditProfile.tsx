@@ -1,14 +1,7 @@
 import CustomButton from "@/components/CustomButton";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React, {useCallback, useEffect, useMemo, useState} from "react";
-import {
-    Alert,
-    Keyboard,
-    StyleSheet,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View
-} from "react-native"
+import {Alert, Keyboard, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, View} from "react-native"
 import {ImageBackground} from "expo-image";
 import {Avatar, Text, TextInput} from "react-native-paper";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
@@ -23,7 +16,7 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {useDispatch, useSelector} from "react-redux";
 import {getUserProfile, getUserSports, updateUserProfile} from "@/redux/UserSlice";
 import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
-import {DatePickerModal, enGB, registerTranslation} from 'react-native-paper-dates';
+import {DatePickerModal, enGB, registerTranslation, tr} from 'react-native-paper-dates';
 import Sport from "@/models/Sport";
 import RNPickerSelect from 'react-native-picker-select';
 import {SportService} from "@/services/SportService";
@@ -34,6 +27,115 @@ import {UserRequest} from "@/models/requestObjects/UserRequest";
 import {manipulateAsync, SaveFormat} from "expo-image-manipulator";
 import {StorageService} from "@/services/StorageService";
 import {useRoute} from "@react-navigation/core";
+import UserType from "@/models/UserType";
+import { MultiSelect } from "react-native-element-dropdown";
+import _ from "lodash";
+import { UserService } from "@/services/UserService";
+
+
+const _AgeGroup = [
+    {label: '1', value: '1'},
+    {label: '2', value: '2'},
+    {label: '3', value: '3'},
+    {label: '4', value: '4'},
+    {label: '5', value: '5'},
+    {label: '6', value: '6'},
+    {label: '7', value: '7'},
+    {label: '8', value: '8'},
+    {label: '9', value: '9'},
+    {label: '10', value: '10'},
+    {label: '11', value: '11'},
+    {label: '12', value: '12'},
+    {label: '13', value: '13'},
+    {label: '14', value: '14'},
+    {label: '15', value: '15'},
+    {label: '16', value: '16'},
+    {label: '17', value: '17'},
+    {label: '18+', value: '18+'}
+];
+
+const _typeOfGame = [
+    {key: 'League', label: 'League', value: 'League'},
+    {key: 'Tournament', label: 'Tournament', value: 'Tournament'},
+    {key: 'Pick up Game', label: 'Pick up Game', value: 'Pick up Game'},
+    {key: 'Ref', label: 'Ref', value: 'Ref'},
+    {key: 'Umpire', label: 'Umpire', value: 'Umpire'},
+    {key: 'Official', label: 'Official', value: 'Official'},
+    {key: 'Competition', label: 'Competition', value: 'Competition'},
+    {key: 'Meet', label: 'Meet', value: 'Meet'},
+    {key: 'Match', label: 'Match', value: 'Match'},
+]
+
+const _seasonDuration = [
+    {key: 'Weekly', label: 'Weekly', value: 'Weekly'},
+    {key: 'Monthly', label: 'Monthly', value: 'Monthly'},
+    {key: 'Quarterly', label: 'Quarterly', value: 'Quarterly'},
+    {key: 'Bi-annually', label: 'Bi-annually', value: 'Bi-annually'},
+    {key: 'Annually', label: 'Annually', value: 'Annually'},
+]
+
+const _locationOfGame = [
+    {key: 'Local', label: 'Local', value: 'Local'},
+    {key: 'Regional', label: 'Regional', value: 'Regional'},
+    {key: 'National', label: 'National', value: 'National'},
+    {key: 'Not available', label: 'Not available', value: 'Not available'},
+]
+
+const _countries = [
+    {label: 'United States', value: 'United States', key: 'US'},
+    {label: 'China', value: 'China', key: 'CN'},
+    {label: 'India', value: 'India', key: 'IN'},
+    {label: 'Japan', value: 'Japan', key: 'JP'},
+    {label: 'Germany', value: 'Germany', key: 'DE'},
+    {label: 'United Kingdom', value: 'United Kingdom', key: 'GB'},
+    {label: 'France', value: 'France', key: 'FR'},
+    {label: 'Italy', value: 'Italy', key: 'IT'},
+    {label: 'Brazil', value: 'Brazil', key: 'BR'},
+    {label: 'Canada', value: 'Canada', key: 'CA'},
+    {label: 'Russia', value: 'Russia', key: 'RU'},
+    {label: 'South Korea', value: 'South Korea', key: 'KR'},
+    {label: 'Australia', value: 'Australia', key: 'AU'},
+    {label: 'Spain', value: 'Spain', key: 'ES'},
+    {label: 'Mexico', value: 'Mexico', key: 'MX'},
+    {label: 'Indonesia', value: 'Indonesia', key: 'ID'},
+    {label: 'Netherlands', value: 'Netherlands', key: 'NL'},
+    {label: 'Saudi Arabia', value: 'Saudi Arabia', key: 'SA'},
+    {label: 'Turkey', value: 'Turkey', key: 'TR'},
+    {label: 'Switzerland', value: 'Switzerland', key: 'CH'},
+    {label: 'Argentina', value: 'Argentina', key: 'AR'},
+    {label: 'Sweden', value: 'Sweden', key: 'SE'},
+    {label: 'Poland', value: 'Poland', key: 'PL'},
+    {label: 'Belgium', value: 'Belgium', key: 'BE'},
+    {label: 'Thailand', value: 'Thailand', key: 'TH'},
+    {label: 'Nigeria', value: 'Nigeria', key: 'NG'},
+    {label: 'Austria', value: 'Austria', key: 'AT'},
+    {label: 'Iran', value: 'Iran', key: 'IR'},
+    {label: 'Norway', value: 'Norway', key: 'NO'},
+    {label: 'United Arab Emirates', value: 'United Arab Emirates', key: 'AE'},
+    {label: 'South Africa', value: 'South Africa', key: 'ZA'},
+    {label: 'Israel', value: 'Israel', key: 'IL'},
+    {label: 'Denmark', value: 'Denmark', key: 'DK'},
+    {label: 'Singapore', value: 'Singapore', key: 'SG'},
+    {label: 'Malaysia', value: 'Malaysia', key: 'MY'},
+    {label: 'Morocco', value: 'Morocco', key: 'MA'},
+    {label: 'Philippines', value: 'Philippines', key: 'PH'},
+    {label: 'Colombia', value: 'Colombia', key: 'CO'},
+    {label: 'Pakistan', value: 'Pakistan', key: 'PK'},
+    {label: 'Ireland', value: 'Ireland', key: 'IE'},
+    {label: 'Chile', value: 'Chile', key: 'CL'},
+    {label: 'Finland', value: 'Finland', key: 'FI'},
+    {label: 'Egypt', value: 'Egypt', key: 'EG'},
+    {label: 'Portugal', value: 'Portugal', key: 'PT'},
+    {label: 'Vietnam', value: 'Vietnam', key: 'VN'},
+    {label: 'Czech Republic', value: 'Czech Republic', key: 'CZ'},
+    {label: 'Romania', value: 'Romania', key: 'RO'},
+    {label: 'Bangladesh', value: 'Bangladesh', key: 'BD'},
+    {label: 'New Zealand', value: 'New Zealand', key: 'NZ'},
+    {label: 'Hungary', value: 'Hungary', key: 'HU'},
+    {label: 'Other', value: 'Other', key: 'OTHER'}
+];
+
+
 
 
 const EditProfile = () => {
@@ -99,20 +201,20 @@ const EditProfile = () => {
 
     const _handleUpdateUser = async (selectedGender: GenderOrNull = null) => {
         try {
-            let updatedUser = { ...user };
+            let updatedUser = {...user};
             if (selectedGender !== null) {
-                updatedUser = { ...updatedUser, gender: selectedGender };
-            }            
+                updatedUser = {...updatedUser, gender: selectedGender};
+            }
             const userRequest = updatedUser as UserRequest;
-            dispatch(updateUserProfile(userRequest) as any);
+            dispatch(updateUserProfile(userRequest) as any);// this will update the global state on redux store
+            //await UserService.updateUser(userRequest) if the app crashes on the update user use this but you lose the global state update on redux store
         } catch (error) {
             console.error('Failed to update user:', error);
         }
     };
 
     const _handleContinue = async (selectedGender: GenderOrNull = null) => {
-
-        if (userData?.role === 'COACH') {
+        if (userData?.role == UserType[UserType.COACH]) {
             setCurrentStep(oldValue => Math.min(3, oldValue + 1));
             if (currentStep >= 3) {
                 try {
@@ -124,6 +226,21 @@ const EditProfile = () => {
                         const response = await SportService.registerUserToSport(selectedSports, userData.id);
                     }
                     router.navigate('/(tabs)');
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+        } else if (userData?.role == UserType[UserType.ORGANIZATION]) {
+            setCurrentStep(oldValue => Math.min(4, oldValue + 1));
+            if (currentStep >= 2) {
+                try {
+
+                    
+                    if (paramData?.data)
+                        router.setParams({previousScreenName: 'profile'})
+
+                    
+
                 } catch (e) {
                     console.log(e);
                 }
@@ -153,12 +270,14 @@ const EditProfile = () => {
     const _getCurrentStepTitle = () => {
         if (userData?.role === 'COACH') {
             return 'Coach';
+        } else if (userData?.role === 'ORGANIZATION') {
+            return 'Organization/Team'
         } else {
             switch (currentStep) {
                 case 1:
                     return 'Edit Profile';
                 case 2:
-                    return 'Gender'
+                    return (userData?.role === 'ORGANIZATION' ? 'Organization/Team' : 'Gender');
                 case 3:
                     return '';
             }
@@ -194,7 +313,6 @@ const EditProfile = () => {
         }
     }
 
-    
     const UserInfoEdit = () => {
         const [editUser, setEditUser] = useState<UserResponse>({...user});
         const [open, setOpen] = useState(false);
@@ -342,19 +460,6 @@ const EditProfile = () => {
                                     underlineColor={"transparent"}
 
                                 />
-                                {/* <PhoneInput
-                                    disabled={true}
-                                    ref={phoneInput}
-                                    defaultCode={phoneInput?.current?.getCountryCode() || 'US'}
-                                    layout="first"
-                                    defaultValue="US"
-                                    withDarkTheme
-                                    placeholder="Enter phone number"
-                                    value={editUser.phoneNumber}
-                                    onChangeText={(text) => setEditUser({...editUser, phoneNumber: text})}
-                                    containerStyle={styles.phoneInputContainer}
-                                    textContainerStyle={styles.textPhoneInputContainer}
-                                />*/}
                                 <Text style={styles.textLabel}>Address</Text>
                                 <TextInput
                                     style={styles.inputStyle}
@@ -394,79 +499,72 @@ const EditProfile = () => {
 
         useEffect(() => {
             setSelectedGender(user?.gender);
-        }, [user.gender , user]);
+        }, [user.gender, user]);
 
         const _handleContinueGenderEdit = async () => {
-                setUser((prevEditUser) => ({ ...prevEditUser, gender: selectedGender }));
+            setUser((prevEditUser) => ({...prevEditUser, gender: selectedGender}));
             await _handleContinue(selectedGender);
         };
-        
-       
+
+
         const isMaleSelected = useMemo(() => selectedGender === Gender.MALE, [selectedGender]);
         const isFemaleSelected = useMemo(() => selectedGender === Gender.FEMALE, [selectedGender]);
 
         return (
             <View style={styles.genericContainer}>
-            <View style={{ justifyContent: 'center', alignContent: 'center' }}>
-                <Text style={[styles.textFirst, { textAlign: 'center' }]}>Tell us about yourself</Text>
-                <Text style={[styles.textSecond, { textAlign: 'center' }]}>
-                    To give you a better experience and results, we need to know your gender
-                </Text>
-            </View>
-            <View style={styles.genderSelection}>
-                <TouchableOpacity
-                    style={[
-                        styles.genderOption,
-                        isMaleSelected ? styles.selectedGender : {},
-                    ]}
-                    onPress={() => setSelectedGender(Gender.MALE)}
-                >
-                    <MaleIcon fill={isMaleSelected ? 'white' : 'black'} />
-                    <Text
-                        style={[
-                            styles.genderLabel,
-                            { color: isMaleSelected ? 'white' : 'black' },
-                        ]}
-                    >
-                        Male
+                <View style={{justifyContent: 'center', alignContent: 'center'}}>
+                    <Text style={[styles.textFirst, {textAlign: 'center'}]}>Tell us about yourself</Text>
+                    <Text style={[styles.textSecond, {textAlign: 'center'}]}>
+                        To give you a better experience and results, we need to know your gender
                     </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[
-                        styles.genderOption,
-                        isFemaleSelected ? styles.selectedGender : {},
-                    ]}
-                    onPress={() => setSelectedGender(Gender.FEMALE)}
-                >
-                    <FemaleIcon fill={isFemaleSelected ? 'white' : 'black'} />
-                    <Text
+                </View>
+                <View style={styles.genderSelection}>
+                    <TouchableOpacity
                         style={[
-                            styles.genderLabel,
-                            { color: isFemaleSelected ? 'white' : 'black' },
+                            styles.genderOption,
+                            isMaleSelected ? styles.selectedGender : {},
                         ]}
-                    >
-                        Female
-                    </Text>
-                </TouchableOpacity>
+                        onPress={() => setSelectedGender(Gender.MALE)}>
+                        <MaleIcon fill={isMaleSelected ? 'white' : 'black'}/>
+                        <Text
+                            style={[
+                                styles.genderLabel,
+                                {color: isMaleSelected ? 'white' : 'black'},
+                            ]}>
+                            Male
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[
+                            styles.genderOption,
+                            isFemaleSelected ? styles.selectedGender : {},
+                        ]}
+                        onPress={() => setSelectedGender(Gender.FEMALE)}>
+                        <FemaleIcon fill={isFemaleSelected ? 'white' : 'black'}/>
+                        <Text
+                            style={[
+                                styles.genderLabel,
+                                {color: isFemaleSelected ? 'white' : 'black'},
+                            ]}>Female</Text>
+                    </TouchableOpacity>
+                </View>
+                <View style={styles.sideBySideButtons}>
+                    <CustomButton
+                        text="Back"
+                        onPress={goToPreviousStep}
+                        style={styles.backButton}
+                        textStyle={styles.buttonText}
+                    />
+                    <CustomButton
+                        disabled={selectedGender === Gender.DEFAULT}
+                        text="Continue"
+                        onPress={_handleContinueGenderEdit}
+                        style={styles.continueButton}
+                    />
+                </View>
             </View>
-            <View style={styles.sideBySideButtons}>
-                <CustomButton
-                    text="Back"
-                    onPress={goToPreviousStep}
-                    style={styles.backButton}
-                    textStyle={styles.buttonText}
-                />
-                <CustomButton
-                    disabled={selectedGender === Gender.DEFAULT}
-                    text="Continue"
-                    onPress={_handleContinueGenderEdit}
-                    style={styles.continueButton}
-                />
-            </View>
-        </View>
         );
     });
-
 
     const CoachSportInfoEdit = () => {
 
@@ -486,10 +584,7 @@ const EditProfile = () => {
                 yearsOfExperience: yearsOfExperience,
                 isCertified: isCertified
             }));
-
-
             if (userSport.length === 0) {
-
                 if (!selectedSport) {
                     Alert.alert('Please select a sport');
                     return;
@@ -502,7 +597,6 @@ const EditProfile = () => {
                 const convertedSportLevel = convertStringToEnumValue(SportLevel, sportLevel);
                 if (convertedSportLevel === null)
                     return;
-
                 setSelectedSports([...selectedSports,
                     {
                         sportId: selectedSport.id,
@@ -515,7 +609,6 @@ const EditProfile = () => {
                 return;
             await _handleContinue();
         }
-
 
         const _generateSportLevelItems = (): { label: string; value: string; key: string }[] => {
             return Object.keys(SportLevel).filter((key: string) => !isNaN(Number(SportLevel[key as keyof typeof SportLevel]))).map((key: string) => ({
@@ -533,7 +626,6 @@ const EditProfile = () => {
                             <Text style={{color: 'black', fontSize: 20, fontWeight: 'bold', marginTop: 5}}>Sport
                                 Info</Text>
                             <View style={styles.mgTop}>
-
                                 <Text style={styles.textLabel}>Your Sport</Text>
                                 <RNPickerSelect
                                     style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
@@ -618,6 +710,350 @@ const EditProfile = () => {
     }
 
 
+    const OrganizationInfoEdit = () => {
+
+        const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
+        const [organizationName, setOrganizationName] = useState<string>(user.organizationName || '');
+        const [sportLevel, setSportLevel] = useState<SportLevel>(SportLevel.Beginner);
+        const [isCertified, setIsCertified] = useState<boolean>(user.isCertified);
+        const [selectedSportLevel, setSelectedSportLevel] = useState<any[]>(user.skillLevel || []);
+        const [selectedAgeGroup, setSelectedAgeGroup] = useState<string[]>(user.ageGroup || []);
+        const [editUser, setEditUser] = useState<UserResponse>({...user});
+
+        const _handleOrganizationInfoEdit = async () => {
+            setUser(({
+                ...editUser,
+                bio: editUser.bio,
+                organizationName : organizationName,
+                isCertified: isCertified,
+                ageGroup: selectedAgeGroup,
+                skillLevel: selectedSportLevel,
+                country: editUser.country,
+                stateRegion: editUser.stateRegion,
+                city: editUser.city
+            }));
+
+
+            if (userSport.length === 0) {
+                if (selectedSportLevel.length === 0) {
+                    Alert.alert('Please Skill Level');
+                    return;
+                }
+
+                const convertedSportLevel = convertStringToEnumValue(SportLevel, selectedSportLevel[0]);
+
+                if (convertedSportLevel === null)
+                    return;
+
+                setSelectedSports([...selectedSports,
+                    {
+                        sportId: selectedSport?.id,
+                        sportLevel: convertedSportLevel,
+                        createAt: new Date(),
+                        sportName: selectedSport?.name
+                    }]);
+            }
+            //this condition is not working because we are seting the global state
+            // if (selectedSports.length === 0 && userSport.length === 0)
+            //     return;
+            
+            
+            await _handleContinue();
+        }
+
+        const _generateSportLevelItems = (): { label: string; value: string; key: string }[] => {
+            return Object.keys(SportLevel).filter((key: string) => !isNaN(Number(SportLevel[key as keyof typeof SportLevel]))).map((key: string) => ({
+                label: key,
+                value: key,
+                key: SportLevel[key as keyof typeof SportLevel].toString()
+            }));
+        };
+
+
+        return (
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <>
+                    <KeyboardAwareScrollView style={{flex: 1}}>
+                        <View style={styles.formContainer}>
+                            <Text style={{color: 'black', fontSize: 20, fontWeight: 'bold', marginTop: 5}}>Organization
+                                Details</Text>
+                            <View style={styles.mgTop}>
+                                <Text style={styles.textLabel}>Organization Name</Text>
+                                <TextInput
+                                    style={[styles.inputStyle, {paddingLeft: 0}]}
+                                    placeholder={'Organization Name'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    underlineColor={"transparent"}
+                                    value={organizationName}
+                                    onChangeText={(text) => setOrganizationName(text)}
+                                />
+                                <Text style={styles.textLabel}>Admin Name</Text>
+                                <TextInput
+                                    style={[styles.inputStyle, {paddingLeft: 0}]}
+                                    placeholder={'Admin Name'}
+                                    disabled={true}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    underlineColor={"transparent"}
+                                    value={`${userData?.firstName} ${userData?.lastName}`}
+                                />
+                                <Text style={styles.textLabel}>Age group</Text>
+                                {/*TODO:: Multi selection*/}
+                                <MultiSelect
+                                    style={styles.inputStyle}
+                                    placeholderStyle={styles.placeholderStyle}
+                                    selectedTextStyle={styles.selectedTextStyle}
+                                    inputSearchStyle={styles.inputSearchStyle}
+                                    containerStyle={styles.containerStyle}
+                                    data={_AgeGroup}
+                                    placeholder={selectedAgeGroup.length > 0 ? `Selected ${selectedAgeGroup.map((item) => item).join(', ')}` : 'Select Age Group'}
+                                    value={selectedAgeGroup}
+                                    labelField="label"
+                                    valueField="value"
+                                    onChange={item => {
+                                        setSelectedAgeGroup(item);
+                                    }
+                                    }
+                                    iconStyle={styles.iconStyle}
+                                    selectedStyle={styles.selectedStyle}
+                                    activeColor='#4564f5'
+                                    visibleSelectedItem={false}
+                                />
+                                <Text style={styles.textLabel}>Skill Level</Text>
+                                {/*TODO:: Multi selection*/}
+                                <MultiSelect
+                                    style={styles.inputStyle}
+                                    placeholderStyle={styles.placeholderStyle}
+                                    selectedTextStyle={styles.selectedTextStyle}
+                                    inputSearchStyle={styles.inputSearchStyle}
+                                    containerStyle={styles.containerStyle}
+                                    data={_generateSportLevelItems()}
+                                    placeholder= {selectedSportLevel.length > 0 ? `Selected ${selectedSportLevel.map((item) => item).join(', ')}` : 'Select Skill Level'}
+                                    value={selectedSportLevel}
+                                    labelField="label"
+                                    valueField="value"
+                                    onChange={item => {
+                                        setSelectedSportLevel(item);
+                                    }}
+                                    iconStyle={styles.iconStyle}
+                                    selectedStyle={styles.selectedStyle}
+                                    activeColor='#4564f5'
+                                    visibleSelectedItem={false}
+                                />
+                                <Text style={styles.textLabel}>Tell us about yourself</Text>
+                                <TextInput
+                                    style={styles.inputInfoStyle}
+                                    placeholder={'Tell us about yourself'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    value={editUser.bio}
+                                    onChangeText={(text) => setEditUser({...editUser, bio: text})}
+                                    underlineColor={"transparent"}
+                                    multiline={true}
+                                    numberOfLines={4}
+                                />
+                                <Text style={styles.textLabel}>Country</Text>
+                                <RNPickerSelect
+                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
+                                    items={_countries}
+                                    placeholder={{label: 'Select country', value: null}}
+                                    onValueChange={(value) => setEditUser({...editUser, country: value})}
+                                    value={editUser?.country || null}
+                                />
+                                <Text style={styles.textLabel}>State/Region</Text>
+                                <TextInput
+                                    style={[styles.inputStyle, {paddingLeft: 0}]}
+                                    placeholder={'State/Region'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    underlineColor={"transparent"}
+                                    value={editUser.stateRegion}
+                                    onChangeText={(text) => setEditUser({...editUser, stateRegion: text})}
+                                />
+                                <Text style={styles.textLabel}>City</Text>
+                                <TextInput
+                                    style={[styles.inputStyle, {paddingLeft: 0}]}
+                                    placeholder={'City'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    underlineColor={"transparent"}
+                                    value={editUser.city}
+                                    onChangeText={(text) => setEditUser({...editUser, city: text})}
+                                />
+                                <View style={{marginTop: 30}}>
+                                    <CustomButton text="Continue" onPress={_handleOrganizationInfoEdit}/>
+                                </View>
+                            </View>
+                        </View>
+                    </KeyboardAwareScrollView>
+                </>
+            </TouchableWithoutFeedback>
+        )
+    }
+
+    const OrganizationSport = () => {
+        const [estimatedCost, setEstimatedCost] = useState<number>(0);
+        const [selectedSport, setSelectedSport] = useState<any>();
+        const [selectedSports, setSelectedSports] = useState<any>(userSport);
+        const [selectedTypeOfGame, setSelectedTypeOfGame] = useState<Array<string>>([]);
+        const [seasonDuration, setSeasonDuration] = useState<any>();
+        const [location, setLocation] = useState<string>();
+        const [sportsList, setSportsList] = useState<any>([]);
+
+        useEffect(() => {
+            const filteredSportsList = sports
+                .filter(sport => !selectedSports.find((selected: any) => selected.id === sport.id))
+                .map(sport => ({
+                    label: sport.name,
+                    value: sport.id,
+                    key: sport.id
+                }));
+            setSportsList(filteredSportsList);
+        }, [selectedSports]);
+
+
+        const [globalState, setGlobalState] = useState<UserInterestedSport[]>([]);
+
+
+        const _handleAddAnotherSport = (): UserInterestedSport | null | undefined => {
+            if (!selectedSport && userSport.length === 0) {
+                Alert.alert('No sport selected', 'Please select a sport', [{text: 'OK'}], {cancelable: false});
+                return null;
+            }
+            else if (userSport.length > 0 && !selectedSport) {
+                return null;
+            }
+            setSelectedSports([...selectedSports, selectedSport]);
+            const newEntry: UserInterestedSport = {
+                typeOfGame: selectedTypeOfGame,
+                seasonDuration: seasonDuration,
+                estimatedCost: estimatedCost,
+                sportName: selectedSport.name,
+                sportLevel: SportLevel.Advance,
+                createAt: new Date(),
+                sportId: selectedSport?.id,
+                locationOfGame: location,
+                score: 0,
+            };
+            setGlobalState((value: UserInterestedSport[]) => {
+                const updatedState = [...value, newEntry];
+                return updatedState;
+            });
+            setSelectedSport(undefined);
+            setSelectedTypeOfGame([]);
+            setSeasonDuration(undefined);
+            setEstimatedCost(0);
+            setLocation(undefined);
+            return newEntry;
+        };
+
+        const _handleSubmit = async (): Promise<void> => {
+            const res = _handleAddAnotherSport();
+            if (!res) {
+                _handleUpdateUser();
+                router.navigate('/(tabs)');
+            }
+        
+            try {
+                const updatedGlobalState = await new Promise<UserInterestedSport[]>((resolve) =>
+                    setGlobalState((prevState: UserInterestedSport[]) => {
+                        const newState = [...prevState];
+                        resolve(newState);
+                        return newState;
+                    })
+                );
+        
+                if (updatedGlobalState.length > 0) {
+                    await SportService.registerUserToSport(updatedGlobalState, userData.id);
+                    
+                }
+                await _handleUpdateUser();
+                router.navigate('/(tabs)');
+                
+
+            } catch (e) {
+                console.log(e);
+            }
+        };
+
+        return (
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <>
+                    <KeyboardAwareScrollView style={{flex: 1}}>
+                        <View style={styles.formContainer}>
+                            <Text style={{color: 'black', fontSize: 20, fontWeight: 'bold', marginTop: 5}}>Sport
+                                Info</Text>
+                            <View style={styles.mgTop}>
+                                <Text style={styles.textLabel}>Sport</Text>
+                                <RNPickerSelect
+                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
+                                    items={sportsList}
+                                    placeholder={{label: 'Select sport', value: null}}
+                                    onValueChange={(value) => 
+                                        setSelectedSport(sports.find(sport => sport.id === value) || null)
+                                    }
+                                    value={selectedSport?.value}
+                                />
+                                <Text style={styles.textLabel}>Estimated Cost</Text>
+                                <TextInput
+                                    style={[styles.inputInfoStyle, {height: 40, borderTopLeftRadius: 20, borderTopRightRadius: 20 , borderBottomRightRadius: 20, borderBottomLeftRadius: 20}]}
+                                    placeholder={'Estimated Cost'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    value={estimatedCost?.toString()}
+                                    keyboardType={"decimal-pad"}
+                                    onChangeText={(value) => setEstimatedCost(Number(value))}
+                                    underlineColor={"transparent"}
+                                />
+                                <Text style={styles.textLabel}>Type of Game</Text>                                
+                                <MultiSelect 
+                                    style={styles.inputStyle}
+                                    placeholderStyle={styles.placeholderStyle}
+                                    selectedTextStyle={styles.selectedTextStyle}
+                                    inputSearchStyle={styles.inputSearchStyle }
+                                    containerStyle={styles.containerStyle}
+                                    data={_typeOfGame}
+                                    placeholder={selectedTypeOfGame.length > 0 ? `Selected ${selectedTypeOfGame.map((item) => item).join(', ')}` : 'Select Type of Game'}
+                                    value={selectedTypeOfGame}
+                                    labelField="label"
+                                    valueField="value"
+                                    onChange={item => { setSelectedTypeOfGame(item); }}
+                                    iconStyle={styles.iconStyle}
+                                    selectedStyle={styles.selectedStyle}
+                                    activeColor='#4564f5'
+                                    visibleSelectedItem={false}
+                                />
+                                <Text style={styles.textLabel}>Season Duration</Text>
+                                <RNPickerSelect
+                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
+                                    items={_seasonDuration}
+                                    placeholder={{label: 'Season Duration', value: null}}
+                                    onValueChange={(value) => setSeasonDuration(value)}
+                                    value={seasonDuration || null}
+                                />
+                                <Text style={styles.textLabel}>Location(s) of Game</Text>
+                                <RNPickerSelect
+                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
+                                    items={_locationOfGame}
+                                    placeholder={{label: 'Location(s) of Game', value: null}}
+                                    onValueChange={(value) => setLocation(value)}
+                                    value={location || null}
+                                />
+
+                                <View style={{marginTop: 20}}>
+                                    <CustomButton text="Add another sport" onPress={_handleAddAnotherSport}/>
+                                    <CustomButton text="Finish" onPress={_handleSubmit} style={{marginTop: 10}}/>
+                                </View>
+                            </View>
+                        </View>
+                    </KeyboardAwareScrollView>
+                </>
+            </TouchableWithoutFeedback>
+        );
+    }
+
+
     return (
         <ImageBackground
             style={StyleSheet.absoluteFill}
@@ -629,8 +1065,10 @@ const EditProfile = () => {
                 <Text style={styles.stepText}>Step {currentStep}/3</Text>
                 <View style={styles.cardContainer}>
                     {currentStep === 1 && <UserInfoEdit/>}
-                    {currentStep === 2 && <UserGenderEdit/>}
-                    {currentStep === 3 && <CoachSportInfoEdit/>}
+                    {currentStep === 2 && userData?.role != UserType[UserType.ORGANIZATION] && <UserGenderEdit/>}
+                    {currentStep === 2 && userData?.role == UserType[UserType.ORGANIZATION] && <OrganizationInfoEdit/>}
+                    {currentStep === 3 && userData?.role != UserType[UserType.ORGANIZATION] && <CoachSportInfoEdit/>}
+                    {currentStep === 3 && userData?.role == UserType[UserType.ORGANIZATION] && <OrganizationSport/>}
                 </View>
             </SafeAreaView>
         </ImageBackground>
@@ -685,6 +1123,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         paddingLeft: 15
     },
+  
     mgTop: {
         marginTop: 5
     },
@@ -849,8 +1288,43 @@ const styles = StyleSheet.create({
     editPhotoIcon: {
         marginLeft: 10,
         marginTop: 20
+    },
+    placeholderStyle: {
+        color: 'grey',
+        fontSize: 16
+    },
+    selectedTextStyle: {
+        fontSize: 14,
+    },
+    inputSearchStyle: {
+        height: 40,
+        fontSize: 16,
+        color: 'grey',
+        borderRadius: 10
+    },
+    containerStyle: {
+        borderRadius: 15,
+        shadowColor: 'black',
+        shadowOffset: {width: 0, height: 2},
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5
+    },
+    iconStyle: {
+        width: 20,
+        height: 20
+    },
+    selectedStyle: {
+        borderRadius: 15,
+        backgroundColor: 'white',
+        borderColor: 'grey',
+        borderWidth: 0.3,
+        shadowColor: 'black',
+        shadowOffset: {width: 0, height: 1},
+        shadowOpacity: 0.25,
+        shadowRadius: 2.50,
+        elevation: 5
     }
-
 })
 
 

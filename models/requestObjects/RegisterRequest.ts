@@ -13,6 +13,5 @@ export interface RegisterRequest
     bio: string;
     verified: boolean;
     role: UserType;
-
 }
 

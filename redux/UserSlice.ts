@@ -23,6 +23,7 @@ export const getUserSports = createAsyncThunk<UserSportResponse[], string, { rej
             }
             return response;
         } catch (error) {
+            console.error(error);
             if (error instanceof Error) {
                 return rejectWithValue(error.message);
             }

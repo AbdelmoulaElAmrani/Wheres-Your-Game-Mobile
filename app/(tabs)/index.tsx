@@ -53,7 +53,7 @@ const Home = () => {
     ];
 
     useEffect(() => {
-        if (!userData?.id) {
+        if (userData == undefined || userData.id == undefined) {
             dispatch(getUserProfile() as any);
         }
         const fetchData = async () => {
@@ -62,6 +62,7 @@ const Home = () => {
                     dispatch(getUserSports(userData.id) as any);
                     await _getMyTeams();
                 } catch (e) {
+                    console.error(e);
                 }
             }
         }
@@ -71,15 +72,16 @@ const Home = () => {
         const intervalId = setInterval(checkForNotification, REFRESH_NOTIFICATION_TIME);
 
         return () => clearInterval(intervalId);
-    }, [userData]);
+    }, []); // no dependencies to avoid the crash
 
     const checkForNotification = async () => {
         try {
-            if (!newNotif) {
+            if (!newNotif && userData?.id) {
                 const res = await NotificationService.getNotifications();
                 setNewNotif(res ? res.some(x => !x.isRead) : false);
             }
         } catch (e) {
+            console.error(e);
         }
     }
 
@@ -88,7 +90,7 @@ const Home = () => {
             const result = await TeamService.getUserTeams(userData.id);
             setTeams(result);
         } catch (e) {
-            console.log('_getMyTeams', e);
+            console.error('_getMyTeams', e);
         }
     }
 
@@ -104,7 +106,7 @@ const Home = () => {
                 });
             }
         } catch (e) {
-            console.log('_getAllPlayerOfSelectedTeam', e);
+            console.error('_getAllPlayerOfSelectedTeam', e);
         } finally {
             setPlayersLoading(false);
         }
@@ -152,7 +154,7 @@ const Home = () => {
                 setSelectedTeam(team);
                 await _getAllPlayerOfSelectedTeam(team);
             } catch (e) {
-                console.log(e);
+                console.error(e);
             }
         }
     }
@@ -188,30 +190,30 @@ const Home = () => {
 
     const _renderTeam = memo(({item}: { item: Team }) => {
         return (
-        <TouchableOpacity
-            style={[styles.card, selectedTeam?.id == item.id ? styles.selectedTag : null]}
-            onPress={() => _onSelectTeam(item)}>
-            <View>
-                <View style={styles.cardImage}>
-                    {item.imgUrl ? (
-                        <Avatar.Image size={60} source={{uri: item.imgUrl}}/>
-                    ) : (
-                        <Avatar.Text
-                            size={60}
-                            label={(item.name.charAt(0) + item.name.charAt(1)).toUpperCase()}
-                        />
-                    )}
+            <TouchableOpacity
+                style={[styles.card, selectedTeam?.id == item.id ? styles.selectedTag : null]}
+                onPress={() => _onSelectTeam(item)}>
+                <View>
+                    <View style={styles.cardImage}>
+                        {item.imgUrl ? (
+                            <Avatar.Image size={60} source={{uri: item.imgUrl}}/>
+                        ) : (
+                            <Avatar.Text
+                                size={60}
+                                label={(item.name.charAt(0) + item.name.charAt(1)).toUpperCase()}
+                            />
+                        )}
+                    </View>
                 </View>
-            </View>
-            <Text style={{
-                textAlign: 'center',
-                fontSize: 16,
-                fontWeight: "600",
-                marginTop: 10,
-                width: 105,
-                color: selectedTeam?.id == item.id ? 'white' : 'black'
-            }}>{item.name}</Text>
-        </TouchableOpacity>
+                <Text style={{
+                    textAlign: 'center',
+                    fontSize: 16,
+                    fontWeight: "600",
+                    marginTop: 10,
+                    width: 105,
+                    color: selectedTeam?.id == item.id ? 'white' : 'black'
+                }}>{item.name}</Text>
+            </TouchableOpacity>
         )
     });
 
@@ -304,7 +306,7 @@ const Home = () => {
                             placeholder={{}}
                             items={childrens}
                             onValueChange={value => {
-                                console.log(value);
+                                console.info(value);
                             }}
                             style={pickerSelectStyles}
                             value={selectedChild}

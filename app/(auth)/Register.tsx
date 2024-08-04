@@ -62,7 +62,6 @@ const Register = () => {
                     verified: false,
                     role: UserType.DEFAULT,
                 });
-
             }
         }).catch((e) => {
             console.log(e);
@@ -70,8 +69,6 @@ const Register = () => {
             .finally(() => {
                 LocalStorageService.removeItem('googleUser');
             });
-
-
     }, []);
 
 
@@ -97,7 +94,7 @@ const Register = () => {
             const result = await AuthService.verifyEmail(userData.email.trim());
             if (result || result == undefined) errors.push('The Email already taken');
         } catch (e) {
-            console.log(e);
+            console.error(e);
         }
         if (showPasswordInput) {
             if (userData.password.trim() === '') {
@@ -119,8 +116,6 @@ const Register = () => {
         } else if (phoneInput.current?.isValidNumber(userData.phoneNumber) === false) {
             errors.push('Invalid phone number');
         }
-
-
         return errors;
     }
 
