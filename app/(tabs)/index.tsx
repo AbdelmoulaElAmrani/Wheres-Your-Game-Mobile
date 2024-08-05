@@ -167,7 +167,7 @@ const Home = () => {
     const _onSelectSport = (id: any) => {
     }
 
-    const isCoach = (): boolean => userData.role == UserType[UserType.COACH];
+    const isCoach = (): boolean => userData.role == UserType[UserType.COACH] || userData.role == UserType[UserType.ORGANIZATION];
 
     const isPlayersVisible = (): boolean =>
         (isCoach() || UserType[UserType.PLAYER] == userData.role.toString()) && selectedTeam !== undefined;

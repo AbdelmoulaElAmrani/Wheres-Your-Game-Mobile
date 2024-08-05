@@ -85,7 +85,7 @@ const Calendar = () => {
 
     useEffect(() => {
         if (user?.id) {
-            if (user.role == UserType[UserType.COACH]) {
+            if (user.role == UserType[UserType.COACH] || user.role == UserType[UserType.ORGANIZATION]) {
                 getCoachEvents();
             } else {
                 getUserEvents();
@@ -381,7 +381,7 @@ const Calendar = () => {
         );
     });
 
-    const isCoach = (): boolean => user?.role == UserType[UserType.COACH];
+    const isCoach = (): boolean => user?.role == UserType[UserType.COACH] || user?.role == UserType[UserType.ORGANIZATION];
 
     const getTitle = (): string => {
         if (isCoach())
