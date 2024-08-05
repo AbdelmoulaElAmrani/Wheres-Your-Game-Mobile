@@ -29,7 +29,7 @@ import {
 } from "@react-native-google-signin/google-signin";
 import LocalStorageService from '@/services/LocalStorageService';
 import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
-import {googleAndroidClientId, googleIosClientId, googleWebClientId} from "@/appTimersConfig";
+import {googleAndroidClientId, googleIosClientId, googleWebClientId} from "@/appConfig";
 
 
 const Login = () => {

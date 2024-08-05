@@ -76,6 +76,7 @@ const EditCoachProfile = () => {
     }
 
     const _handleUpdateUser = async () => {
+        // @ts-ignore
         dispatch(updateUserProfile(user) as any);
     }
 

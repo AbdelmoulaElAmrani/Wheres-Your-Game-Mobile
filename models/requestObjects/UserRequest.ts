@@ -8,8 +8,12 @@ export interface UserRequest {
     address: string;
     gender: Gender;
     dateOfBirth: Date;
-    isCertified : boolean;
-    yearsOfExperience : number;
-    positionCoached : string;
-
+    isCertified: boolean;
+    yearsOfExperience: number;
+    positionCoached: string;
+    ageGroup?: string[];
+    skillLevel?: string[];
+    country?: string;
+    stateRegion?: string;
+    city?: string;
 }

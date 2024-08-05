@@ -2,8 +2,6 @@ import Requests from "./Requests";
 import {NotificationResponse} from "@/models/responseObjects/NotificationResponse";
 
 export class NotificationService {
-
-
     static getNotifications = async () => {
         try {
             const res = await Requests.get('notification/all');
@@ -13,7 +11,6 @@ export class NotificationService {
             return undefined;
         }
     }
-
 
     static async markNotificationAsRead(requestId: string) {
         await Requests.post(`notification/markAsRead/${requestId}`, {});

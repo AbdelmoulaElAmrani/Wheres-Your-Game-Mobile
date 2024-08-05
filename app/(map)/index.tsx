@@ -7,12 +7,11 @@ import {AntDesign, Ionicons} from "@expo/vector-icons";
 import {router} from "expo-router";
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} from "react-native-responsive-screen";
 import Modal from "react-native-modal";
-import {useSelector} from "react-redux";
-import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
+import {useDispatch, useSelector} from "react-redux";
 import {List, RadioButton} from "react-native-paper";
-import {FlashList} from "@shopify/flash-list";
 import Checkbox from "expo-checkbox";
 import * as Location from 'expo-location';
+import {getSports} from "@/redux/SportSlice";
 
 enum Filters {
     SPORT,
@@ -27,6 +26,7 @@ interface RadioBoxFilter {
 
 interface FilterState {
     category: RadioBoxFilter[];
+    sport: RadioBoxFilter[];
     sortBy: RadioBoxFilter;
 }
 
@@ -46,13 +46,14 @@ const categoryValues = [
     {id: 'TEVENT', value: 'Last Minute Today Event'}] as RadioBoxFilter[];
 const SportMap = () => {
     const [modalVisible, setModalVisible] = useState<boolean>(false)
-    const userSports = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
-    const [selectedSportForSearch, setSelectedSportForSearch] = useState<UserSportResponse | undefined>();
+    const availableSport = useSelector((state: any) => state.sport.evalbleSports).map((sport: any) => ({
+        id: sport.id,
+        value: sport.name
+    })) as RadioBoxFilter[];
     const [expandedFilter, setExpandedFilter] = useState<Filters | undefined>(Filters.SPORT);
-    const [filter, setFilter] = useState<FilterState>({category: [], sortBy: {} as RadioBoxFilter});
-    const [selectedSportId, setSelectedSportId] = useState<any>(null);
-    //const [location, setLocation] = useState<any>(null);
+    const [filter, setFilter] = useState<FilterState>({category: [], sport: [], sortBy: {} as RadioBoxFilter});
     const mapRef = useRef<MapView>(null);
+    const dispatch = useDispatch();
 
 
     useEffect(() => {
@@ -75,6 +76,9 @@ const SportMap = () => {
                 };
                 mapRef.current?.animateToRegion(region, 2000);
             }
+            if (availableSport.length == 0) {
+                await dispatch(getSports() as any);
+            }
         })();
     }, []);
 
@@ -88,9 +92,15 @@ const SportMap = () => {
     const _handleSelectedFilter = (filter: Filters) => {
         setExpandedFilter(old => old !== filter ? filter : undefined);
     }
-    const _handleSelectedSport = (item: UserSportResponse) => {
-        //setSelectedSportForSearch(item);
-        setSelectedSportId(item.sportId);
+    const _handleSelectedSport = (item: RadioBoxFilter, value: boolean) => {
+        setFilter(oldFilter => {
+            return {
+                ...oldFilter,
+                sport: value
+                    ? [...oldFilter.sport, item]
+                    : oldFilter.sport.filter(existingItem => existingItem.value !== item.value)
+            };
+        });
     }
     const _handleSortByFilter = (item: RadioBoxFilter) => {
         setFilter(old => ({...old, sortBy: item}));
@@ -152,22 +162,20 @@ const SportMap = () => {
                                         onPress={() => _handleSelectedFilter(Filters.SPORT)}
                                         title="Sports Listings">
                             <View style={{flex: 1, paddingVertical: 8, paddingHorizontal: 12}}>
-                                <FlashList
-                                    data={userSports}
-                                    renderItem={({item, index}) => (
-                                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                                            <RadioButton
-                                                color={'#2757CB'}
-                                                value={item.sportId}
-                                                status={selectedSportId === item.sportId ? 'checked' : 'unchecked'}
-                                                onPress={() => _handleSelectedSport(item)}
+                                {availableSport.map((item) => {
+                                    return (
+                                        <View
+                                            key={item.id?.toString()}
+                                            style={{flexDirection: 'row', alignItems: 'center', marginBottom: 10}}>
+                                            <Checkbox
+                                                style={{borderRadius: 5, borderColor: 'black', marginRight: 10}}
+                                                value={filter.sport.some(x => x.id === item.id)}
+                                                onValueChange={(value) => _handleSelectedSport(item, value)}
                                             />
-                                            <Text style={{fontSize: 16}}>{item.sportName}</Text>
+                                            <Text style={{fontSize: 18}}>{item.value}</Text>
                                         </View>
-                                    )}
-                                    keyExtractor={(item) => item.sportId.toString()}
-                                    estimatedItemSize={50}
-                                />
+                                    )
+                                })}
                             </View>
                         </List.Accordion>
 
@@ -182,25 +190,24 @@ const SportMap = () => {
                             title="Category">
                             <View
                                 style={{flex: 1, paddingVertical: 8, paddingHorizontal: 12}}>
-                                <FlashList
-                                    data={categoryValues}
-                                    renderItem={({item, index}) => (
-                                        <View style={{
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            marginBottom: 5
-                                        }}>
+                                {categoryValues.map((item) => {
+                                    return (
+                                        <View
+                                            key={item.id.toString()}
+                                            style={{
+                                                flexDirection: 'row',
+                                                alignItems: 'center',
+                                                marginBottom: 10
+                                            }}>
                                             <Checkbox
-                                                style={{borderRadius: 5, borderColor: 'grey', marginRight: 10}}
+                                                style={{borderRadius: 5, borderColor: 'black', marginRight: 10}}
                                                 value={filter.category.some(x => x.id === item.id)}
                                                 onValueChange={(value) => _handleSelectedCategories(item, value)}
                                             />
                                             <Text style={{fontSize: 16}}>{item.value}</Text>
                                         </View>
-                                    )}
-                                    keyExtractor={(item) => item.id}
-                                    estimatedItemSize={50}
-                                />
+                                    )
+                                })}
                             </View>
                         </List.Accordion>
                         <List.Accordion
@@ -214,9 +221,8 @@ const SportMap = () => {
                             title="Sort By">
                             <View
                                 style={{flex: 1, paddingVertical: 8, paddingHorizontal: 12}}>
-                                <FlashList
-                                    data={sortByValues}
-                                    renderItem={({item, index}) => (
+                                {sortByValues.map((item) => {
+                                    return (
                                         <View style={{flexDirection: 'row', alignItems: 'center'}}>
                                             <RadioButton
                                                 color='#2757CB'
@@ -226,10 +232,8 @@ const SportMap = () => {
                                             />
                                             <Text style={{fontSize: 16}}>{item.value}</Text>
                                         </View>
-                                    )}
-                                    keyExtractor={(item) => item.id}
-                                    estimatedItemSize={50}
-                                />
+                                    )
+                                })}
                             </View>
                         </List.Accordion>
                     </List.Section>
@@ -285,7 +289,8 @@ const styles = StyleSheet.create({
     },
     dropDownContainer: {
         borderRadius: 10,
-        height: 55
+        height: 55,
+        marginBottom: 15,
     },
     searchButton: {
         width: '100%',
