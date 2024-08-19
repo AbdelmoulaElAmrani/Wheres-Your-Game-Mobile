@@ -33,6 +33,7 @@ import OrganizationIcon from "@/assets/images/svg/OrganizationIcon";
 import CampIcon from "@/assets/images/svg/CampIcon";
 import CoachIconV2 from "@/assets/images/svg/CoachIconV2";
 import BusinessIconV2 from "@/assets/images/svg/BusinessIconV2";
+import Spinner from "@/components/Spinner";
 
 
 const UserStepForm = () => {
@@ -40,6 +41,7 @@ const UserStepForm = () => {
     const [visible, setVisible] = useState<boolean>(false);
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [otpCodeNotEmpty, setOtpCodeNotEmpty] = useState<boolean>(false);
+    const [isOtpValid, setOtpValid] = useState<boolean>(false);
     const [otpCode, setOtpCode] = useState<string>('');
     const userRegister = useSelector((state: any) => state.user.userRegister);
     const [userData, setUserData] = useState<RegisterRequest>(userRegister);
@@ -87,9 +89,9 @@ const UserStepForm = () => {
         try {
             if (storedUser) {
                 const googleUser: GoogleUserRequest = {googleUser: storedUser, userData: userData};
-                await AuthService.loginOrSignWithGoogle(googleUser);
+                return await AuthService.loginOrSignWithGoogle(googleUser);
             } else {
-                await AuthService.register(userData);
+                return await AuthService.register(userData);
             }
         } catch (e) {
             console.error(e);
@@ -111,8 +113,13 @@ const UserStepForm = () => {
     }
 
     const goToNextStep = async () => {
-        await createUser();
-        setCurrentStep(oldValue => Math.max(2, oldValue - 1));
+        try {
+            const result = await createUser();
+            if (result)
+                setCurrentStep(oldValue => Math.max(2, oldValue - 1));
+        } catch (e) {
+            console.log(e);
+        }
     };
 
     const _onNext = async () => {
@@ -303,11 +310,15 @@ const UserStepForm = () => {
 
     const OTPVerification = () => {
         const otpRef = useRef<OtpInputRef>();
+        const [enableSendOtp, setEnableSendOtp] = useState<boolean>(true)
+        const [loading, setLoading] = useState<boolean>(false);
 
         useEffect(() => {
             const sendOtp = async () => {
                 if (!otpCodeNotEmpty && otpCode.trim().length === 0) {
+                    setLoading(true);
                     const ignored = await AuthService.sendOTP();
+                    setLoading(false);
                 }
             }
             sendOtp();
@@ -318,24 +329,39 @@ const UserStepForm = () => {
 
         const _onResendOTPCode = async () => {
             try {
-                const ignored = await AuthService.sendOTP();
+                if (enableSendOtp) {
+                    setEnableSendOtp(false);
+                    setLoading(true);
+                    const ignored = await AuthService.sendOTP();
+                    console.log(ignored);
+                    setTimeout(() => {
+                        setEnableSendOtp(true);
+                    }, 30000); // 30 seconds in milliseconds
+                } else {
+                    Alert.alert("Please try again later.");
+                }
             } catch (e) {
                 console.error(e);
             }
-        }
+            setLoading(false);
+        };
         const _verifyOTP = async (otpNumber: string) => {
             Keyboard.dismiss();
             if (otpNumber.trim().length !== 0) {
                 setOtpCode(otpNumber);
                 if (otpNumber == '0000') {
                     setOtpCodeNotEmpty(true);
+                    setOtpValid(true);
                 } else {
                     try {
                         const result = await AuthService.verifyOTP(otpNumber.trim());
-                        if (!result) {
+                        const storedAuth = await LocalStorageService.getItem<boolean>("otp");
+                        if (!storedAuth) {
                             Alert.alert('the verification code is not correct');
                         } else {
+                            Keyboard.dismiss();
                             setOtpCodeNotEmpty(true);
+                            setOtpValid(true);
                         }
                     } catch (err) {
                         console.log(err);
@@ -351,6 +377,9 @@ const UserStepForm = () => {
                     marginTop: 50,
                     height: hp(45)
                 }}>
+                    {loading && (
+                        <Spinner visible={loading}/>
+                    )}
                     <Text style={{
                         marginBottom: 20,
                         fontSize: 20,
@@ -403,7 +432,6 @@ const UserStepForm = () => {
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
                 <CustomNavigationHeader showBackArrow={currentStep === 1} text={"User"}/>
-
                 <View style={styles.container}>
                     <Text style={styles.stepText}>Step {currentStep}/2</Text>
                     <View style={styles.mainContainer}>
@@ -422,29 +450,35 @@ const UserStepForm = () => {
                             {currentStep === 1 && <UserTypeForm/>}
                             {(currentStep === 2) && <OTPVerification/>}
                         </View>
-                        <CustomButton disabled={!otpCodeNotEmpty && currentStep === 2}
+                        <CustomButton disabled={!otpCodeNotEmpty && isOtpValid && currentStep === 2}
                                       text={buttonText[currentStep - 1]} onPress={_showModal}/>
                     </View>
                 </View>
-                <Modal onDismiss={_hideModal} isVisible={visible} style={styles.containerStyle}>
-                    <Text style={{
-                        textAlign: "center",
-                        position: "absolute",
-                        top: 20,
-                        fontWeight: '900',
-                        letterSpacing: 1,
-                        fontSize: 20,
-                        marginHorizontal: 20,
-                        width: 300
-                    }}>{_stepTitles[currentStep - 1].modalTitle}</Text>
-                    <Text style={{
-                        textAlign: 'center',
-                        color: 'grey',
-                        letterSpacing: 0.2,
-                        fontSize: 16,
-                        marginHorizontal: 40
-                    }}>{_stepTitles[currentStep - 1].modalSubTitle}</Text>
-                    <CustomButton style={{position: "absolute", bottom: 25}} text={"OK"} onPress={() => _onNext()}/>
+                <Modal onDismiss={_hideModal} onModalHide={Keyboard.dismiss} isVisible={visible}
+                       style={styles.containerStyle}>
+                    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                        <>
+                            <Text style={{
+                                textAlign: "center",
+                                position: "absolute",
+                                top: 20,
+                                fontWeight: '900',
+                                letterSpacing: 1,
+                                fontSize: 20,
+                                marginHorizontal: 20,
+                                width: 300
+                            }}>{_stepTitles[currentStep - 1].modalTitle}</Text>
+                            <Text style={{
+                                textAlign: 'center',
+                                color: 'grey',
+                                letterSpacing: 0.2,
+                                fontSize: 16,
+                                marginHorizontal: 40
+                            }}>{_stepTitles[currentStep - 1].modalSubTitle}</Text>
+                            <CustomButton style={{position: "absolute", bottom: 25}} text={"OK"}
+                                          onPress={() => _onNext()}/>
+                        </>
+                    </TouchableWithoutFeedback>
                 </Modal>
             </SafeAreaView>
         </ImageBackground>

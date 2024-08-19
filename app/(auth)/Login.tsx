@@ -52,6 +52,7 @@ const Login = () => {
 
     useEffect(() => {
         const fetchData = async () => {
+            await LocalStorageService.removeItem("otp");
             const token = await AuthService.getAccessToken();
             if (token && user?.id) {
                 router.replace("/(tabs)/");

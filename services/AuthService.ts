@@ -86,10 +86,18 @@ export class AuthService {
     }
 
     static verifyOTP = async (code: string): Promise<boolean | undefined> => {
+        const storedAuth = await LocalStorageService.getItem<boolean>("otp");
+
+        if (storedAuth) {
+            return storedAuth;
+        }
+
         const res = await Requests.get(`auth/verifyOTP?otp=${code}`);
         if (res?.status !== 200) {
+            await LocalStorageService.storeItem<boolean>("otp", false);
             return false;
         }
+        await LocalStorageService.storeItem<boolean>("otp", res.data);
         return res.data;
     }
 

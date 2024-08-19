@@ -16,6 +16,10 @@ export class Helpers {
         return re.test(email);
     }
 
+    static _sanitizePhoneNumber = (phoneNumber: string): string => {
+        return phoneNumber.replace(/[-\s()]/g, '');
+    }
+
     static _isPasswordValid = (password: string): boolean => {
         //const re = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/;
         const re = /^(?=.*[A-Z]).{6,}$/;

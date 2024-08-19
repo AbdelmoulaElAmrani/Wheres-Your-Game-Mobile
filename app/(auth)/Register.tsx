@@ -202,7 +202,10 @@ const Register = () => {
                                     withDarkTheme
                                     placeholder="Phone number"
                                     value={userData.phoneNumber}
-                                    onChangeText={(text) => setUserData(oldValue => ({...oldValue, phoneNumber: text}))}
+                                    onChangeText={(text) => setUserData(oldValue => ({
+                                        ...oldValue,
+                                        phoneNumber: Helpers._sanitizePhoneNumber(text)
+                                    }))}
                                     containerStyle={styles.inputStyle}
                                     textContainerStyle={styles.textPhoneInputContainer}
                                     onChangeCountry={(country) => setUserData(oldValue => (
