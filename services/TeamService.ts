@@ -15,7 +15,7 @@ export class TeamService {
             return undefined;
         return res?.data;
     }
-    static addTeam = async (team: any) => {
+    static createTeam = async (team: any) => {
         const res = await Requests.post(`team/addTeam`, team);
         if (res?.status !== 200)
             return undefined;

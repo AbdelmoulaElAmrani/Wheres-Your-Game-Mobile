@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {Text, View, StyleSheet, TouchableOpacity, ScrollView, RefreshControl} from "react-native";
+import {Text, View, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Alert} from "react-native";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {Avatar} from 'react-native-paper';
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -10,53 +10,22 @@ import {useDispatch, useSelector} from "react-redux";
 import {getUserProfile, logout} from "@/redux/UserSlice";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {ActivityIndicator, MD2Colors} from 'react-native-paper';
+import Gender from "@/models/Gender";
+import UserType from "@/models/UserType";
+import {UserService} from "@/services/UserService";
 
 const Profile = () => {
     const dispatch = useDispatch()
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const loading = useSelector((state: any) => state.user.loading) as boolean;
-    const [image, setImage] = useState<any>();
     const [refreshing, setRefreshing] = useState<boolean>(false);
     const _router = useRouter();
-    //const loadingImage = {isStart: false};
 
     useEffect(() => {
         (async () => {
             await dispatch(getUserProfile() as any)
-            /* if (userData?.imageUrl && !loadingImage.isStart) {
-                 try {
-                     console.log('start downloading', userData?.imageUrl && !loadingImage.isStart);
-                     loadingImage.isStart = true
-                     const result = await StorageService.downloadImageByName(userData.imageUrl);
-                     setImage(result.image);
-                 } catch (e) {
-                 } finally {
-                     loadingImage.isStart = false;
-                 }
-             }*/
         })()
     }, []);
-
-
-    /*useEffect(() => {
-        (async () => {
-            if (userData?.imageUrl && !loadingImage.isStart) {
-                try {
-                    console.log('start downloading', userData?.imageUrl && !loadingImage.isStart);
-                    loadingImage.isStart = true
-                    const result = await StorageService.downloadImageByName(userData.imageUrl);
-                    console.log('donwloaded');
-                    console.log(result);
-                    setImage(result);
-                } catch (e) {
-
-                } finally {
-                    loadingImage.isStart = false;
-                }
-
-            }
-        })();
-    }, [userData]);*/
 
     const _handleEditProfile = () => {
         _router.push({
@@ -68,6 +37,36 @@ const Profile = () => {
     const _handleLogout = () => {
         dispatch(logout({}));
         router.replace('/Login');
+    }
+
+    const _handleDeleteAccount = async () => {
+        Alert.alert(
+            'Confirmation',
+            'Are you sure you want to delete your account?',
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Delete',
+                    onPress: async () => {
+                        try {
+                            const result = await UserService.deleteUserProfile();
+                            if (result) {
+                                _handleLogout();
+                            } else {
+                                Alert.alert('Error', 'Unable to delete your account. Please try again later.');
+                            }
+                        } catch (e) {
+                            Alert.alert('Error', 'An error occurred while deleting your account.');
+                        }
+                    },
+                    style: 'destructive',
+                },
+            ],
+            {cancelable: false}
+        );
     }
 
     const _refreshProfile = () => {
@@ -89,7 +88,7 @@ const Profile = () => {
                         <ActivityIndicator animating={true} color={MD2Colors.blueA700} size={50}/>
                     ) : (
                         <>
-                            {image ? (
+                            {userData?.imageUrl ? (
                                 <Avatar.Image size={100} source={{uri: userData.imageUrl}}/>
                             ) : (
                                 <Avatar.Text
@@ -108,9 +107,11 @@ const Profile = () => {
                                 </View>
                                 <Text
                                     style={styles.userInfo}>Age: {new Date().getFullYear() - new Date(userData.dateOfBirth).getFullYear()}</Text>
-                                <Text style={styles.userInfo}>
-                                    Gender: {userData.gender === 1 ? 'Female' : 'Male'}
-                                </Text>
+                                {userData.role != UserType[UserType.ORGANIZATION] && (
+                                    <Text style={styles.userInfo}>
+                                        Gender: {userData.gender === Gender.MALE ? "Male" : "Female"}
+                                    </Text>
+                                )}
                             </View>
                         </>
                     )
@@ -118,8 +119,10 @@ const Profile = () => {
                 </View>
 
                 <View style={styles.cardContainer}>
-                    <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={_refreshProfile}/>}
-                                contentContainerStyle={{flexGrow: 1}} bounces={true}>
+                    <ScrollView
+                        showsVerticalScrollIndicator={false}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={_refreshProfile}/>}
+                        contentContainerStyle={{flexGrow: 1}} bounces={true}>
                         <View style={{
                             flex: 1,
                             justifyContent: 'center',
@@ -127,43 +130,63 @@ const Profile = () => {
                         }}>
                             <Text style={styles.textSettings}>Settings</Text>
 
-                            <TouchableOpacity style={styles.settingOption}>
+                            <TouchableOpacity
+                                disabled={true}
+                                style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Contact Information</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.settingOption}>
+                            <TouchableOpacity
+                                disabled={true}
+                                style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Location Settings</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.settingOption}>
+                            <TouchableOpacity
+                                disabled={true}
+                                style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Privacy Settings</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.settingOption}>
+                            <TouchableOpacity
+                                disabled={true}
+                                style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Notification Perfrences</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.settingOption}>
+                            <TouchableOpacity
+                                disabled={true}
+                                style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Account Type and Role</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.settingOption}>
+                            <TouchableOpacity
+                                disabled={true}
+                                style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Bio/About Me</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.settingOption}>
+                            <TouchableOpacity
+                                disabled={true}
+                                style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Skills and Interests</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.settingOption}>
+                            <TouchableOpacity
+                                disabled={true}
+                                style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Team Affiliation</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.settingOption}>
+                            <TouchableOpacity
+                                disabled={true}
+                                style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Achievements and Badges</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.settingOption}>
+                            <TouchableOpacity
+                                disabled={true}
+                                style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Connection Settings</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
@@ -171,6 +194,12 @@ const Profile = () => {
                             <TouchableOpacity style={[styles.settingOption, {backgroundColor: 'red'}]}
                                               onPress={_handleLogout}>
                                 <Text style={[styles.settingOptionText, {color: 'white'}]}>Log Out</Text>
+                                <AntDesign name="right" size={24} color="grey"/>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={[styles.settingOption, {backgroundColor: 'white'}]}
+                                              onPress={_handleDeleteAccount}>
+                                <Text style={[styles.settingOptionText, {color: 'red'}]}>Log Out</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
 
@@ -236,7 +265,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 1,
-        backgroundColor: 'white',
+        backgroundColor: 'rgba(82,80,80,0.22)',
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center'

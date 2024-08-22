@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import {
     Keyboard,
     StyleSheet,
@@ -7,23 +7,29 @@ import {
     View,
     TouchableWithoutFeedback
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { Image, ImageBackground } from "expo-image";
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { TextInput } from "react-native-paper";
-import { AntDesign } from '@expo/vector-icons';
+import {StatusBar} from 'expo-status-bar';
+import {Image, ImageBackground} from "expo-image";
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
+import {TextInput} from "react-native-paper";
+import {AntDesign} from '@expo/vector-icons';
 import CustomButton from '@/components/CustomButton';
-import { Divider } from "react-native-paper";
-import { FontAwesome5 } from '@expo/vector-icons';
-import { router } from "expo-router";
-import { AuthService } from '@/services/AuthService';
-import { useDispatch, useSelector } from 'react-redux';
-import { getUserProfile, logout } from '@/redux/UserSlice';
-import { UserResponse } from "@/models/responseObjects/UserResponse";
-import { Helpers } from "@/constants/Helpers";
-import { persistor } from "@/redux/ReduxConfig";
+import {Divider} from "react-native-paper";
+import {router} from "expo-router";
+import {AuthService} from '@/services/AuthService';
+import {useDispatch, useSelector} from 'react-redux';
+import {getUserProfile, logout} from '@/redux/UserSlice';
+import {UserResponse} from "@/models/responseObjects/UserResponse";
+import {persistor} from "@/redux/ReduxConfig";
 import Spinner from '@/components/Spinner';
+import {
+    ConfigureParams,
+    GoogleSignin,
+    User,
+} from "@react-native-google-signin/google-signin";
+import LocalStorageService from '@/services/LocalStorageService';
+import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
+import {googleAndroidClientId, googleIosClientId, googleWebClientId} from "@/appConfig";
 
 
 const Login = () => {
@@ -35,11 +41,19 @@ const Login = () => {
     const user = useSelector((state: any) => state.user.userData) as UserResponse;
     const [loading, setLoading] = useState<boolean>(false);
 
+    const configureGoogleSignIn = () => {
+        GoogleSignin.configure({
+            webClientId: googleWebClientId,
+            iosClientId: googleIosClientId,
+            androidClientId: googleAndroidClientId,
+        } as ConfigureParams);
+    };
+
+
     useEffect(() => {
         const fetchData = async () => {
+            await LocalStorageService.removeItem("otp");
             const token = await AuthService.getAccessToken();
-            //console.log('token => ', token);
-            //console.log('user => ', user);
             if (token && user?.id) {
                 router.replace("/(tabs)/");
             } else {
@@ -48,12 +62,37 @@ const Login = () => {
             }
         }
         fetchData();
+        configureGoogleSignIn();
     }, [user]);
 
-    const _handleSignInWithGoogle = () => {
-        console.log('Sign in with Google');
+    const _handleSignInWithGoogle = async () => {
+        try {
+            await GoogleSignin.hasPlayServices();
+            const userInfo: User = await GoogleSignin.signIn();
+            setLoading(true);
+            const checkEmail = await AuthService.verifyEmail(userInfo.user.email);
+            if (checkEmail) {
+                const body: GoogleUserRequest = {googleUser: userInfo, userData: undefined};
+                const data = await AuthService.loginOrSignWithGoogle(body);
+                if (!data)
+                    throw new Error('Invalid login credentials');
+                dispatch(getUserProfile() as any)
+                setLoading(false);
+                router.replace('/Welcome');
+            } else {
+                await LocalStorageService.storeItem('googleUser', userInfo);
+                setLoading(false);
+                router.replace('/Register');
+            }
+        } catch (error) {
+            console.error('Login failed:', error);
+            setErrorMessages('Something went wrong');
+            setTimeout(() => {
+                setErrorMessages('');
+            }, 5000);
+            setLoading(false);
+        }
     }
-
 
     const _handleLogin = async () => {
         if (_isLoginFormNotValid()) {
@@ -66,7 +105,7 @@ const Login = () => {
 
         try {
             setLoading(true);
-            const data = await AuthService.logIn({ email, password });
+            const data = await AuthService.logIn({email, password});
             if (!data) {
                 throw new Error('Invalid login credentials');
             }
@@ -85,7 +124,6 @@ const Login = () => {
 
 
     const _handleForgotPassword = () => {
-        console.log('Forgot Password');
     }
 
     const _handleSignUp = () => {
@@ -94,10 +132,9 @@ const Login = () => {
 
     const _isLoginFormNotValid = (): boolean => (email.trim() === '' || password.trim() === '');
 
-
     return (
         <>
-            <StatusBar style="light" />
+            <StatusBar style="light"/>
             <ImageBackground
                 style={{
                     position: "absolute",
@@ -116,12 +153,12 @@ const Login = () => {
 
                         <View style={styles.cardContainer}>
                             {loading && (
-                                <Spinner visible={loading} />
+                                <Spinner visible={loading}/>
                             )}
 
                             <View style={styles.headerContainer}>
                                 <Image style={styles.logoContainer}
-                                    source={require('../../assets/images/logoBall.png')} />
+                                       source={require('../../assets/images/logoBall.png')}/>
                             </View>
                             <View style={styles.formContainer}>
                                 <View>
@@ -131,7 +168,7 @@ const Login = () => {
                                         placeholder={'Email'}
                                         cursorColor='black'
                                         placeholderTextColor={'grey'}
-                                        left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30} />}
+                                        left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
                                         value={email}
                                         onChangeText={setEmail}
                                         underlineColor={"transparent"}
@@ -144,7 +181,7 @@ const Login = () => {
                                         placeholder={'Password'}
                                         placeholderTextColor={'grey'}
                                         secureTextEntry={true}
-                                        left={<TextInput.Icon color={'#D3D3D3'} icon='lock-outline' size={30} />}
+                                        left={<TextInput.Icon color={'#D3D3D3'} icon='lock-outline' size={30}/>}
                                         value={password}
                                         onChangeText={setPassword}
                                         underlineColor={"transparent"}
@@ -161,42 +198,42 @@ const Login = () => {
                                 }
                                 <View style={styles.mgTop}>
                                     <CustomButton text="Login" onPress={_handleLogin}
-                                        disabled={_isLoginFormNotValid()} />
+                                                  disabled={_isLoginFormNotValid()}/>
                                 </View>
                                 {/* forgot password ? */}
-                                <View style={styles.mgTop}>
+                                {/*<View style={styles.mgTop}>
                                     <TouchableOpacity onPress={_handleForgotPassword}>
-                                        <Text style={{ color: 'blue', textAlign: 'center', fontSize: 18 }}>Forgot Password
+                                        <Text style={{color: 'blue', textAlign: 'center', fontSize: 18}}>Forgot Password
                                             ?</Text>
                                     </TouchableOpacity>
-                                </View>
+                                </View>*/}
 
                                 {/* Sign in with */}
                                 <View style={styles.dividerContainerSignUp}>
-                                    <Divider style={styles.dividerStyle} />
+                                    <Divider style={styles.dividerStyle}/>
                                     <Text style={styles.signInTextStyle}>Sign in with</Text>
-                                    <Divider style={styles.dividerStyle} />
+                                    <Divider style={styles.dividerStyle}/>
                                 </View>
 
                                 {/* Social Media Icons */}
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 30 }}>
-                                    <TouchableOpacity disabled={true}>
-                                        <FontAwesome5 name="facebook" size={40} color="blue" />
-                                    </TouchableOpacity>
+                                <View style={{flexDirection: 'row', justifyContent: 'center', marginTop: 30}}>
+                                    {/*<TouchableOpacity disabled={true}>
+                                        <FontAwesome5 name="facebook" size={40} color="grey"/>
+                                    </TouchableOpacity>*/}
                                     <TouchableOpacity onPress={_handleSignInWithGoogle}>
-                                        <AntDesign name="google" size={40} color="blue" />
+                                        <AntDesign name="google" size={40} color="blue"/>
                                     </TouchableOpacity>
-                                    <TouchableOpacity disabled={true}>
-                                        <AntDesign name="twitter" size={40} color="blue" />
-                                    </TouchableOpacity>
+                                    {/*<TouchableOpacity disabled={true}>
+                                        <AntDesign name="twitter" size={40} color="grey"/>
+                                    </TouchableOpacity>*/}
                                 </View>
 
                                 <View style={styles.dontHaveAccountText}>
-                                    <Text style={{ color: 'black', textAlign: 'center', fontSize: 16 }}>Don't have an
+                                    <Text style={{color: 'black', textAlign: 'center', fontSize: 16}}>Don't have an
                                         account ?
                                     </Text>
                                     <TouchableOpacity onPress={_handleSignUp}>
-                                        <Text style={{ color: 'blue', textAlign: 'center', fontSize: 16 }}> Sign Up</Text>
+                                        <Text style={{color: 'blue', textAlign: 'center', fontSize: 16}}> Sign Up</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -217,14 +254,12 @@ const styles = StyleSheet.create({
     },
     headerContainer: {
         alignItems: 'center',
-        marginTop: hp(5),
+        //marginTop: hp(5),
     },
     logoContainer: {
         width: wp(85),
-        height: hp(25),
-        alignContent: 'center',
-        marginTop: hp(-30),
-
+        height: 190,
+        marginTop: hp(-32),
     },
     headerTitle: {
         textAlign: 'center',
@@ -233,7 +268,6 @@ const styles = StyleSheet.create({
         marginTop: hp(5),
     },
     formContainer: {
-        backgroundColor: 'rgba(255, 255, 255, .3)',
         alignSelf: "center",
         width: wp(100),
         borderRadius: 30,
@@ -257,7 +291,6 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 20,
         borderColor: '#D3D3D3',
         borderWidth: 1
-
     },
     mgTop: {
         marginTop: 20,
@@ -302,8 +335,7 @@ const styles = StyleSheet.create({
     dontHaveAccountText: {
         flexDirection: 'row',
         justifyContent: 'center',
-        marginTop: hp(13)
-
+        marginTop: hp(10)
     },
 });
 

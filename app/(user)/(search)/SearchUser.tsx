@@ -38,7 +38,10 @@ const SearchUser = () => {
     const [people, setPeople] = useState<UserSearchResponse[]>([]);
 
     const _onSearchSubmit = useCallback(async () => {
-        if (searchName.trim() === '') return;
+        if (searchName.trim() === '') {
+            if (people.length > 0) setPeople([]);
+            return;
+        }
         setLoading(true);
         const data = await UserService.SearchUsersByFullName(searchName, searchType);
         if (data)
@@ -50,7 +53,7 @@ const SearchUser = () => {
 
     const _onAddFriendOrRemove = async (receiverId: string) => {
         const senderId = currentUser.id;
-        await FriendRequestService.sendFriendRequest(senderId, receiverId);
+        const d = await FriendRequestService.sendFriendRequest(senderId, receiverId);
         setPeople(oldPeople => {
             return oldPeople.map(person => {
                 if (person.id === receiverId) {
@@ -61,29 +64,31 @@ const SearchUser = () => {
         });
     };
 
-    const _renderUserItem = ({item}: { item: UserSearchResponse }) => (
-        <TouchableOpacity style={styles.userItem}>
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                {item.imageUrl ? (
-                    <Avatar.Image size={35} source={{uri: item.imageUrl}}/>
-                ) : (
-                    <Avatar.Text
-                        size={35}
-                        label={(item?.firstName?.charAt(0) + item?.lastName?.charAt(0)).toUpperCase()}
-                    />
-                )}
-                <Text style={styles.userName}>{`${item.firstName} ${item.lastName}`}</Text>
-            </View>
-            {item.friend ?
-                <Ionicons
-                    onPress={() => _onAddFriendOrRemove(item.id)}
-                    name="person-add-outline" size={24} color="black"/>
-                :
-                <Ionicons name="person-sharp" size={24} color="black"/>
-            }
+    const _renderUserItem = ({item}: { item: UserSearchResponse }) => {
+        return (
+            <TouchableOpacity style={styles.userItem}>
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                    {item.imageUrl ? (
+                        <Avatar.Image size={35} source={{uri: item.imageUrl}}/>
+                    ) : (
+                        <Avatar.Text
+                            size={35}
+                            label={(item?.firstName?.charAt(0) + item?.lastName?.charAt(0)).toUpperCase()}
+                        />
+                    )}
+                    <Text style={styles.userName}>{`${item.firstName} ${item.lastName}`}</Text>
+                </View>
+                {!item.friend ?
+                    <Ionicons
+                        onPress={() => _onAddFriendOrRemove(item.id)}
+                        name="person-add-outline" size={20} color="black"/>
+                    :
+                    <Ionicons name="person-sharp" size={20} color="#2757CB"/>
+                }
 
-        </TouchableOpacity>
-    );
+            </TouchableOpacity>
+        );
+    }
 
 
     return (
@@ -116,12 +121,13 @@ const SearchUser = () => {
                 <View style={styles.mainContainer}>
                     <KeyboardAvoidingView
                         style={{width: '100%', height: '100%', paddingVertical: 10, paddingHorizontal: 8}}>
-                        <View style={{width: '100%'}}>
+                        <View style={{width: '100%', marginBottom: 30}}>
                             {people.length > 0 ? <FlatList
                                 data={people}
                                 keyExtractor={(item) => item.id.toString()}
                                 renderItem={_renderUserItem}
                                 style={styles.userList}
+                                ListFooterComponent={<View style={{height: 50}}/>}
                             /> : <Text
                                 style={{textAlign: 'center', fontWeight: 'bold', marginTop: heightPercentageToDP(30)}}>No
                                 User</Text>}

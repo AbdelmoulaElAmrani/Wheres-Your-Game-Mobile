@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Sport-Games",
+    "name": "Where's Your Game",
     "slug": "Sport-Games",
-    "version": "1.0.1",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "sport-app",
@@ -21,13 +21,20 @@
         "NSLocationWhenInUseUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to allow you to get the position of your current location.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to allow you to get the position of your current location.",
         "NSLocationUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to allow you to get the position of your current location.",
-        "NSPhotoLibraryUsageDescription ": "$(PRODUCT_NAME) requires access to your photo to allow you to upload photos"
+        "NSPhotoLibraryUsageDescription ": "$(PRODUCT_NAME) requires access to your photo to allow you to upload photos",
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.798054162153-e99bjqq6709aqhfe922ab9fhl7nv3f7q"
+            ]
+          }
+        ]
       },
       "config": {
         "googleMapsApiKey": "AIzaSyDlFo6upaajnGewXn4DX4-naBhsWPcn8VE"
       },
       "bundleIdentifier": "com.digiboost.sportgames",
-      "buildNumber": "2"
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
@@ -43,7 +50,8 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
-      ]
+      ],
+      "package": "com.digiboost.sportgames"
     },
     "plugins": [
       "expo-router",

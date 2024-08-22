@@ -1,38 +1,74 @@
-import {FlatList, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
+import {
+    FlatList,
+    KeyboardAvoidingView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
+} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {ImageBackground} from "expo-image";
 import {router, useRouter} from "expo-router";
-import {memo, useEffect, useState} from "react";
+import {memo, useEffect, useRef, useState} from "react";
 import {Conversation} from "@/models/Conversation";
 import {FlashList} from "@shopify/flash-list";
 import {Avatar, Divider, Modal} from "react-native-paper";
 import {Helpers} from "@/constants/Helpers";
 import {heightPercentageToDP, widthPercentageToDP} from "react-native-responsive-screen";
-import {AntDesign, FontAwesome} from "@expo/vector-icons";
+import {AntDesign} from "@expo/vector-icons";
 import Spinner from "@/components/Spinner";
 import {ChatService} from "@/services/ChatService";
 import {UserService} from "@/services/UserService";
+import moment from 'moment-timezone';
+import {CONVERSATION_REFRESH_TIMER} from "@/appConfig";
 
 
-const MESSAGE_TIMER = 10 * 1000 * 60;
+const MESSAGE_TIMER = CONVERSATION_REFRESH_TIMER * 1000;
 const Chats = () => {
     const [recentChats, setRecentChats] = useState<Conversation[]>([]);
     const _router = useRouter();
     const [loading, setLoading] = useState<boolean>(false);
     const [modalOpen, setModalOpen] = useState<boolean>(false);
-
+    const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        setLoading(true);
-        const intervalId = setInterval(() => {
-            fetchConversations();
-        }, MESSAGE_TIMER);
-        //const fakers = Conversation.generateFakeConversations(10);
-        //setRecentChats(fakers);
-        setLoading(false);
-        return () => clearInterval(intervalId);
+        (async () => {
+            try {
+                setLoading(true);
+                await fetchConversations();
+            } catch (ignored) {
+
+            } finally {
+                setLoading(false);
+            }
+        })();
     }, []);
+
+    useEffect(() => {
+        if (modalOpen)
+            startInterval();
+        else
+            startInterval();
+
+        return () => {
+            stopInterval();
+        };
+    }, [modalOpen]);
+
+    const startInterval = () => {
+        if (!intervalIdRef.current) {
+            intervalIdRef.current = setInterval(fetchConversations, MESSAGE_TIMER);
+        }
+    };
+
+    const stopInterval = () => {
+        if (intervalIdRef.current) {
+            clearInterval(intervalIdRef.current);
+            intervalIdRef.current = null;
+        }
+    };
 
     const _handleGoBack = () => {
         if (router.canGoBack())
@@ -40,26 +76,34 @@ const Chats = () => {
     }
 
     const fetchConversations = async () => {
-        const data = await ChatService.getConversation();
-        if (data)
-            setRecentChats(data);
+        if (!modalOpen) {
+            const data = await ChatService.getConversation();
+            if (data) {
+                try {
+                    const sortedData = data.sort((a, b) => {
+                        const dateA = new Date(a.lastActiveDate);
+                        const dateB = new Date(b.lastActiveDate);
+                        return dateB.getTime() - dateA.getTime();
+                    });
+                    setRecentChats(sortedData);
+                } catch (e) {
+                    setRecentChats(data);
+                }
+            }
+        }
     }
 
     const _onOpenConversation = (chat: Conversation): void => {
-        const receptionId = chat.participant1?.id;
+        const receptionId = chat.user?.id;
         _router.push({
             pathname: '/UserConversation',
             params: {data: receptionId},
         });
     }
 
+    const _showSearchUserModal = () => setModalOpen(true);
 
-    const _showSearchUserModal = () => {
-        setModalOpen(true);
-    }
-    const _hideSearchUserModal = () => {
-        setModalOpen(false);
-    }
+    const _hideSearchUserModal = () => setModalOpen(false);
 
     const startChatWithUser = (item: UserSearchResponse) => {
         _hideSearchUserModal();
@@ -70,7 +114,6 @@ const Chats = () => {
         });
     }
 
-
     const _userSearchModal = memo(() => {
         const [searchName, setSearchName] = useState<string>('');
         const [people, setPeople] = useState<UserSearchResponse[]>([]);
@@ -78,13 +121,12 @@ const Chats = () => {
         const _onSearchSubmit = async () => {
             if (searchName.trim() === '') return;
             const data = await UserService.SearchUsersByFullName(searchName);
-            if (data)
-                setPeople(data);
-            else
-                setPeople([]);
+            setPeople(data || []);
         }
+
         const _renderUserItem = ({item}: { item: UserSearchResponse }) => (
             <TouchableOpacity style={styles.userItem} onPress={() => startChatWithUser(item)}>
+
                 {item.imageUrl ? (
                     <Avatar.Image size={35} source={{uri: item.imageUrl}}/>
                 ) : (
@@ -96,6 +138,7 @@ const Chats = () => {
                 <Text style={styles.userName}>{`${item.firstName} ${item.lastName}`}</Text>
             </TouchableOpacity>
         );
+
         return (
             <Modal visible={modalOpen}
                    onDismiss={_hideSearchUserModal}
@@ -127,12 +170,13 @@ const Chats = () => {
                         </TouchableOpacity>
                     </View>
 
-                    <View style={{width: '100%'}}>
+                    <View style={{width: '100%', height: '90%', marginBottom: 30}}>
                         {people.length > 0 ? <FlatList
                             data={people}
                             keyExtractor={(item) => item.id.toString()}
                             renderItem={_renderUserItem}
                             style={styles.userList}
+                            ListFooterComponent={<View style={{height: 50}}/>}
                         /> : <Text
                             style={{textAlign: 'center', fontWeight: 'bold', marginTop: heightPercentageToDP(30)}}>No
                             User</Text>}
@@ -143,29 +187,30 @@ const Chats = () => {
     });
 
     const _renderConversation = memo(({item}: { item: Conversation }) => {
+        const userTimeZone = moment.tz.guess(); // Get the user's time zone
+        const formattedDate = moment(item.lastActiveDate).tz(userTimeZone).toDate();
         return (
             <TouchableOpacity
                 onPress={() => _onOpenConversation(item)}
                 style={{marginBottom: 10}}>
                 <View style={{flexDirection: 'row', height: 80}}>
                     <View style={{backgroundColor: 'white', flex: 0.2, alignItems: 'center'}}>
-                        {item.participant1?.imageUrl ? (
-                            <Avatar.Image size={50} source={{uri: item.participant1?.imageUrl}}/>
+                        {item.user?.imageUrl ? (
+                            <Avatar.Image size={50} source={{uri: item.user?.imageUrl}}/>
                         ) : (
                             <Avatar.Text
                                 size={50}
                                 // @ts-ignore
-                                label={(item.participant1?.firstName?.charAt(0) + item.participant1?.lastName?.charAt(0)).toUpperCase()}/>
+                                label={(item.user?.firstName?.charAt(0) + item.user?.lastName?.charAt(0)).toUpperCase()}/>
                         )}
                     </View>
                     <View style={{flex: 0.8}}>
                         <View style={{marginTop: 12, flexDirection: 'row', justifyContent: 'space-between'}}>
                             <Text style={{fontWeight: 'bold', fontSize: 14}}>
-                                {item.participant1?.firstName + ' ' + item.participant1?.lastName}
+                                {item.user?.firstName + ' ' + item.user?.lastName}
                             </Text>
                             <View style={{flexDirection: "row", alignItems: 'center'}}>
-                                <FontAwesome name="circle" style={{marginRight: 5}} size={10} color="#E15B2D"/>
-                                <Text>{Helpers.formatNotificationDate(item.lastMessage?.timestamp)}</Text>
+                                <Text>{Helpers.formatDateOnNotificationOrChat(formattedDate)}</Text>
                             </View>
                         </View>
                         <Text style={{color: 'grey', fontSize: 14, textAlign: 'auto', marginTop: 8}}
@@ -187,11 +232,11 @@ const Chats = () => {
             }}
             source={require('../../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                {loading && (
-                    <Spinner visible={loading}/>
-                )}
                 <CustomNavigationHeader text={"Message"} goBackFunction={_handleGoBack} showBackArrow/>
                 <View style={styles.mainContainer}>
+                    {loading && (
+                        <Spinner visible={loading}/>
+                    )}
                     <View style={styles.searchContainer}>
                         <TouchableOpacity
                             onPress={_showSearchUserModal}
@@ -204,7 +249,7 @@ const Chats = () => {
                             <FlashList
                                 data={recentChats}
                                 renderItem={({item}) => <_renderConversation item={item}/>}
-                                keyExtractor={item => item.conversationId}
+                                keyExtractor={(item, index) => item.user?.id + "-" + index}
                                 estimatedItemSize={10}
                                 contentContainerStyle={{backgroundColor: 'white', padding: 10}}
                                 ListFooterComponent={<View style={{height: heightPercentageToDP(20)}}>

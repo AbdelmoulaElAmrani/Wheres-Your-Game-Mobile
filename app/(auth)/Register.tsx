@@ -22,6 +22,8 @@ import {updateUserRegisterData, logout} from "@/redux/UserSlice";
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {Helpers} from "@/constants/Helpers";
 import {AuthService} from "@/services/AuthService";
+import LocalStorageService from "@/services/LocalStorageService";
+import {User} from "@react-native-google-signin/google-signin";
 
 
 const Register = () => {
@@ -40,9 +42,33 @@ const Register = () => {
         role: UserType.DEFAULT,
     });
     const phoneInput = useRef<PhoneInput>(null);
+    const [showPasswordInput, setShowPasswordInput] = useState<boolean>(true);
 
     useEffect(() => {
         dispatch(logout({}) as any);
+        LocalStorageService.getItem<User>('googleUser').then((userInfo) => {
+            if (userInfo) {
+                setShowPasswordInput(false);
+                setUserData({
+                    email: userInfo.user.email,
+                    password: '',
+                    firstName: userInfo.user.givenName || '',
+                    lastName: userInfo.user.familyName || '',
+                    phoneNumber: '',
+                    countryCode: '+1',
+                    address: '',
+                    zipCode: '',
+                    bio: '',
+                    verified: false,
+                    role: UserType.DEFAULT,
+                });
+            }
+        }).catch((e) => {
+            console.log(e);
+        })
+            .finally(() => {
+                LocalStorageService.removeItem('googleUser');
+            });
     }, []);
 
 
@@ -68,15 +94,15 @@ const Register = () => {
             const result = await AuthService.verifyEmail(userData.email.trim());
             if (result || result == undefined) errors.push('The Email already taken');
         } catch (e) {
-            console.log(e);
+            console.error(e);
         }
-
-        if (userData.password.trim() === '') {
-            errors.push('Password is required');
-        } else if (!Helpers._isPasswordValid(userData.password)) {
-            errors.push('Password must be 6-20 characters long and contain at least one uppercase letter, one lowercase letter, and one number');
+        if (showPasswordInput) {
+            if (userData.password.trim() === '') {
+                errors.push('Password is required');
+            } else if (!Helpers._isPasswordValid(userData.password)) {
+                errors.push('Password must be at least 6 characters long and include at least one uppercase letter.');
+            }
         }
-
         if (userData.firstName.trim() === '') {
             errors.push('First name is required');
         }
@@ -87,12 +113,9 @@ const Register = () => {
 
         if (userData.phoneNumber.trim() === '') {
             errors.push('Phone number is required');
-        }
-        if (phoneInput.current?.isValidNumber(userData.phoneNumber) === false) {
+        } else if (phoneInput.current?.isValidNumber(userData.phoneNumber) === false) {
             errors.push('Invalid phone number');
         }
-
-
         return errors;
     }
 
@@ -155,19 +178,21 @@ const Register = () => {
                                     }}
                                 />
                             </View>
-                            <View style={styles.mgTop}>
-                                <Text style={styles.textLabel}>Password</Text>
-                                <TextInput
-                                    style={styles.inputStyle}
-                                    placeholder={'Password'}
-                                    secureTextEntry={true}
-                                    placeholderTextColor={'grey'}
-                                    value={userData.password}
-                                    onChangeText={(value) => {
-                                        setUserData(oldValue => ({...oldValue, password: value}))
-                                    }}
-                                />
-                            </View>
+                            {showPasswordInput && (
+                                <View style={styles.mgTop}>
+                                    <Text style={styles.textLabel}>Password</Text>
+                                    <TextInput
+                                        style={styles.inputStyle}
+                                        placeholder={'Password'}
+                                        secureTextEntry={true}
+                                        placeholderTextColor={'grey'}
+                                        value={userData.password}
+                                        onChangeText={(value) => {
+                                            setUserData(oldValue => ({...oldValue, password: value}))
+                                        }}
+                                    />
+                                </View>
+                            )}
                             <View style={styles.mgTop}>
                                 <Text style={styles.textLabel}>Phone number</Text>
                                 <PhoneInput
@@ -177,7 +202,10 @@ const Register = () => {
                                     withDarkTheme
                                     placeholder="Phone number"
                                     value={userData.phoneNumber}
-                                    onChangeText={(text) => setUserData(oldValue => ({...oldValue, phoneNumber: text}))}
+                                    onChangeText={(text) => setUserData(oldValue => ({
+                                        ...oldValue,
+                                        phoneNumber: Helpers._sanitizePhoneNumber(text)
+                                    }))}
                                     containerStyle={styles.inputStyle}
                                     textContainerStyle={styles.textPhoneInputContainer}
                                     onChangeCountry={(country) => setUserData(oldValue => (

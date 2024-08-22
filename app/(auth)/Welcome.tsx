@@ -30,7 +30,7 @@ const Welcome = () => {
                 <View style={styles.container}>
                     <Text style={styles.welcomeText}>Welcome to</Text>
                     <Text style={styles.wheresYourGameText}>Where's Your Game</Text>
-                    <Text style={styles.accountHaseBeenCreatedText}>Your account has been created successfully created.
+                    <Text style={styles.accountHaseBeenCreatedText}>Your account has been created successfully.
                         Now, let's start your sports apps</Text>
                 </View>
 
@@ -39,10 +39,7 @@ const Welcome = () => {
                     onPress={_handleGetStarted}
                     style={styles.getStartedButton}
                 />
-
-
             </ImageBackground>
-
         </>
     )
 }

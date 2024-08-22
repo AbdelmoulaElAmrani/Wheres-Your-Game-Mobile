@@ -19,9 +19,10 @@ import {TeamService} from "@/services/TeamService";
 import Spinner from "@/components/Spinner";
 import {Image, ImageBackground} from "expo-image";
 import {NotificationService} from "@/services/NotificationService";
+import {NOTIFICATION_REFRESH_TIMER} from "@/appConfig";
 
 const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
-const REFRESH_NOTIFICATION_TIME = 5 * 1000 * 60;
+const REFRESH_NOTIFICATION_TIME = NOTIFICATION_REFRESH_TIMER * 1000;
 const Home = () => {
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const loading = useSelector((state: any) => state.user.loading) as boolean;
@@ -52,7 +53,7 @@ const Home = () => {
     ];
 
     useEffect(() => {
-        if (!userData?.id) {
+        if (userData == undefined || userData.id == undefined) {
             dispatch(getUserProfile() as any);
         }
         const fetchData = async () => {
@@ -61,30 +62,35 @@ const Home = () => {
                     dispatch(getUserSports(userData.id) as any);
                     await _getMyTeams();
                 } catch (e) {
+                    console.error(e);
                 }
             }
         }
         fetchData();
+        checkForNotification();
 
-
-        const intervalId = setInterval(async () => {
-            const res = await NotificationService.getNotifications();
-            if (res) {
-                const value = res.some(x => x.isRead);
-                setNewNotif(value);
-            } else setNewNotif(false);
-        }, REFRESH_NOTIFICATION_TIME);
+        const intervalId = setInterval(checkForNotification, REFRESH_NOTIFICATION_TIME);
 
         return () => clearInterval(intervalId);
-    }, [userData]);
+    }, []); // no dependencies to avoid the crash
 
+    const checkForNotification = async () => {
+        try {
+            if (!newNotif && userData?.id) {
+                const res = await NotificationService.getNotifications();
+                setNewNotif(res ? res.some(x => !x.isRead) : false);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
 
     const _getMyTeams = async () => {
         try {
             const result = await TeamService.getUserTeams(userData.id);
             setTeams(result);
         } catch (e) {
-            console.log('_getMyTeams', e);
+            console.error('_getMyTeams', e);
         }
     }
 
@@ -100,7 +106,7 @@ const Home = () => {
                 });
             }
         } catch (e) {
-            console.log('_getAllPlayerOfSelectedTeam', e);
+            console.error('_getAllPlayerOfSelectedTeam', e);
         } finally {
             setPlayersLoading(false);
         }
@@ -108,7 +114,6 @@ const Home = () => {
 
 
     const _handleOnOpenMenu = () => {
-        console.log('menu');
     }
     const _onOpenNotification = () => {
         setNewNotif(false);
@@ -131,7 +136,6 @@ const Home = () => {
     }
 
     const _onAddPlayer = () => {
-        console.log('Add Player');
     }
 
     const _onAddTeam = () => {
@@ -139,7 +143,6 @@ const Home = () => {
     }
 
     const _onViewAll = () => {
-        console.log('View All');
     }
 
     const _onSelectTeam = async (team: Team) => {
@@ -151,23 +154,20 @@ const Home = () => {
                 setSelectedTeam(team);
                 await _getAllPlayerOfSelectedTeam(team);
             } catch (e) {
-                console.log(e);
+                console.error(e);
             }
         }
     }
     const _onSelectPlayer = (player: any) => {
-        console.log('Player', player);
     }
 
     const _onSelectCategory = (category: any) => {
-        console.log('Category', category)
     }
 
     const _onSelectSport = (id: any) => {
-        console.log('select sport', id);
     }
 
-    const isCoach = (): boolean => userData.role == UserType[UserType.COACH];
+    const isCoach = (): boolean => userData.role == UserType[UserType.COACH] || userData.role == UserType[UserType.ORGANIZATION];
 
     const isPlayersVisible = (): boolean =>
         (isCoach() || UserType[UserType.PLAYER] == userData.role.toString()) && selectedTeam !== undefined;
@@ -175,6 +175,7 @@ const Home = () => {
 
     const _renderSportItem = memo(({item}: { item: UserSportResponse }) => {
         return (<TouchableOpacity
+            disabled={true}
             style={{justifyContent: 'center', alignItems: 'center', alignContent: 'center'}}
             onPress={() => _onSelectSport(item.id)}>
             <View style={styles.circle}>
@@ -188,35 +189,38 @@ const Home = () => {
         </TouchableOpacity>);
     });
 
-    const _renderTeam = memo(({item}: { item: Team }) => (
-        <TouchableOpacity
-            style={[styles.card, selectedTeam?.id == item.id ? styles.selectedTag : null]}
-            onPress={() => _onSelectTeam(item)}>
-            <View>
-                <View style={styles.cardImage}>
-                    {item.imageUrl ? (
-                        <Avatar.Image size={60} source={{uri: item.imageUrl}}/>
-                    ) : (
-                        <Avatar.Text
-                            size={60}
-                            label={(item.name.charAt(0) + item.name.charAt(1)).toUpperCase()}
-                        />
-                    )}
+    const _renderTeam = memo(({item}: { item: Team }) => {
+        return (
+            <TouchableOpacity
+                style={[styles.card, selectedTeam?.id == item.id ? styles.selectedTag : null]}
+                onPress={() => _onSelectTeam(item)}>
+                <View>
+                    <View style={styles.cardImage}>
+                        {item.imgUrl ? (
+                            <Avatar.Image size={60} source={{uri: item.imgUrl}}/>
+                        ) : (
+                            <Avatar.Text
+                                size={60}
+                                label={(item.name.charAt(0) + item.name.charAt(1)).toUpperCase()}
+                            />
+                        )}
+                    </View>
                 </View>
-            </View>
-            <Text style={{
-                textAlign: 'center',
-                fontSize: 16,
-                fontWeight: "600",
-                marginTop: 10,
-                width: 105,
-                color: selectedTeam?.id == item.id ? 'white' : 'black'
-            }}>{item.name}</Text>
-        </TouchableOpacity>
-    ));
+                <Text style={{
+                    textAlign: 'center',
+                    fontSize: 16,
+                    fontWeight: "600",
+                    marginTop: 10,
+                    width: 105,
+                    color: selectedTeam?.id == item.id ? 'white' : 'black'
+                }}>{item.name}</Text>
+            </TouchableOpacity>
+        )
+    });
 
     const _renderPlayer = memo(({item}: { item: Player }) => (
         <TouchableOpacity
+            disabled={true}
             style={styles.card}
             onPress={() => _onSelectPlayer(item)}>
             <View>
@@ -243,9 +247,10 @@ const Home = () => {
 
     const _renderCategory = memo(({item}: { item: any }) => (
         <TouchableOpacity
+            disabled={true}
             style={styles.categoryContainer}
             onPress={() => _onSelectCategory(item)}>
-            <Text style={{fontSize: 14, fontWeight: 'bold', textAlign: 'center'}}>{item}</Text>
+            <Text style={{fontSize: 14, fontWeight: 'bold', textAlign: 'center', color: 'white'}}>{item}</Text>
         </TouchableOpacity>
     ));
 
@@ -279,7 +284,8 @@ const Home = () => {
                             <TouchableOpacity
                                 onPress={_onOpenNotification}
                                 style={{marginRight: 20}}>
-                                <Fontisto name="bell" size={30} color={newNotif ? "red" : "white"}/>
+                                <Fontisto name={newNotif ? "bell-alt" : "bell"} size={30}
+                                          color={newNotif ? "red" : "white"}/>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={_onOpenChat}
@@ -303,7 +309,7 @@ const Home = () => {
                             placeholder={{}}
                             items={childrens}
                             onValueChange={value => {
-                                console.log(value);
+                                console.info(value);
                             }}
                             style={pickerSelectStyles}
                             value={selectedChild}
@@ -403,10 +409,11 @@ const Home = () => {
                                         <Text style={styles.menuTitle}>Explore by Categories</Text>
                                     </View>
                                     <TouchableOpacity
+                                        disabled={true}
                                         onPress={_onViewAll}
                                         style={styles.btnContainer}>
-                                        <Text style={styles.btnText}>View All</Text>
-                                        <AntDesign name="right" size={20} color="#4361EE"/>
+                                        <Text style={[styles.btnText, {color: 'grey'}]}>View All</Text>
+                                        <AntDesign name="right" size={20} color="grey"/>
                                     </TouchableOpacity>
                                 </View>
 
@@ -534,7 +541,7 @@ const styles = StyleSheet.create({
         //resizeMode: 'cover',
     },
     categoryContainer: {
-        backgroundColor: 'white',
+        backgroundColor: 'rgba(82,80,80,0.22)',
         width: 160,
         height: 90,
         borderRadius: 10,

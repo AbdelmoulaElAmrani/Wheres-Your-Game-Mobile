@@ -36,6 +36,7 @@ const GClips = () => {
 
     const _renderItem = ({item}: { item: any }) => (
         <TouchableOpacity
+            disabled={true}
             style={[styles.tag, selectedTag === item ? styles.selectedTag : null]}
             onPress={() => setSelectedTag(item)}>
             <Text style={[styles.tagText, {color: selectedTag === item ? 'white' : 'black'}]}>{item}</Text>
@@ -96,8 +97,9 @@ const GClips = () => {
 
                     <View style={styles.videoHeader}>
                         <Text style={styles.videoListTitle}>New Videos</Text>
-                        <TouchableOpacity>
-                            <Text style={{color: 'blue', fontSize: 17}}>View All</Text>
+                        <TouchableOpacity
+                            disabled={true}>
+                            <Text style={{color: 'grey', fontSize: 17}}>View All</Text>
                         </TouchableOpacity>
                     </View>
                     <View style={styles.videoListContainer}>
@@ -140,7 +142,7 @@ const styles = StyleSheet.create({
         marginBottom: hp(2),
     },
     tag: {
-        backgroundColor: 'white',
+        backgroundColor: 'rgba(82,80,80,0.22)',
         borderRadius: 5,
         justifyContent: 'center',
         alignItems: 'center',
@@ -152,7 +154,7 @@ const styles = StyleSheet.create({
         color: 'white'
     },
     tagText: {
-        color: 'black',
+        color: 'white',
         fontSize: 15,
         fontWeight: '600',
     },

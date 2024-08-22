@@ -6,5 +6,8 @@ export interface UserInterestedSport {
     sportLevel?: SportLevel;
     sportId?: string;
     sportName?: string;
-
+    estimatedCost?: number;
+    typeOfGame?: string[];
+    seasonDuration?: string;
+    locationOfGame?: string;
 }

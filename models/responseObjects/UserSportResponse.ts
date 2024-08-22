@@ -8,4 +8,8 @@ export interface UserSportResponse {
     sportId: string;
     sportName: string;
     iconUrl: string;
+    estimatedCost?: number;
+    typeOfGame?: string;
+    seasonDuration?: string;
+    locationOfGame?: string;
 }

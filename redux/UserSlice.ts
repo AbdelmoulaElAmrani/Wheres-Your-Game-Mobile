@@ -6,7 +6,6 @@ import {UserService} from "@/services/UserService";
 import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 import {SportService} from "@/services/SportService";
 import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
-import {persistor} from "@/redux/ReduxConfig";
 
 
 export const getUserProfile = createAsyncThunk('user/getUserProfile', async () => {
@@ -24,6 +23,7 @@ export const getUserSports = createAsyncThunk<UserSportResponse[], string, { rej
             }
             return response;
         } catch (error) {
+            console.error(error);
             if (error instanceof Error) {
                 return rejectWithValue(error.message);
             }
@@ -33,17 +33,9 @@ export const getUserSports = createAsyncThunk<UserSportResponse[], string, { rej
 );
 
 export const updateUserProfile = createAsyncThunk('user/updateUserProfile', async (user: UserRequest) => {
-    console.log('in update user profile');
-    console.log(user);
     const response = await UserService.updateUser(user);
     return response;
 });
-
-/*export const logout = createAsyncThunk('user/logout', async () => {
-    AuthService.logOut();
-    persistor.purge();
-    persistor.flush();
-});*/
 
 
 const initialState = {
@@ -62,7 +54,6 @@ const initialState = {
     userData: {} as UserResponse,
     userSport: [{}] as UserSportResponse[],
     loading: false,
-
 };
 
 const userSlice = createSlice({
@@ -77,7 +68,9 @@ const userSlice = createSlice({
         },
         logout: (state, action) => {
             state.loading = false;
-            state = initialState;
+            state.userData = initialState.userData;
+            state.userSport = initialState.userSport;
+            state.userRegister = initialState.userRegister;
             AuthService.logOut();
         }
     },
@@ -91,12 +84,10 @@ const userSlice = createSlice({
                 state.loading = false;
                 if (action.payload) {
                     state.userData = action.payload as UserResponse;
-                } else
-                    console.log('not good profile');
+                }
             })
             .addCase(getUserProfile.rejected, (state) => {
                 state.loading = false;
-                console.log('bad');
             })
             .addCase(updateUserProfile.pending, (state) => {
                 state.loading = true;
