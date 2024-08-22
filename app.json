@@ -2,7 +2,7 @@
   "expo": {
     "name": "Where's Your Game",
     "slug": "Sport-Games",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "sport-app",
@@ -37,6 +37,7 @@
       "buildNumber": "1"
     },
     "android": {
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#160076"
