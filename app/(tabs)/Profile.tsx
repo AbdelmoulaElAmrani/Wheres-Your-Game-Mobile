@@ -13,7 +13,7 @@ import {ActivityIndicator, MD2Colors} from 'react-native-paper';
 import Gender from "@/models/Gender";
 import UserType from "@/models/UserType";
 import {UserService} from "@/services/UserService";
-
+import Ionicons from '@expo/vector-icons/Ionicons';
 const Profile = () => {
     const dispatch = useDispatch()
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
@@ -199,8 +199,8 @@ const Profile = () => {
 
                             <TouchableOpacity style={[styles.settingOption, {backgroundColor: 'white'}]}
                                               onPress={_handleDeleteAccount}>
-                                <Text style={[styles.settingOptionText, {color: 'red'}]}>Log Out</Text>
-                                <AntDesign name="right" size={24} color="grey"/>
+                                <Text style={[styles.settingOptionText, {color: 'red'}]}>Delete Account</Text>
+                                <Ionicons name="warning-outline" size={24} color="red" />
                             </TouchableOpacity>
 
                         </View>
@@ -208,8 +208,7 @@ const Profile = () => {
                 </View>
             </SafeAreaView>
         </ImageBackground>
-    )
-        ;
+    );
 }
 
 
