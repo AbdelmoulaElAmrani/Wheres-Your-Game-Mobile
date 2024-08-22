@@ -19,9 +19,7 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "apps@digiboost.com",
-        "ascAppId": "6502469400",
-        "appleTeamId": "ZF76595MC3"
+    
       }
     }
   }
