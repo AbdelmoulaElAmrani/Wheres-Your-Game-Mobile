@@ -65,7 +65,7 @@ const Intro = () => {
         <>
             <StatusBar style="dark"/>
             <SafeAreaView style={{flex: 1, backgroundColor: styles.container.backgroundColor}}>
-                <ScrollView bounces={false}>
+                <ScrollView>
                     <View style={styles.container}>
                         <View style={styles.headerContainer}>
                             <Image style={styles.logoContainer}
@@ -77,11 +77,12 @@ const Intro = () => {
                             </TouchableOpacity>
                         </View>
 
-                        <View>
+                        <View style={{justifyContent: 'center'}}>
                             <Carousel
                                 loop={true}
                                 width={windowWidth}
-                                height={530}
+                                style={{marginBottom: hp(1)}}
+                                height={hp(60)} // change it to use hp 530
                                 autoPlay={true}
                                 autoPlayInterval={2000}
                                 onSnapToItem={index => setCurrentIndex(index)}
@@ -192,7 +193,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 20
+        marginBottom: hp(3)
     },
     dot: {
         height: 10,

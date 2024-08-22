@@ -175,6 +175,7 @@ const Home = () => {
 
     const _renderSportItem = memo(({item}: { item: UserSportResponse }) => {
         return (<TouchableOpacity
+            disabled={true}
             style={{justifyContent: 'center', alignItems: 'center', alignContent: 'center'}}
             onPress={() => _onSelectSport(item.id)}>
             <View style={styles.circle}>
@@ -219,6 +220,7 @@ const Home = () => {
 
     const _renderPlayer = memo(({item}: { item: Player }) => (
         <TouchableOpacity
+            disabled={true}
             style={styles.card}
             onPress={() => _onSelectPlayer(item)}>
             <View>
@@ -245,9 +247,10 @@ const Home = () => {
 
     const _renderCategory = memo(({item}: { item: any }) => (
         <TouchableOpacity
+            disabled={true}
             style={styles.categoryContainer}
             onPress={() => _onSelectCategory(item)}>
-            <Text style={{fontSize: 14, fontWeight: 'bold', textAlign: 'center'}}>{item}</Text>
+            <Text style={{fontSize: 14, fontWeight: 'bold', textAlign: 'center', color: 'white'}}>{item}</Text>
         </TouchableOpacity>
     ));
 
@@ -406,10 +409,11 @@ const Home = () => {
                                         <Text style={styles.menuTitle}>Explore by Categories</Text>
                                     </View>
                                     <TouchableOpacity
+                                        disabled={true}
                                         onPress={_onViewAll}
                                         style={styles.btnContainer}>
-                                        <Text style={styles.btnText}>View All</Text>
-                                        <AntDesign name="right" size={20} color="#4361EE"/>
+                                        <Text style={[styles.btnText, {color: 'grey'}]}>View All</Text>
+                                        <AntDesign name="right" size={20} color="grey"/>
                                     </TouchableOpacity>
                                 </View>
 
@@ -537,7 +541,7 @@ const styles = StyleSheet.create({
         //resizeMode: 'cover',
     },
     categoryContainer: {
-        backgroundColor: 'white',
+        backgroundColor: 'rgba(82,80,80,0.22)',
         width: 160,
         height: 90,
         borderRadius: 10,

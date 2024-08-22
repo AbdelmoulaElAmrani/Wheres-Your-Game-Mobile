@@ -201,12 +201,12 @@ const Login = () => {
                                                   disabled={_isLoginFormNotValid()}/>
                                 </View>
                                 {/* forgot password ? */}
-                                <View style={styles.mgTop}>
+                                {/*<View style={styles.mgTop}>
                                     <TouchableOpacity onPress={_handleForgotPassword}>
                                         <Text style={{color: 'blue', textAlign: 'center', fontSize: 18}}>Forgot Password
                                             ?</Text>
                                     </TouchableOpacity>
-                                </View>
+                                </View>*/}
 
                                 {/* Sign in with */}
                                 <View style={styles.dividerContainerSignUp}>
@@ -254,14 +254,12 @@ const styles = StyleSheet.create({
     },
     headerContainer: {
         alignItems: 'center',
-        marginTop: hp(5),
+        //marginTop: hp(5),
     },
     logoContainer: {
         width: wp(85),
         height: 190,
-        alignContent: 'center',
-        marginTop: hp(-30),
-
+        marginTop: hp(-32),
     },
     headerTitle: {
         textAlign: 'center',
@@ -270,7 +268,6 @@ const styles = StyleSheet.create({
         marginTop: hp(5),
     },
     formContainer: {
-        backgroundColor: 'rgba(255, 255, 255, .3)',
         alignSelf: "center",
         width: wp(100),
         borderRadius: 30,
@@ -338,8 +335,7 @@ const styles = StyleSheet.create({
     dontHaveAccountText: {
         flexDirection: 'row',
         justifyContent: 'center',
-        marginTop: hp(13)
-
+        marginTop: hp(10)
     },
 });
 
