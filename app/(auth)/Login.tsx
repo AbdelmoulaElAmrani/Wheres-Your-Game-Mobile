@@ -22,13 +22,13 @@ import {getUserProfile, logout} from '@/redux/UserSlice';
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {persistor} from "@/redux/ReduxConfig";
 import Spinner from '@/components/Spinner';
-import {
+/*import {
     ConfigureParams,
     GoogleSignin,
     User,
-} from "@react-native-google-signin/google-signin";
+} from "@react-native-google-signin/google-signin";*/
 import LocalStorageService from '@/services/LocalStorageService';
-import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
+//import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
 import {googleAndroidClientId, googleIosClientId, googleWebClientId} from "@/appConfig";
 
 
@@ -41,13 +41,13 @@ const Login = () => {
     const user = useSelector((state: any) => state.user.userData) as UserResponse;
     const [loading, setLoading] = useState<boolean>(false);
 
-    const configureGoogleSignIn = () => {
-        GoogleSignin.configure({
-            webClientId: googleWebClientId,
-            iosClientId: googleIosClientId,
-            androidClientId: googleAndroidClientId,
-        } as ConfigureParams);
-    };
+    /* const configureGoogleSignIn = () => {
+         GoogleSignin.configure({
+             webClientId: googleWebClientId,
+             iosClientId: googleIosClientId,
+             androidClientId: googleAndroidClientId,
+         } as ConfigureParams);
+     };*/
 
 
     useEffect(() => {
@@ -62,10 +62,10 @@ const Login = () => {
             }
         }
         fetchData();
-        configureGoogleSignIn();
+        //configureGoogleSignIn();
     }, [user]);
 
-    const _handleSignInWithGoogle = async () => {
+    /*const _handleSignInWithGoogle = async () => {
         try {
             await GoogleSignin.hasPlayServices();
             const userInfo: User = await GoogleSignin.signIn();
@@ -92,7 +92,7 @@ const Login = () => {
             }, 5000);
             setLoading(false);
         }
-    }
+    }*/
 
     const _handleLogin = async () => {
         if (_isLoginFormNotValid()) {
@@ -209,25 +209,25 @@ const Login = () => {
                                 </View>*/}
 
                                 {/* Sign in with */}
-                                <View style={styles.dividerContainerSignUp}>
+                                {/*<View style={styles.dividerContainerSignUp}>
                                     <Divider style={styles.dividerStyle}/>
                                     <Text style={styles.signInTextStyle}>Sign in with</Text>
                                     <Divider style={styles.dividerStyle}/>
-                                </View>
+                                </View>*/}
 
                                 {/* Social Media Icons */}
-                                <View style={{flexDirection: 'row', justifyContent: 'center', marginTop: 30}}>
-                                    {/*<TouchableOpacity disabled={true}>
+                                {/*<View style={{flexDirection: 'row', justifyContent: 'center', marginTop: 30}}>
+                                    <TouchableOpacity disabled={true}>
                                         <FontAwesome5 name="facebook" size={40} color="grey"/>
-                                    </TouchableOpacity>*/}
+                                    </TouchableOpacity>
                                     <TouchableOpacity onPress={_handleSignInWithGoogle}>
                                         <AntDesign name="google" size={40} color="blue"/>
                                     </TouchableOpacity>
-                                    {/*<TouchableOpacity disabled={true}>
+                                    <TouchableOpacity disabled={true}>
                                         <AntDesign name="twitter" size={40} color="grey"/>
-                                    </TouchableOpacity>*/}
-                                </View>
-
+                                    </TouchableOpacity>
+                                </View>*/}
+                                <View style={{marginTop: 100}}/>
                                 <View style={styles.dontHaveAccountText}>
                                     <Text style={{color: 'black', textAlign: 'center', fontSize: 16}}>Don't have an
                                         account ?

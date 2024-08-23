@@ -27,7 +27,7 @@ import {useDispatch, useSelector} from 'react-redux'
 import {getUserProfile, updateUserRegisterData} from "@/redux/UserSlice";
 import {AuthService} from "@/services/AuthService";
 import LocalStorageService from "@/services/LocalStorageService";
-import {User} from "@react-native-google-signin/google-signin";
+//import {User} from "@react-native-google-signin/google-signin";
 import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
 import OrganizationIcon from "@/assets/images/svg/OrganizationIcon";
 import CampIcon from "@/assets/images/svg/CampIcon";
@@ -85,14 +85,14 @@ const UserStepForm = () => {
     }
 
     const createUser = async () => {
-        const storedUser = await LocalStorageService.getItem<User>('googleUser');
+        //const storedUser = await LocalStorageService.getItem<User>('googleUser');
         try {
-            if (storedUser) {
-                const googleUser: GoogleUserRequest = {googleUser: storedUser, userData: userData};
-                return await AuthService.loginOrSignWithGoogle(googleUser);
-            } else {
-                return await AuthService.register(userData);
-            }
+            // if (storedUser) {
+            //     const googleUser: GoogleUserRequest = {googleUser: storedUser, userData: userData};
+            //     return await AuthService.loginOrSignWithGoogle(googleUser);
+            // } else {
+            return await AuthService.register(userData);
+            // }
         } catch (e) {
             console.error(e);
         } finally {
