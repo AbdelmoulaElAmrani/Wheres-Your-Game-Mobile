@@ -64,4 +64,17 @@ export class UserService {
             return undefined;
         }
     }
+
+    static async deleteUserProfile(): Promise<boolean> {
+        try {
+            const response = await Requests.delete('user');
+            if (response?.status === 200) {
+                return response.data;
+            }
+            return false;
+        } catch (error) {
+            console.error(error);
+            return false;
+        }
+    }
 }

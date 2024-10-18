@@ -23,7 +23,7 @@ import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {Helpers} from "@/constants/Helpers";
 import {AuthService} from "@/services/AuthService";
 import LocalStorageService from "@/services/LocalStorageService";
-import {User} from "@react-native-google-signin/google-signin";
+//import {User} from "@react-native-google-signin/google-signin";
 
 
 const Register = () => {
@@ -46,29 +46,29 @@ const Register = () => {
 
     useEffect(() => {
         dispatch(logout({}) as any);
-        LocalStorageService.getItem<User>('googleUser').then((userInfo) => {
-            if (userInfo) {
-                setShowPasswordInput(false);
-                setUserData({
-                    email: userInfo.user.email,
-                    password: '',
-                    firstName: userInfo.user.givenName || '',
-                    lastName: userInfo.user.familyName || '',
-                    phoneNumber: '',
-                    countryCode: '+1',
-                    address: '',
-                    zipCode: '',
-                    bio: '',
-                    verified: false,
-                    role: UserType.DEFAULT,
-                });
-            }
-        }).catch((e) => {
-            console.log(e);
-        })
-            .finally(() => {
-                LocalStorageService.removeItem('googleUser');
-            });
+        /* LocalStorageService.getItem<User>('googleUser').then((userInfo) => {
+             if (userInfo) {
+                 setShowPasswordInput(false);
+                 setUserData({
+                     email: userInfo.user.email,
+                     password: '',
+                     firstName: userInfo.user.givenName || '',
+                     lastName: userInfo.user.familyName || '',
+                     phoneNumber: '',
+                     countryCode: '+1',
+                     address: '',
+                     zipCode: '',
+                     bio: '',
+                     verified: false,
+                     role: UserType.DEFAULT,
+                 });
+             }
+         }).catch((e) => {
+             console.log(e);
+         })
+             .finally(() => {
+                 LocalStorageService.removeItem('googleUser');
+             });*/
     }, []);
 
 
@@ -202,7 +202,10 @@ const Register = () => {
                                     withDarkTheme
                                     placeholder="Phone number"
                                     value={userData.phoneNumber}
-                                    onChangeText={(text) => setUserData(oldValue => ({...oldValue, phoneNumber: text}))}
+                                    onChangeText={(text) => setUserData(oldValue => ({
+                                        ...oldValue,
+                                        phoneNumber: Helpers._sanitizePhoneNumber(text)
+                                    }))}
                                     containerStyle={styles.inputStyle}
                                     textContainerStyle={styles.textPhoneInputContainer}
                                     onChangeCountry={(country) => setUserData(oldValue => (

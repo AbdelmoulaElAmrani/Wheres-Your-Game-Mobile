@@ -43,7 +43,6 @@ const Intro = () => {
     useEffect(() => {
         const checkIntroViewed = async () => {
             const isIntroViewed = await LocalStorageService.getItem<boolean>('intro');
-            //const isIntroViewed = false;
             if (user?.id) {
                 router.replace("/(tabs)/");
             } else {
@@ -65,7 +64,7 @@ const Intro = () => {
         <>
             <StatusBar style="dark"/>
             <SafeAreaView style={{flex: 1, backgroundColor: styles.container.backgroundColor}}>
-                <ScrollView bounces={false}>
+                <ScrollView>
                     <View style={styles.container}>
                         <View style={styles.headerContainer}>
                             <Image style={styles.logoContainer}
@@ -77,11 +76,12 @@ const Intro = () => {
                             </TouchableOpacity>
                         </View>
 
-                        <View>
+                        <View style={{justifyContent: 'center'}}>
                             <Carousel
                                 loop={true}
                                 width={windowWidth}
-                                height={530}
+                                style={{marginBottom: hp(1)}}
+                                height={hp(55)} // change it to use hp 530
                                 autoPlay={true}
                                 autoPlayInterval={2000}
                                 onSnapToItem={index => setCurrentIndex(index)}
@@ -90,7 +90,12 @@ const Intro = () => {
                                 renderItem={({item}) => (
                                     <View style={styles.slide}>
                                         <View style={styles.introIconContainer}>
-                                            <Image source={item.img}/>
+                                        <Image source={item.img}
+                                                  style={{
+                                                    height: hp(35),
+                                                    resizeMode: 'contain'
+                                                }}
+                                            />
                                         </View>
                                         <Text style={{
                                             fontWeight: 'bold',
@@ -192,7 +197,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 20
+        marginBottom: hp(3)
     },
     dot: {
         height: 10,
