@@ -1,14 +1,16 @@
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import {StyleSheet, Text, View, FlatList, TouchableOpacity} from "react-native";
-import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
-import {SafeAreaView} from "react-native-safe-area-context";
-import {Searchbar} from 'react-native-paper';
-import React, {useState} from "react";
-import {FontAwesome} from '@expo/vector-icons';
-import {ImageBackground} from "expo-image";
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert } from "react-native";
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Modal, Searchbar, TextInput } from 'react-native-paper';
+import React, { useState } from "react";
+import { FontAwesome } from '@expo/vector-icons';
+import { ImageBackground } from "expo-image";
 import VideoComponent from "@/components/VideoComponent";
 import * as Sharing from 'expo-sharing';
+import CustomButton from "@/components/CustomButton";
 
+const validDomains = ['facebook.com', 'instagram.com', 'youtube.com', 'tiktok.com'];
 
 const GClips = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -33,23 +35,25 @@ const GClips = () => {
             uploadHour: 3
         }]);
     const tags = ['New', 'Trending', 'Popular', 'Top Photos', 'Top Videos'];
+    const [isPostModalVisible, setPostModalVisible] = useState(false);
+    const [postLink, setPostLink] = useState('');
 
-    const _renderItem = ({item}: { item: any }) => (
+    const _renderItem = ({ item }: { item: any }) => (
         <TouchableOpacity
             disabled={true}
             style={[styles.tag, selectedTag === item ? styles.selectedTag : null]}
             onPress={() => setSelectedTag(item)}>
-            <Text style={[styles.tagText, {color: selectedTag === item ? 'white' : 'black'}]}>{item}</Text>
+            <Text style={[styles.tagText, { color: selectedTag === item ? 'white' : 'black' }]}>{item}</Text>
         </TouchableOpacity>
     );
 
-    const _videoPreview = ({video}: { video: any }) => {
+    const _videoPreview = ({ video }: { video: any }) => {
         return (
-            <View style={{marginBottom: 30}}>
+            <View style={{ marginBottom: 30 }}>
                 <Text style={styles.videoTitle}>{video?.title}</Text>
                 <View style={styles.videoPreview}>
-                    <View style={{height: '100%', width: '100%'}}>
-                        <VideoComponent url={video.videoUri}/>
+                    <View style={{ height: '100%', width: '100%' }}>
+                        <VideoComponent url={video.videoUri} />
                     </View>
                 </View>
                 <View style={styles.videoInfoContainer}>
@@ -57,7 +61,7 @@ const GClips = () => {
                     <View style={styles.infoIconContainer}>
                         <Text style={styles.uploadHour}>{video?.uploadHour} hour ago</Text>
                         <TouchableOpacity onPress={() => _handleShareClip(video)}>
-                            <FontAwesome name="share-alt" size={20} color="grey" style={styles.shareIcon}/>
+                            <FontAwesome name="share-alt" size={20} color="grey" style={styles.shareIcon} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -69,12 +73,37 @@ const GClips = () => {
         await Sharing.shareAsync(video.videoUri);
     }
 
+    const _showPostModal = () => {
+        setPostModalVisible(true);
+    }
+    const _hidePostModal = () => {
+        setPostModalVisible(false);
+    }
+    const _handlePost = () => {
+        const isValidLink = validDomains.some(domain => postLink.includes(domain));
+        if (!isValidLink) {
+            // Show an error alert if the link is invalid
+            Alert.alert(
+                'Invalid Link',
+                'Please enter a valid link from Facebook, Instagram, YouTube, or TikTok.',
+                [{ text: 'OK' }]
+            );
+            return;
+        }
+
+        console.log('Link is valid. Proceeding with post...' + postLink);
+        setPostModalVisible(false);
+        setPostLink('');
+    }
+
+
+
     return (
         <ImageBackground
-            style={{height: hp(100)}}
+            style={{ height: hp(100) }}
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                <CustomNavigationHeader showBackArrow={false} showSkip={false} showLogo={true}/>
+                <CustomNavigationHeader showBackArrow={false} showSkip={false} showLogo={true} />
                 <View style={styles.searchBarContainer}>
                     <Searchbar
                         placeholder="Search Videos"
@@ -84,6 +113,31 @@ const GClips = () => {
                         iconColor="#808080"
                         style={styles.searchBar}
                     />
+                </View>
+                <View style={styles.horizontalButtonContainer}>
+                    <TouchableOpacity style={[styles.button, styles.whiteButton]}>
+                        <Text style={styles.buttonText}>
+                            Link Social Media
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.button, styles.whiteButton]}>
+                        <Text style={styles.buttonText}>
+                            Followers
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.button, styles.whiteButton]}>
+                        <Text style={styles.buttonText}>
+                            Invite
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.button, styles.blueButton]}
+                        onPress={_showPostModal}
+                    >
+                        <Text style={[styles.buttonText, { color: 'white' }]}>
+                            Post
+                        </Text>
+                    </TouchableOpacity>
+
                 </View>
                 <View style={styles.cardContainer}>
                     <FlatList
@@ -99,13 +153,13 @@ const GClips = () => {
                         <Text style={styles.videoListTitle}>New Videos</Text>
                         <TouchableOpacity
                             disabled={true}>
-                            <Text style={{color: 'grey', fontSize: 17}}>View All</Text>
+                            <Text style={{ color: 'grey', fontSize: 17 }}>View All</Text>
                         </TouchableOpacity>
                     </View>
                     <View style={styles.videoListContainer}>
                         <FlatList
                             data={videos}
-                            renderItem={({item}) => _videoPreview({video: item})}
+                            renderItem={({ item }) => _videoPreview({ video: item })}
                             keyExtractor={item => item.title}
                             horizontal={false}
                             showsVerticalScrollIndicator={false}
@@ -113,7 +167,39 @@ const GClips = () => {
                             bouncesZoom={true}
                         />
                     </View>
+
                 </View>
+                <Modal visible={isPostModalVisible} onDismiss={_hidePostModal}
+                    contentContainerStyle={styles.postModalContainer}>
+                    <Text style={{
+                        fontSize: 25,
+                        fontWeight: 'bold',
+                        marginTop: 20
+                    }}>Add a post</Text>
+                    <TextInput
+                        placeholder = "Paste your link here"
+                        style={[styles.inputStyle, { marginTop: 25 }]}
+                        cursorColor='black'
+                        placeholderTextColor={'grey'}
+                        underlineColor={"transparent"}
+                        left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
+                        onChangeText={text => setPostLink(text)}
+                        value={postLink}
+                    />
+                    <CustomButton
+                        text="Post"
+                        onPress={_handlePost}
+                        style={{marginTop: 20 , width: '50%' , height: 50}}
+                    />
+                    
+                    
+
+
+
+
+                </Modal>
+
+
             </SafeAreaView>
         </ImageBackground>
     )
@@ -122,7 +208,7 @@ const GClips = () => {
 
 const styles = StyleSheet.create({
     searchBarContainer: {
-        padding: 20,
+        padding: 15,
         justifyContent: 'center'
     },
     searchBar: {
@@ -188,7 +274,7 @@ const styles = StyleSheet.create({
         borderRadius: 25,
         shadowColor: 'black',
         shadowOpacity: 0.3,
-        shadowOffset: {width: 0, height: 2},
+        shadowOffset: { width: 0, height: 2 },
         shadowRadius: 2,
     },
     videoInfo: {
@@ -228,7 +314,61 @@ const styles = StyleSheet.create({
     },
     shareIcon: {
         marginLeft: wp(20)
-    }
+    },
+    horizontalButtonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginVertical: 2,
+    },
+    button: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 10,
+        borderRadius: 10,
+        marginHorizontal: 5,
+    },
+    whiteButton: {
+        backgroundColor: 'white',
+        borderWidth: 1,
+        borderColor: '#ccc',
+    },
+    blueButton: {
+        backgroundColor: '#295AD2',
+    },
+    buttonText: {
+        color: 'black',
+        marginLeft: 5,
+        fontWeight: '600',
+    },
+    postModalContainer: {
+        backgroundColor: 'white',
+        borderRadius: 20,
+        paddingHorizontal: 5,
+        width: '90%',
+        height: '25%',
+        alignItems: 'center',
+        alignSelf: 'center',
+        justifyContent: 'flex-start',
+        marginTop: 10,
+    },
+    inputStyle: {
+        backgroundColor: 'white',
+        height: 45,
+        fontSize: 16,
+        marginTop: 5,
+        color: 'black',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        borderBottomRightRadius: 20,
+        borderBottomLeftRadius: 20,
+        borderColor: '#D3D3D3',
+        borderWidth: 1,
+        width: '100%',
+        paddingLeft: 10,
+        paddingRight: 10,
+        marginBottom: 10,
+
+    },
 })
 
 export default GClips;
