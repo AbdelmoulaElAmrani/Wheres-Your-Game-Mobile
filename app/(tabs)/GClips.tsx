@@ -37,6 +37,7 @@ const GClips = () => {
     const tags = ['New', 'Trending', 'Popular', 'Top Photos', 'Top Videos'];
     const [isPostModalVisible, setPostModalVisible] = useState(false);
     const [postLink, setPostLink] = useState('');
+    const [postTitle, setPostTitle] = useState('');
 
     const _renderItem = ({ item }: { item: any }) => (
         <TouchableOpacity
@@ -91,7 +92,13 @@ const GClips = () => {
             return;
         }
 
-        console.log('Link is valid. Proceeding with post...' + postLink);
+        console.log('Link is valid. Proceeding with post...' + postLink + ' ' + postTitle);
+        setVideos([...videos, {
+            title: postTitle,
+            info: 'You added a video',
+            videoUri: postLink,
+            uploadHour: 0
+        }]);
         setPostModalVisible(false);
         setPostLink('');
     }
@@ -176,6 +183,17 @@ const GClips = () => {
                         fontWeight: 'bold',
                         marginTop: 20
                     }}>Add a post</Text>
+                     <TextInput
+                        placeholder = "Add a caption"
+                        style={[styles.inputStyle, { marginTop: 15 }]}
+                        cursorColor='black'
+                        placeholderTextColor={'grey'}
+                        underlineColor={"transparent"}
+                        left={<TextInput.Icon color={'#D3D3D3'} icon='comment' size={25} />}
+                        value={postTitle}
+                        onChangeText={text => setPostTitle(text)}
+
+                    />
                     <TextInput
                         placeholder = "Paste your link here"
                         style={[styles.inputStyle, { marginTop: 25 }]}
@@ -186,17 +204,14 @@ const GClips = () => {
                         onChangeText={text => setPostLink(text)}
                         value={postLink}
                     />
+                   
+
                     <CustomButton
                         text="Post"
                         onPress={_handlePost}
                         style={{marginTop: 20 , width: '50%' , height: 50}}
                     />
                     
-                    
-
-
-
-
                 </Modal>
 
 
@@ -344,8 +359,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderRadius: 20,
         paddingHorizontal: 5,
-        width: '90%',
-        height: '25%',
+        width: '95%',
+        height: '33%',
         alignItems: 'center',
         alignSelf: 'center',
         justifyContent: 'flex-start',
