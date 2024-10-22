@@ -104,6 +104,7 @@ const GClips = () => {
         }
 
         console.log('Link is valid. Proceeding with post...' + postLink + ' ' + postTitle);
+        //TODO => Add logic to store the post in the backend
         setVideos([...videos, {
             title: postTitle,
             info: 'You added a video',
@@ -119,10 +120,42 @@ const GClips = () => {
     const _hideSocialMediaCard = () => {
         setSocialMediaCardVisible(false);
     }
+
     const _handleSocialMediaLink = () => {
         console.log('Social Media Links: ', socialMediaLink);
+
+        // Check if any link is provided and validate against domains
+        var isValidLink = socialMediaLink.facebook.length > 0 && socialMediaLink.facebook.includes('facebook.com')
+            || socialMediaLink.instagram.length > 0 && socialMediaLink.instagram.includes('instagram.com') 
+            || socialMediaLink.tiktok.length > 0 && socialMediaLink.tiktok.includes('tiktok.com')
+            || socialMediaLink.youtube.length > 0 && socialMediaLink.youtube.includes('youtube.com')
+            || socialMediaLink.twitter.length > 0 && socialMediaLink.twitter.includes('twitter.com');
+
+        if (!isValidLink) {
+            // Show an error alert if the link is invalid
+            Alert.alert(
+                'Invalid Link',
+                'Please enter a valid link from Facebook, Instagram, YouTube, or TikTok.',
+                [{ text: 'OK' }]
+            );
+            return;
+        }
+
+        console.log('Link is valid. Proceeding with linking social media...');
+        //TODO => Add logic to store the social media links in the backend
         setSocialMediaCardVisible(false);
-    }
+        setSocialMediaLink({
+            facebook: '',
+            instagram: '',
+            tiktok: '',
+            youtube: '',
+            twitter: '',
+        });
+    };
+
+
+
+
 
     const shareAppLink = async () => {
         try {
@@ -273,9 +306,9 @@ const GClips = () => {
                         cursorColor='black'
                         placeholderTextColor={'grey'}
                         underlineColor={"transparent"}
-                        left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
-                        value = {socialMediaLink.facebook}
-                        onChangeText={text => setSocialMediaLink({...socialMediaLink, facebook: text})}
+                        left={<TextInput.Icon color={'#D3D3D3'} icon='facebook' size={25} />}
+                        value={socialMediaLink.facebook}
+                        onChangeText={text => setSocialMediaLink({ ...socialMediaLink, facebook: text })}
                     />
                     <TextInput
                         placeholder="Instagram"
@@ -283,9 +316,9 @@ const GClips = () => {
                         cursorColor='black'
                         placeholderTextColor={'grey'}
                         underlineColor={"transparent"}
-                        left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
-                        value = {socialMediaLink.instagram}
-                        onChangeText={text => setSocialMediaLink({...socialMediaLink, instagram: text})}
+                        left={<TextInput.Icon color={'#D3D3D3'} icon='instagram' size={25} />}
+                        value={socialMediaLink.instagram}
+                        onChangeText={text => setSocialMediaLink({ ...socialMediaLink, instagram: text })}
                     />
                     <TextInput
                         placeholder="Tiktok"
@@ -294,8 +327,8 @@ const GClips = () => {
                         placeholderTextColor={'grey'}
                         underlineColor={"transparent"}
                         left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
-                        value = {socialMediaLink.tiktok}
-                        onChangeText={text => setSocialMediaLink({...socialMediaLink, tiktok: text})}
+                        value={socialMediaLink.tiktok}
+                        onChangeText={text => setSocialMediaLink({ ...socialMediaLink, tiktok: text })}
                     />
                     <TextInput
                         placeholder="Youtube"
@@ -303,9 +336,9 @@ const GClips = () => {
                         cursorColor='black'
                         placeholderTextColor={'grey'}
                         underlineColor={"transparent"}
-                        left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
-                        value = {socialMediaLink.youtube}
-                        onChangeText={text => setSocialMediaLink({...socialMediaLink, youtube: text})}
+                        left={<TextInput.Icon color={'#D3D3D3'} icon='youtube' size={25} />}
+                        value={socialMediaLink.youtube}
+                        onChangeText={text => setSocialMediaLink({ ...socialMediaLink, youtube: text })}
                     />
                     <TextInput
                         placeholder="Twitter"
@@ -313,9 +346,9 @@ const GClips = () => {
                         cursorColor='black'
                         placeholderTextColor={'grey'}
                         underlineColor={"transparent"}
-                        left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
-                        value = {socialMediaLink.twitter}
-                        onChangeText={text => setSocialMediaLink({...socialMediaLink, twitter: text})}
+                        left={<TextInput.Icon color={'#D3D3D3'} icon='twitter' size={25} />}
+                        value={socialMediaLink.twitter}
+                        onChangeText={text => setSocialMediaLink({ ...socialMediaLink, twitter: text })}
                     />
                     <CustomButton
                         text="Link"
