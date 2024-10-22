@@ -1,5 +1,5 @@
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert } from "react-native";
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, Platform } from "react-native";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Modal, Searchbar, TextInput } from 'react-native-paper';
@@ -9,6 +9,8 @@ import { ImageBackground } from "expo-image";
 import VideoComponent from "@/components/VideoComponent";
 import * as Sharing from 'expo-sharing';
 import CustomButton from "@/components/CustomButton";
+
+
 
 const validDomains = ['facebook.com', 'instagram.com', 'youtube.com', 'tiktok.com'];
 
@@ -38,6 +40,15 @@ const GClips = () => {
     const [isPostModalVisible, setPostModalVisible] = useState(false);
     const [postLink, setPostLink] = useState('');
     const [postTitle, setPostTitle] = useState('');
+    const [isSocialMediaCardVisible, setSocialMediaCardVisible] = useState(false);
+    const [socialMediaLink, setSocialMediaLink] = useState({
+        facebook: '',
+        instagram: '',
+        tiktok: '',
+        youtube: '',
+        twitter: '',
+    });
+
 
     const _renderItem = ({ item }: { item: any }) => (
         <TouchableOpacity
@@ -102,8 +113,39 @@ const GClips = () => {
         setPostModalVisible(false);
         setPostLink('');
     }
+    const _showSocialMediaCard = () => {
+        setSocialMediaCardVisible(true);
+    }
+    const _hideSocialMediaCard = () => {
+        setSocialMediaCardVisible(false);
+    }
+    const _handleSocialMediaLink = () => {
+        console.log('Social Media Links: ', socialMediaLink);
+        setSocialMediaCardVisible(false);
+    }
 
+    const shareAppLink = async () => {
+        try {
+            const shareOptions = {
+                message: '🔥 Discover Where\'s Your Game - the ultimate app to find and track live sports events! 🏀🏈🎾 Stay updated and never miss a game with real-time event notifications! Download it now and join the action: ',
+                url: Platform.OS === 'ios'
+                    ? 'https://apps.apple.com/app/idxxxxxxxx' //TODO: App Store URL for iOS
+                    : 'https://play.google.com/store/apps/details?id=com.example.app', //TODO: Play Store URL for Android
+            };
 
+            if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(shareOptions.url, {
+                    dialogTitle: 'Invite Friends to the App!',
+                    mimeType: 'text/plain', // Setting a mime type for text
+                    UTI: 'public.url', // UTI for iOS
+                });
+            } else {
+                alert('Sharing is not available on this device');
+            }
+        } catch (error) {
+            console.log('Error sharing:', error);
+        }
+    };
 
     return (
         <ImageBackground
@@ -122,7 +164,9 @@ const GClips = () => {
                     />
                 </View>
                 <View style={styles.horizontalButtonContainer}>
-                    <TouchableOpacity style={[styles.button, styles.whiteButton]}>
+                    <TouchableOpacity style={[styles.button, styles.whiteButton]}
+                        onPress={_showSocialMediaCard}
+                    >
                         <Text style={styles.buttonText}>
                             Link Social Media
                         </Text>
@@ -132,7 +176,9 @@ const GClips = () => {
                             Followers
                         </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.button, styles.whiteButton]}>
+                    <TouchableOpacity style={[styles.button, styles.whiteButton]}
+                        onPress={shareAppLink}
+                    >
                         <Text style={styles.buttonText}>
                             Invite
                         </Text>
@@ -183,8 +229,8 @@ const GClips = () => {
                         fontWeight: 'bold',
                         marginTop: 20
                     }}>Add a post</Text>
-                     <TextInput
-                        placeholder = "Add a caption"
+                    <TextInput
+                        placeholder="Add a caption"
                         style={[styles.inputStyle, { marginTop: 15 }]}
                         cursorColor='black'
                         placeholderTextColor={'grey'}
@@ -195,7 +241,7 @@ const GClips = () => {
 
                     />
                     <TextInput
-                        placeholder = "Paste your link here"
+                        placeholder="Paste your link here"
                         style={[styles.inputStyle, { marginTop: 25 }]}
                         cursorColor='black'
                         placeholderTextColor={'grey'}
@@ -204,14 +250,79 @@ const GClips = () => {
                         onChangeText={text => setPostLink(text)}
                         value={postLink}
                     />
-                   
+
 
                     <CustomButton
                         text="Post"
                         onPress={_handlePost}
-                        style={{marginTop: 20 , width: '50%' , height: 50}}
+                        style={{ marginTop: 20, width: '50%', height: 50 }}
                     />
-                    
+
+                </Modal>
+                <Modal visible={isSocialMediaCardVisible} onDismiss={_hideSocialMediaCard}
+                    contentContainerStyle={[styles.postModalContainer, { height: '50%' }]}>
+                    <Text style={{
+                        fontSize: 25,
+                        fontWeight: 'bold',
+                        marginTop: 20
+                    }}>Link Social Media</Text>
+
+                    <TextInput
+                        placeholder="Facebook"
+                        style={[styles.inputStyle, { marginTop: 10 }]}
+                        cursorColor='black'
+                        placeholderTextColor={'grey'}
+                        underlineColor={"transparent"}
+                        left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
+                        value = {socialMediaLink.facebook}
+                        onChangeText={text => setSocialMediaLink({...socialMediaLink, facebook: text})}
+                    />
+                    <TextInput
+                        placeholder="Instagram"
+                        style={[styles.inputStyle, { marginTop: 5 }]}
+                        cursorColor='black'
+                        placeholderTextColor={'grey'}
+                        underlineColor={"transparent"}
+                        left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
+                        value = {socialMediaLink.instagram}
+                        onChangeText={text => setSocialMediaLink({...socialMediaLink, instagram: text})}
+                    />
+                    <TextInput
+                        placeholder="Tiktok"
+                        style={[styles.inputStyle, { marginTop: 5 }]}
+                        cursorColor='black'
+                        placeholderTextColor={'grey'}
+                        underlineColor={"transparent"}
+                        left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
+                        value = {socialMediaLink.tiktok}
+                        onChangeText={text => setSocialMediaLink({...socialMediaLink, tiktok: text})}
+                    />
+                    <TextInput
+                        placeholder="Youtube"
+                        style={[styles.inputStyle, { marginTop: 5 }]}
+                        cursorColor='black'
+                        placeholderTextColor={'grey'}
+                        underlineColor={"transparent"}
+                        left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
+                        value = {socialMediaLink.youtube}
+                        onChangeText={text => setSocialMediaLink({...socialMediaLink, youtube: text})}
+                    />
+                    <TextInput
+                        placeholder="Twitter"
+                        style={[styles.inputStyle, { marginTop: 5 }]}
+                        cursorColor='black'
+                        placeholderTextColor={'grey'}
+                        underlineColor={"transparent"}
+                        left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
+                        value = {socialMediaLink.twitter}
+                        onChangeText={text => setSocialMediaLink({...socialMediaLink, twitter: text})}
+                    />
+                    <CustomButton
+                        text="Link"
+                        onPress={_handleSocialMediaLink}
+                        style={{ marginTop: 20, width: '50%', height: 50 }}
+                    />
+
                 </Modal>
 
 
