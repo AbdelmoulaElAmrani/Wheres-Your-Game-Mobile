@@ -5,4 +5,5 @@ export interface Team {
     imgUrl?: string;
     active: boolean;
     score: number | 0;
+    founded?: Date;
 }

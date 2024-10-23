@@ -71,7 +71,8 @@ const styles = StyleSheet.create({
     text: {
         fontWeight: 'bold',
         color: 'white',
-        fontSize: 22
+        fontSize: 22,
+        textAlign: 'center'
     },
     textSkip: {
         fontWeight: 'bold',
