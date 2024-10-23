@@ -48,7 +48,7 @@ const GClips = () => {
         youtube: '',
         twitter: '',
     });
-
+    const [postLinkError, setPostLinkError] = useState('');
 
     const _renderItem = ({ item }: { item: any }) => (
         <TouchableOpacity
@@ -90,16 +90,15 @@ const GClips = () => {
     }
     const _hidePostModal = () => {
         setPostModalVisible(false);
+        setPostLink('');
+        setPostTitle('');
+        setPostLinkError('');
     }
     const _handlePost = () => {
+        setPostLinkError('');
         const isValidLink = validDomains.some(domain => postLink.includes(domain));
         if (!isValidLink) {
-            // Show an error alert if the link is invalid
-            Alert.alert(
-                'Invalid Link',
-                'Please enter a valid link from Facebook, Instagram, YouTube, or TikTok.',
-                [{ text: 'OK' }]
-            );
+            setPostLinkError('Please enter a valid link from Facebook, Instagram, YouTube, or TikTok.');
             return;
         }
 
@@ -113,6 +112,7 @@ const GClips = () => {
         }]);
         setPostModalVisible(false);
         setPostLink('');
+        setPostTitle('');
     }
     const _showSocialMediaCard = () => {
         setSocialMediaCardVisible(true);
@@ -126,7 +126,7 @@ const GClips = () => {
 
         // Check if any link is provided and validate against domains
         var isValidLink = socialMediaLink.facebook.length > 0 && socialMediaLink.facebook.includes('facebook.com')
-            || socialMediaLink.instagram.length > 0 && socialMediaLink.instagram.includes('instagram.com') 
+            || socialMediaLink.instagram.length > 0 && socialMediaLink.instagram.includes('instagram.com')
             || socialMediaLink.tiktok.length > 0 && socialMediaLink.tiktok.includes('tiktok.com')
             || socialMediaLink.youtube.length > 0 && socialMediaLink.youtube.includes('youtube.com')
             || socialMediaLink.twitter.length > 0 && socialMediaLink.twitter.includes('twitter.com');
@@ -261,35 +261,76 @@ const GClips = () => {
                         fontSize: 25,
                         fontWeight: 'bold',
                         marginTop: 20
-                    }}>Add a post</Text>
-                    <TextInput
-                        placeholder="Add a caption"
-                        style={[styles.inputStyle, { marginTop: 15 }]}
-                        cursorColor='black'
-                        placeholderTextColor={'grey'}
-                        underlineColor={"transparent"}
-                        left={<TextInput.Icon color={'#D3D3D3'} icon='comment' size={25} />}
-                        value={postTitle}
-                        onChangeText={text => setPostTitle(text)}
+                    }}>Create a Post</Text>
+                    <View style={{ width: '90%', alignItems: 'center', marginTop: 40 }}>
+                        <TextInput
+                            placeholder="Title"
+                            style={[styles.inputStyle, { marginTop: 15 }]}
+                            cursorColor='black'
+                            placeholderTextColor={'grey'}
+                            underlineColor={"transparent"}
+                            left={<TextInput.Icon color={'#D3D3D3'} icon='comment' size={25} />}
+                            value={postTitle}
+                            onChangeText={text => setPostTitle(text)}
 
-                    />
-                    <TextInput
-                        placeholder="Paste your link here"
-                        style={[styles.inputStyle, { marginTop: 25 }]}
-                        cursorColor='black'
-                        placeholderTextColor={'grey'}
-                        underlineColor={"transparent"}
-                        left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
-                        onChangeText={text => setPostLink(text)}
-                        value={postLink}
-                    />
+                        />
+                        <TextInput
+                            placeholder="Paste your link here"
+                            style={[styles.inputStyle, { marginTop: 15 }]}
+                            cursorColor='black'
+                            placeholderTextColor={'grey'}
+                            underlineColor={"transparent"}
+                            left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
+                            onChangeText={text => setPostLink(text)}
+                            value={postLink}
+                        />
+                        {postLinkError.length > 0 && <Text style={{ color: 'red', fontSize: 12 ,
+                            position: 'absolute', bottom: 70, alignSelf: 'center'
+                        }}>{postLinkError}</Text>}
 
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '80%', marginTop: 40 }}>
+                            <CustomButton
+                                text="Cancel"
+                                onPress={_hidePostModal}
+                                style={{
+                                    marginTop: 20,
+                                    width: '40%',
+                                    height: 35,
+                                    backgroundColor: 'white',
+                                    borderColor: '#ccc',
+                                    borderWidth: 1,
+                                    borderRadius: 8,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    shadowColor: '#000',
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 2,
+                                    elevation: 2,
+                                }}
+                                textStyle={{ color: 'black' }}
+                            />
+                            <CustomButton
+                                text="Post"
+                                onPress={_handlePost}
+                                style={{
+                                    marginTop: 20,
+                                    width: '40%',
+                                    height: 35,
+                                    borderRadius: 8,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    shadowColor: '#000',
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 2,
+                                    elevation: 2,
+                                }}
+                                textStyle={{ color: 'white' }}
+                            />
 
-                    <CustomButton
-                        text="Post"
-                        onPress={_handlePost}
-                        style={{ marginTop: 20, width: '50%', height: 50 }}
-                    />
+                        </View>
+                    </View>
 
                 </Modal>
                 <Modal visible={isSocialMediaCardVisible} onDismiss={_hideSocialMediaCard}
@@ -299,62 +340,99 @@ const GClips = () => {
                         fontWeight: 'bold',
                         marginTop: 20
                     }}>Link Social Media</Text>
+                    <View style={{ width: '97%', alignItems: 'center', marginTop: 10 }}>
+                        <TextInput
+                            placeholder="Facebook"
+                            style={[styles.inputStyle, { marginTop: 10 }]}
+                            cursorColor='black'
+                            placeholderTextColor={'grey'}
+                            underlineColor={"transparent"}
+                            left={<TextInput.Icon color={'#D3D3D3'} icon='facebook' size={25} />}
+                            value={socialMediaLink.facebook}
+                            onChangeText={text => setSocialMediaLink({ ...socialMediaLink, facebook: text })}
+                        />
+                        <TextInput
+                            placeholder="Instagram"
+                            style={[styles.inputStyle, { marginTop: 5 }]}
+                            cursorColor='black'
+                            placeholderTextColor={'grey'}
+                            underlineColor={"transparent"}
+                            left={<TextInput.Icon color={'#D3D3D3'} icon='instagram' size={25} />}
+                            value={socialMediaLink.instagram}
+                            onChangeText={text => setSocialMediaLink({ ...socialMediaLink, instagram: text })}
+                        />
+                        <TextInput
+                            placeholder="Tiktok"
+                            style={[styles.inputStyle, { marginTop: 5 }]}
+                            cursorColor='black'
+                            placeholderTextColor={'grey'}
+                            underlineColor={"transparent"}
+                            left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
+                            value={socialMediaLink.tiktok}
+                            onChangeText={text => setSocialMediaLink({ ...socialMediaLink, tiktok: text })}
+                        />
+                        <TextInput
+                            placeholder="Youtube"
+                            style={[styles.inputStyle, { marginTop: 5 }]}
+                            cursorColor='black'
+                            placeholderTextColor={'grey'}
+                            underlineColor={"transparent"}
+                            left={<TextInput.Icon color={'#D3D3D3'} icon='youtube' size={25} />}
+                            value={socialMediaLink.youtube}
+                            onChangeText={text => setSocialMediaLink({ ...socialMediaLink, youtube: text })}
+                        />
+                        <TextInput
+                            placeholder="X"
+                            style={[styles.inputStyle, { marginTop: 5 }]}
+                            cursorColor='black'
+                            placeholderTextColor={'grey'}
+                            underlineColor={"transparent"}
+                            left={<TextInput.Icon color={'#D3D3D3'} icon='twitter' size={25} />}
+                            value={socialMediaLink.twitter}
+                            onChangeText={text => setSocialMediaLink({ ...socialMediaLink, twitter: text })}
+                        />
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '80%' }}>
+                            <CustomButton
+                                text="Cancel"
+                                onPress={_hideSocialMediaCard}
+                                style={{
+                                    marginTop: 20,
+                                    width: '40%',
+                                    height: 35,
+                                    backgroundColor: 'white',
+                                    borderColor: '#ccc',
+                                    borderWidth: 1,
+                                    borderRadius: 8,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    shadowColor: '#000',
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 2,
+                                    elevation: 2,
+                                }}
+                                textStyle={{ color: 'black' }}
+                            />
+                            <CustomButton
+                                text="Link"
+                                onPress={_handleSocialMediaLink}
+                                style={{
+                                    marginTop: 20,
+                                    width: '40%',
+                                    height: 35,
+                                    borderRadius: 8,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    shadowColor: '#000',
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 2,
+                                    elevation: 2,
+                                }}
 
-                    <TextInput
-                        placeholder="Facebook"
-                        style={[styles.inputStyle, { marginTop: 10 }]}
-                        cursorColor='black'
-                        placeholderTextColor={'grey'}
-                        underlineColor={"transparent"}
-                        left={<TextInput.Icon color={'#D3D3D3'} icon='facebook' size={25} />}
-                        value={socialMediaLink.facebook}
-                        onChangeText={text => setSocialMediaLink({ ...socialMediaLink, facebook: text })}
-                    />
-                    <TextInput
-                        placeholder="Instagram"
-                        style={[styles.inputStyle, { marginTop: 5 }]}
-                        cursorColor='black'
-                        placeholderTextColor={'grey'}
-                        underlineColor={"transparent"}
-                        left={<TextInput.Icon color={'#D3D3D3'} icon='instagram' size={25} />}
-                        value={socialMediaLink.instagram}
-                        onChangeText={text => setSocialMediaLink({ ...socialMediaLink, instagram: text })}
-                    />
-                    <TextInput
-                        placeholder="Tiktok"
-                        style={[styles.inputStyle, { marginTop: 5 }]}
-                        cursorColor='black'
-                        placeholderTextColor={'grey'}
-                        underlineColor={"transparent"}
-                        left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
-                        value={socialMediaLink.tiktok}
-                        onChangeText={text => setSocialMediaLink({ ...socialMediaLink, tiktok: text })}
-                    />
-                    <TextInput
-                        placeholder="Youtube"
-                        style={[styles.inputStyle, { marginTop: 5 }]}
-                        cursorColor='black'
-                        placeholderTextColor={'grey'}
-                        underlineColor={"transparent"}
-                        left={<TextInput.Icon color={'#D3D3D3'} icon='youtube' size={25} />}
-                        value={socialMediaLink.youtube}
-                        onChangeText={text => setSocialMediaLink({ ...socialMediaLink, youtube: text })}
-                    />
-                    <TextInput
-                        placeholder="Twitter"
-                        style={[styles.inputStyle, { marginTop: 5 }]}
-                        cursorColor='black'
-                        placeholderTextColor={'grey'}
-                        underlineColor={"transparent"}
-                        left={<TextInput.Icon color={'#D3D3D3'} icon='twitter' size={25} />}
-                        value={socialMediaLink.twitter}
-                        onChangeText={text => setSocialMediaLink({ ...socialMediaLink, twitter: text })}
-                    />
-                    <CustomButton
-                        text="Link"
-                        onPress={_handleSocialMediaLink}
-                        style={{ marginTop: 20, width: '50%', height: 50 }}
-                    />
+                            />
+                        </View>
+                    </View>
 
                 </Modal>
 
@@ -391,8 +469,10 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 5,
+        paddingHorizontal: 6,
         marginHorizontal: 5,
+        paddingVertical: 5,
+        marginVertical: 3,
     },
     selectedTag: {
         backgroundColor: '#295AD2',
@@ -400,8 +480,8 @@ const styles = StyleSheet.create({
     },
     tagText: {
         color: 'white',
-        fontSize: 15,
-        fontWeight: '600',
+        fontSize: 14,
+        fontWeight: 'bold',
     },
     tagTextSelected: {
         color: 'white',
@@ -477,12 +557,15 @@ const styles = StyleSheet.create({
     horizontalButtonContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        marginVertical: 2,
+        marginVertical: 1,
+        marginHorizontal: 10,
+
     },
     button: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 10,
+        paddingVertical: 9,
+        paddingHorizontal: 6,
         borderRadius: 10,
         marginHorizontal: 5,
     },
@@ -497,14 +580,15 @@ const styles = StyleSheet.create({
     buttonText: {
         color: 'black',
         marginLeft: 5,
-        fontWeight: '600',
+        fontWeight: 'bold',
+        fontSize: 13,
     },
     postModalContainer: {
         backgroundColor: 'white',
         borderRadius: 20,
         paddingHorizontal: 5,
         width: '95%',
-        height: '33%',
+        height: '40%',
         alignItems: 'center',
         alignSelf: 'center',
         justifyContent: 'flex-start',
@@ -525,7 +609,7 @@ const styles = StyleSheet.create({
         width: '100%',
         paddingLeft: 10,
         paddingRight: 10,
-        marginBottom: 10,
+        marginBottom: 10
 
     },
 })
