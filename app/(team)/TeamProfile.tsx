@@ -31,6 +31,7 @@ const TeamProfile = () => {
 
     useEffect(() => {
         console.log('param => ', paramData.teamId);
+        //TODO:: call the service to get team profile from the back end
         setLoading(false);
     }, []);
 
@@ -93,7 +94,7 @@ const TeamProfile = () => {
                                 onPress={() => handleSelect(tabOption.Team)}>
                                 <Text
                                     style={[styles.tabText, selectOption === tabOption.Team && styles.selectedText]}>
-                                    Teams
+                                    Team
                                 </Text>
                                 {selectOption === tabOption.Team && <View style={styles.underline}/>}
                             </TouchableOpacity>
@@ -101,7 +102,7 @@ const TeamProfile = () => {
                         <Divider bold={true} style={{width: '100%'}}/>
                     </View>
                     <View style={{width: '90%'}}>
-                        <Text>Team List</Text>
+                        <Text style={{fontWeight: 'bold', marginTop: 10, fontSize: 16}}>Team List</Text>
                         <View style={{marginTop: hp('2%'), height: '75%'}}>
                             <FlatList
                                 contentContainerStyle={{

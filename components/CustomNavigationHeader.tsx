@@ -1,6 +1,7 @@
 import {Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {Ionicons} from '@expo/vector-icons';
 import {router} from "expo-router";
+import {widthPercentageToDP} from "react-native-responsive-screen";
 
 const CustomNavigationHeader = ({
                                     text,
@@ -37,7 +38,7 @@ const CustomNavigationHeader = ({
             {showBackArrow ? <TouchableOpacity onPress={_handleGoBack}>
                 <Ionicons name="chevron-back" size={35} color="white"/>
             </TouchableOpacity> : <View></View>}
-            <View>
+            <View style={showSkip ? {} : {marginRight: widthPercentageToDP('8%')}}>
                 {showLogo ?
                     <Image source={require('../assets/images/ballwithoutText.png')}/>
                     :

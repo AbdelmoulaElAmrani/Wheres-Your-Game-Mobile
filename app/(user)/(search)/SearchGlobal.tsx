@@ -8,6 +8,8 @@ import {Divider, Searchbar} from "react-native-paper";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import Spinner from "@/components/Spinner";
 import TeamSearchCard from "@/components/Search/TeamSearchCard";
+import {SearchGlobalResponse} from "@/models/SearchGlobalResponse";
+import PersonSearchCard from "@/components/Search/PersonSearchCard";
 
 enum searchOption {
     Teams,
@@ -18,7 +20,7 @@ const SearchGlobal = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [selectedOption, setSelectedOption] = useState<searchOption>(searchOption.Teams); // State to track selected option
     const [searchName, setSearchName] = useState<string>('');
-    const [searchResult, setSearchResult] = useState<any>({players: [], teams: []});
+    const [searchResult, setSearchResult] = useState<SearchGlobalResponse>({players: [], teams: []});
 
 
     useEffect(() => {
@@ -85,7 +87,6 @@ const SearchGlobal = () => {
                         style={{width: '100%', height: '100%', paddingVertical: 10, paddingHorizontal: 8}}>
                         <View style={{width: '100%', marginBottom: hp('3%')}}>
                             <View>
-                                {/* Button Container for Teams and Players */}
                                 <View style={{
                                     flexDirection: 'row',
                                     justifyContent: 'space-around',
@@ -127,7 +128,7 @@ const SearchGlobal = () => {
                             </View>
 
                             <View style={{marginTop: hp('2%'), height: '75%'}}>
-                                <FlatList
+                                {selectedOption === searchOption.Teams ? (<FlatList
                                     contentContainerStyle={{
                                         width: '90%',
                                         alignSelf: 'center',
@@ -138,7 +139,18 @@ const SearchGlobal = () => {
                                         style={{height: hp('10%')}}/>}  // Extra space at the bottom
                                     renderItem={({item}) => <TeamSearchCard/>}
                                     keyExtractor={(item, index) => index.toString()}
-                                />
+                                />) : (<FlatList
+                                    contentContainerStyle={{
+                                        width: '90%',
+                                        alignSelf: 'center',
+                                        paddingBottom: hp('10%'), // Ensure sufficient padding at the bottom
+                                    }}
+                                    data={data}
+                                    ListFooterComponent={<View
+                                        style={{height: hp('10%')}}/>}  // Extra space at the bottom
+                                    renderItem={({item}) => <PersonSearchCard/>}
+                                    keyExtractor={(item, index) => index.toString()}
+                                />)}
                             </View>
                         </View>
                     </KeyboardAvoidingView>

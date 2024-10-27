@@ -1,3 +1,5 @@
+import {Player} from "@/models/Player";
+
 export interface Team {
     id: string;
     name: string;
@@ -6,4 +8,7 @@ export interface Team {
     active: boolean;
     score: number | 0;
     founded?: Date;
+    members: Player [],
+    league?: string,
+    coach?: any,
 }
