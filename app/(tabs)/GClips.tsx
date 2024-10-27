@@ -2,13 +2,15 @@ import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, Platform } from "react-native";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Modal, Searchbar, TextInput } from 'react-native-paper';
-import React, { useState } from "react";
+import { ActivityIndicator, MD2Colors, Modal, Searchbar, TextInput } from 'react-native-paper';
+import React, { useEffect, useState } from "react";
 import { FontAwesome } from '@expo/vector-icons';
 import { ImageBackground } from "expo-image";
 import VideoComponent from "@/components/VideoComponent";
 import * as Sharing from 'expo-sharing';
 import CustomButton from "@/components/CustomButton";
+import { PostService } from "@/services/PostService";
+import { PostResponse } from "@/models/responseObjects/PostResponse";
 
 
 
@@ -16,26 +18,7 @@ const validDomains = ['facebook.com', 'instagram.com', 'youtube.com', 'tiktok.co
 
 const GClips = () => {
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedTag, setSelectedTag] = useState(null);
-    const [videos, setVideos] = useState([
-        {
-            title: '5 Tips for your First Day of Shooting Archery',
-            info: 'Mike added a videos',
-            videoUri: 'https://www.youtube.com/watch?v=HiQG9Jbqr0E',
-            uploadHour: 1
-        },
-        {
-            title: 'How to Swim All Four Strokes',
-            info: 'John added a video',
-            videoUri: 'https://www.youtube.com/watch?v=8c_lt66Yvn4',
-            uploadHour: 2
-        },
-        {
-            title: '20 min Full Body STRETCH/YOGA for STRESS & ANXIETY Relief\n',
-            info: 'MadFit added a video',
-            videoUri: 'https://www.youtube.com/watch?v=sTANio_2E0Q',
-            uploadHour: 3
-        }]);
+    const [selectedTag, setSelectedTag] = useState('New');
     const tags = ['New', 'Trending', 'Popular', 'Top Photos', 'Top Videos'];
     const [isPostModalVisible, setPostModalVisible] = useState(false);
     const [postLink, setPostLink] = useState('');
@@ -49,10 +32,53 @@ const GClips = () => {
         twitter: '',
     });
     const [postLinkError, setPostLinkError] = useState('');
+    const [posts, setPosts] = useState([] as PostResponse[]);
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [tag, setTag] = useState('new');
+    const [loading, setLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+
+
+    useEffect(() => {
+        setPosts([]);
+        setHasMore(true);
+        handleFetchPosts();
+    }, [page, selectedTag]);
+
+    const handleFetchPosts = async () => {
+        if (loading || !hasMore) return; // Stop fetching if already loading or no more pages
+        setLoading(true);
+
+        try {
+            const newPosts = await PostService.getFilteredPosts(selectedTag, page, pageSize);
+            if (newPosts) {
+                if (newPosts?.content.length > 0) {
+                    setPosts(prevPosts => {
+                        const allPosts = [...prevPosts, ...newPosts.content];
+                        const uniquePosts = Array.from(new Set(allPosts.map(post => post.id)))
+                            .map(id => allPosts.find(post => post.id === id))
+                            .filter((post): post is PostResponse => post !== undefined);
+                        return uniquePosts;
+                    });
+
+                    // Check if the current page is the last
+                    const isLastPage = newPosts.number + 1 === newPosts.totalPages;
+                    setHasMore(!isLastPage);
+                }
+            }
+            else {
+                setHasMore(false); // Stop further pagination if no more posts
+            }
+        } catch (error) {
+            console.error("Error fetching posts:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const _renderItem = ({ item }: { item: any }) => (
         <TouchableOpacity
-            disabled={true}
             style={[styles.tag, selectedTag === item ? styles.selectedTag : null]}
             onPress={() => setSelectedTag(item)}>
             <Text style={[styles.tagText, { color: selectedTag === item ? 'white' : 'black' }]}>{item}</Text>
@@ -65,13 +91,13 @@ const GClips = () => {
                 <Text style={styles.videoTitle}>{video?.title}</Text>
                 <View style={styles.videoPreview}>
                     <View style={{ height: '100%', width: '100%' }}>
-                        <VideoComponent url={video.videoUri} />
+                        <VideoComponent url={video.link} />
                     </View>
                 </View>
                 <View style={styles.videoInfoContainer}>
                     <Text style={styles.videoInfo}>{video?.info}</Text>
                     <View style={styles.infoIconContainer}>
-                        <Text style={styles.uploadHour}>{video?.uploadHour} hour ago</Text>
+                        <Text style={styles.uploadHour}>{getHoursFromNow(video?.postedAt)} hour ago</Text>
                         <TouchableOpacity onPress={() => _handleShareClip(video)}>
                             <FontAwesome name="share-alt" size={20} color="grey" style={styles.shareIcon} />
                         </TouchableOpacity>
@@ -82,7 +108,7 @@ const GClips = () => {
     }
 
     const _handleShareClip = async (video: any) => {
-        await Sharing.shareAsync(video.videoUri);
+        await Sharing.shareAsync(video.link);
     }
 
     const _showPostModal = () => {
@@ -94,22 +120,32 @@ const GClips = () => {
         setPostTitle('');
         setPostLinkError('');
     }
-    const _handlePost = () => {
+
+    const _handlePost = async () => {
         setPostLinkError('');
         const isValidLink = validDomains.some(domain => postLink.includes(domain));
         if (!isValidLink) {
             setPostLinkError('Please enter a valid link from Facebook, Instagram, YouTube, or TikTok.');
             return;
         }
+        var createdPost = await PostService.createPost({ title: postTitle, link: postLink });
+        if (!createdPost) {
+            Alert.alert(
+                'Error',
+                'An error occurred while creating the post. Please try again later.',
+                [{ text: 'OK' }]
+            );
+            return;
+        }
 
-        console.log('Link is valid. Proceeding with post...' + postLink + ' ' + postTitle);
-        //TODO => Add logic to store the post in the backend
-        setVideos([...videos, {
-            title: postTitle,
-            info: 'You added a video',
-            videoUri: postLink,
-            uploadHour: 0
-        }]);
+        setPosts([...posts, {
+            title: createdPost.title,
+            link: createdPost.link,
+            postedAt: createdPost.postedAt,
+            accountId: createdPost.accountId
+        } as PostResponse]);
+
+
         setPostModalVisible(false);
         setPostLink('');
         setPostTitle('');
@@ -153,7 +189,18 @@ const GClips = () => {
         });
     };
 
-
+    const getHoursFromNow = (date: any): number => {
+        // Convert `date` to a Date object if it’s a string
+        if (typeof date === 'string') {
+            date = new Date(date);
+        }
+        if (!(date instanceof Date) || isNaN(date.getTime())) {
+            return 0; // Return 0 for invalid dates
+        }
+        const now = new Date();
+        const diff = now.getTime() - date.getTime();
+        return Math.ceil(diff / (1000 * 60 * 60));
+    };
 
 
 
@@ -204,7 +251,11 @@ const GClips = () => {
                             Link Social Media
                         </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.button, styles.whiteButton]}>
+                    <TouchableOpacity style={[styles.button, styles.whiteButton]}
+                        onPress={() => {
+                            setSelectedTag('followers');
+                        }}
+                    >
                         <Text style={styles.buttonText}>
                             Followers
                         </Text>
@@ -233,6 +284,7 @@ const GClips = () => {
                         horizontal={true}
                         showsHorizontalScrollIndicator={false}
                         style={styles.flatList}
+
                     />
 
                     <View style={styles.videoHeader}>
@@ -243,15 +295,28 @@ const GClips = () => {
                         </TouchableOpacity>
                     </View>
                     <View style={styles.videoListContainer}>
-                        <FlatList
-                            data={videos}
-                            renderItem={({ item }) => _videoPreview({ video: item })}
-                            keyExtractor={item => item.title}
-                            horizontal={false}
-                            showsVerticalScrollIndicator={false}
-                            style={styles.videosFlatList}
-                            bouncesZoom={true}
-                        />
+                        {!loading && posts.length === 0 && <Text style={{ color: 'grey', fontSize: 16, textAlign: 'center', marginTop: 20 }}>No videos found</Text>}
+                        {loading && posts.length === 0 && <ActivityIndicator animating={true} color={MD2Colors.blueA700} size={50} />}
+                        {posts.length > 0 && (
+                            <FlatList
+                                data={posts}
+                                renderItem={({ item }) => _videoPreview({ video: item })}
+                                keyExtractor={item => item.id}
+                                horizontal={false}
+                                showsVerticalScrollIndicator={false}
+                                style={styles.videosFlatList}
+                                bouncesZoom={true}
+                                onEndReachedThreshold={0.1}
+                                onEndReached={() => {
+                                    if (!loading && hasMore) { // Only load more if more pages are available
+                                        setPage(prevPage => prevPage + 1);
+                                    }
+                                }}
+                                getItemLayout={(data, index) => (
+                                    { length: 50, offset: 50 * index, index }
+                                )}
+                            />
+                        )}
                     </View>
 
                 </View>
@@ -284,7 +349,8 @@ const GClips = () => {
                             onChangeText={text => setPostLink(text)}
                             value={postLink}
                         />
-                        {postLinkError.length > 0 && <Text style={{ color: 'red', fontSize: 12 ,
+                        {postLinkError.length > 0 && <Text style={{
+                            color: 'red', fontSize: 12,
                             position: 'absolute', bottom: 70, alignSelf: 'center'
                         }}>{postLinkError}</Text>}
 
