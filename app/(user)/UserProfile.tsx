@@ -7,10 +7,27 @@ import React, {useEffect, useState} from "react";
 import {router} from "expo-router";
 import {StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {Divider} from "react-native-paper";
+import {Player} from "@/models/Player";
+import {useSelector} from "react-redux";
+import {UserResponse} from "@/models/responseObjects/UserResponse";
+import {FontAwesome6} from "@expo/vector-icons";
+import * as Linking from 'expo-linking';
+
+
+enum MenuOption {
+    Overview,
+    Videos,
+    Sports_Profiles
+}
 
 export const UserProfile = () => {
 
     const [loading, setLoading] = useState<boolean>(false);
+    const [person, setPerson] = useState<UserResponse>();
+    const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
+    const [selectOption, setSelectOption] = useState<MenuOption>(MenuOption.Overview);
+
+
     const _handleGoBack = () => {
         if (router.canGoBack())
             router.back();
@@ -19,6 +36,32 @@ export const UserProfile = () => {
     useEffect(() => {
         //TODO:: CALL Service get player by Id
     }, []);
+
+    const _handleFollow = () => {
+        //TODO:: Call service to follow the user given currentUser.id
+    }
+
+    const _option = (option: MenuOption) => {
+        setSelectOption(option);
+    }
+
+    const _handleOpenUrl = (url: string | undefined) => {
+        if (url === undefined) return;
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = `https://${url}`;
+        }
+        Linking.canOpenURL(url)
+            .then((supported) => {
+                if (supported) {
+                    if (typeof url === "string") {
+                        Linking.openURL(url);
+                    }
+                }
+            })
+            .catch((err) => {
+                console.error("Failed to open URL:", err);
+            });
+    }
 
     return (
         <ImageBackground
@@ -48,35 +91,35 @@ export const UserProfile = () => {
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         width: '90%',
-                        marginTop: hp(2)
+                        marginTop: hp(2),
                     }}>
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={() => _option(MenuOption.Overview)}>
                             <Text
-                                style={[styles.selectionText, styles.selectedText]}>
+                                style={[styles.selectionText, selectOption == MenuOption.Overview && styles.selectedText]}>
                                 Overview
                             </Text>
-                            <View style={styles.underline}/>
+                            {selectOption == MenuOption.Overview && <View style={styles.underline}/>}
                         </TouchableOpacity>
 
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={() => _option(MenuOption.Videos)}>
                             <Text
-                                style={[styles.selectionText, styles.selectedText]}>
+                                style={[styles.selectionText, selectOption == MenuOption.Videos && styles.selectedText]}>
                                 Videos
                             </Text>
-                            <View style={styles.underline}/>
+                            {selectOption == MenuOption.Videos && <View style={styles.underline}/>}
                         </TouchableOpacity>
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={() => _option(MenuOption.Sports_Profiles)}>
                             <Text
-                                style={[styles.selectionText, styles.selectedText]}>
+                                style={[styles.selectionText, selectOption == MenuOption.Sports_Profiles && styles.selectedText]}>
                                 Sports Profile
                             </Text>
-                            <View style={styles.underline}/>
+                            {selectOption == MenuOption.Sports_Profiles && <View style={styles.underline}/>}
                         </TouchableOpacity>
                     </View>
                     <Divider bold={true} style={{width: '90%', alignSelf: 'center', marginBottom: hp('2%')}}/>
-                    <View style={{width: '90%'}}>
-                        <>
-                            <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
+                    <View style={{width: '90%', height: hp('16%')}}>
+                        {selectOption === MenuOption.Overview && <>
+                            <View style={{flexDirection: 'row', justifyContent: 'space-around', width: '100%'}}>
                                 <View style={styles.infoMiniCard}>
                                     <Text style={styles.infoTitle}>Sports Focus</Text>
                                     <Text style={styles.infoText}>Soccer</Text>
@@ -90,7 +133,12 @@ export const UserProfile = () => {
                                     <Text style={styles.infoText}>Midfilder</Text>
                                 </View>
                             </View>
-                            <View style={{flexDirection: 'row', justifyContent: 'space-around', marginTop: 20}}>
+                            <View style={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-around',
+                                marginTop: 20,
+                                width: '100%'
+                            }}>
                                 <View style={styles.infoMiniCard}>
                                     <Text style={styles.infoTitle}>Skills Focus</Text>
                                     <Text style={styles.infoText}>Advance</Text>
@@ -100,13 +148,88 @@ export const UserProfile = () => {
                                     <Text style={styles.infoText}>500</Text>
                                 </View>
                             </View>
-                        </>
-                        {/*<View></View>
-                        <View></View>*/}
-                        <TouchableOpacity style={styles.followBtn}>
-                            <Text style={{color: 'white', fontSize: 16}}>Follow</Text>
-                        </TouchableOpacity>
+                        </>}
+
+                        {
+                            selectOption == MenuOption.Videos && <>
+                                <View style={{
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-around',
+                                    marginTop: 15,
+                                    width: '100%'
+                                }}>
+                                    <TouchableOpacity
+                                        onPress={() => person?.instagramAccount && _handleOpenUrl(person?.instagramAccount)}
+                                        style={styles.iconCard}
+                                        disabled={!person?.instagramAccount}
+                                    >
+                                        <FontAwesome6
+                                            name="instagram"
+                                            size={40}
+                                            color={person?.instagramAccount ? "#E4405F" : "#cccccc"}
+                                            style={{opacity: person?.instagramAccount ? 1 : 0.5}}
+                                        />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        onPress={() => person?.tiktokAccount && _handleOpenUrl(person?.tiktokAccount)}
+                                        style={styles.iconCard}
+                                        disabled={!person?.tiktokAccount}
+                                    >
+                                        <FontAwesome6
+                                            name="tiktok"
+                                            size={40}
+                                            color={person?.tiktokAccount ? "black" : "#cccccc"}
+                                            style={{opacity: person?.tiktokAccount ? 1 : 0.5}}
+                                        />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        onPress={() => person?.facebookAccount && _handleOpenUrl(person?.facebookAccount)}
+                                        style={styles.iconCard}
+                                        disabled={!person?.facebookAccount}
+                                    >
+                                        <FontAwesome6
+                                            name="facebook"
+                                            size={40}
+                                            color={person?.facebookAccount ? "blue" : "#cccccc"}
+                                            style={{opacity: person?.facebookAccount ? 1 : 0.5}}
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                                <View style={{
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-around',
+                                    marginTop: 25,
+                                    width: '100%'
+                                }}>
+                                    <TouchableOpacity
+                                        onPress={() => person?.youtubeAccount && _handleOpenUrl(person?.youtubeAccount)}
+                                        style={styles.iconCard}
+                                        disabled={!person?.youtubeAccount}
+                                    >
+                                        <FontAwesome6
+                                            name="youtube"
+                                            size={40}
+                                            color={person?.youtubeAccount ? "red" : "#cccccc"}
+                                            style={{opacity: person?.youtubeAccount ? 1 : 0.5}}
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                            </>
+                        }
+                        {
+                            selectOption == MenuOption.Sports_Profiles && <>
+                                <View style={{justifyContent: 'center', width: '100%', height: '100%'}}>
+                                    <Text style={{textAlign: 'center', fontWeight: 'bold', fontSize: 16}}>Coming Soon
+                                        ...</Text>
+                                </View>
+                            </>
+                        }
                     </View>
+                    <TouchableOpacity
+                        onPress={_handleFollow}
+                        style={styles.followBtn}>
+                        <Text style={{color: 'white', fontSize: 16}}>Follow</Text>
+                    </TouchableOpacity>
                 </View>
             </SafeAreaView>
         </ImageBackground>
@@ -167,7 +290,8 @@ const styles = StyleSheet.create({
     },
     selectionText: {
         fontWeight: 'bold',
-        fontSize: 16
+        fontSize: 16,
+        marginBottom: 5
     },
     underline: {
         height: 2,
@@ -208,6 +332,17 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 15,
         alignItems: 'center'
+    },
+    iconCard: {
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 3,
+        shadowColor: 'grey',
+        shadowOffset: {width: 0, height: 2},
+        shadowOpacity: 0.5,
+        shadowRadius: 5,
+        elevation: 5,
+        borderColor: 'grey',
     }
 });
 

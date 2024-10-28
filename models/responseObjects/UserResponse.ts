@@ -25,4 +25,9 @@ export interface UserResponse {
     country?: string;
     stateRegion?: string;
     city?: string;
+    followers?: [];
+    facebookAccount?: string;
+    tiktokAccount?: string;
+    instagramAccount?: string;
+    youtubeAccount?: string;
 }
