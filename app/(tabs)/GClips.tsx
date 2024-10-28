@@ -11,6 +11,10 @@ import * as Sharing from 'expo-sharing';
 import CustomButton from "@/components/CustomButton";
 import { PostService } from "@/services/PostService";
 import { PostResponse } from "@/models/responseObjects/PostResponse";
+import { UserService } from "@/services/UserService";
+import { useDispatch, useSelector } from "react-redux";
+import { UserResponse } from "@/models/responseObjects/UserResponse";
+import { getUserProfile } from "@/redux/UserSlice";
 
 
 
@@ -28,8 +32,7 @@ const GClips = () => {
         facebook: '',
         instagram: '',
         tiktok: '',
-        youtube: '',
-        twitter: '',
+        youtube: ''
     });
     const [postLinkError, setPostLinkError] = useState('');
     const [posts, setPosts] = useState([] as PostResponse[]);
@@ -38,7 +41,22 @@ const GClips = () => {
     const [tag, setTag] = useState('new');
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const { socialMediaLinks } = useSelector((state: any) => state.user.userData) as UserResponse;
 
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        (async () => {
+            await dispatch(getUserProfile() as any)
+        })()
+        setSocialMediaLink({
+            facebook: socialMediaLinks?.facebookAccount || '',
+            instagram: socialMediaLinks?.instagramAccount || '',
+            tiktok: socialMediaLinks?.tiktokAccount || '',
+            youtube: socialMediaLinks?.youtubeAccount || '',
+        });
+
+    }, []);
 
     useEffect(() => {
         setPosts([]);
@@ -47,7 +65,7 @@ const GClips = () => {
     }, [page, selectedTag]);
 
     const handleFetchPosts = async () => {
-        if (loading || !hasMore) return; // Stop fetching if already loading or no more pages
+        if (loading || !hasMore) return;
         setLoading(true);
 
         try {
@@ -157,15 +175,12 @@ const GClips = () => {
         setSocialMediaCardVisible(false);
     }
 
-    const _handleSocialMediaLink = () => {
-        console.log('Social Media Links: ', socialMediaLink);
-
+    const _handleSocialMediaLink = async () => {
         // Check if any link is provided and validate against domains
         var isValidLink = socialMediaLink.facebook.length > 0 && socialMediaLink.facebook.includes('facebook.com')
             || socialMediaLink.instagram.length > 0 && socialMediaLink.instagram.includes('instagram.com')
             || socialMediaLink.tiktok.length > 0 && socialMediaLink.tiktok.includes('tiktok.com')
-            || socialMediaLink.youtube.length > 0 && socialMediaLink.youtube.includes('youtube.com')
-            || socialMediaLink.twitter.length > 0 && socialMediaLink.twitter.includes('twitter.com');
+            || socialMediaLink.youtube.length > 0 && socialMediaLink.youtube.includes('youtube.com');
 
         if (!isValidLink) {
             // Show an error alert if the link is invalid
@@ -177,16 +192,20 @@ const GClips = () => {
             return;
         }
 
-        console.log('Link is valid. Proceeding with linking social media...');
-        //TODO => Add logic to store the social media links in the backend
-        setSocialMediaCardVisible(false);
-        setSocialMediaLink({
-            facebook: '',
-            instagram: '',
-            tiktok: '',
-            youtube: '',
-            twitter: '',
+        var updatedLink = await UserService.updateUserSocialLinks({
+            facebookAccount: socialMediaLink.facebook,
+            instagramAccount: socialMediaLink.instagram,
+            tiktokAccount: socialMediaLink.tiktok,
+            youtubeAccount: socialMediaLink.youtube,
         });
+        setSocialMediaLink({
+            facebook: updatedLink?.facebookAccount || '',
+            instagram: updatedLink?.instagramAccount || '',
+            tiktok: updatedLink?.tiktokAccount || '',
+            youtube: updatedLink?.youtubeAccount || '',
+        });
+        setSocialMediaCardVisible(false);
+       
     };
 
     const getHoursFromNow = (date: any): number => {
@@ -409,53 +428,64 @@ const GClips = () => {
                     <View style={{ width: '97%', alignItems: 'center', marginTop: 10 }}>
                         <TextInput
                             placeholder="Facebook"
-                            style={[styles.inputStyle, { marginTop: 10 }]}
+                            style={[styles.inputStyle, {
+                                marginTop: 10,
+                                flexShrink: 1,  // Prevents wrapping
+                                width: '100%',
+                                height: 55,
+                            }]}
                             cursorColor='black'
                             placeholderTextColor={'grey'}
                             underlineColor={"transparent"}
                             left={<TextInput.Icon color={'#D3D3D3'} icon='facebook' size={25} />}
                             value={socialMediaLink.facebook}
                             onChangeText={text => setSocialMediaLink({ ...socialMediaLink, facebook: text })}
+                            multiline={false}
                         />
                         <TextInput
                             placeholder="Instagram"
-                            style={[styles.inputStyle, { marginTop: 5 }]}
+                            style={[styles.inputStyle, { marginTop: 5,
+                                flexShrink: 1,  
+                                width: '100%',
+                                height: 55,
+                             }]}
                             cursorColor='black'
                             placeholderTextColor={'grey'}
                             underlineColor={"transparent"}
                             left={<TextInput.Icon color={'#D3D3D3'} icon='instagram' size={25} />}
                             value={socialMediaLink.instagram}
                             onChangeText={text => setSocialMediaLink({ ...socialMediaLink, instagram: text })}
+                            multiline={false}
                         />
                         <TextInput
                             placeholder="Tiktok"
-                            style={[styles.inputStyle, { marginTop: 5 }]}
+                            style={[styles.inputStyle, { marginTop: 5,
+                                flexShrink: 1,  
+                                width: '100%',
+                                height: 55,
+                             }]}
                             cursorColor='black'
                             placeholderTextColor={'grey'}
                             underlineColor={"transparent"}
                             left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
                             value={socialMediaLink.tiktok}
                             onChangeText={text => setSocialMediaLink({ ...socialMediaLink, tiktok: text })}
+                            multiline={false}
                         />
                         <TextInput
                             placeholder="Youtube"
-                            style={[styles.inputStyle, { marginTop: 5 }]}
+                            style={[styles.inputStyle, { marginTop: 5 ,
+                                flexShrink: 1,  
+                                width: '100%',
+                                height: 55,
+                            }]}
                             cursorColor='black'
                             placeholderTextColor={'grey'}
                             underlineColor={"transparent"}
                             left={<TextInput.Icon color={'#D3D3D3'} icon='youtube' size={25} />}
                             value={socialMediaLink.youtube}
                             onChangeText={text => setSocialMediaLink({ ...socialMediaLink, youtube: text })}
-                        />
-                        <TextInput
-                            placeholder="X"
-                            style={[styles.inputStyle, { marginTop: 5 }]}
-                            cursorColor='black'
-                            placeholderTextColor={'grey'}
-                            underlineColor={"transparent"}
-                            left={<TextInput.Icon color={'#D3D3D3'} icon='twitter' size={25} />}
-                            value={socialMediaLink.twitter}
-                            onChangeText={text => setSocialMediaLink({ ...socialMediaLink, twitter: text })}
+                            multiline={false}
                         />
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '80%' }}>
                             <CustomButton

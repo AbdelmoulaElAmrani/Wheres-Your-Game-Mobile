@@ -2,6 +2,8 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import Requests from "./Requests";
 import {UserRequest} from "@/models/requestObjects/UserRequest";
 import UserType from "@/models/UserType";
+import { SocialMediaLinksResponse } from "@/models/responseObjects/SocialMediaLinksResponse";
+import { SocialMediaLinksRequest } from "@/models/requestObjects/SocialMediaLinksRequest";
 
 
 export class UserService {
@@ -77,4 +79,22 @@ export class UserService {
             return false;
         }
     }
+    
+    static async updateUserSocialLinks(social: SocialMediaLinksRequest): Promise<SocialMediaLinksResponse | undefined> {
+        try {
+            var res = await Requests.put('user/social', social);
+
+            if (res?.status === 200 && res?.data) {
+                return res?.data as SocialMediaLinksResponse;
+            } else {
+                console.error('Failed to update user:', res.status);
+                return undefined;
+            }
+        } catch (error) {
+            console.error('Error updating user:', error);
+            return undefined;
+        }
+    }
+   
+    
 }
