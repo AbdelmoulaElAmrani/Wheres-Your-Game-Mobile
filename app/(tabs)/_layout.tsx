@@ -15,7 +15,13 @@ const Layout = () => {
                 <AntDesign name="home" size={size} color={color}/>
         }}/>
         <Tabs.Screen name="Profile" options={{
+            href: null,
             title: 'Profile', tabBarLabel: 'Profile',
+            tabBarIcon: ({color, size}) =>
+                <Octicons name="person" size={size} color={color}/>
+        }}/>
+        <Tabs.Screen name="ProfileV2" options={{
+            title: 'ProfileV2', tabBarLabel: 'ProfileV2',
             tabBarIcon: ({color, size}) =>
                 <Octicons name="person" size={size} color={color}/>
         }}/>

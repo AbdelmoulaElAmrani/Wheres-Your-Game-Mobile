@@ -1,18 +1,16 @@
+import {useDispatch, useSelector} from "react-redux";
+import {UserResponse} from "@/models/responseObjects/UserResponse";
+import React, {useEffect, useState} from "react";
+import {router, useRouter} from "expo-router";
+import {getUserProfile} from "@/redux/UserSlice";
 import {Image, ImageBackground} from "expo-image";
 import {heightPercentageToDP as hp, widthPercentageToDP} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
 import Spinner from "@/components/Spinner";
-import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import React, {useEffect, useState} from "react";
-import {router} from "expo-router";
 import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {Divider} from "react-native-paper";
-import {Player} from "@/models/Player";
-import {useSelector} from "react-redux";
-import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {FontAwesome6} from "@expo/vector-icons";
-import * as Linking from 'expo-linking';
-
+import * as Linking from "expo-linking";
 
 enum MenuOption {
     Overview,
@@ -20,26 +18,39 @@ enum MenuOption {
     Sports_Profiles
 }
 
-export const UserProfile = () => {
-
-    const [loading, setLoading] = useState<boolean>(false);
-    const [person, setPerson] = useState<UserResponse>();
+export const ProfileV2 = () => {
+    const dispatch = useDispatch()
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
+    const loading = useSelector((state: any) => state.user.loading) as boolean;
+    const [refreshing, setRefreshing] = useState<boolean>(false);
+    const _router = useRouter();
     const [selectOption, setSelectOption] = useState<MenuOption>(MenuOption.Overview);
 
 
-    const _handleGoBack = () => {
-        if (router.canGoBack())
-            router.back();
-    }
-
     useEffect(() => {
-        //TODO:: CALL Service get player by Id
+        (async () => {
+            await dispatch(getUserProfile() as any)
+        })()
     }, []);
 
-    const _handleFollow = () => {
-        //TODO:: Call service to follow the user given currentUser.id
+    const _handleEditProfile = () => {
+        _router.push({
+            pathname: '/EditProfile',
+            params: {data: 'profile'},
+        });
     }
+
+    const _refreshProfile = () => {
+        setRefreshing(true)
+        setTimeout(() => {
+            setRefreshing(false)
+        }, 3000);
+    }
+
+    const _handleSettings = () => {
+        router.navigate('/(settings)');
+    };
+
 
     const _option = (option: MenuOption) => {
         setSelectOption(option);
@@ -71,15 +82,14 @@ export const UserProfile = () => {
                 {loading && (
                     <Spinner visible={loading}/>
                 )}
-                <CustomNavigationHeader text={'Player'} goBackFunction={_handleGoBack} showBackArrow/>
 
                 <View style={styles.mainContainer}>
                     <ScrollView showsVerticalScrollIndicator={false}
                                 contentContainerStyle={{alignItems: 'center'}}
                                 style={{width: '100%', flex: 1}}>
                         <View style={styles.profileImageContainer}>
-                            {person?.imageUrl ? <Image contentFit='contain' style={styles.imageContainer}
-                                                       source={{uri: person.imageUrl}}/> : (
+                            {currentUser?.imageUrl ? <Image contentFit='contain' style={styles.imageContainer}
+                                                            source={{uri: currentUser.imageUrl}}/> : (
                                 <View style={[styles.imageContainer, {
                                     justifyContent: 'center',
                                     backgroundColor: 'rgb(175,175,175)'
@@ -89,22 +99,22 @@ export const UserProfile = () => {
                                         fontWeight: 'bold',
                                         fontSize: 40,
                                         color: 'white'
-                                    }}>{`${person?.firstName.charAt(0).toUpperCase()} ${person?.lastName.charAt(0).toUpperCase()}`}</Text>
+                                    }}>{`${currentUser.firstName.charAt(0).toUpperCase()} ${currentUser.lastName.charAt(0).toUpperCase()}`}</Text>
                                 </View>)}
                             <View style={styles.infoContainer}>
                                 <Text style={{
                                     fontWeight: 'bold',
                                     fontSize: 18
-                                }}>{`${person?.firstName.charAt(0).toUpperCase()}${person?.firstName.slice(1).toLowerCase()} ${person?.lastName.charAt(0).toUpperCase()}${person?.lastName.slice(1).toLowerCase()}`}
+                                }}>    {`${currentUser.firstName.charAt(0).toUpperCase()}${currentUser.firstName.slice(1).toLowerCase()} ${currentUser.lastName.charAt(0).toUpperCase()}${currentUser.lastName.slice(1).toLowerCase()}`}
                                 </Text>
                                 <Text style={{color: 'grey', fontSize: 16, marginTop: 5}}>
-                                    {`${person?.city || ''}${person?.city && person?.stateRegion ? ', ' : ''}${person?.stateRegion || ''}${person?.stateRegion && person?.country ? ', ' : ''}${person?.country || ''}`}
+                                    {`${currentUser.city || ''}${currentUser.city && currentUser.stateRegion ? ', ' : ''}${currentUser.stateRegion || ''}${currentUser.stateRegion && currentUser.country ? ', ' : ''}${currentUser.country || ''}`}
                                 </Text>
                             </View>
                         </View>
                         <View style={styles.bioContainer}>
                             <Text style={{fontWeight: 'bold', fontSize: 16}}>Bio:</Text>
-                            <Text style={{fontSize: 14, textAlign: 'center'}}>{person?.bio}</Text>
+                            <Text style={{fontSize: 14, textAlign: 'center'}}>{currentUser.bio}</Text>
                         </View>
                         <View style={{
                             flexDirection: 'row',
@@ -179,39 +189,39 @@ export const UserProfile = () => {
                                         width: '100%'
                                     }}>
                                         <TouchableOpacity
-                                            onPress={() => person?.instagramAccount && _handleOpenUrl(person?.instagramAccount)}
+                                            onPress={() => currentUser.instagramAccount && _handleOpenUrl(currentUser.instagramAccount)}
                                             style={styles.iconCard}
-                                            disabled={!person?.instagramAccount}
+                                            disabled={!currentUser.instagramAccount}
                                         >
                                             <FontAwesome6
                                                 name="instagram"
                                                 size={40}
-                                                color={person?.instagramAccount ? "#E4405F" : "#cccccc"}
-                                                style={{opacity: person?.instagramAccount ? 1 : 0.5}}
+                                                color={currentUser.instagramAccount ? "#E4405F" : "#cccccc"}
+                                                style={{opacity: currentUser.instagramAccount ? 1 : 0.5}}
                                             />
                                         </TouchableOpacity>
                                         <TouchableOpacity
-                                            onPress={() => person?.tiktokAccount && _handleOpenUrl(person?.tiktokAccount)}
+                                            onPress={() => currentUser.tiktokAccount && _handleOpenUrl(currentUser.tiktokAccount)}
                                             style={styles.iconCard}
-                                            disabled={!person?.tiktokAccount}
+                                            disabled={!currentUser.tiktokAccount}
                                         >
                                             <FontAwesome6
                                                 name="tiktok"
                                                 size={40}
-                                                color={person?.tiktokAccount ? "black" : "#cccccc"}
-                                                style={{opacity: person?.tiktokAccount ? 1 : 0.5}}
+                                                color={currentUser.tiktokAccount ? "black" : "#cccccc"}
+                                                style={{opacity: currentUser.tiktokAccount ? 1 : 0.5}}
                                             />
                                         </TouchableOpacity>
                                         <TouchableOpacity
-                                            onPress={() => person?.facebookAccount && _handleOpenUrl(person?.facebookAccount)}
+                                            onPress={() => currentUser.facebookAccount && _handleOpenUrl(currentUser.facebookAccount)}
                                             style={styles.iconCard}
-                                            disabled={!person?.facebookAccount}
+                                            disabled={!currentUser.facebookAccount}
                                         >
                                             <FontAwesome6
                                                 name="facebook"
                                                 size={40}
-                                                color={person?.facebookAccount ? "blue" : "#cccccc"}
-                                                style={{opacity: person?.facebookAccount ? 1 : 0.5}}
+                                                color={currentUser.facebookAccount ? "blue" : "#cccccc"}
+                                                style={{opacity: currentUser.facebookAccount ? 1 : 0.5}}
                                             />
                                         </TouchableOpacity>
                                     </View>
@@ -222,14 +232,14 @@ export const UserProfile = () => {
                                         width: '100%'
                                     }}>
                                         <TouchableOpacity
-                                            onPress={() => person?.youtubeAccount && _handleOpenUrl(person?.youtubeAccount)}
+                                            onPress={() => currentUser.youtubeAccount && _handleOpenUrl(currentUser.youtubeAccount)}
                                             style={styles.iconCard}
-                                            disabled={!person?.youtubeAccount}>
+                                            disabled={!currentUser.youtubeAccount}>
                                             <FontAwesome6
                                                 name="youtube"
                                                 size={40}
-                                                color={person?.youtubeAccount ? "red" : "#cccccc"}
-                                                style={{opacity: person?.youtubeAccount ? 1 : 0.5}}
+                                                color={currentUser.youtubeAccount ? "red" : "#cccccc"}
+                                                style={{opacity: currentUser.youtubeAccount ? 1 : 0.5}}
                                             />
                                         </TouchableOpacity>
                                     </View>
@@ -244,18 +254,22 @@ export const UserProfile = () => {
                                 </>
                             }
                             <TouchableOpacity
-                                onPress={_handleFollow}
+                                onPress={_handleSettings}
                                 style={styles.followBtn}>
-                                <Text style={{color: 'white', fontSize: 16, fontWeight: 'bold'}}>Follow</Text>
+                                <FontAwesome6 name="gear" size={15} color="white"/>
+                                <Text style={{
+                                    color: 'white',
+                                    fontSize: 16,
+                                    marginLeft: 10,
+                                    fontWeight: 'bold'
+                                }}>Settings</Text>
                             </TouchableOpacity>
                         </View>
                     </ScrollView>
                 </View>
             </SafeAreaView>
-        </ImageBackground>
-    );
+        </ImageBackground>);
 }
-
 
 const styles = StyleSheet.create({
     mainContainer: {
@@ -264,8 +278,9 @@ const styles = StyleSheet.create({
         width: '100%',
         borderTopRightRadius: 20,
         borderTopLeftRadius: 20,
-        alignItems: 'center',
-    },
+        alignItems: 'center'
+    }
+    ,
     profileImageContainer: {
         backgroundColor: 'white',
         height: 300,
@@ -283,8 +298,6 @@ const styles = StyleSheet.create({
         width: '100%',
         borderTopRightRadius: 15,
         borderTopLeftRadius: 15,
-        resizeMode: "contain",
-        backgroundColor: 'blue'
     },
     infoContainer: {
         alignItems: 'center',
@@ -297,7 +310,9 @@ const styles = StyleSheet.create({
         marginTop: hp(2),
         borderRadius: 15,
         shadowColor: 'grey',
-        shadowOffset: {width: 0, height: 2},
+        shadowOffset: {
+            width: 0, height: 2
+        },
         shadowOpacity: 0.5,
         shadowRadius: 5,
         elevation: 5,
@@ -324,7 +339,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderRadius: 10,
         shadowColor: 'grey',
-        shadowOffset: {width: 0, height: 2},
+        shadowOffset: {
+            width: 0, height: 2
+        },
         shadowOpacity: 0.2,
         shadowRadius: 5,
         elevation: 5,
@@ -346,18 +363,21 @@ const styles = StyleSheet.create({
         backgroundColor: 'blue',
         justifyContent: 'center',
         alignSelf: 'center',
-        marginTop: hp(2),
+        marginTop: 20,
         width: 150,
         padding: 10,
         borderRadius: 15,
-        alignItems: 'center'
+        alignItems: 'center',
+        flexDirection: 'row'
     },
     iconCard: {
         backgroundColor: 'white',
         borderRadius: 10,
         padding: 3,
         shadowColor: 'grey',
-        shadowOffset: {width: 0, height: 2},
+        shadowOffset: {
+            width: 0, height: 2
+        },
         shadowOpacity: 0.5,
         shadowRadius: 5,
         elevation: 5,
@@ -365,4 +385,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default UserProfile;
+export default ProfileV2;

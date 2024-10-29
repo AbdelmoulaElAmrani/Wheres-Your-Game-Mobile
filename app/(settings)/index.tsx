@@ -1,0 +1,148 @@
+import {ImageBackground} from "expo-image";
+import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
+import {SafeAreaView} from "react-native-safe-area-context";
+import {Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {AntDesign} from "@expo/vector-icons";
+import CustomNavigationHeader from "@/components/CustomNavigationHeader";
+import React from "react";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import {logout} from "@/redux/UserSlice";
+import {router} from "expo-router";
+import {useDispatch} from "react-redux";
+import {UserService} from "@/services/UserService";
+
+const Settings = () => {
+    const dispatch = useDispatch()
+
+    const _handleLogout = () => {
+        dispatch(logout({}));
+        router.replace('/Login');
+    }
+    const _handleDeleteAccount = async () => {
+        Alert.alert(
+            'Confirmation',
+            'Are you sure you want to delete your account?',
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Delete',
+                    onPress: async () => {
+                        try {
+                            const result = await UserService.deleteUserProfile();
+                            if (result) {
+                                _handleLogout();
+                            } else {
+                                Alert.alert('Error', 'Unable to delete your account. Please try again later.');
+                            }
+                        } catch (e) {
+                            Alert.alert('Error', 'An error occurred while deleting your account.');
+                        }
+                    },
+                    style: 'destructive',
+                },
+            ],
+            {cancelable: false}
+        );
+    }
+
+
+    return (
+        <ImageBackground
+            style={{height: hp(100)}}
+            source={require('../../assets/images/signupBackGround.jpg')}>
+            <SafeAreaView>
+                <CustomNavigationHeader text={'Settings'} showBackArrow/>
+                <View style={styles.cardContainer}>
+                    <ScrollView
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{flexGrow: 1}} bounces={true}>
+                        <View style={{flex: 1, paddingHorizontal: 5}}>
+                            <Text style={styles.textSettings}>Settings</Text>
+                            <TouchableOpacity
+                                style={styles.settingOption}>
+                                <Text style={styles.settingOptionText}>Contact Information</Text>
+                                <AntDesign name="right" size={24} color="grey"/>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.settingOption}>
+                                <Text style={styles.settingOptionText}>Location Settings</Text>
+                                <AntDesign name="right" size={24} color="grey"/>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.settingOption}>
+                                <Text style={styles.settingOptionText}>Privacy Settings</Text>
+                                <AntDesign name="right" size={24} color="grey"/>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.settingOption}>
+                                <Text style={styles.settingOptionText}>Profile Preference</Text>
+                                <AntDesign name="right" size={24} color="grey"/>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={[styles.settingOption, {backgroundColor: 'red'}]}
+                                              onPress={_handleLogout}>
+                                <Text style={[styles.settingOptionText, {color: 'white'}]}>Log Out</Text>
+                                <AntDesign name="right" size={24} color="grey"/>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={[styles.settingOption, {backgroundColor: 'white'}]}
+                                              onPress={_handleDeleteAccount}>
+                                <Text style={[styles.settingOptionText, {color: 'red'}]}>Delete Account</Text>
+                                <Ionicons name="warning-outline" size={24} color="red"/>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
+            </SafeAreaView>
+        </ImageBackground>
+    );
+}
+
+
+const styles = StyleSheet.create({
+    cardContainer: {
+        width: '100%',
+        height: '100%',
+        justifyContent: 'center',
+        backgroundColor: 'white',
+        borderRadius: 40,
+        padding: 20,
+        marginTop: hp(2)
+    },
+    textSettings: {
+        fontSize: 20,
+        fontWeight: '800',
+        color: 'black',
+        marginTop: '2%',
+        marginBottom: '5%',
+        marginLeft: 10
+    },
+    settingsScrollView: {
+        marginTop: hp(2),
+    },
+    settingOption: {
+        borderWidth: 0.5,
+        borderColor: '#E9EDF9',
+        padding: 10,
+        borderRadius: 10,
+        marginTop: 10,
+        backgroundColor: 'white',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        shadowColor: 'grey',
+        shadowOffset: {width: 0, height: 2},
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 1,
+    },
+    settingOptionText: {
+        fontSize: 18,
+        color: 'black',
+        fontWeight: '600'
+    },
+});
+
+export default Settings;
