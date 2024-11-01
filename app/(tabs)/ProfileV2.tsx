@@ -3,12 +3,12 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import React, {useEffect, useState} from "react";
 import {router, useRouter} from "expo-router";
 import {getUserProfile} from "@/redux/UserSlice";
-import {Image, ImageBackground} from "expo-image";
+import {ImageBackground} from "expo-image";
 import {heightPercentageToDP as hp, widthPercentageToDP} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
 import Spinner from "@/components/Spinner";
 import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {Divider} from "react-native-paper";
+import {Avatar, Divider} from "react-native-paper";
 import {FontAwesome6} from "@expo/vector-icons";
 import * as Linking from "expo-linking";
 
@@ -33,19 +33,6 @@ export const ProfileV2 = () => {
         })()
     }, []);
 
-    const _handleEditProfile = () => {
-        _router.push({
-            pathname: '/EditProfile',
-            params: {data: 'profile'},
-        });
-    }
-
-    const _refreshProfile = () => {
-        setRefreshing(true)
-        setTimeout(() => {
-            setRefreshing(false)
-        }, 3000);
-    }
 
     const _handleSettings = () => {
         router.navigate('/(settings)');
@@ -88,19 +75,16 @@ export const ProfileV2 = () => {
                                 contentContainerStyle={{alignItems: 'center'}}
                                 style={{width: '100%', flex: 1}}>
                         <View style={styles.profileImageContainer}>
-                            {currentUser?.imageUrl ? <Image contentFit='contain' style={styles.imageContainer}
-                                                            source={{uri: currentUser.imageUrl}}/> : (
-                                <View style={[styles.imageContainer, {
-                                    justifyContent: 'center',
-                                    backgroundColor: 'rgb(175,175,175)'
-                                }]}>
-                                    <Text style={{
-                                        textAlign: 'center',
-                                        fontWeight: 'bold',
-                                        fontSize: 40,
-                                        color: 'white'
-                                    }}>{`${currentUser.firstName.charAt(0).toUpperCase()} ${currentUser.lastName.charAt(0).toUpperCase()}`}</Text>
-                                </View>)}
+                            <View style={styles.imageContainer}>
+                                {currentUser?.imageUrl ? (
+                                    <Avatar.Image size={hp(20)} source={{uri: currentUser.imageUrl}}/>
+                                ) : (
+                                    <Avatar.Text
+                                        size={hp(20)}
+                                        label={(currentUser?.firstName?.charAt(0) + currentUser?.lastName?.charAt(0)).toUpperCase()}
+                                    />
+                                )}
+                            </View>
                             <View style={styles.infoContainer}>
                                 <Text style={{
                                     fontWeight: 'bold',
@@ -296,8 +280,8 @@ const styles = StyleSheet.create({
     imageContainer: {
         height: '70%',
         width: '100%',
-        borderTopRightRadius: 15,
-        borderTopLeftRadius: 15,
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     infoContainer: {
         alignItems: 'center',

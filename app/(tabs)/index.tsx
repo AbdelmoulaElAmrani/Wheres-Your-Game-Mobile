@@ -325,20 +325,28 @@ const Home = () => {
                             fontWeight: 'bold',
                             fontSize: 18
                         }}>Hi {`${Helpers.capitalize(userData?.firstName)}`}</Text>
-                        {userData.role == UserType[UserType.PARENT] && <RNPickerSelect
-                            placeholder={{}}
-                            items={childrens}
-                            onValueChange={(value, index) => {
-                                //TODO:: Set The Selected Child
-                                console.log(value);
-                            }}
-                            onDonePress={() => {
-                                //TODO:: Call the function to get the child data
-                                console.log('done');
-                            }}
-                            style={pickerSelectStyles}
-                            value={selectedChild}
-                        />}
+                        {userData.role == UserType[UserType.PARENT] &&
+                            <View style={{
+                                borderWidth: 1,
+                                borderColor: 'white',
+                                borderRadius: 4,
+                            }}>
+                                <RNPickerSelect
+                                    placeholder={{}}
+                                    items={childrens}
+                                    onValueChange={(value, index) => {
+                                        //TODO:: Set The Selected Child
+                                        console.log(value);
+                                    }}
+                                    onDonePress={() => {
+                                        //TODO:: Call the function to get the child data
+                                        console.log('done');
+                                    }}
+                                    style={pickerSelectStyles}
+                                    value={selectedChild}
+                                />
+                            </View>
+                        }
                     </View>
                     <View style={styles.mainContainer}>
                         <View style={{marginBottom: 10, flexDirection: 'row', justifyContent: 'center'}}>
@@ -582,9 +590,6 @@ const styles = StyleSheet.create({
 });
 const pickerSelectStyles = StyleSheet.create({
     inputIOS: {
-        borderWidth: 1,
-        borderColor: 'white',
-        borderRadius: 4,
         color: 'white',
         fontWeight: 'bold',
         fontSize: 16,
@@ -595,17 +600,12 @@ const pickerSelectStyles = StyleSheet.create({
         alignItems: 'center'
     },
     inputAndroid: {
-        borderWidth: 1,
-        borderColor: 'white',
-        borderRadius: 4,
         color: 'white',
         fontWeight: 'bold',
         fontSize: 16,
-        width: 120,
-        paddingHorizontal: 10,
-        paddingVertical: 6,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        width: 170,
     },
 });
 

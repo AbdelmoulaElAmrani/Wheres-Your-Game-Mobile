@@ -6,8 +6,7 @@ import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React, {useEffect, useState} from "react";
 import {router} from "expo-router";
 import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {Divider} from "react-native-paper";
-import {Player} from "@/models/Player";
+import {Avatar, Divider} from "react-native-paper";
 import {useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {FontAwesome6} from "@expo/vector-icons";
@@ -78,7 +77,18 @@ export const UserProfile = () => {
                                 contentContainerStyle={{alignItems: 'center'}}
                                 style={{width: '100%', flex: 1}}>
                         <View style={styles.profileImageContainer}>
-                            {person?.imageUrl ? <Image contentFit='contain' style={styles.imageContainer}
+                            <View style={styles.imageContainer}>
+                                {person?.imageUrl ? (
+                                    <Avatar.Image size={hp(20)} source={{uri: person.imageUrl}}/>
+                                ) : (
+                                    <Avatar.Text
+                                        size={hp(20)}
+                                        //@ts-ignore
+                                        label={(person?.firstName?.charAt(0) + person?.lastName?.charAt(0)).toUpperCase()}
+                                    />
+                                )}
+                            </View>
+                            {/* {person?.imageUrl ? <Image contentFit='contain' style={styles.imageContainer}
                                                        source={{uri: person.imageUrl}}/> : (
                                 <View style={[styles.imageContainer, {
                                     justifyContent: 'center',
@@ -90,7 +100,8 @@ export const UserProfile = () => {
                                         fontSize: 40,
                                         color: 'white'
                                     }}>{`${person?.firstName.charAt(0).toUpperCase()} ${person?.lastName.charAt(0).toUpperCase()}`}</Text>
-                                </View>)}
+                                </View>)}*/}
+
                             <View style={styles.infoContainer}>
                                 <Text style={{
                                     fontWeight: 'bold',
@@ -281,10 +292,8 @@ const styles = StyleSheet.create({
     imageContainer: {
         height: '70%',
         width: '100%',
-        borderTopRightRadius: 15,
-        borderTopLeftRadius: 15,
-        resizeMode: "contain",
-        backgroundColor: 'blue'
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     infoContainer: {
         alignItems: 'center',
