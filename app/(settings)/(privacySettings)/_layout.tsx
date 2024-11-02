@@ -1,11 +1,11 @@
 import {Stack} from "expo-router";
 
-const SettingsLayout = () => {
+const PrivacySettingsLayout = () => {
     return (<Stack
         screenOptions={{headerShown: false}}>
         <Stack.Screen name="index" options={{headerShown: false}}/>
-        <Stack.Screen name="(privacySettings)" options={{headerShown: false}}/>
+        <Stack.Screen name="AccountSettings" options={{headerShown: false}}/>
     </Stack>);
 }
 
-export default SettingsLayout
+export default PrivacySettingsLayout
