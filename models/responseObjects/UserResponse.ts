@@ -1,5 +1,6 @@
 import Gender from "../Gender";
 import SportLevel from "../SportLevel";
+import { SocialMediaLinksResponse } from "./SocialMediaLinksResponse";
 
 export interface UserResponse {
     id: string;
@@ -25,9 +26,6 @@ export interface UserResponse {
     country?: string;
     stateRegion?: string;
     city?: string;
+    socialMediaLinks?: SocialMediaLinksResponse;
     followers?: [];
-    facebookAccount?: string;
-    tiktokAccount?: string;
-    instagramAccount?: string;
-    youtubeAccount?: string;
 }
