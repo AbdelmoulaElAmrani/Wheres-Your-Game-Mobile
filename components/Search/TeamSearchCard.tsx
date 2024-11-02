@@ -1,32 +1,31 @@
 import React from 'react';
 import {TouchableOpacity, View, Image, Text, StyleSheet} from 'react-native';
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
-import {AntDesign} from "@expo/vector-icons";
+import {router, useRouter} from "expo-router";
 
-const PersonSearchCard = ({person = null}) => {
+const TeamSearchCard = ({team = {id: 1}}) => {
+    const _router = useRouter();
 
-    const _handleOpenPersonProfile = () => {
-
+    const _handleOpenTeamProfile = () => {
+        _router.push({
+            pathname: '(team)/TeamProfile',
+            params: {teamId: team.id},
+        });
     }
 
     return (
         <TouchableOpacity
-            onPress={_handleOpenPersonProfile}
+            onPress={_handleOpenTeamProfile}
             style={styles.container}>
-            <View>
-                <View style={styles.imageContainer}>
-                    <Image
-                        style={styles.image}
-                        source={{uri: 'https://static.vecteezy.com/system/resources/previews/011/049/345/non_2x/soccer-football-badge-logo-sport-team-identity-illustrations-isolated-on-white-background-vector.jpg'}}
-                    />
-                </View>
-                <View style={styles.textContainer}>
-                    <Text style={styles.title}>Chris Conn-Clarke</Text>
-                    <Text style={styles.subtitle}>Midfilder</Text>
-                </View>
+            <View style={styles.imageContainer}>
+                <Image
+                    style={styles.image}
+                    source={{uri: 'https://static.vecteezy.com/system/resources/previews/011/049/345/non_2x/soccer-football-badge-logo-sport-team-identity-illustrations-isolated-on-white-background-vector.jpg'}}
+                />
             </View>
-            <View>
-                <AntDesign name="right" size={24} color="grey"/>
+            <View style={styles.textContainer}>
+                <Text style={styles.title}>Altrincham FC</Text>
+                <Text style={styles.subtitle}>J.davidson stadium, UK</Text>
             </View>
         </TouchableOpacity>
     );
@@ -37,7 +36,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        padding: wp('1.5%'), // Use width percentage for padding
+        padding: wp('3%'), // Use width percentage for padding
         borderColor: '#d3d3d3',
         borderRadius: 10,
         width: '100%',
@@ -47,7 +46,6 @@ const styles = StyleSheet.create({
         shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.1,
         shadowRadius: 5,
-
         // Elevation for Android
         elevation: 5,
     },
@@ -59,8 +57,8 @@ const styles = StyleSheet.create({
         padding: wp('0.5%'), // Add some padding inside the image container
     },
     image: {
-        width: wp('10%'), // Image width based on screen width percentage
-        height: wp('10%'), // Image height equal to its width for a square image
+        width: wp('15%'), // Image width based on screen width percentage
+        height: wp('15%'), // Image height equal to its width for a square image
         borderRadius: 3,
         resizeMode: 'cover', // Ensure the image covers the entire area
     },
@@ -80,5 +78,4 @@ const styles = StyleSheet.create({
     },
 });
 
-
-export default PersonSearchCard;
+export default TeamSearchCard;

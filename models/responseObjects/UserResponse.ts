@@ -27,4 +27,5 @@ export interface UserResponse {
     stateRegion?: string;
     city?: string;
     socialMediaLinks?: SocialMediaLinksResponse;
+    followers?: [];
 }
