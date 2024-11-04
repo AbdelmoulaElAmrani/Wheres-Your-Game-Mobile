@@ -10,6 +10,7 @@ import Spinner from "@/components/Spinner";
 import TeamSearchCard from "@/components/Search/TeamSearchCard";
 import {SearchGlobalResponse} from "@/models/SearchGlobalResponse";
 import PersonSearchCard from "@/components/Search/PersonSearchCard";
+import {TeamService} from "@/services/TeamService";
 
 enum searchOption {
     Teams,
@@ -23,9 +24,6 @@ const SearchGlobal = () => {
     const [searchResult, setSearchResult] = useState<SearchGlobalResponse>({players: [], teams: []});
 
 
-    useEffect(() => {
-    }, []);
-
     const _handleGoBack = () => {
         if (router.canGoBack())
             router.back();
@@ -33,17 +31,17 @@ const SearchGlobal = () => {
 
 
     const _onSearchSubmit = useCallback(async () => {
-        /*if (searchName.trim() === '') {
-            if (people.length > 0) setPeople([]);
+        if (searchName.trim() === '') {
+            setSearchResult({players: [], teams: []});
             return;
-        }*/
+        }
         setLoading(true);
         //TODO:: Call the new api that will return data as Player[] and Teams: []
-        //const data = await UserService.SearchUsersByFullName(searchName, searchType);
-        /*if (data)
-            setPeople(data);
+        const data = await TeamService.globalSearchTeamPlayers(searchName.trim());
+        if (data)
+            setSearchResult(data);
         else
-            setPeople([]);*/
+            setSearchResult({players: [], teams: []});
         setLoading(false);
     }, [searchName]);
 
@@ -52,7 +50,7 @@ const SearchGlobal = () => {
         setSelectedOption(option);
     };
 
-    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0];
+    //const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0];
 
 
     return (
@@ -134,10 +132,10 @@ const SearchGlobal = () => {
                                         alignSelf: 'center',
                                         paddingBottom: hp('10%'), // Ensure sufficient padding at the bottom
                                     }}
-                                    data={data}
+                                    data={searchResult.teams}
                                     ListFooterComponent={<View
                                         style={{height: hp('10%')}}/>}  // Extra space at the bottom
-                                    renderItem={({item}) => <TeamSearchCard/>}
+                                    renderItem={({item}) => <TeamSearchCard team={item}/>}
                                     keyExtractor={(item, index) => index.toString()}
                                 />) : (<FlatList
                                     contentContainerStyle={{
@@ -145,10 +143,10 @@ const SearchGlobal = () => {
                                         alignSelf: 'center',
                                         paddingBottom: hp('10%'), // Ensure sufficient padding at the bottom
                                     }}
-                                    data={data}
+                                    data={searchResult.players}
                                     ListFooterComponent={<View
                                         style={{height: hp('10%')}}/>}  // Extra space at the bottom
-                                    renderItem={({item}) => <PersonSearchCard/>}
+                                    renderItem={({item}) => <PersonSearchCard player={item}/>}
                                     keyExtractor={(item, index) => index.toString()}
                                 />)}
                             </View>

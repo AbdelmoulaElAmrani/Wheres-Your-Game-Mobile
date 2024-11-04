@@ -11,6 +11,7 @@ import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native
 import {Avatar, Divider} from "react-native-paper";
 import {FontAwesome6} from "@expo/vector-icons";
 import * as Linking from "expo-linking";
+import {Helpers} from "@/constants/Helpers";
 
 enum MenuOption {
     Overview,
@@ -136,15 +137,17 @@ export const ProfileV2 = () => {
                                 <View style={{flexDirection: 'row', justifyContent: 'space-around', width: '100%'}}>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Sports Focus</Text>
-                                        <Text style={styles.infoText}>Soccer</Text>
+                                        <Text style={styles.infoText}></Text>
                                     </View>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Age</Text>
-                                        <Text style={styles.infoText}>22 Years</Text>
+                                        <Text style={styles.infoText}>
+                                            {currentUser?.dateOfBirth ? `${Helpers.calculateAge(currentUser.dateOfBirth)} Years` : ""}
+                                        </Text>
                                     </View>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Positions</Text>
-                                        <Text style={styles.infoText}>Midfilder</Text>
+                                        <Text style={styles.infoText}>{currentUser?.positionCoached || ""}</Text>
                                     </View>
                                 </View>
                                 <View style={{
@@ -155,11 +158,11 @@ export const ProfileV2 = () => {
                                 }}>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Skills Focus</Text>
-                                        <Text style={styles.infoText}>Advance</Text>
+                                        <Text style={styles.infoText}></Text>
                                     </View>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Followers</Text>
-                                        <Text style={styles.infoText}>500</Text>
+                                        <Text style={styles.infoText}>{currentUser?.followers?.length || 0}</Text>
                                     </View>
                                 </View>
                             </>}
@@ -173,39 +176,39 @@ export const ProfileV2 = () => {
                                         width: '100%'
                                     }}>
                                         <TouchableOpacity
-                                            onPress={() => currentUser.instagramAccount && _handleOpenUrl(currentUser.instagramAccount)}
+                                            onPress={() => currentUser.socialMediaLinks?.instagramAccount && _handleOpenUrl(currentUser.socialMediaLinks?.instagramAccount)}
                                             style={styles.iconCard}
-                                            disabled={!currentUser.instagramAccount}
+                                            disabled={!currentUser.socialMediaLinks?.instagramAccount}
                                         >
                                             <FontAwesome6
                                                 name="instagram"
                                                 size={40}
-                                                color={currentUser.instagramAccount ? "#E4405F" : "#cccccc"}
-                                                style={{opacity: currentUser.instagramAccount ? 1 : 0.5}}
+                                                color={currentUser.socialMediaLinks?.instagramAccount ? "#E4405F" : "#cccccc"}
+                                                style={{opacity: currentUser.socialMediaLinks?.instagramAccount ? 1 : 0.5}}
                                             />
                                         </TouchableOpacity>
                                         <TouchableOpacity
-                                            onPress={() => currentUser.tiktokAccount && _handleOpenUrl(currentUser.tiktokAccount)}
+                                            onPress={() => currentUser.socialMediaLinks?.tiktokAccount && _handleOpenUrl(currentUser.socialMediaLinks?.tiktokAccount)}
                                             style={styles.iconCard}
-                                            disabled={!currentUser.tiktokAccount}
+                                            disabled={!currentUser.socialMediaLinks?.tiktokAccount}
                                         >
                                             <FontAwesome6
                                                 name="tiktok"
                                                 size={40}
-                                                color={currentUser.tiktokAccount ? "black" : "#cccccc"}
-                                                style={{opacity: currentUser.tiktokAccount ? 1 : 0.5}}
+                                                color={currentUser.socialMediaLinks?.tiktokAccount ? "black" : "#cccccc"}
+                                                style={{opacity: currentUser.socialMediaLinks?.tiktokAccount ? 1 : 0.5}}
                                             />
                                         </TouchableOpacity>
                                         <TouchableOpacity
-                                            onPress={() => currentUser.facebookAccount && _handleOpenUrl(currentUser.facebookAccount)}
+                                            onPress={() => currentUser.socialMediaLinks?.facebookAccount && _handleOpenUrl(currentUser.socialMediaLinks?.facebookAccount)}
                                             style={styles.iconCard}
-                                            disabled={!currentUser.facebookAccount}
+                                            disabled={!currentUser.socialMediaLinks?.facebookAccount}
                                         >
                                             <FontAwesome6
                                                 name="facebook"
                                                 size={40}
-                                                color={currentUser.facebookAccount ? "blue" : "#cccccc"}
-                                                style={{opacity: currentUser.facebookAccount ? 1 : 0.5}}
+                                                color={currentUser.socialMediaLinks?.facebookAccount ? "blue" : "#cccccc"}
+                                                style={{opacity: currentUser.socialMediaLinks?.facebookAccount ? 1 : 0.5}}
                                             />
                                         </TouchableOpacity>
                                     </View>
@@ -216,14 +219,14 @@ export const ProfileV2 = () => {
                                         width: '100%'
                                     }}>
                                         <TouchableOpacity
-                                            onPress={() => currentUser.youtubeAccount && _handleOpenUrl(currentUser.youtubeAccount)}
+                                            onPress={() => currentUser.socialMediaLinks?.youtubeAccount && _handleOpenUrl(currentUser.socialMediaLinks?.youtubeAccount)}
                                             style={styles.iconCard}
-                                            disabled={!currentUser.youtubeAccount}>
+                                            disabled={!currentUser.socialMediaLinks?.youtubeAccount}>
                                             <FontAwesome6
                                                 name="youtube"
                                                 size={40}
-                                                color={currentUser.youtubeAccount ? "red" : "#cccccc"}
-                                                style={{opacity: currentUser.youtubeAccount ? 1 : 0.5}}
+                                                color={currentUser.socialMediaLinks?.youtubeAccount ? "red" : "#cccccc"}
+                                                style={{opacity: currentUser.socialMediaLinks?.youtubeAccount ? 1 : 0.5}}
                                             />
                                         </TouchableOpacity>
                                     </View>

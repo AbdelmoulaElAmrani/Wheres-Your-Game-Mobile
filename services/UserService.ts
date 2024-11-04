@@ -95,6 +95,9 @@ export class UserService {
             return undefined;
         }
     }
-   
-    
+
+
+    static async followUser(id: string | undefined) {
+        return false;
+    }
 }

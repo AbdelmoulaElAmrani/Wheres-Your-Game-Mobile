@@ -23,6 +23,7 @@ const PrivacySettings = () => {
     const toggleSwitch = async () => {
         setPrivacyEnabled(previousState => !previousState);
         //TODO:: Call the service and set the mode annonymous to the value of the state;
+
     };
     const _handleDeleteAccount = async () => {
         Alert.alert(
@@ -55,12 +56,15 @@ const PrivacySettings = () => {
     }
 
 
+    const _openAccountSettings = () => {
+        router.navigate('/AccountSettings');
+    };
     return (
         <ImageBackground
             style={{height: hp(100)}}
             source={require('../../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                <CustomNavigationHeader text={'Settings'} showBackArrow/>
+                <CustomNavigationHeader text={'Privacy Settings'} showBackArrow/>
                 <View style={styles.cardContainer}>
                     <ScrollView
                         showsVerticalScrollIndicator={false}
@@ -68,19 +72,27 @@ const PrivacySettings = () => {
                         <View style={{flex: 1, paddingHorizontal: 5}}>
                             <Text style={styles.textSettings}>Settings</Text>
                             <TouchableOpacity
+                                onPress={_openAccountSettings}
                                 style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Account</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => setPrivacyAcOp(old => !old)}
-                                style={styles.settingOption}>
-                                <Text style={styles.settingOptionText}>Privacy Account</Text>
-                                <AntDesign name={isPrivacyAcOp ? 'down' : 'right'} size={24} color="grey"/>
+                                style={[styles.settingOption, isPrivacyAcOp && {backgroundColor: '#2757CB'}]}>
+                                <Text style={[styles.settingOptionText, isPrivacyAcOp && {color: 'white'}]}>Privacy
+                                    Account</Text>
+                                <AntDesign name={isPrivacyAcOp ? 'down' : 'right'} size={24}
+                                           color={!isPrivacyAcOp ? "grey" : "white"}/>
                             </TouchableOpacity>
-                            {isPrivacyAcOp && <View style={{padding: 10}}>
-                                <View style={{flexDirection: 'row', justifyContent: 'space-evenly'}}>
-                                    <Text style={{fontWeight: 'bold'}}>Privacy Account</Text>
+                            {isPrivacyAcOp && <View style={styles.miniCard}>
+                                <View style={{
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-evenly',
+                                    alignItems: 'center',
+                                    marginBottom: 10
+                                }}>
+                                    <Text style={{fontWeight: 'bold', fontSize: 16}}>Privacy Account</Text>
                                     <Switch
                                         onValueChange={toggleSwitch}
                                         value={isPrivacyEnabled}
@@ -90,11 +102,6 @@ const PrivacySettings = () => {
                                     follow, message you, and watch
                                     your videos.</Text>
                             </View>}
-                            <TouchableOpacity
-                                style={styles.settingOption}>
-                                <Text style={styles.settingOptionText}></Text>
-                                <AntDesign name="right" size={24} color="grey"/>
-                            </TouchableOpacity>
                             <TouchableOpacity style={[styles.settingOption, {backgroundColor: 'white'}]}
                                               onPress={_handleDeleteAccount}>
                                 <Text style={[styles.settingOptionText, {color: 'red'}]}>Delete Account</Text>
@@ -151,6 +158,18 @@ const styles = StyleSheet.create({
         color: 'black',
         fontWeight: '600'
     },
+    miniCard: {
+        backgroundColor: 'white',
+        padding: 20,
+        marginTop: 20,
+        marginBottom: 20,
+        borderRadius: 10,
+        shadowColor: 'grey',
+        shadowOffset: {width: 0, height: 2},
+        shadowOpacity: 0.5,
+        shadowRadius: 8,
+        elevation: 1,
+    }
 });
 
 export default PrivacySettings;

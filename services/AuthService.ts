@@ -125,5 +125,13 @@ export class AuthService {
         AuthService.setAuthTokens(res.data);
         return res.data;
     }
+
+    static async changePassword(passwordData: {
+        newPassword: string;
+        confirmPassword: string;
+        currentPassword: string
+    }): Promise<boolean> {
+        return true;
+    }
 }
 

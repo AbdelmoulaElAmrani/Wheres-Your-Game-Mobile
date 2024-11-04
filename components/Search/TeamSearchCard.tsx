@@ -2,8 +2,11 @@ import React from 'react';
 import {TouchableOpacity, View, Image, Text, StyleSheet} from 'react-native';
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {router, useRouter} from "expo-router";
+import {any} from "prop-types";
+import {Team} from "@/models/Team";
+import {Avatar} from "react-native-paper";
 
-const TeamSearchCard = ({team = {id: 1}}) => {
+const TeamSearchCard = ({team}: { team: Team }) => {
     const _router = useRouter();
 
     const _handleOpenTeamProfile = () => {
@@ -18,14 +21,30 @@ const TeamSearchCard = ({team = {id: 1}}) => {
             onPress={_handleOpenTeamProfile}
             style={styles.container}>
             <View style={styles.imageContainer}>
-                <Image
+                {team.imgUrl ? (<Image
                     style={styles.image}
-                    source={{uri: 'https://static.vecteezy.com/system/resources/previews/011/049/345/non_2x/soccer-football-badge-logo-sport-team-identity-illustrations-isolated-on-white-background-vector.jpg'}}
-                />
+                    source={{uri: team.imgUrl}}
+                />) : (
+                    <Avatar.Text
+                        size={wp(15)}
+                        label={(() => {
+                            const nameParts = team.name.trim().split(' ').filter(Boolean);
+                            if (nameParts.length >= 2) {
+                                // Take the first character of each part and combine them
+                                return (nameParts[0].charAt(0) + nameParts[1].charAt(0)).toUpperCase();
+                            } else {
+                                // If there is only one word, take the first two characters
+                                return (team.name.charAt(0) + team.name.charAt(1)).toUpperCase();
+                            }
+                        })()}/>
+                )}
             </View>
             <View style={styles.textContainer}>
-                <Text style={styles.title}>Altrincham FC</Text>
-                <Text style={styles.subtitle}>J.davidson stadium, UK</Text>
+                <Text style={styles.title}>{team.name}</Text>
+                <Text style={styles.subtitle}>
+                    {team?.address ? team.address : ""}{team?.address && team?.country ? ", " : ""}{team?.country ? team.country : ""}
+                </Text>
+
             </View>
         </TouchableOpacity>
     );
@@ -50,7 +69,7 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     imageContainer: {
-        borderWidth: 1,
+        //borderWidth: 1,
         borderColor: '#d3d3d3',
         borderRadius: 5,
         marginRight: wp('5%'), // Use width percentage for margin

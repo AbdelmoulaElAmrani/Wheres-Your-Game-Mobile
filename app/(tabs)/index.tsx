@@ -206,8 +206,16 @@ const Home = () => {
                         ) : (
                             <Avatar.Text
                                 size={60}
-                                label={(item.name.charAt(0) + item.name.charAt(1)).toUpperCase()}
-                            />
+                                label={(() => {
+                                    const nameParts = item.name.trim().split(' ').filter(Boolean);
+                                    if (nameParts.length >= 2) {
+                                        // Take the first character of each part and combine them
+                                        return (nameParts[0].charAt(0) + nameParts[1].charAt(0)).toUpperCase();
+                                    } else {
+                                        // If there is only one word, take the first two characters
+                                        return (item.name.charAt(0) + item.name.charAt(1)).toUpperCase();
+                                    }
+                                })()}/>
                         )}
                     </View>
                 </View>

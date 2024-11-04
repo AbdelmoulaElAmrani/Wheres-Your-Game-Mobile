@@ -1,21 +1,20 @@
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, Platform } from "react-native";
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { SafeAreaView } from "react-native-safe-area-context";
-import { ActivityIndicator, MD2Colors, Modal, Searchbar, TextInput } from 'react-native-paper';
-import React, { useEffect, useState } from "react";
-import { FontAwesome } from '@expo/vector-icons';
-import { ImageBackground } from "expo-image";
+import {StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, Platform} from "react-native";
+import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
+import {SafeAreaView} from "react-native-safe-area-context";
+import {ActivityIndicator, MD2Colors, Modal, Searchbar, TextInput} from 'react-native-paper';
+import React, {useEffect, useState} from "react";
+import {FontAwesome} from '@expo/vector-icons';
+import {ImageBackground} from "expo-image";
 import VideoComponent from "@/components/VideoComponent";
 import * as Sharing from 'expo-sharing';
 import CustomButton from "@/components/CustomButton";
-import { PostService } from "@/services/PostService";
-import { PostResponse } from "@/models/responseObjects/PostResponse";
-import { UserService } from "@/services/UserService";
-import { useDispatch, useSelector } from "react-redux";
-import { UserResponse } from "@/models/responseObjects/UserResponse";
-import { getUserProfile } from "@/redux/UserSlice";
-
+import {PostService} from "@/services/PostService";
+import {PostResponse} from "@/models/responseObjects/PostResponse";
+import {UserService} from "@/services/UserService";
+import {useDispatch, useSelector} from "react-redux";
+import {UserResponse} from "@/models/responseObjects/UserResponse";
+import {getUserProfile} from "@/redux/UserSlice";
 
 
 const validDomains = ['facebook.com', 'instagram.com', 'youtube.com', 'tiktok.com'];
@@ -41,7 +40,7 @@ const GClips = () => {
     const [tag, setTag] = useState('new');
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
-    const { socialMediaLinks } = useSelector((state: any) => state.user.userData) as UserResponse;
+    const {socialMediaLinks} = useSelector((state: any) => state.user.userData) as UserResponse;
 
     const dispatch = useDispatch();
 
@@ -84,8 +83,7 @@ const GClips = () => {
                     const isLastPage = newPosts.number + 1 === newPosts.totalPages;
                     setHasMore(!isLastPage);
                 }
-            }
-            else {
+            } else {
                 setHasMore(false); // Stop further pagination if no more posts
             }
         } catch (error) {
@@ -95,21 +93,21 @@ const GClips = () => {
         }
     };
 
-    const _renderItem = ({ item }: { item: any }) => (
+    const _renderItem = ({item}: { item: any }) => (
         <TouchableOpacity
             style={[styles.tag, selectedTag === item ? styles.selectedTag : null]}
             onPress={() => setSelectedTag(item)}>
-            <Text style={[styles.tagText, { color: selectedTag === item ? 'white' : 'black' }]}>{item}</Text>
+            <Text style={[styles.tagText, {color: selectedTag === item ? 'white' : 'black'}]}>{item}</Text>
         </TouchableOpacity>
     );
 
-    const _videoPreview = ({ video }: { video: any }) => {
+    const _videoPreview = ({video}: { video: any }) => {
         return (
-            <View style={{ marginBottom: 30 }}>
+            <View style={{marginBottom: 30}}>
                 <Text style={styles.videoTitle}>{video?.title}</Text>
                 <View style={styles.videoPreview}>
-                    <View style={{ height: '100%', width: '100%' }}>
-                        <VideoComponent url={video.link} />
+                    <View style={{height: '100%', width: '100%'}}>
+                        <VideoComponent url={video.link}/>
                     </View>
                 </View>
                 <View style={styles.videoInfoContainer}>
@@ -117,7 +115,7 @@ const GClips = () => {
                     <View style={styles.infoIconContainer}>
                         <Text style={styles.uploadHour}>{getHoursFromNow(video?.postedAt)} hour ago</Text>
                         <TouchableOpacity onPress={() => _handleShareClip(video)}>
-                            <FontAwesome name="share-alt" size={20} color="grey" style={styles.shareIcon} />
+                            <FontAwesome name="share-alt" size={20} color="grey" style={styles.shareIcon}/>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -146,12 +144,12 @@ const GClips = () => {
             setPostLinkError('Please enter a valid link from Facebook, Instagram, YouTube, or TikTok.');
             return;
         }
-        var createdPost = await PostService.createPost({ title: postTitle, link: postLink });
+        var createdPost = await PostService.createPost({title: postTitle, link: postLink});
         if (!createdPost) {
             Alert.alert(
                 'Error',
                 'An error occurred while creating the post. Please try again later.',
-                [{ text: 'OK' }]
+                [{text: 'OK'}]
             );
             return;
         }
@@ -187,7 +185,7 @@ const GClips = () => {
             Alert.alert(
                 'Invalid Link',
                 'Please enter a valid link from Facebook, Instagram, YouTube, or TikTok.',
-                [{ text: 'OK' }]
+                [{text: 'OK'}]
             );
             return;
         }
@@ -205,7 +203,7 @@ const GClips = () => {
             youtube: updatedLink?.youtubeAccount || '',
         });
         setSocialMediaCardVisible(false);
-       
+
     };
 
     const getHoursFromNow = (date: any): number => {
@@ -220,7 +218,6 @@ const GClips = () => {
         const diff = now.getTime() - date.getTime();
         return Math.ceil(diff / (1000 * 60 * 60));
     };
-
 
 
     const shareAppLink = async () => {
@@ -248,10 +245,10 @@ const GClips = () => {
 
     return (
         <ImageBackground
-            style={{ height: hp(100) }}
+            style={{height: hp(100)}}
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                <CustomNavigationHeader showBackArrow={false} showSkip={false} showLogo={true} />
+                <CustomNavigationHeader showBackArrow={false} showSkip={false} showLogo={true}/>
                 <View style={styles.searchBarContainer}>
                     <Searchbar
                         placeholder="Search Videos"
@@ -262,39 +259,36 @@ const GClips = () => {
                         style={styles.searchBar}
                     />
                 </View>
+                {/***********Upper Button***************/}
                 <View style={styles.horizontalButtonContainer}>
                     <TouchableOpacity style={[styles.button, styles.whiteButton]}
-                        onPress={_showSocialMediaCard}
-                    >
+                                      onPress={_showSocialMediaCard}>
                         <Text style={styles.buttonText}>
                             Link Social Media
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.button, styles.whiteButton]}
-                        onPress={() => {
-                            setSelectedTag('followers');
-                        }}
-                    >
+                                      onPress={() => {
+                                          setSelectedTag('followers');
+                                      }}>
                         <Text style={styles.buttonText}>
                             Followers
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.button, styles.whiteButton]}
-                        onPress={shareAppLink}
-                    >
+                                      onPress={shareAppLink}>
                         <Text style={styles.buttonText}>
                             Invite
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.button, styles.blueButton]}
-                        onPress={_showPostModal}
-                    >
-                        <Text style={[styles.buttonText, { color: 'white' }]}>
+                                      onPress={_showPostModal}>
+                        <Text style={[styles.buttonText, {color: 'white'}]}>
                             Post
                         </Text>
                     </TouchableOpacity>
-
                 </View>
+                {/***********Container***************/}
                 <View style={styles.cardContainer}>
                     <FlatList
                         data={tags}
@@ -307,19 +301,22 @@ const GClips = () => {
                     />
 
                     <View style={styles.videoHeader}>
-                        <Text style={styles.videoListTitle}>New Videos</Text>
+                        <Text style={styles.videoListTitle}>New Posts</Text>
                         <TouchableOpacity
                             disabled={true}>
-                            <Text style={{ color: 'grey', fontSize: 17 }}>View All</Text>
+                            <Text style={{color: 'grey', fontSize: 17}}>View All</Text>
                         </TouchableOpacity>
                     </View>
                     <View style={styles.videoListContainer}>
-                        {!loading && posts.length === 0 && <Text style={{ color: 'grey', fontSize: 16, textAlign: 'center', marginTop: 20 }}>No videos found</Text>}
-                        {loading && posts.length === 0 && <ActivityIndicator animating={true} color={MD2Colors.blueA700} size={50} />}
+                        {!loading && posts.length === 0 &&
+                            <Text style={{color: 'grey', fontSize: 16, textAlign: 'center', marginTop: 20}}>No videos
+                                found</Text>}
+                        {loading && posts.length === 0 &&
+                            <ActivityIndicator animating={true} color={MD2Colors.blueA700} size={50}/>}
                         {posts.length > 0 && (
                             <FlatList
                                 data={posts}
-                                renderItem={({ item }) => _videoPreview({ video: item })}
+                                renderItem={({item}) => _videoPreview({video: item})}
                                 keyExtractor={item => item.id}
                                 horizontal={false}
                                 showsVerticalScrollIndicator={false}
@@ -332,39 +329,40 @@ const GClips = () => {
                                     }
                                 }}
                                 getItemLayout={(data, index) => (
-                                    { length: 50, offset: 50 * index, index }
+                                    {length: 50, offset: 50 * index, index}
                                 )}
                             />
                         )}
                     </View>
 
                 </View>
+                {/******Create Post*******/}
                 <Modal visible={isPostModalVisible} onDismiss={_hidePostModal}
-                    contentContainerStyle={styles.postModalContainer}>
+                       contentContainerStyle={styles.postModalContainer}>
                     <Text style={{
                         fontSize: 25,
                         fontWeight: 'bold',
                         marginTop: 20
                     }}>Create a Post</Text>
-                    <View style={{ width: '90%', alignItems: 'center', marginTop: 40 }}>
+                    <View style={{width: '90%', alignItems: 'center', marginTop: 40}}>
                         <TextInput
                             placeholder="Title"
-                            style={[styles.inputStyle, { marginTop: 15 }]}
+                            style={[styles.inputStyle, {marginTop: 15}]}
                             cursorColor='black'
                             placeholderTextColor={'grey'}
                             underlineColor={"transparent"}
-                            left={<TextInput.Icon color={'#D3D3D3'} icon='comment' size={25} />}
+                            left={<TextInput.Icon color={'#D3D3D3'} icon='comment' size={25}/>}
                             value={postTitle}
                             onChangeText={text => setPostTitle(text)}
 
                         />
                         <TextInput
                             placeholder="Paste your link here"
-                            style={[styles.inputStyle, { marginTop: 15 }]}
+                            style={[styles.inputStyle, {marginTop: 15}]}
                             cursorColor='black'
                             placeholderTextColor={'grey'}
                             underlineColor={"transparent"}
-                            left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
+                            left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25}/>}
                             onChangeText={text => setPostLink(text)}
                             value={postLink}
                         />
@@ -373,7 +371,12 @@ const GClips = () => {
                             position: 'absolute', bottom: 70, alignSelf: 'center'
                         }}>{postLinkError}</Text>}
 
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '80%', marginTop: 40 }}>
+                        <View style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            width: '80%',
+                            marginTop: 40
+                        }}>
                             <CustomButton
                                 text="Cancel"
                                 onPress={_hidePostModal}
@@ -388,12 +391,12 @@ const GClips = () => {
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                     shadowColor: '#000',
-                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOffset: {width: 0, height: 2},
                                     shadowOpacity: 0.2,
                                     shadowRadius: 2,
                                     elevation: 2,
                                 }}
-                                textStyle={{ color: 'black' }}
+                                textStyle={{color: 'black'}}
                             />
                             <CustomButton
                                 text="Post"
@@ -406,26 +409,26 @@ const GClips = () => {
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                     shadowColor: '#000',
-                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOffset: {width: 0, height: 2},
                                     shadowOpacity: 0.2,
                                     shadowRadius: 2,
                                     elevation: 2,
                                 }}
-                                textStyle={{ color: 'white' }}
+                                textStyle={{color: 'white'}}
                             />
 
                         </View>
                     </View>
-
                 </Modal>
+                {/******User Social Medial links*******/}
                 <Modal visible={isSocialMediaCardVisible} onDismiss={_hideSocialMediaCard}
-                    contentContainerStyle={[styles.postModalContainer, { height: '50%' }]}>
+                       contentContainerStyle={[styles.postModalContainer, {height: '50%'}]}>
                     <Text style={{
                         fontSize: 25,
                         fontWeight: 'bold',
                         marginTop: 20
                     }}>Link Social Media</Text>
-                    <View style={{ width: '97%', alignItems: 'center', marginTop: 10 }}>
+                    <View style={{width: '97%', alignItems: 'center', marginTop: 10}}>
                         <TextInput
                             placeholder="Facebook"
                             style={[styles.inputStyle, {
@@ -437,57 +440,60 @@ const GClips = () => {
                             cursorColor='black'
                             placeholderTextColor={'grey'}
                             underlineColor={"transparent"}
-                            left={<TextInput.Icon color={'#D3D3D3'} icon='facebook' size={25} />}
+                            left={<TextInput.Icon color={'#D3D3D3'} icon='facebook' size={25}/>}
                             value={socialMediaLink.facebook}
-                            onChangeText={text => setSocialMediaLink({ ...socialMediaLink, facebook: text })}
+                            onChangeText={text => setSocialMediaLink({...socialMediaLink, facebook: text})}
                             multiline={false}
                         />
                         <TextInput
                             placeholder="Instagram"
-                            style={[styles.inputStyle, { marginTop: 5,
-                                flexShrink: 1,  
-                                width: '100%',
-                                height: 55,
-                             }]}
-                            cursorColor='black'
-                            placeholderTextColor={'grey'}
-                            underlineColor={"transparent"}
-                            left={<TextInput.Icon color={'#D3D3D3'} icon='instagram' size={25} />}
-                            value={socialMediaLink.instagram}
-                            onChangeText={text => setSocialMediaLink({ ...socialMediaLink, instagram: text })}
-                            multiline={false}
-                        />
-                        <TextInput
-                            placeholder="Tiktok"
-                            style={[styles.inputStyle, { marginTop: 5,
-                                flexShrink: 1,  
-                                width: '100%',
-                                height: 55,
-                             }]}
-                            cursorColor='black'
-                            placeholderTextColor={'grey'}
-                            underlineColor={"transparent"}
-                            left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25} />}
-                            value={socialMediaLink.tiktok}
-                            onChangeText={text => setSocialMediaLink({ ...socialMediaLink, tiktok: text })}
-                            multiline={false}
-                        />
-                        <TextInput
-                            placeholder="Youtube"
-                            style={[styles.inputStyle, { marginTop: 5 ,
-                                flexShrink: 1,  
+                            style={[styles.inputStyle, {
+                                marginTop: 5,
+                                flexShrink: 1,
                                 width: '100%',
                                 height: 55,
                             }]}
                             cursorColor='black'
                             placeholderTextColor={'grey'}
                             underlineColor={"transparent"}
-                            left={<TextInput.Icon color={'#D3D3D3'} icon='youtube' size={25} />}
-                            value={socialMediaLink.youtube}
-                            onChangeText={text => setSocialMediaLink({ ...socialMediaLink, youtube: text })}
+                            left={<TextInput.Icon color={'#D3D3D3'} icon='instagram' size={25}/>}
+                            value={socialMediaLink.instagram}
+                            onChangeText={text => setSocialMediaLink({...socialMediaLink, instagram: text})}
                             multiline={false}
                         />
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '80%' }}>
+                        <TextInput
+                            placeholder="Tiktok"
+                            style={[styles.inputStyle, {
+                                marginTop: 5,
+                                flexShrink: 1,
+                                width: '100%',
+                                height: 55,
+                            }]}
+                            cursorColor='black'
+                            placeholderTextColor={'grey'}
+                            underlineColor={"transparent"}
+                            left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25}/>}
+                            value={socialMediaLink.tiktok}
+                            onChangeText={text => setSocialMediaLink({...socialMediaLink, tiktok: text})}
+                            multiline={false}
+                        />
+                        <TextInput
+                            placeholder="Youtube"
+                            style={[styles.inputStyle, {
+                                marginTop: 5,
+                                flexShrink: 1,
+                                width: '100%',
+                                height: 55,
+                            }]}
+                            cursorColor='black'
+                            placeholderTextColor={'grey'}
+                            underlineColor={"transparent"}
+                            left={<TextInput.Icon color={'#D3D3D3'} icon='youtube' size={25}/>}
+                            value={socialMediaLink.youtube}
+                            onChangeText={text => setSocialMediaLink({...socialMediaLink, youtube: text})}
+                            multiline={false}
+                        />
+                        <View style={{flexDirection: 'row', justifyContent: 'space-between', width: '80%'}}>
                             <CustomButton
                                 text="Cancel"
                                 onPress={_hideSocialMediaCard}
@@ -502,12 +508,12 @@ const GClips = () => {
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                     shadowColor: '#000',
-                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOffset: {width: 0, height: 2},
                                     shadowOpacity: 0.2,
                                     shadowRadius: 2,
                                     elevation: 2,
                                 }}
-                                textStyle={{ color: 'black' }}
+                                textStyle={{color: 'black'}}
                             />
                             <CustomButton
                                 text="Link"
@@ -520,7 +526,7 @@ const GClips = () => {
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                     shadowColor: '#000',
-                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOffset: {width: 0, height: 2},
                                     shadowOpacity: 0.2,
                                     shadowRadius: 2,
                                     elevation: 2,
@@ -531,8 +537,6 @@ const GClips = () => {
                     </View>
 
                 </Modal>
-
-
             </SafeAreaView>
         </ImageBackground>
     )
@@ -609,7 +613,7 @@ const styles = StyleSheet.create({
         borderRadius: 25,
         shadowColor: 'black',
         shadowOpacity: 0.3,
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowRadius: 2,
     },
     videoInfo: {
@@ -689,6 +693,7 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         justifyContent: 'flex-start',
         marginTop: 10,
+        marginBottom: '30%'
     },
     inputStyle: {
         backgroundColor: 'white',

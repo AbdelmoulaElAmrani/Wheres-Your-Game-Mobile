@@ -7,9 +7,11 @@ import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-nativ
 import React, {useEffect, useState} from "react";
 import {router} from "expo-router";
 import {useRoute} from "@react-navigation/core";
-import {Divider} from "react-native-paper";
+import {Avatar, Divider} from "react-native-paper";
 import TeamSearchCard from "@/components/Search/TeamSearchCard";
 import PersonSearchCard from "@/components/Search/PersonSearchCard";
+import {TeamService} from "@/services/TeamService";
+import {Team} from "@/models/Team";
 
 enum tabOption {
     Team,
@@ -19,7 +21,7 @@ enum tabOption {
 
 const TeamProfile = () => {
     const [loading, setLoading] = useState<boolean>(false);
-    const [team, setTeam] = useState<any>();
+    const [team, setTeam] = useState<Team | undefined>(undefined);
     const [selectOption, setSelectOption] = useState<tabOption>(tabOption.Team);
     const route = useRoute();
     const paramData = route.params as any;
@@ -30,10 +32,15 @@ const TeamProfile = () => {
     }
 
     useEffect(() => {
-        console.log('param => ', paramData.teamId);
         //TODO:: call the service to get team profile from the back end
-        setLoading(false);
-    }, []);
+        const fetchTeamById = async () => {
+            setLoading(true);
+            const data = await TeamService.getTeamById(paramData.teamId);
+            setTeam(data);
+            setLoading(false);
+        }
+        fetchTeamById();
+    }, [paramData.teamId]);
 
     const handleSelect = (option: tabOption) => {
         setSelectOption(option);
@@ -56,21 +63,41 @@ const TeamProfile = () => {
                     <View style={styles.cardContainer}>
                         <View style={styles.headerContainer}>
                             <View style={styles.imageContainer}>
-                                <Image
-                                    style={styles.image}
-                                    source={{uri: 'https://static.vecteezy.com/system/resources/previews/011/049/345/non_2x/soccer-football-badge-logo-sport-team-identity-illustrations-isolated-on-white-background-vector.jpg'}}
-                                />
+                                {team?.imgUrl ? (
+                                    <Image
+                                        style={styles.image}
+                                        source={{uri: team.imgUrl}}
+                                    />
+                                ) : (
+                                    <Avatar.Text
+                                        size={wp(15)}
+                                        label={(() => {
+                                            if (!team?.name) return ''; // Return an empty label if team or team.name is null
+
+                                            const nameParts = team.name.trim().split(' ').filter(Boolean);
+                                            if (nameParts.length >= 2) {
+                                                // Take the first character of each part and combine them
+                                                return (nameParts[0].charAt(0) + nameParts[1].charAt(0)).toUpperCase();
+                                            } else {
+                                                // If there is only one word, take the first two characters
+                                                return (team.name.charAt(0) + team.name.charAt(1)).toUpperCase();
+                                            }
+                                        })()}
+                                    />
+                                )}
                             </View>
                             <View style={styles.textContainer}>
-                                <Text style={styles.teamName}>Altrincham FC</Text>
-                                <Text style={styles.teamLocation}>J.davidson stadium, UK</Text>
+                                <Text style={styles.teamName}>{team?.name}</Text>
+                                <Text style={styles.teamLocation}>
+                                    {team?.address ? team.address : ""}{team?.address && team?.country ? ", " : ""}{team?.country ? team.country : ""}
+                                </Text>
                             </View>
                         </View>
                         <Divider bold={true} style={{width: '100%'}}/>
                         <View style={styles.infoRow}>
                             <View style={styles.infoColumn}>
                                 <Text style={styles.infoTitle}>Manager</Text>
-                                <Text style={styles.infoValue}>Phil Park</Text>
+                                <Text style={styles.infoValue}>{team?.coach}</Text>
                             </View>
                             <View style={styles.infoColumn}>
                                 <Text style={styles.infoTitle}>League</Text>
@@ -78,7 +105,7 @@ const TeamProfile = () => {
                             </View>
                             <View style={styles.infoColumn}>
                                 <Text style={styles.infoTitle}>Founded</Text>
-                                <Text style={styles.infoValue}>Phil Park</Text>
+                                <Text style={styles.infoValue}>{team?.founded?.getFullYear()}</Text>
                             </View>
                         </View>
                     </View>
@@ -110,10 +137,10 @@ const TeamProfile = () => {
                                     alignSelf: 'center',
                                     paddingBottom: hp('10%'),
                                 }}
-                                data={[1, 3, 4]}
+                                data={team?.members}
                                 ListFooterComponent={<View
                                     style={{height: hp('10%')}}/>}  // Extra space at the bottom
-                                renderItem={({item}) => <PersonSearchCard/>}
+                                renderItem={({item}) => <PersonSearchCard player={item}/>}
                                 keyExtractor={(item, index) => index.toString()}
                             />
                         </View>

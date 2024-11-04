@@ -1,7 +1,7 @@
 import {ImageBackground} from "expo-image";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
-import {Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Alert, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {AntDesign} from "@expo/vector-icons";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React from "react";
@@ -49,6 +49,24 @@ const Settings = () => {
     }
 
 
+    const _openPrivacySettings = () => {
+        router.navigate('(privacySettings)');
+    };
+    const _openLocationSettings = () => {
+        /* if (Platform.OS === 'android') {
+             // Open location settings on Android
+             Linking.openSettings();
+         } else if (Platform.OS === 'ios') {
+             // iOS doesn't have a direct location settings URL, so we open the general settings
+             Linking.openURL('App-Prefs:root=LOCATION_SERVICES');
+         } else {
+             alert('Location settings not supported on this platform');
+         }*/
+        Linking.openSettings().catch(() => {
+            alert('Unable to open app settings');
+        });
+    };
+
     return (
         <ImageBackground
             style={{height: hp(100)}}
@@ -67,11 +85,13 @@ const Settings = () => {
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             <TouchableOpacity
+                                onPress={_openLocationSettings}
                                 style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Location Settings</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             <TouchableOpacity
+                                onPress={_openPrivacySettings}
                                 style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Privacy Settings</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
@@ -84,14 +104,13 @@ const Settings = () => {
                             <TouchableOpacity style={[styles.settingOption, {backgroundColor: 'red'}]}
                                               onPress={_handleLogout}>
                                 <Text style={[styles.settingOptionText, {color: 'white'}]}>Log Out</Text>
-                                <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={[styles.settingOption, {backgroundColor: 'white'}]}
+                            {/*<TouchableOpacity style={[styles.settingOption, {backgroundColor: 'white'}]}
                                               onPress={_handleDeleteAccount}>
                                 <Text style={[styles.settingOptionText, {color: 'red'}]}>Delete Account</Text>
                                 <Ionicons name="warning-outline" size={24} color="red"/>
-                            </TouchableOpacity>
+                            </TouchableOpacity>*/}
                         </View>
                     </ScrollView>
                 </View>

@@ -1,4 +1,4 @@
-import {Image, ImageBackground} from "expo-image";
+import {ImageBackground} from "expo-image";
 import {heightPercentageToDP as hp, widthPercentageToDP} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
 import Spinner from "@/components/Spinner";
@@ -11,6 +11,9 @@ import {useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {FontAwesome6} from "@expo/vector-icons";
 import * as Linking from 'expo-linking';
+import {UserService} from "@/services/UserService";
+import {useRoute} from "@react-navigation/core";
+import {Helpers} from "@/constants/Helpers";
 
 
 enum MenuOption {
@@ -22,22 +25,32 @@ enum MenuOption {
 export const UserProfile = () => {
 
     const [loading, setLoading] = useState<boolean>(false);
-    const [person, setPerson] = useState<UserResponse>();
+    const [followed, setFollowed] = useState<boolean>(false);
+    const [person, setPerson] = useState<UserResponse | undefined>(undefined);
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
     const [selectOption, setSelectOption] = useState<MenuOption>(MenuOption.Overview);
-
-
+    const route = useRoute();
+    const paramData = route.params as any;
     const _handleGoBack = () => {
         if (router.canGoBack())
             router.back();
     }
 
     useEffect(() => {
-        //TODO:: CALL Service get player by Id
-    }, []);
+        console.log(paramData.userId)
+        const fetchUserById = async () => {
+            setLoading(true);
+            const data = await UserService.getUserProfileById(paramData.userId);
+            setPerson(data);
+            setFollowed(Helpers.checkIfAlreadyFollow(person?.id, currentUser.followers));
+            setLoading(false);
+        }
 
-    const _handleFollow = () => {
-        //TODO:: Call service to follow the user given currentUser.id
+        fetchUserById();
+    }, [paramData.userId]);
+
+    const _handleFollow = async () => {
+        const response: boolean = await UserService.followUser(person?.id);
     }
 
     const _option = (option: MenuOption) => {
@@ -84,24 +97,12 @@ export const UserProfile = () => {
                                     <Avatar.Text
                                         size={hp(20)}
                                         //@ts-ignore
-                                        label={(person?.firstName?.charAt(0) + person?.lastName?.charAt(0)).toUpperCase()}
+                                        label={
+                                            `${(person?.firstName?.charAt(0) || "")}${(person?.lastName?.charAt(0) || "")}`.toUpperCase()
+                                        }
                                     />
                                 )}
                             </View>
-                            {/* {person?.imageUrl ? <Image contentFit='contain' style={styles.imageContainer}
-                                                       source={{uri: person.imageUrl}}/> : (
-                                <View style={[styles.imageContainer, {
-                                    justifyContent: 'center',
-                                    backgroundColor: 'rgb(175,175,175)'
-                                }]}>
-                                    <Text style={{
-                                        textAlign: 'center',
-                                        fontWeight: 'bold',
-                                        fontSize: 40,
-                                        color: 'white'
-                                    }}>{`${person?.firstName.charAt(0).toUpperCase()} ${person?.lastName.charAt(0).toUpperCase()}`}</Text>
-                                </View>)}*/}
-
                             <View style={styles.infoContainer}>
                                 <Text style={{
                                     fontWeight: 'bold',
@@ -153,15 +154,18 @@ export const UserProfile = () => {
                                 <View style={{flexDirection: 'row', justifyContent: 'space-around', width: '100%'}}>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Sports Focus</Text>
-                                        <Text style={styles.infoText}>Soccer</Text>
+                                        <Text style={styles.infoText}></Text>
                                     </View>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Age</Text>
-                                        <Text style={styles.infoText}>22 Years</Text>
+                                        <Text style={styles.infoText}>
+                                            {person?.dateOfBirth ? `${Helpers.calculateAge(person.dateOfBirth)} Years` : ""}
+                                        </Text>
+
                                     </View>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Positions</Text>
-                                        <Text style={styles.infoText}>Midfilder</Text>
+                                        <Text style={styles.infoText}>{person?.positionCoached || ""}</Text>
                                     </View>
                                 </View>
                                 <View style={{
@@ -172,11 +176,11 @@ export const UserProfile = () => {
                                 }}>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Skills Focus</Text>
-                                        <Text style={styles.infoText}>Advance</Text>
+                                        <Text style={styles.infoText}></Text>
                                     </View>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Followers</Text>
-                                        <Text style={styles.infoText}>500</Text>
+                                        <Text style={styles.infoText}>{person?.followers?.length || 0}</Text>
                                     </View>
                                 </View>
                             </>}
@@ -190,39 +194,39 @@ export const UserProfile = () => {
                                         width: '100%'
                                     }}>
                                         <TouchableOpacity
-                                            onPress={() => person?.instagramAccount && _handleOpenUrl(person?.instagramAccount)}
+                                            onPress={() => person?.socialMediaLinks?.instagramAccount && _handleOpenUrl(person?.socialMediaLinks?.instagramAccount)}
                                             style={styles.iconCard}
-                                            disabled={!person?.instagramAccount}
+                                            disabled={!person?.socialMediaLinks?.instagramAccount}
                                         >
                                             <FontAwesome6
                                                 name="instagram"
                                                 size={40}
-                                                color={person?.instagramAccount ? "#E4405F" : "#cccccc"}
-                                                style={{opacity: person?.instagramAccount ? 1 : 0.5}}
+                                                color={person?.socialMediaLinks?.instagramAccount ? "#E4405F" : "#cccccc"}
+                                                style={{opacity: person?.socialMediaLinks?.instagramAccount ? 1 : 0.5}}
                                             />
                                         </TouchableOpacity>
                                         <TouchableOpacity
-                                            onPress={() => person?.tiktokAccount && _handleOpenUrl(person?.tiktokAccount)}
+                                            onPress={() => person?.socialMediaLinks?.tiktokAccount && _handleOpenUrl(person?.socialMediaLinks?.tiktokAccount)}
                                             style={styles.iconCard}
-                                            disabled={!person?.tiktokAccount}
+                                            disabled={!person?.socialMediaLinks?.tiktokAccount}
                                         >
                                             <FontAwesome6
                                                 name="tiktok"
                                                 size={40}
-                                                color={person?.tiktokAccount ? "black" : "#cccccc"}
-                                                style={{opacity: person?.tiktokAccount ? 1 : 0.5}}
+                                                color={person?.socialMediaLinks?.tiktokAccount ? "black" : "#cccccc"}
+                                                style={{opacity: person?.socialMediaLinks?.tiktokAccount ? 1 : 0.5}}
                                             />
                                         </TouchableOpacity>
                                         <TouchableOpacity
-                                            onPress={() => person?.facebookAccount && _handleOpenUrl(person?.facebookAccount)}
+                                            onPress={() => person?.socialMediaLinks?.facebookAccount && _handleOpenUrl(person?.socialMediaLinks?.facebookAccount)}
                                             style={styles.iconCard}
-                                            disabled={!person?.facebookAccount}
+                                            disabled={!person?.socialMediaLinks?.facebookAccount}
                                         >
                                             <FontAwesome6
                                                 name="facebook"
                                                 size={40}
-                                                color={person?.facebookAccount ? "blue" : "#cccccc"}
-                                                style={{opacity: person?.facebookAccount ? 1 : 0.5}}
+                                                color={person?.socialMediaLinks?.facebookAccount ? "blue" : "#cccccc"}
+                                                style={{opacity: person?.socialMediaLinks?.facebookAccount ? 1 : 0.5}}
                                             />
                                         </TouchableOpacity>
                                     </View>
@@ -233,14 +237,14 @@ export const UserProfile = () => {
                                         width: '100%'
                                     }}>
                                         <TouchableOpacity
-                                            onPress={() => person?.youtubeAccount && _handleOpenUrl(person?.youtubeAccount)}
+                                            onPress={() => person?.socialMediaLinks?.youtubeAccount && _handleOpenUrl(person?.socialMediaLinks?.youtubeAccount)}
                                             style={styles.iconCard}
-                                            disabled={!person?.youtubeAccount}>
+                                            disabled={!person?.socialMediaLinks?.youtubeAccount}>
                                             <FontAwesome6
                                                 name="youtube"
                                                 size={40}
-                                                color={person?.youtubeAccount ? "red" : "#cccccc"}
-                                                style={{opacity: person?.youtubeAccount ? 1 : 0.5}}
+                                                color={person?.socialMediaLinks?.youtubeAccount ? "red" : "#cccccc"}
+                                                style={{opacity: person?.socialMediaLinks?.youtubeAccount ? 1 : 0.5}}
                                             />
                                         </TouchableOpacity>
                                     </View>
@@ -256,8 +260,13 @@ export const UserProfile = () => {
                             }
                             <TouchableOpacity
                                 onPress={_handleFollow}
-                                style={styles.followBtn}>
-                                <Text style={{color: 'white', fontSize: 16, fontWeight: 'bold'}}>Follow</Text>
+                                disabled={followed}
+                                style={[styles.followBtn, followed && {backgroundColor: 'grey'}]}>
+                                <Text style={{
+                                    color: 'white',
+                                    fontSize: 16,
+                                    fontWeight: 'bold'
+                                }}>{followed ? 'Following' : 'Follow'}</Text>
                             </TouchableOpacity>
                         </View>
                     </ScrollView>

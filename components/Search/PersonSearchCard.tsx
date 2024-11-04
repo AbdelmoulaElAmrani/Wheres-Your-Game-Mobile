@@ -2,38 +2,34 @@ import React from 'react';
 import {TouchableOpacity, View, Image, Text, StyleSheet} from 'react-native';
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {AntDesign} from "@expo/vector-icons";
-import {router} from "expo-router";
+import {router, useRouter} from "expo-router";
+import {Player} from "@/models/Player";
+import {Avatar} from "react-native-paper";
 
-const PersonSearchCard = ({player = null}) => {
-
+const PersonSearchCard = ({player}: { player: Player }) => {
+    const _router = useRouter();
     const handleOpenPersonProfile = () => {
-        // Add functionality here
-        router.push('/UserProfile');
+        _router.push({
+            pathname: '(user)/UserProfile',
+            params: {userId: player.id},
+        });
     }
 
     // @ts-ignore
     return (
         <TouchableOpacity onPress={handleOpenPersonProfile} style={styles.container}>
             <View style={styles.row}>
-                {/*TODO:: uncommant it later*/}
-                {/*{player?.imgUrl ? (
-                    <Image
-                        style={styles.image}
-                        source={{uri: 'https://static.vecteezy.com/system/resources/previews/011/049/345/non_2x/soccer-football-badge-logo-sport-team-identity-illustrations-isolated-on-white-background-vector.jpg'}}/>
+                <View style={styles.image}>
+                    {player?.imageUrl ? (<Image
+                        source={{uri: player.imageUrl}}/>) : (<Avatar.Text
+                        size={wp(13)}
+                        label={(player?.firstName.charAt(0) + player?.lastName.charAt(0)).toUpperCase()}
+                    />)}
 
-                ) : (
-                    <Avatar.Text
-                        size={60}
-                        label={(player?.name.charAt(0) + player?.name.charAt(1)).toUpperCase()}
-                    />
-                )}*/}
-                <Image
-                    style={styles.image}
-                    source={{uri: 'https://static.vecteezy.com/system/resources/previews/011/049/345/non_2x/soccer-football-badge-logo-sport-team-identity-illustrations-isolated-on-white-background-vector.jpg'}}/>
-
+                </View>
                 <View style={styles.textContainer}>
-                    <Text style={styles.title}>Chris Conn-Clarke</Text>
-                    <Text style={styles.subtitle}>Midfielder</Text>
+                    <Text style={styles.title}>{player.firstName} {player.lastName}</Text>
+                    <Text style={styles.subtitle}>{player.position}</Text>
                 </View>
                 <AntDesign name="right" size={wp('6%')} color="grey"/>
             </View>
@@ -69,7 +65,9 @@ const styles = StyleSheet.create({
         resizeMode: 'cover',
         borderColor: 'grey',
         borderWidth: 0.2,
-        marginRight: wp('3%')
+        marginRight: wp('3%'),
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     textContainer: {
         flex: 1,
