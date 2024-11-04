@@ -291,7 +291,7 @@ const Home = () => {
                 source={require('../../assets/images/signupBackGround.jpg')}>
 
                 <SafeAreaView style={{height: hp(100)}}>
-                    <Spinner visible={loading}/>
+                    {loading && <Spinner visible={loading}/>}
                     <View style={styles.headerContainer}>
                         <View>
                             <TouchableOpacity onPress={_handleOnOpenSearch}>

@@ -5,6 +5,7 @@ const SettingsLayout = () => {
         screenOptions={{headerShown: false}}>
         <Stack.Screen name="index" options={{headerShown: false}}/>
         <Stack.Screen name="(privacySettings)" options={{headerShown: false}}/>
+        <Stack.Screen name="ProfilePreference" options={{headerShown: false}}/>
     </Stack>);
 }
 

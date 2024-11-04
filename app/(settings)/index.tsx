@@ -1,72 +1,42 @@
 import {ImageBackground} from "expo-image";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
-import {Alert, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {AntDesign} from "@expo/vector-icons";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React from "react";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import {logout} from "@/redux/UserSlice";
-import {router} from "expo-router";
+import {router, useRouter} from "expo-router";
 import {useDispatch} from "react-redux";
-import {UserService} from "@/services/UserService";
 
 const Settings = () => {
     const dispatch = useDispatch()
+    const _router = useRouter();
 
     const _handleLogout = () => {
         dispatch(logout({}));
         router.replace('/Login');
     }
-    const _handleDeleteAccount = async () => {
-        Alert.alert(
-            'Confirmation',
-            'Are you sure you want to delete your account?',
-            [
-                {
-                    text: 'Cancel',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Delete',
-                    onPress: async () => {
-                        try {
-                            const result = await UserService.deleteUserProfile();
-                            if (result) {
-                                _handleLogout();
-                            } else {
-                                Alert.alert('Error', 'Unable to delete your account. Please try again later.');
-                            }
-                        } catch (e) {
-                            Alert.alert('Error', 'An error occurred while deleting your account.');
-                        }
-                    },
-                    style: 'destructive',
-                },
-            ],
-            {cancelable: false}
-        );
-    }
-
 
     const _openPrivacySettings = () => {
         router.navigate('(privacySettings)');
     };
     const _openLocationSettings = () => {
-        /* if (Platform.OS === 'android') {
-             // Open location settings on Android
-             Linking.openSettings();
-         } else if (Platform.OS === 'ios') {
-             // iOS doesn't have a direct location settings URL, so we open the general settings
-             Linking.openURL('App-Prefs:root=LOCATION_SERVICES');
-         } else {
-             alert('Location settings not supported on this platform');
-         }*/
         Linking.openSettings().catch(() => {
             alert('Unable to open app settings');
         });
     };
 
+    const _openProfilePreference = () => {
+        router.navigate('ProfilePreference');
+
+    };
+    const _openEditProfile = () => {
+        _router.push({
+            pathname: '/EditProfile',
+            params: {data: 'profile'},
+        });
+    };
     return (
         <ImageBackground
             style={{height: hp(100)}}
@@ -80,8 +50,9 @@ const Settings = () => {
                         <View style={{flex: 1, paddingHorizontal: 5}}>
                             <Text style={styles.textSettings}>Settings</Text>
                             <TouchableOpacity
+                                onPress={_openEditProfile}
                                 style={styles.settingOption}>
-                                <Text style={styles.settingOptionText}>Contact Information</Text>
+                                <Text style={styles.settingOptionText}>Edit Profile & Contact Information</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             <TouchableOpacity
@@ -97,6 +68,7 @@ const Settings = () => {
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             <TouchableOpacity
+                                onPress={_openProfilePreference}
                                 style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Profile Preference</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
@@ -105,12 +77,6 @@ const Settings = () => {
                                               onPress={_handleLogout}>
                                 <Text style={[styles.settingOptionText, {color: 'white'}]}>Log Out</Text>
                             </TouchableOpacity>
-
-                            {/*<TouchableOpacity style={[styles.settingOption, {backgroundColor: 'white'}]}
-                                              onPress={_handleDeleteAccount}>
-                                <Text style={[styles.settingOptionText, {color: 'red'}]}>Delete Account</Text>
-                                <Ionicons name="warning-outline" size={24} color="red"/>
-                            </TouchableOpacity>*/}
                         </View>
                     </ScrollView>
                 </View>

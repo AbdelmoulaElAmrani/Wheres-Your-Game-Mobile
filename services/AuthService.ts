@@ -131,7 +131,13 @@ export class AuthService {
         confirmPassword: string;
         currentPassword: string
     }): Promise<boolean> {
-        return true;
+        const body = {
+            oldPassword: passwordData.currentPassword,
+            newPassword: passwordData.newPassword
+        }
+        const res = await Requests.put('user/reset-password', body);
+        console.log(res);
+        return res?.status === 200;
     }
 }
 

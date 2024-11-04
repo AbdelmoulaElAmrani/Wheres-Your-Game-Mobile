@@ -28,9 +28,7 @@ const AccountSettings = () => {
         newPassword: '',
         confirmPassword: ''
     });
-    const _ChangePassword = async () => {
 
-    }
     const _handleHelp = () => {
         const email = "wheresyourgame5@gmail.com";
         const subject = "Help Request";

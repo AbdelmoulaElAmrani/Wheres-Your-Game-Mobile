@@ -2,8 +2,8 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import Requests from "./Requests";
 import {UserRequest} from "@/models/requestObjects/UserRequest";
 import UserType from "@/models/UserType";
-import { SocialMediaLinksResponse } from "@/models/responseObjects/SocialMediaLinksResponse";
-import { SocialMediaLinksRequest } from "@/models/requestObjects/SocialMediaLinksRequest";
+import {SocialMediaLinksResponse} from "@/models/responseObjects/SocialMediaLinksResponse";
+import {SocialMediaLinksRequest} from "@/models/requestObjects/SocialMediaLinksRequest";
 
 
 export class UserService {
@@ -79,7 +79,7 @@ export class UserService {
             return false;
         }
     }
-    
+
     static async updateUserSocialLinks(social: SocialMediaLinksRequest): Promise<SocialMediaLinksResponse | undefined> {
         try {
             var res = await Requests.put('user/social', social);
@@ -98,6 +98,22 @@ export class UserService {
 
 
     static async followUser(id: string | undefined) {
-        return false;
+        try {
+            var res = await Requests.post(`follows/${id}`, null);
+            return res?.status === 200;
+        } catch (error) {
+            console.error('Error updating user:', error);
+            return false;
+        }
+    }
+
+    static async updateProfilePreference(formData: any): Promise<boolean> {
+        try {
+            var res = await Requests.put('user/preferences', formData);
+            return res?.status === 200;
+        } catch (error) {
+            console.error('Error updating user:', error);
+            return false;
+        }
     }
 }
