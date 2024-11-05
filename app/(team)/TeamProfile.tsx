@@ -105,7 +105,7 @@ const TeamProfile = () => {
                             </View>
                             <View style={styles.infoColumn}>
                                 <Text style={styles.infoTitle}>Founded</Text>
-                                <Text style={styles.infoValue}>{team?.founded?.getFullYear()}</Text>
+                                <Text style={styles.infoValue}>{team?.founded ? new Date(team.founded).getFullYear() : 'N/A'}</Text>
                             </View>
                         </View>
                     </View>
