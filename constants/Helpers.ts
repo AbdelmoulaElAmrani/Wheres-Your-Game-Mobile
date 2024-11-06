@@ -132,5 +132,16 @@ export class Helpers {
         return false;
     }
 
+    static isVideoLink = (url: string): boolean => {
+        const videoExtensions = /\.(mp4|mov|avi|mkv|flv|wmv|webm)$/i;
+
+        const youtubeRegex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)/;
+
+        if (videoExtensions.test(url)) {
+            return true;
+        }
+        return youtubeRegex.test(url);
+    };
+
 
 }
