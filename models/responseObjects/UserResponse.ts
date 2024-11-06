@@ -28,4 +28,5 @@ export interface UserResponse {
     city?: string;
     socialMediaLinks?: SocialMediaLinksResponse;
     followers?: string [];
+    preferenceSport?: string;
 }

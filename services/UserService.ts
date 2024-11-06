@@ -99,8 +99,8 @@ export class UserService {
 
     static async followUser(id: string | undefined) {
         try {
-            var res = await Requests.post(`follows/${id}`, null);
-            return res?.status === 200;
+            var res = await Requests.post(`follows/${id}`, {});
+            return res?.status === 201;
         } catch (error) {
             console.error('Error updating user:', error);
             return false;

@@ -302,12 +302,12 @@ const Home = () => {
                             <ReactNative.Image style={styles.logoContainer}
                                                source={require('../../assets/images/homeLogo.png')}/>
 
-                            <TouchableOpacity
+                            {userData.role == UserType[UserType.PARENT] && <TouchableOpacity
                                 onPress={_handleOpenInviteChild}
                                 style={{borderColor: 'white', borderWidth: 0.5, marginTop: 1, borderRadius: 5}}>
                                 <Text style={{color: 'white', textAlign: 'center', fontSize: 16, paddingVertical: 5}}>Invite
                                     Child</Text>
-                            </TouchableOpacity>
+                            </TouchableOpacity>}
                         </View>
                         <View style={styles.sideHiderContainer}>
                             <TouchableOpacity

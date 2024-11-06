@@ -21,7 +21,7 @@ const Layout = () => {
                 <Octicons name="person" size={size} color={color}/>
         }}/>
         <Tabs.Screen name="ProfileV2" options={{
-            title: 'ProfileV2', tabBarLabel: 'ProfileV2',
+            title: 'Profile', tabBarLabel: 'Profile',
             tabBarIcon: ({color, size}) =>
                 <Octicons name="person" size={size} color={color}/>
         }}/>

@@ -137,7 +137,7 @@ export const ProfileV2 = () => {
                                 <View style={{flexDirection: 'row', justifyContent: 'space-around', width: '100%'}}>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Sports Focus</Text>
-                                        <Text style={styles.infoText}></Text>
+                                        <Text style={styles.infoText}>{currentUser.preferenceSport || ""}</Text>
                                     </View>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Age</Text>
@@ -158,7 +158,7 @@ export const ProfileV2 = () => {
                                 }}>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Skills Focus</Text>
-                                        <Text style={styles.infoText}></Text>
+                                        <Text style={styles.infoText}>{currentUser.skillLevel || ""}</Text>
                                     </View>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Followers</Text>

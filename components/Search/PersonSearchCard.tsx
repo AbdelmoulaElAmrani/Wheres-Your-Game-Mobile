@@ -1,10 +1,11 @@
-import React from 'react';
-import {TouchableOpacity, View, Image, Text, StyleSheet} from 'react-native';
+import React, {useEffect} from 'react';
+import {TouchableOpacity, View, Text, StyleSheet} from 'react-native';
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {AntDesign} from "@expo/vector-icons";
 import {router, useRouter} from "expo-router";
 import {Player} from "@/models/Player";
 import {Avatar} from "react-native-paper";
+import {Image} from "expo-image";
 
 const PersonSearchCard = ({player}: { player: Player }) => {
     const _router = useRouter();
@@ -21,6 +22,8 @@ const PersonSearchCard = ({player}: { player: Player }) => {
             <View style={styles.row}>
                 <View style={styles.image}>
                     {player?.imageUrl ? (<Image
+                        contentFit={'contain'}
+                        style={{width: wp(13), height: wp(13)}}
                         source={{uri: player.imageUrl}}/>) : (<Avatar.Text
                         size={wp(13)}
                         label={(player?.firstName.charAt(0) + player?.lastName.charAt(0)).toUpperCase()}

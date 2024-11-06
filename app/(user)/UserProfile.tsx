@@ -7,13 +7,14 @@ import React, {useEffect, useState} from "react";
 import {router} from "expo-router";
 import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {Avatar, Divider} from "react-native-paper";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {FontAwesome6} from "@expo/vector-icons";
 import * as Linking from 'expo-linking';
 import {UserService} from "@/services/UserService";
 import {useRoute} from "@react-navigation/core";
 import {Helpers} from "@/constants/Helpers";
+import {getUserProfile} from "@/redux/UserSlice";
 
 
 enum MenuOption {
@@ -29,6 +30,7 @@ export const UserProfile = () => {
     const [person, setPerson] = useState<UserResponse | undefined>(undefined);
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
     const [selectOption, setSelectOption] = useState<MenuOption>(MenuOption.Overview);
+    const dispatch = useDispatch();
     const route = useRoute();
     const paramData = route.params as any;
     const _handleGoBack = () => {
@@ -37,20 +39,33 @@ export const UserProfile = () => {
     }
 
     useEffect(() => {
-        console.log(paramData.userId)
         const fetchUserById = async () => {
             setLoading(true);
             const data = await UserService.getUserProfileById(paramData.userId);
             setPerson(data);
-            setFollowed(Helpers.checkIfAlreadyFollow(person?.id, currentUser.followers));
             setLoading(false);
         }
 
         fetchUserById();
     }, [paramData.userId]);
 
+
+    useEffect(() => {
+        if (followed) return;
+        const flow = Helpers.checkIfAlreadyFollow(currentUser.id, person?.followers)
+        setFollowed(flow);
+    }, [currentUser, person]);
+
+
     const _handleFollow = async () => {
-        const response: boolean = await UserService.followUser(person?.id);
+        setFollowed(true);
+        try {
+            const response: boolean = await UserService.followUser(person?.id);
+            setFollowed(response);
+            dispatch(getUserProfile() as any);
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     const _option = (option: MenuOption) => {
@@ -154,14 +169,13 @@ export const UserProfile = () => {
                                 <View style={{flexDirection: 'row', justifyContent: 'space-around', width: '100%'}}>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Sports Focus</Text>
-                                        <Text style={styles.infoText}></Text>
+                                        <Text style={styles.infoText}>{person?.preferenceSport}</Text>
                                     </View>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Age</Text>
                                         <Text style={styles.infoText}>
                                             {person?.dateOfBirth ? `${Helpers.calculateAge(person.dateOfBirth)} Years` : ""}
                                         </Text>
-
                                     </View>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Positions</Text>
