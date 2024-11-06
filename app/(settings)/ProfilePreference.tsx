@@ -10,6 +10,7 @@ import {useSelector} from "react-redux";
 import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import CustomButton from "@/components/CustomButton";
 import {UserService} from "@/services/UserService";
+import {router} from "expo-router";
 
 const ProfilePreference = () => {
 
@@ -25,7 +26,13 @@ const ProfilePreference = () => {
         try {
             const response = await UserService.updateProfilePreference(formData);
             if (response) { // Check if response is not null
-                Alert.alert("Success", "Modification saved successfully!");
+                Alert.alert("Success", "Modification saved successfully!", [
+                        {
+                            text: "OK",
+                            onPress: () => router.back()
+                        }
+                    ]
+                );
             } else {
                 Alert.alert("Error", "Something went wrong. Please try again.");
             }

@@ -176,7 +176,7 @@ export const UserProfile = () => {
                                 }}>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Skills Focus</Text>
-                                        <Text style={styles.infoText}></Text>
+                                        <Text style={styles.infoText}>{currentUser.skillLevel || ""}</Text>
                                     </View>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Followers</Text>
