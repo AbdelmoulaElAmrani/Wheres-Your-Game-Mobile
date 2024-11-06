@@ -6,7 +6,7 @@ import {AntDesign} from "@expo/vector-icons";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React, {useEffect, useState} from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import {logout} from "@/redux/UserSlice";
+import {getUserProfile, logout} from "@/redux/UserSlice";
 import {router} from "expo-router";
 import {useDispatch, useSelector} from "react-redux";
 import {UserService} from "@/services/UserService";
@@ -16,22 +16,28 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 
 const PrivacySettings = () => {
     const dispatch = useDispatch();
-    const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
+    const currentUser = useSelector((state: any) => state.user.userData.visible) as boolean;
     const [isPrivacyAcOp, setPrivacyAcOp] = useState<boolean>(false);
-    const [isPrivacyEnabled, setPrivacyEnabled] = useState<boolean>(false);
+    const [isPrivacyEnabled, setPrivacyEnabled] = useState<boolean>(!currentUser);
 
     const _handleLogout = () => {
         dispatch(logout({}));
         router.replace('/Login');
     }
     const toggleSwitch = async (value: boolean) => {
-        setPrivacyEnabled(value);
-        UserService.togglePrivacy(value);
+        try{
+            setPrivacyEnabled(value);
+            UserService.updateUserSettings({visible: !value});
+        }
+        catch (e) {
+            console.log(e);
+        }
     };
-
+   
     useEffect(() => {
-        setPrivacyEnabled(!currentUser.visible);
-    }, [currentUser]);
+        dispatch(getUserProfile() as any);
+    }, []);
+
     const _handleDeleteAccount = async () => {
         Alert.alert(
             'Confirmation',

@@ -4,6 +4,8 @@ import {UserRequest} from "@/models/requestObjects/UserRequest";
 import UserType from "@/models/UserType";
 import {SocialMediaLinksResponse} from "@/models/responseObjects/SocialMediaLinksResponse";
 import {SocialMediaLinksRequest} from "@/models/requestObjects/SocialMediaLinksRequest";
+import { User } from "@react-native-google-signin/google-signin";
+import { UserSettingsRequest } from "@/models/requestObjects/UserSettingsRequest";
 
 
 export class UserService {
@@ -116,12 +118,14 @@ export class UserService {
             return false;
         }
     }
-
-    static togglePrivacy(value: boolean) {
+    
+    static  updateUserSettings = async (formData:  UserSettingsRequest): Promise<boolean> => {
         try {
-
-        } catch (e) {
-            console.error(e);
+            var res = await Requests.put('user/settings', formData);
+            return res?.status === 200;
+        } catch (error) {
+            console.error('Error updating user:', error);
+            return false;
         }
     }
 }
