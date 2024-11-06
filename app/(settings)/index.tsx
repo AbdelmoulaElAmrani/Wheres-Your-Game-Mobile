@@ -7,10 +7,13 @@ import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React from "react";
 import {logout} from "@/redux/UserSlice";
 import {router, useRouter} from "expo-router";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
+import {UserResponse} from "@/models/responseObjects/UserResponse";
+import UserType from "@/models/UserType";
 
 const Settings = () => {
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
+    const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
     const _router = useRouter();
 
     const _handleLogout = () => {
@@ -61,12 +64,12 @@ const Settings = () => {
                                 <Text style={styles.settingOptionText}>Location Settings</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
-                            <TouchableOpacity
+                            {currentUser.role != UserType[UserType.COACH] && <TouchableOpacity
                                 onPress={_openPrivacySettings}
                                 style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Privacy Settings</Text>
                                 <AntDesign name="right" size={24} color="grey"/>
-                            </TouchableOpacity>
+                            </TouchableOpacity>}
                             <TouchableOpacity
                                 onPress={_openProfilePreference}
                                 style={styles.settingOption}>
