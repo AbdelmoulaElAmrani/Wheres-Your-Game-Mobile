@@ -116,4 +116,12 @@ export class UserService {
             return false;
         }
     }
+
+    static togglePrivacy(value: boolean) {
+        try {
+
+        } catch (e) {
+            console.error(e);
+        }
+    }
 }

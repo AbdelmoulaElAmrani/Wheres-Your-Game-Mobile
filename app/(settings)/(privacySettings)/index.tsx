@@ -4,15 +4,19 @@ import {SafeAreaView} from "react-native-safe-area-context";
 import {Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View} from "react-native";
 import {AntDesign} from "@expo/vector-icons";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {logout} from "@/redux/UserSlice";
 import {router} from "expo-router";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {UserService} from "@/services/UserService";
+import UserType from "@/models/UserType";
+import {state} from "sucrase/dist/types/parser/traverser/base";
+import {UserResponse} from "@/models/responseObjects/UserResponse";
 
 const PrivacySettings = () => {
     const dispatch = useDispatch();
+    const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
     const [isPrivacyAcOp, setPrivacyAcOp] = useState<boolean>(false);
     const [isPrivacyEnabled, setPrivacyEnabled] = useState<boolean>(false);
 
@@ -20,11 +24,14 @@ const PrivacySettings = () => {
         dispatch(logout({}));
         router.replace('/Login');
     }
-    const toggleSwitch = async () => {
-        setPrivacyEnabled(previousState => !previousState);
-        //TODO:: Call the service and set the mode annonymous to the value of the state;
-
+    const toggleSwitch = async (value: boolean) => {
+        setPrivacyEnabled(value);
+        UserService.togglePrivacy(value);
     };
+
+    useEffect(() => {
+        setPrivacyEnabled(!currentUser.visible);
+    }, [currentUser]);
     const _handleDeleteAccount = async () => {
         Alert.alert(
             'Confirmation',
@@ -94,7 +101,7 @@ const PrivacySettings = () => {
                                 }}>
                                     <Text style={{fontWeight: 'bold', fontSize: 16}}>Privacy Account</Text>
                                     <Switch
-                                        onValueChange={toggleSwitch}
+                                        onValueChange={(value) => toggleSwitch(value)}
                                         value={isPrivacyEnabled}
                                     />
                                 </View>

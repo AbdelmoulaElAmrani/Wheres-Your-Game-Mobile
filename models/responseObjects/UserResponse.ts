@@ -29,4 +29,5 @@ export interface UserResponse {
     socialMediaLinks?: SocialMediaLinksResponse;
     followers?: string [];
     preferenceSport?: string;
+    visible: boolean;
 }
