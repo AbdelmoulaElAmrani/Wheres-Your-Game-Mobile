@@ -7,7 +7,7 @@ import {Player} from "@/models/Player";
 import {Avatar} from "react-native-paper";
 import {Image} from "expo-image";
 
-const PersonSearchCard = ({player}: { player: Player }) => {
+const PersonSearchCard = ({player, disabled = false}: { player: Player, disabled?: boolean }) => {
     const _router = useRouter();
     const handleOpenPersonProfile = () => {
         _router.push({
@@ -18,7 +18,7 @@ const PersonSearchCard = ({player}: { player: Player }) => {
 
     // @ts-ignore
     return (
-        <TouchableOpacity onPress={handleOpenPersonProfile} style={styles.container}>
+        <TouchableOpacity disabled={disabled} onPress={handleOpenPersonProfile} style={styles.container}>
             <View style={styles.row}>
                 <View style={styles.image}>
                     {player?.imageUrl ? (<Image

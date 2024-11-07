@@ -12,6 +12,7 @@ import {Avatar, Divider} from "react-native-paper";
 import {FontAwesome6} from "@expo/vector-icons";
 import * as Linking from "expo-linking";
 import {Helpers} from "@/constants/Helpers";
+import { useIsFocused } from '@react-navigation/native';
 
 enum MenuOption {
     Overview,
@@ -26,13 +27,13 @@ export const ProfileV2 = () => {
     const [refreshing, setRefreshing] = useState<boolean>(false);
     const _router = useRouter();
     const [selectOption, setSelectOption] = useState<MenuOption>(MenuOption.Overview);
-
+    const isFocused = useIsFocused();
 
     useEffect(() => {
         (async () => {
             await dispatch(getUserProfile() as any)
         })()
-    }, []);
+    }, [isFocused]);
 
 
     const _handleSettings = () => {
@@ -158,7 +159,7 @@ export const ProfileV2 = () => {
                                 }}>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Skills Focus</Text>
-                                        <Text style={styles.infoText}>{currentUser.skillLevel || ""}</Text>
+                                        <Text style={styles.infoText}>{currentUser.skillLevel?.[0] ?? ""}</Text>
                                     </View>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Followers</Text>
