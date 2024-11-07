@@ -4,7 +4,7 @@ import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-nativ
 import {SafeAreaView} from "react-native-safe-area-context";
 import {ActivityIndicator, MD2Colors, Modal, Searchbar, TextInput} from 'react-native-paper';
 import React, {useEffect, useState} from "react";
-import {FontAwesome} from '@expo/vector-icons';
+import {AntDesign, FontAwesome} from '@expo/vector-icons';
 import {ImageBackground} from "expo-image";
 import VideoComponent from "@/components/VideoComponent";
 import * as Sharing from 'expo-sharing';
@@ -15,6 +15,8 @@ import {UserService} from "@/services/UserService";
 import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {getUserProfile} from "@/redux/UserSlice";
+import LinkPreviewComponent from "@/components/LinkPreviewComponent";
+import {Helpers} from "@/constants/Helpers";
 
 
 const validDomains = ['facebook.com', 'instagram.com', 'youtube.com', 'tiktok.com'];
@@ -102,31 +104,39 @@ const GClips = () => {
     );
 
     const _videoPreview = ({video}: { video: any }) => {
+        const isYoutube: boolean = Helpers.isVideoLink(video.link);
+
         return (
-            <View style={{marginBottom: 30}}>
+            <TouchableOpacity style={{marginBottom: 30}}>
                 <Text style={styles.videoTitle}>{video?.title}</Text>
-                <View style={styles.videoPreview}>
-                    <View style={{height: '100%', width: '100%'}}>
-                        <VideoComponent url={video.link}/>
+                <View style={[styles.videoPreview, !isYoutube && {height: 100, alignItems: 'center'}]}>
+                    <View>
+                        {
+                            isYoutube ? (
+                                <VideoComponent url={video.link}/>
+                            ) : (
+                                <LinkPreviewComponent link={video.link}/>
+                            )
+                        }
                     </View>
                 </View>
                 <View style={styles.videoInfoContainer}>
                     <Text style={styles.videoInfo}>{video?.info}</Text>
-                    <View style={styles.infoIconContainer}>
-                        <Text style={styles.uploadHour}>{getHoursFromNow(video?.postedAt)} hour ago</Text>
+                    <Text style={styles.uploadHour}>
+                        {Helpers.formatDateOnNotificationOrChat(video.postedAt, true)} Ago</Text>
+                    <View style={[styles.infoIconContainer]}>
                         <TouchableOpacity onPress={() => _handleShareClip(video)}>
-                            <FontAwesome name="share-alt" size={20} color="grey" style={styles.shareIcon}/>
+                            <AntDesign name="sharealt" size={20} color="grey"/>
                         </TouchableOpacity>
                     </View>
                 </View>
-            </View>
+            </TouchableOpacity>
         );
     }
 
     const _handleShareClip = async (video: any) => {
         await Sharing.shareAsync(video.link);
     }
-
     const _showPostModal = () => {
         setPostModalVisible(true);
     }
@@ -136,7 +146,6 @@ const GClips = () => {
         setPostTitle('');
         setPostLinkError('');
     }
-
     const _handlePost = async () => {
         setPostLinkError('');
         const isValidLink = validDomains.some(domain => postLink.includes(domain));
@@ -172,7 +181,6 @@ const GClips = () => {
     const _hideSocialMediaCard = () => {
         setSocialMediaCardVisible(false);
     }
-
     const _handleSocialMediaLink = async () => {
         // Check if any link is provided and validate against domains
         var isValidLink = socialMediaLink.facebook.length > 0 && socialMediaLink.facebook.includes('facebook.com')
@@ -205,21 +213,6 @@ const GClips = () => {
         setSocialMediaCardVisible(false);
 
     };
-
-    const getHoursFromNow = (date: any): number => {
-        // Convert `date` to a Date object if it’s a string
-        if (typeof date === 'string') {
-            date = new Date(date);
-        }
-        if (!(date instanceof Date) || isNaN(date.getTime())) {
-            return 0; // Return 0 for invalid dates
-        }
-        const now = new Date();
-        const diff = now.getTime() - date.getTime();
-        return Math.ceil(diff / (1000 * 60 * 60));
-    };
-
-
     const shareAppLink = async () => {
         try {
             const shareOptions = {
@@ -603,25 +596,15 @@ const styles = StyleSheet.create({
     },
     videoPreview: {
         width: wp(90),
-        height: hp(25),
+        height: 200,
         backgroundColor: 'white',
         borderRadius: 30,
-    },
-    videoThumbnail: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 25,
-        shadowColor: 'black',
-        shadowOpacity: 0.3,
-        shadowOffset: {width: 0, height: 2},
-        shadowRadius: 2,
     },
     videoInfo: {
         fontSize: 12,
         fontWeight: 'bold',
         color: 'grey',
         marginLeft: 10,
-        marginBottom: 10
     },
     videoTitle: {
         fontSize: 18,
@@ -641,25 +624,25 @@ const styles = StyleSheet.create({
     },
     videoInfoContainer: {
         flexDirection: 'row',
+        width: '90%',
         alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 20
     },
     infoIconContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginLeft: wp(8),
+        padding: 5,
+        borderRadius: 5,
     },
     uploadHour: {
         color: 'grey',
-    },
-    shareIcon: {
-        marginLeft: wp(20)
     },
     horizontalButtonContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
         marginVertical: 1,
         marginHorizontal: 10,
-
     },
     button: {
         flexDirection: 'row',

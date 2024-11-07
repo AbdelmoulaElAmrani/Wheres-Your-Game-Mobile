@@ -5,6 +5,8 @@ export const NOTIFICATION_REFRESH_TIMER: number = 30;
 export const googleWebClientId: string = "798054162153-5ceu8fakl487r4n7vvltapdubbuag6g6.apps.googleusercontent.com";
 export const googleIosClientId: string = "798054162153-e99bjqq6709aqhfe922ab9fhl7nv3f7q.apps.googleusercontent.com";
 export const googleAndroidClientId: string = "798054162153-lvbugkqi5jvmsb1evnttt5bn6esir3bi.apps.googleusercontent.com";
+export const linkPreviewAPi: string = "5a4514d8b66b39835df60d331c3d8aa6";
+
 //export const API_URI = `https://sport-app-38dd22818116.herokuapp.com/api/`;
-export const API_URI = `https://et-provides-unsigned-spider.trycloudflare.com/api/`;
+export const API_URI = `https://striking-cotton-matching-variety.trycloudflare.com/api/`;
 export const AXIOS_TIMEOUT: number = 0;
