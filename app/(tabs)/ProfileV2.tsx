@@ -159,7 +159,7 @@ export const ProfileV2 = () => {
                                 }}>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Skills Focus</Text>
-                                        <Text style={styles.infoText}>{currentUser.skillLevel || ""}</Text>
+                                        <Text style={styles.infoText}>{currentUser.skillLevel?.[0] ?? ""}</Text>
                                     </View>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Followers</Text>
