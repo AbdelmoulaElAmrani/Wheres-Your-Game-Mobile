@@ -47,7 +47,7 @@ const Notifications = () => {
 
     const _onOpenNotification = async (notification: NotificationResponse): Promise<void> => {
         try {
-            await NotificationService.markNotificationAsRead(notification.requestId);
+            await NotificationService.markNotificationAsRead(notification.id);
         } catch (ignored) {
         }
     };
