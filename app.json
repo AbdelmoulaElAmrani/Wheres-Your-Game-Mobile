@@ -27,7 +27,7 @@
         "googleMapsApiKey": "AIzaSyDlFo6upaajnGewXn4DX4-naBhsWPcn8VE"
       },
       "bundleIdentifier": "com.digiboost.sportgames",
-      "buildNumber": "1"
+      "buildNumber": "2"
     },
     "android": {
       "versionCode": 3,
