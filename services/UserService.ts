@@ -2,6 +2,10 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import Requests from "./Requests";
 import {UserRequest} from "@/models/requestObjects/UserRequest";
 import UserType from "@/models/UserType";
+import {SocialMediaLinksResponse} from "@/models/responseObjects/SocialMediaLinksResponse";
+import {SocialMediaLinksRequest} from "@/models/requestObjects/SocialMediaLinksRequest";
+import { User } from "@react-native-google-signin/google-signin";
+import { UserSettingsRequest } from "@/models/requestObjects/UserSettingsRequest";
 
 
 export class UserService {
@@ -74,6 +78,53 @@ export class UserService {
             return false;
         } catch (error) {
             console.error(error);
+            return false;
+        }
+    }
+
+    static async updateUserSocialLinks(social: SocialMediaLinksRequest): Promise<SocialMediaLinksResponse | undefined> {
+        try {
+            var res = await Requests.put('user/social', social);
+
+            if (res?.status === 200 && res?.data) {
+                return res?.data as SocialMediaLinksResponse;
+            } else {
+                console.error('Failed to update user:', res.status);
+                return undefined;
+            }
+        } catch (error) {
+            console.error('Error updating user:', error);
+            return undefined;
+        }
+    }
+
+
+    static async followUser(id: string | undefined) {
+        try {
+            var res = await Requests.post(`follows/${id}`, {});
+            return res?.status === 201;
+        } catch (error) {
+            console.error('Error updating user:', error);
+            return false;
+        }
+    }
+
+    static async updateProfilePreference(formData: any): Promise<boolean> {
+        try {
+            var res = await Requests.put('user/preferences', formData);
+            return res?.status === 200;
+        } catch (error) {
+            console.error('Error updating user:', error);
+            return false;
+        }
+    }
+    
+    static  updateUserSettings = async (formData:  UserSettingsRequest): Promise<boolean> => {
+        try {
+            var res = await Requests.put('user/settings', formData);
+            return res?.status === 200;
+        } catch (error) {
+            console.error('Error updating user:', error);
             return false;
         }
     }

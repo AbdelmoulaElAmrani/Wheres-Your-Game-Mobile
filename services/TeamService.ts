@@ -21,4 +21,18 @@ export class TeamService {
             return undefined;
         return res?.data;
     }
+
+    static globalSearchTeamPlayers = async (name: string) => {
+        const res = await Requests.get(`team/search/${name}`);
+        if (res?.status !== 200)
+            return undefined;
+        return res?.data;
+    }
+
+    static async getTeamById(teamId: string) {
+        const res = await Requests.get(`team/${teamId}`);
+        if (res?.status !== 200)
+            return undefined;
+        return res?.data;
+    }
 }
