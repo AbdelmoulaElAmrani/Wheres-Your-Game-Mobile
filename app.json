@@ -17,9 +17,9 @@
     "ios": {
       "supportsTablet": false,
       "infoPlist": {
-        "NSLocationAlwaysUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to allow you to get your current location.",
-        "NSLocationWhenInUseUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to allow you to get the position of your current location.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to allow you to get the position of your current location.",
+        "NSLocationAlwaysUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to search for the nearest event of your selected sport.",
+        "NSLocationWhenInUseUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to search for the nearest event to your current location for your selected sport.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to determine your current location and help you search for the nearest selected sport event in your area.",
         "NSLocationUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to allow you to get the position of your current location.",
         "NSPhotoLibraryUsageDescription ": "$(PRODUCT_NAME) requires access to your photo to allow you to upload photos"
       },
