@@ -1,20 +1,25 @@
-import {ImageBackground} from "expo-image";
-import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
-import {SafeAreaView} from "react-native-safe-area-context";
-import {Alert, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import { ImageBackground } from "expo-image";
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Alert, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import React, {useEffect, useState} from "react";
-import {TextInput} from "react-native-paper";
+import React, { useEffect, useState } from "react";
+import { TextInput } from "react-native-paper";
 import RNPickerSelect from "react-native-picker-select";
-import {useSelector} from "react-redux";
-import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
+import { useDispatch, useSelector } from "react-redux";
+import { UserSportResponse } from "@/models/responseObjects/UserSportResponse";
 import CustomButton from "@/components/CustomButton";
-import {UserService} from "@/services/UserService";
-import {router} from "expo-router";
+import { UserService } from "@/services/UserService";
+import { router } from "expo-router";
+import { UserResponse } from "@/models/responseObjects/UserResponse";
+import { getUserProfile } from "@/redux/UserSlice";
+import SportLevel from "@/models/SportLevel";
 
 const ProfilePreference = () => {
 
     const availableSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
+    const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
+
     const [formData, setFormData] = useState<any>({
         preferenceSport: '',
         positionCoached: '',
@@ -22,16 +27,33 @@ const ProfilePreference = () => {
         bio: '',
     });
 
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        dispatch(getUserProfile() as any);
+    }, []);
+
+    useEffect(() => {
+        if (currentUser) {
+            setFormData({
+                preferenceSport: currentUser.preferenceSport || '',
+                positionCoached: currentUser.positionCoached || '',
+                skillLevel: currentUser.skillLevel ? currentUser.skillLevel[0] || '' : '',
+                bio: currentUser.bio || '',
+            });
+        }
+    }, [currentUser]);
+
     const _handleSave = async () => {
         try {
             const response = await UserService.updateProfilePreference(formData);
-            if (response) { // Check if response is not null
+            if (response) {
                 Alert.alert("Success", "Modification saved successfully!", [
-                        {
-                            text: "OK",
-                            onPress: () => router.back()
-                        }
-                    ]
+                    {
+                        text: "OK",
+                        onPress: () => router.back()
+                    }
+                ]
                 );
             } else {
                 Alert.alert("Error", "Something went wrong. Please try again.");
@@ -43,28 +65,28 @@ const ProfilePreference = () => {
 
     return (
         <ImageBackground
-            style={{height: hp(100)}}
+            style={{ height: hp(100) }}
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                <CustomNavigationHeader text={'Profile Preference'} showBackArrow/>
+                <CustomNavigationHeader text={'Profile Preference'} showBackArrow />
                 <View style={styles.cardContainer}>
                     <ScrollView
                         showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{flexGrow: 1}} bounces={true}>
-                        <View style={{flex: 1, paddingHorizontal: 5}}>
+                        contentContainerStyle={{ flexGrow: 1 }} bounces={true}>
+                        <View style={{ flex: 1, paddingHorizontal: 5 }}>
                             <View style={styles.inputContainer}>
                                 <Text style={styles.textLabel}>Your Sport</Text>
                                 <RNPickerSelect
                                     style={{
-                                        inputIOS: [styles.inputText, {paddingLeft: 15}],
-                                        inputAndroid: [styles.inputText, {paddingLeft: 15}]
+                                        inputIOS: [styles.inputText, { paddingLeft: 15 }],
+                                        inputAndroid: [styles.inputText, { paddingLeft: 15 }]
                                     }}
                                     items={availableSport.map((sport: UserSportResponse) => ({
                                         label: sport.sportName,
                                         value: sport.id.sportId,
                                         key: sport.id.sportId
                                     }))}
-                                    placeholder={{label: 'Select sport', value: null}}
+                                    placeholder={{ label: 'Select sport', value: null }}
                                     onValueChange={(value) => {
                                         const sport = availableSport.find(_ => _.id.sportId == value);
                                         setFormData((prev: any) => ({
@@ -73,6 +95,7 @@ const ProfilePreference = () => {
                                             preferenceSport: sport?.sportName || ""
                                         }));
                                     }}
+                                    value={availableSport.find(_ => _.sportName == formData.preferenceSport)?.id.sportId || ''}
                                 />
                             </View>
                             <View style={styles.inputContainer}>
@@ -87,6 +110,7 @@ const ProfilePreference = () => {
                                         ...prev,
                                         positionCoached: value
                                     }))}
+                                    value={formData.positionCoached}
                                 />
                             </View>
                             <View style={styles.inputContainer}>
@@ -97,12 +121,12 @@ const ProfilePreference = () => {
                                     placeholderTextColor="gray"
                                     multiline={true}
                                     numberOfLines={4}
-                                    onChangeText={(text) => setFormData((prev: any) => ({...prev, bio: text}))}
+                                    onChangeText={(text) => setFormData((prev: any) => ({ ...prev, bio: text }))}
                                     value={formData.bio}
                                     textAlignVertical={'top'}
                                 />
                             </View>
-                            <CustomButton style={{marginTop: 30}} text={'Save'} onPress={_handleSave}/>
+                            <CustomButton style={{ marginTop: 30 }} text={'Save'} onPress={_handleSave} />
                         </View>
                     </ScrollView>
                 </View>
