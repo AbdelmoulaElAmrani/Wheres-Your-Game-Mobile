@@ -113,4 +113,35 @@ export class Helpers {
         return `data:image/jpeg;base64,${imgSource}`
     }
 
+    static calculateAge = (dateOfBirth: Date) => {
+        if (!dateOfBirth) return "";
+        const birthDate = new Date(dateOfBirth);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDifference = today.getMonth() - birthDate.getMonth();
+        if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
+    };
+
+    static checkIfAlreadyFollow = (personId: string | undefined, followers: string [] | undefined): boolean => {
+        if (personId && followers) {
+            return followers.includes(personId);
+        }
+        return false;
+    }
+
+    static isVideoLink = (url: string): boolean => {
+        const videoExtensions = /\.(mp4|mov|avi|mkv|flv|wmv|webm)$/i;
+
+        const youtubeRegex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)/;
+
+        if (videoExtensions.test(url)) {
+            return true;
+        }
+        return youtubeRegex.test(url);
+    };
+
+
 }

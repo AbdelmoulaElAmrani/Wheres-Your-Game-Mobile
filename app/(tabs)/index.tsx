@@ -3,7 +3,7 @@ import {StatusBar} from "expo-status-bar";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
 import React, {memo, useEffect, useState} from "react";
-import {AntDesign, Fontisto, Ionicons, MaterialIcons} from "@expo/vector-icons";
+import {AntDesign, Feather, Fontisto, Ionicons, MaterialIcons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {Helpers} from "@/constants/Helpers";
@@ -36,21 +36,25 @@ const Home = () => {
     const [playersLoading, setPlayersLoading] = useState<boolean>(false)
     const _router = useRouter();
     const [newNotif, setNewNotif] = useState<boolean>(false);
-
-    const childrens = [
-        {
-            label: 'All Children',
-            value: 'All Children',
-        },
-        {
-            label: 'Child 1',
-            value: 'Child 1',
-        },
-        {
-            label: 'Child 2',
-            value: 'Child 2',
-        },
-    ];
+    const [childrens, setChildrens] = useState<any[]>(
+        [
+            {
+                label: 'All Children',
+                value: 'All Children',
+                id: ''
+            },
+            {
+                label: 'Child 1',
+                value: 'Child 1',
+                id: ''
+            },
+            {
+                label: 'Child 2',
+                value: 'Child 2',
+                id: ''
+            },
+        ]
+    );
 
     useEffect(() => {
         if (userData == undefined || userData.id == undefined) {
@@ -113,7 +117,8 @@ const Home = () => {
     }
 
 
-    const _handleOnOpenMenu = () => {
+    const _handleOnOpenSearch = () => {
+        router.navigate('(user)/SearchGlobal');
     }
     const _onOpenNotification = () => {
         setNewNotif(false);
@@ -201,8 +206,16 @@ const Home = () => {
                         ) : (
                             <Avatar.Text
                                 size={60}
-                                label={(item.name.charAt(0) + item.name.charAt(1)).toUpperCase()}
-                            />
+                                label={(() => {
+                                    const nameParts = item.name.trim().split(' ').filter(Boolean);
+                                    if (nameParts.length >= 2) {
+                                        // Take the first character of each part and combine them
+                                        return (nameParts[0].charAt(0) + nameParts[1].charAt(0)).toUpperCase();
+                                    } else {
+                                        // If there is only one word, take the first two characters
+                                        return (item.name.charAt(0) + item.name.charAt(1)).toUpperCase();
+                                    }
+                                })()}/>
                         )}
                     </View>
                 </View>
@@ -254,6 +267,15 @@ const Home = () => {
         </TouchableOpacity>
     ));
 
+    const _handleOpenInviteChild = () => {
+
+    }
+
+
+    const getAllChildren = () => {
+        //TODO:: Call Service Children and get the user children, then set it to
+    }
+
     return (
         <>
             <StatusBar style="light"/>
@@ -269,16 +291,23 @@ const Home = () => {
                 source={require('../../assets/images/signupBackGround.jpg')}>
 
                 <SafeAreaView style={{height: hp(100)}}>
-                    <Spinner visible={loading}/>
+                    {loading && <Spinner visible={loading}/>}
                     <View style={styles.headerContainer}>
                         <View>
-                            <TouchableOpacity onPress={_handleOnOpenMenu}>
-                                <MaterialIcons name="menu" size={35} color="white"/>
+                            <TouchableOpacity onPress={_handleOnOpenSearch}>
+                                <Feather name="search" size={30} color="white"/>
                             </TouchableOpacity>
                         </View>
                         <View style={{marginLeft: 20}}>
                             <ReactNative.Image style={styles.logoContainer}
                                                source={require('../../assets/images/homeLogo.png')}/>
+
+                            {userData.role == UserType[UserType.PARENT] && <TouchableOpacity
+                                onPress={_handleOpenInviteChild}
+                                style={{borderColor: 'white', borderWidth: 0.5, marginTop: 1, borderRadius: 5}}>
+                                <Text style={{color: 'white', textAlign: 'center', fontSize: 16, paddingVertical: 5}}>Invite
+                                    Child</Text>
+                            </TouchableOpacity>}
                         </View>
                         <View style={styles.sideHiderContainer}>
                             <TouchableOpacity
@@ -288,8 +317,7 @@ const Home = () => {
                                           color={newNotif ? "red" : "white"}/>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                onPress={_onOpenChat}
-                            >
+                                onPress={_onOpenChat}>
                                 <Ionicons name="chatbubble-ellipses-outline" size={30} color="white"/>
                             </TouchableOpacity>
                         </View>
@@ -305,15 +333,28 @@ const Home = () => {
                             fontWeight: 'bold',
                             fontSize: 18
                         }}>Hi {`${Helpers.capitalize(userData?.firstName)}`}</Text>
-                        {userData.role == UserType[UserType.PARENT] && <RNPickerSelect
-                            placeholder={{}}
-                            items={childrens}
-                            onValueChange={value => {
-                                console.info(value);
-                            }}
-                            style={pickerSelectStyles}
-                            value={selectedChild}
-                        />}
+                        {userData.role == UserType[UserType.PARENT] &&
+                            <View style={{
+                                borderWidth: 1,
+                                borderColor: 'white',
+                                borderRadius: 4,
+                            }}>
+                                <RNPickerSelect
+                                    placeholder={{}}
+                                    items={childrens}
+                                    onValueChange={(value, index) => {
+                                        //TODO:: Set The Selected Child
+                                        console.log(value);
+                                    }}
+                                    onDonePress={() => {
+                                        //TODO:: Call the function to get the child data
+                                        console.log('done');
+                                    }}
+                                    style={pickerSelectStyles}
+                                    value={selectedChild}
+                                />
+                            </View>
+                        }
                     </View>
                     <View style={styles.mainContainer}>
                         <View style={{marginBottom: 10, flexDirection: 'row', justifyContent: 'center'}}>
@@ -557,9 +598,6 @@ const styles = StyleSheet.create({
 });
 const pickerSelectStyles = StyleSheet.create({
     inputIOS: {
-        borderWidth: 1,
-        borderColor: 'white',
-        borderRadius: 4,
         color: 'white',
         fontWeight: 'bold',
         fontSize: 16,
@@ -570,17 +608,12 @@ const pickerSelectStyles = StyleSheet.create({
         alignItems: 'center'
     },
     inputAndroid: {
-        borderWidth: 1,
-        borderColor: 'white',
-        borderRadius: 4,
         color: 'white',
         fontWeight: 'bold',
         fontSize: 16,
-        width: 120,
-        paddingHorizontal: 10,
-        paddingVertical: 6,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        width: 170,
     },
 });
 

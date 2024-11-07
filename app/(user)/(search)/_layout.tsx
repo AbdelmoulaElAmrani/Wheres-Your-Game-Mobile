@@ -6,6 +6,7 @@ const UserLayout = () => {
             headerShown: false
         }}>
         <Stack.Screen name="SearchUser" options={{headerShown: false}}/>
+        <Stack.Screen name="SearchGlobal" options={{headerShown: false}}/>
     </Stack>);
 }
 

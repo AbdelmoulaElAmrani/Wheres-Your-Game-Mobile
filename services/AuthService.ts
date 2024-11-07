@@ -125,5 +125,19 @@ export class AuthService {
         AuthService.setAuthTokens(res.data);
         return res.data;
     }
+
+    static async changePassword(passwordData: {
+        newPassword: string;
+        confirmPassword: string;
+        currentPassword: string
+    }): Promise<boolean> {
+        const body = {
+            oldPassword: passwordData.currentPassword,
+            newPassword: passwordData.newPassword
+        }
+        const res = await Requests.put('user/reset-password', body);
+        console.log(res);
+        return res?.status === 200;
+    }
 }
 

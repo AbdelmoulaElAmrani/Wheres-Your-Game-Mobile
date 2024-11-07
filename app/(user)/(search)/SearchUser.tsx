@@ -140,30 +140,12 @@ const SearchUser = () => {
 }
 
 const styles = StyleSheet.create({
-    endText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginLeft: 5,
-        color: '#2757CB'
-    },
     mainContainer: {
         backgroundColor: 'white',
         height: '100%',
         width: '100%',
         borderTopRightRadius: 20,
         borderTopLeftRadius: 20
-    },
-    endContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    conversationContainer: {
-        height: '90%',
-        width: '100%'
-    },
-    searchContainer: {
-        height: '6%',
     },
     modal: {
         backgroundColor: 'white',
@@ -175,21 +157,6 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         justifyContent: 'flex-start',
         marginTop: 10,
-    },
-    searchText: {
-        height: 40,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        borderRadius: 5,
-        paddingLeft: 10,
-        color: '#000',
-        flex: 1,
-        marginRight: 10,
-    },
-    cancelText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: 'blue',
     },
     userList: {
         marginTop: 20,
