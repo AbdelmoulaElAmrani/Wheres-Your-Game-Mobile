@@ -17,6 +17,7 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {getUserProfile} from "@/redux/UserSlice";
 import LinkPreviewComponent from "@/components/LinkPreviewComponent";
 import {Helpers} from "@/constants/Helpers";
+import {useIsFocused} from "@react-navigation/native";
 
 
 const validDomains = ['facebook.com', 'instagram.com', 'youtube.com', 'tiktok.com'];
@@ -43,6 +44,7 @@ const GClips = () => {
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const {socialMediaLinks} = useSelector((state: any) => state.user.userData) as UserResponse;
+    const isFocused = useIsFocused();
 
     const dispatch = useDispatch();
 
@@ -56,14 +58,13 @@ const GClips = () => {
             tiktok: socialMediaLinks?.tiktokAccount || '',
             youtube: socialMediaLinks?.youtubeAccount || '',
         });
-
-    }, []);
+    }, [isFocused]);
 
     useEffect(() => {
         setPosts([]);
         setHasMore(true);
         handleFetchPosts();
-    }, [page, selectedTag]);
+    }, [page, selectedTag, isFocused]);
 
     const handleFetchPosts = async () => {
         if (loading || !hasMore) return;
