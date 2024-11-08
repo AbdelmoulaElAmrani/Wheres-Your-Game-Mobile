@@ -12,6 +12,8 @@ import TeamSearchCard from "@/components/Search/TeamSearchCard";
 import PersonSearchCard from "@/components/Search/PersonSearchCard";
 import {TeamService} from "@/services/TeamService";
 import {Team} from "@/models/Team";
+import {useSelector} from "react-redux";
+import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 
 enum tabOption {
     Team,
@@ -20,6 +22,7 @@ enum tabOption {
 }
 
 const TeamProfile = () => {
+    const currentUser = useSelector((state: any) => state.user.userData) as UserSportResponse;
     const [loading, setLoading] = useState<boolean>(false);
     const [team, setTeam] = useState<Team | undefined>(undefined);
     const [selectOption, setSelectOption] = useState<tabOption>(tabOption.Team);
@@ -101,11 +104,12 @@ const TeamProfile = () => {
                             </View>
                             <View style={styles.infoColumn}>
                                 <Text style={styles.infoTitle}>League</Text>
-                                <Text style={styles.infoValue}>Phil Park</Text>
+                                <Text style={styles.infoValue}>{team?.league || ''}</Text>
                             </View>
                             <View style={styles.infoColumn}>
                                 <Text style={styles.infoTitle}>Founded</Text>
-                                <Text style={styles.infoValue}>{team?.founded ? new Date(team.founded).getFullYear() : 'N/A'}</Text>
+                                <Text
+                                    style={styles.infoValue}>{team?.founded ? new Date(team.founded).getFullYear() : 'N/A'}</Text>
                             </View>
                         </View>
                     </View>
@@ -140,7 +144,8 @@ const TeamProfile = () => {
                                 data={team?.members}
                                 ListFooterComponent={<View
                                     style={{height: hp('10%')}}/>}  // Extra space at the bottom
-                                renderItem={({item}) => <PersonSearchCard player={item}/>}
+                                renderItem={({item}) => <PersonSearchCard disabled={item.id == currentUser.id}
+                                                                          player={item}/>}
                                 keyExtractor={(item, index) => index.toString()}
                             />
                         </View>
