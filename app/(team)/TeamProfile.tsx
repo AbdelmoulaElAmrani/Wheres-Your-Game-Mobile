@@ -104,7 +104,7 @@ const TeamProfile = () => {
                             </View>
                             <View style={styles.infoColumn}>
                                 <Text style={styles.infoTitle}>League</Text>
-                                <Text style={styles.infoValue}>Phil Park</Text>
+                                <Text style={styles.infoValue}>{team?.league || ''}</Text>
                             </View>
                             <View style={styles.infoColumn}>
                                 <Text style={styles.infoTitle}>Founded</Text>

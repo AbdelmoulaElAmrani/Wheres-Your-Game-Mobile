@@ -25,6 +25,7 @@ import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
 import {EventService} from "@/services/EventService";
 import {SportEvent} from "@/models/SportEvent";
 import {SportEventRequest} from "@/models/requestObjects/SportEventRequest";
+import {useIsFocused} from "@react-navigation/native";
 
 
 interface CheckboxProps {
@@ -80,8 +81,7 @@ const Calendar = () => {
         {title: 'All', isChecked: false}
 
     ]);
-
-    //const [snackbarVisible, setSnackbarVisible] = useState(false);
+    const isFocus = useIsFocused();
 
     useEffect(() => {
         if (user?.id) {
@@ -91,7 +91,7 @@ const Calendar = () => {
                 getUserEvents();
             }
         }
-    }, [selectedDate, user.id]);
+    }, [selectedDate, user.id, isFocus]);
 
     const [selectedSportLevel, setSelectedSportLevel] = useState<string[]>([]);
     registerTranslation("en", enGB);

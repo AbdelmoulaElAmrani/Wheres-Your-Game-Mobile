@@ -265,7 +265,7 @@ function TeamForm() {
                                     value={team?.country}
                                     onChangeText={(text) => setTeam({ ...team, country: text })}
                                 />
-                                <Text style={styles.textLabel}>Founation date</Text>
+                                <Text style={styles.textLabel}>Foundation date</Text>
                                 {/* <TextInput
                                     style={styles.inputStyle}
                                     placeholder={'yyyy-mm-dd'}
@@ -292,6 +292,7 @@ function TeamForm() {
                                         }
                                     }}
                                 />
+                               
                                 <TextInput
                                     style={styles.inputStyle}
                                     placeholder={team?.founded?.length > 0 ? team?.founded : 'yyyy-mm-dd'}
@@ -301,6 +302,17 @@ function TeamForm() {
                                     underlineColor="transparent"
                                     value={team?.founded}
                                     onFocus={() => setOpenDatePicker(true)}
+                                />
+                                 <Text style={styles.textLabel}>League</Text>
+                                <TextInput
+                                    style={styles.inputStyle}
+                                    placeholder={'League'}
+                                    cursorColor={'black'}
+                                    placeholderTextColor={'grey'}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='trophy-outline' />}
+                                    underlineColor="transparent"
+                                    value={team?.league}
+                                    onChangeText={(text) => setTeam({ ...team, league: text })}
                                 />
                                 <Text style={styles.textLabel}>Players</Text>
                                 <MultiSelect

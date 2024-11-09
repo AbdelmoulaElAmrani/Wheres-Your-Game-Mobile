@@ -12,7 +12,7 @@ import {Avatar, Divider} from "react-native-paper";
 import {FontAwesome6} from "@expo/vector-icons";
 import * as Linking from "expo-linking";
 import {Helpers} from "@/constants/Helpers";
-import { useIsFocused } from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 
 enum MenuOption {
     Overview,
@@ -22,7 +22,7 @@ enum MenuOption {
 
 export const ProfileV2 = () => {
     const dispatch = useDispatch()
-    const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
+    const currentUser = useSelector((state: any) => state.user.userData) as UserResponse | undefined;
     const loading = useSelector((state: any) => state.user.loading) as boolean;
     const [refreshing, setRefreshing] = useState<boolean>(false);
     const _router = useRouter();
@@ -83,7 +83,7 @@ export const ProfileV2 = () => {
                                 ) : (
                                     <Avatar.Text
                                         size={hp(20)}
-                                        label={(currentUser?.firstName?.charAt(0) + currentUser?.lastName?.charAt(0)).toUpperCase()}
+                                        label={`${currentUser?.firstName?.[0] ?? ''}${currentUser?.lastName?.[0] ?? ''}`.toUpperCase() || ""}
                                     />
                                 )}
                             </View>
@@ -91,16 +91,16 @@ export const ProfileV2 = () => {
                                 <Text style={{
                                     fontWeight: 'bold',
                                     fontSize: 18
-                                }}>    {`${currentUser.firstName.charAt(0).toUpperCase()}${currentUser.firstName.slice(1).toLowerCase()} ${currentUser.lastName.charAt(0).toUpperCase()}${currentUser.lastName.slice(1).toLowerCase()}`}
+                                }}>    {`${currentUser?.firstName?.charAt(0).toUpperCase() || ""}${currentUser?.firstName?.slice(1).toLowerCase() || ""} ${currentUser?.lastName?.charAt(0).toUpperCase() || ""}${currentUser?.lastName?.slice(1).toLowerCase() || ""}`}
                                 </Text>
                                 <Text style={{color: 'grey', fontSize: 16, marginTop: 5}}>
-                                    {`${currentUser.city || ''}${currentUser.city && currentUser.stateRegion ? ', ' : ''}${currentUser.stateRegion || ''}${currentUser.stateRegion && currentUser.country ? ', ' : ''}${currentUser.country || ''}`}
+                                    {`${currentUser?.city || ''}${currentUser?.city && currentUser?.stateRegion ? ', ' : ''}${currentUser?.stateRegion || ''}${currentUser?.stateRegion && currentUser?.country ? ', ' : ''}${currentUser?.country || ''}`}
                                 </Text>
                             </View>
                         </View>
                         <View style={styles.bioContainer}>
                             <Text style={{fontWeight: 'bold', fontSize: 16}}>Bio:</Text>
-                            <Text style={{fontSize: 14, textAlign: 'center'}}>{currentUser.bio}</Text>
+                            <Text style={{fontSize: 14, textAlign: 'center'}}>{currentUser?.bio || ""}</Text>
                         </View>
                         <View style={{
                             flexDirection: 'row',
@@ -138,12 +138,12 @@ export const ProfileV2 = () => {
                                 <View style={{flexDirection: 'row', justifyContent: 'space-around', width: '100%'}}>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Sports Focus</Text>
-                                        <Text style={styles.infoText}>{currentUser.preferenceSport || ""}</Text>
+                                        <Text style={styles.infoText}>{currentUser?.preferenceSport || ""}</Text>
                                     </View>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Age</Text>
                                         <Text style={styles.infoText}>
-                                            {currentUser?.dateOfBirth ? `${Helpers.calculateAge(currentUser.dateOfBirth)} Years` : ""}
+                                            {currentUser?.dateOfBirth ? `${Helpers.calculateAge(currentUser?.dateOfBirth)} Years` : ""}
                                         </Text>
                                     </View>
                                     <View style={styles.infoMiniCard}>
@@ -159,7 +159,7 @@ export const ProfileV2 = () => {
                                 }}>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Skills Focus</Text>
-                                        <Text style={styles.infoText}>{currentUser.skillLevel?.[0] ?? ""}</Text>
+                                        <Text style={styles.infoText}>{currentUser?.skillLevel?.[0] ?? ""}</Text>
                                     </View>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Followers</Text>
@@ -177,39 +177,39 @@ export const ProfileV2 = () => {
                                         width: '100%'
                                     }}>
                                         <TouchableOpacity
-                                            onPress={() => currentUser.socialMediaLinks?.instagramAccount && _handleOpenUrl(currentUser.socialMediaLinks?.instagramAccount)}
+                                            onPress={() => currentUser?.socialMediaLinks?.instagramAccount && _handleOpenUrl(currentUser?.socialMediaLinks?.instagramAccount)}
                                             style={styles.iconCard}
-                                            disabled={!currentUser.socialMediaLinks?.instagramAccount}
+                                            disabled={!currentUser?.socialMediaLinks?.instagramAccount}
                                         >
                                             <FontAwesome6
                                                 name="instagram"
                                                 size={40}
-                                                color={currentUser.socialMediaLinks?.instagramAccount ? "#E4405F" : "#cccccc"}
-                                                style={{opacity: currentUser.socialMediaLinks?.instagramAccount ? 1 : 0.5}}
+                                                color={currentUser?.socialMediaLinks?.instagramAccount ? "#E4405F" : "#cccccc"}
+                                                style={{opacity: currentUser?.socialMediaLinks?.instagramAccount ? 1 : 0.5}}
                                             />
                                         </TouchableOpacity>
                                         <TouchableOpacity
-                                            onPress={() => currentUser.socialMediaLinks?.tiktokAccount && _handleOpenUrl(currentUser.socialMediaLinks?.tiktokAccount)}
+                                            onPress={() => currentUser?.socialMediaLinks?.tiktokAccount && _handleOpenUrl(currentUser?.socialMediaLinks?.tiktokAccount)}
                                             style={styles.iconCard}
-                                            disabled={!currentUser.socialMediaLinks?.tiktokAccount}
+                                            disabled={!currentUser?.socialMediaLinks?.tiktokAccount}
                                         >
                                             <FontAwesome6
                                                 name="tiktok"
                                                 size={40}
-                                                color={currentUser.socialMediaLinks?.tiktokAccount ? "black" : "#cccccc"}
-                                                style={{opacity: currentUser.socialMediaLinks?.tiktokAccount ? 1 : 0.5}}
+                                                color={currentUser?.socialMediaLinks?.tiktokAccount ? "black" : "#cccccc"}
+                                                style={{opacity: currentUser?.socialMediaLinks?.tiktokAccount ? 1 : 0.5}}
                                             />
                                         </TouchableOpacity>
                                         <TouchableOpacity
-                                            onPress={() => currentUser.socialMediaLinks?.facebookAccount && _handleOpenUrl(currentUser.socialMediaLinks?.facebookAccount)}
+                                            onPress={() => currentUser?.socialMediaLinks?.facebookAccount && _handleOpenUrl(currentUser?.socialMediaLinks?.facebookAccount)}
                                             style={styles.iconCard}
-                                            disabled={!currentUser.socialMediaLinks?.facebookAccount}
+                                            disabled={!currentUser?.socialMediaLinks?.facebookAccount}
                                         >
                                             <FontAwesome6
                                                 name="facebook"
                                                 size={40}
-                                                color={currentUser.socialMediaLinks?.facebookAccount ? "blue" : "#cccccc"}
-                                                style={{opacity: currentUser.socialMediaLinks?.facebookAccount ? 1 : 0.5}}
+                                                color={currentUser?.socialMediaLinks?.facebookAccount ? "blue" : "#cccccc"}
+                                                style={{opacity: currentUser?.socialMediaLinks?.facebookAccount ? 1 : 0.5}}
                                             />
                                         </TouchableOpacity>
                                     </View>
@@ -220,14 +220,14 @@ export const ProfileV2 = () => {
                                         width: '100%'
                                     }}>
                                         <TouchableOpacity
-                                            onPress={() => currentUser.socialMediaLinks?.youtubeAccount && _handleOpenUrl(currentUser.socialMediaLinks?.youtubeAccount)}
+                                            onPress={() => currentUser?.socialMediaLinks?.youtubeAccount && _handleOpenUrl(currentUser?.socialMediaLinks?.youtubeAccount)}
                                             style={styles.iconCard}
-                                            disabled={!currentUser.socialMediaLinks?.youtubeAccount}>
+                                            disabled={!currentUser?.socialMediaLinks?.youtubeAccount}>
                                             <FontAwesome6
                                                 name="youtube"
                                                 size={40}
-                                                color={currentUser.socialMediaLinks?.youtubeAccount ? "red" : "#cccccc"}
-                                                style={{opacity: currentUser.socialMediaLinks?.youtubeAccount ? 1 : 0.5}}
+                                                color={currentUser?.socialMediaLinks?.youtubeAccount ? "red" : "#cccccc"}
+                                                style={{opacity: currentUser?.socialMediaLinks?.youtubeAccount ? 1 : 0.5}}
                                             />
                                         </TouchableOpacity>
                                     </View>

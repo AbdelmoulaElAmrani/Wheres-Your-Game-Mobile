@@ -57,17 +57,21 @@ const Home = () => {
     );
 
     useEffect(() => {
-        if (userData == undefined || userData.id == undefined) {
-            dispatch(getUserProfile() as any);
+        try {
+            if (userData == undefined || userData.id == undefined) {
+                dispatch(getUserProfile() as any);
+            }
+        } catch (e) {
+            console.error(e);
         }
         const fetchData = async () => {
-            if (userData?.id) {
-                try {
+            try {
+                if (userData?.id) {
                     dispatch(getUserSports(userData.id) as any);
                     await _getMyTeams();
-                } catch (e) {
-                    console.error(e);
                 }
+            } catch (e) {
+                console.error(e);
             }
         }
         fetchData();
@@ -175,7 +179,7 @@ const Home = () => {
     const isCoach = (): boolean => userData.role == UserType[UserType.COACH] || userData.role == UserType[UserType.ORGANIZATION];
 
     const isPlayersVisible = (): boolean =>
-        (isCoach() || UserType[UserType.PLAYER] == userData.role.toString()) && selectedTeam !== undefined;
+        (isCoach() || UserType[UserType.PLAYER] == userData.role) && selectedTeam !== undefined;
 
 
     const _renderSportItem = memo(({item}: { item: UserSportResponse }) => {
