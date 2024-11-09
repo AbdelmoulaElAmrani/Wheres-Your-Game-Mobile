@@ -1,14 +1,14 @@
-import { ImageBackground } from "expo-image";
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
+import {ImageBackground} from "expo-image";
+import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
+import {SafeAreaView} from "react-native-safe-area-context";
+import {Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {AntDesign} from "@expo/vector-icons";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React from "react";
-import { logout } from "@/redux/UserSlice";
-import { router, useRouter } from "expo-router";
-import { useDispatch, useSelector } from "react-redux";
-import { UserResponse } from "@/models/responseObjects/UserResponse";
+import {logout} from "@/redux/UserSlice";
+import {router, useRouter} from "expo-router";
+import {useDispatch, useSelector} from "react-redux";
+import {UserResponse} from "@/models/responseObjects/UserResponse";
 import UserType from "@/models/UserType";
 
 const Settings = () => {
@@ -37,49 +37,49 @@ const Settings = () => {
     const _openEditProfile = () => {
         _router.push({
             pathname: '/EditProfile',
-            params: { data: 'profile' },
+            params: {data: 'profile'},
         });
     };
     return (
         <ImageBackground
-            style={{ height: hp(100) }}
+            style={{height: hp(100)}}
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                <CustomNavigationHeader text={'Settings'} showBackArrow />
+                <CustomNavigationHeader text={'Settings'} showBackArrow/>
                 <View style={styles.cardContainer}>
                     <ScrollView
                         showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }} bounces={true}>
-                        <View style={{ flex: 1, paddingHorizontal: 5 }}>
+                        contentContainerStyle={{flexGrow: 1}} bounces={true}>
+                        <View style={{flex: 1, paddingHorizontal: 5}}>
                             <Text style={styles.textSettings}>Settings</Text>
                             <TouchableOpacity
                                 onPress={_openEditProfile}
                                 style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Edit Profile & Contact Information</Text>
-                                <AntDesign name="right" size={24} color="grey" />
+                                <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={_openLocationSettings}
                                 style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Location Settings</Text>
-                                <AntDesign name="right" size={24} color="grey" />
+                                <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={_openPrivacySettings}
                                 style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Privacy Settings</Text>
-                                <AntDesign name="right" size={24} color="grey" />
+                                <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             {currentUser.role != UserType[UserType.COACH] && <TouchableOpacity
                                 onPress={_openProfilePreference}
                                 style={styles.settingOption}>
                                 <Text style={styles.settingOptionText}>Profile Preference</Text>
-                                <AntDesign name="right" size={24} color="grey" />
+                                <AntDesign name="right" size={24} color="grey"/>
                             </TouchableOpacity>
                             }
-                            <TouchableOpacity style={[styles.settingOption, { backgroundColor: 'red' }]}
-                                onPress={_handleLogout}>
-                                <Text style={[styles.settingOptionText, { color: 'white' }]}>Log Out</Text>
+                            <TouchableOpacity style={[styles.settingOption, {backgroundColor: 'red'}]}
+                                              onPress={_handleLogout}>
+                                <Text style={[styles.settingOptionText, {color: 'white'}]}>Log Out</Text>
                             </TouchableOpacity>
                         </View>
                     </ScrollView>
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         shadowColor: 'grey',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.2,
         shadowRadius: 8,
         elevation: 1,
