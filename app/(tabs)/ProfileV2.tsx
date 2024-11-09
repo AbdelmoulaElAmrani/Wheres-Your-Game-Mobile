@@ -2,7 +2,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import React, {useEffect, useState} from "react";
 import {router, useRouter} from "expo-router";
-import {getUserProfile} from "@/redux/UserSlice";
+import {getUserProfile, getUserSports} from "@/redux/UserSlice";
 import {ImageBackground} from "expo-image";
 import {heightPercentageToDP as hp, widthPercentageToDP} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -30,11 +30,17 @@ export const ProfileV2 = () => {
     const isFocused = useIsFocused();
 
     useEffect(() => {
-        (async () => {
-            await dispatch(getUserProfile() as any)
-        })()
+        if (isFocused) {
+            (async () => {
+                await dispatch(getUserProfile() as any);
+            })()
+        }
     }, [isFocused]);
 
+    useEffect(() => {
+        if (isFocused && currentUser?.id)
+            dispatch(getUserSports(currentUser.id) as any);
+    }, [isFocused, currentUser]);
 
     const _handleSettings = () => {
         router.navigate('/(settings)');

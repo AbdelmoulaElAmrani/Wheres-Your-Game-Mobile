@@ -20,8 +20,12 @@ import {Helpers} from "@/constants/Helpers";
 import {useIsFocused} from "@react-navigation/native";
 
 
-const validDomains = ['facebook.com', 'instagram.com', 'youtube.com', 'tiktok.com'];
-
+const validDomains = {
+    youtube: /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/,
+    facebook: /^(https?:\/\/)?(www\.)?facebook\.com\/.+$/,
+    instagram: /^(https?:\/\/)?(www\.)?instagram\.com\/.+$/,
+    tiktok: /^(https?:\/\/)?(www\.)?tiktok\.com\/.+$/
+};
 const GClips = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedTag, setSelectedTag] = useState('New');
@@ -49,21 +53,25 @@ const GClips = () => {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        (async () => {
-            await dispatch(getUserProfile() as any)
-        })()
-        setSocialMediaLink({
-            facebook: socialMediaLinks?.facebookAccount || '',
-            instagram: socialMediaLinks?.instagramAccount || '',
-            tiktok: socialMediaLinks?.tiktokAccount || '',
-            youtube: socialMediaLinks?.youtubeAccount || '',
-        });
+        if (isFocused) {
+            (async () => {
+                await dispatch(getUserProfile() as any)
+            })()
+            setSocialMediaLink({
+                facebook: socialMediaLinks?.facebookAccount || '',
+                instagram: socialMediaLinks?.instagramAccount || '',
+                tiktok: socialMediaLinks?.tiktokAccount || '',
+                youtube: socialMediaLinks?.youtubeAccount || '',
+            });
+        }
     }, [isFocused]);
 
     useEffect(() => {
-        setPosts([]);
-        setHasMore(true);
-        handleFetchPosts();
+        if (isFocused) {
+            setPosts([]);
+            setHasMore(true);
+            handleFetchPosts();
+        }
     }, [page, selectedTag, isFocused]);
 
     const handleFetchPosts = async () => {
@@ -149,7 +157,7 @@ const GClips = () => {
     }
     const _handlePost = async () => {
         setPostLinkError('');
-        const isValidLink = validDomains.some(domain => postLink.includes(domain));
+        const isValidLink = Object.values(validDomains).some(pattern => pattern.test(postLink));
         if (!isValidLink) {
             setPostLinkError('Please enter a valid link from Facebook, Instagram, YouTube, or TikTok.');
             return;

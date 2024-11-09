@@ -111,7 +111,7 @@ const Login = () => {
             }
             dispatch(getUserProfile() as any)
             setLoading(false);
-            router.replace('/Welcome');
+            router.replace('/(tabs)');
         } catch (error) {
             console.error('Login failed:', error);
             setErrorMessages('Password or email not correct');

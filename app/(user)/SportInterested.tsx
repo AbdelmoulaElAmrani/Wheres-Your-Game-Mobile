@@ -24,17 +24,19 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {getUserSports} from "@/redux/UserSlice";
 import Spinner from "@/components/Spinner";
+import {useRoute} from "@react-navigation/core";
 
 const SportInterested = () => {
 
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [selectedSports, setSelectedSports] = useState<Map<string, UserInterestedSport>>(new Map([]));
     const [sports, setSports] = useState<Sport[] | undefined>([]);
-    const params = useLocalSearchParams();
     const user = useSelector((state: any) => state.user.userData) as UserResponse;
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
     const dispatch = useDispatch();
-    const [loading, setLoading] = useState<boolean>(false)
+    const [loading, setLoading] = useState<boolean>(false);
+    const route = useRoute();
+    const paramData = route.params as any;
 
     useEffect(() => {
         const fetchData = async () => {
@@ -47,6 +49,7 @@ const SportInterested = () => {
                     dispatch(getUserSports(user.id) as any);
                     if (userSport) {
                         const userSports = new Map(userSport.map(x => [x.sportId, x]));
+                        // @ts-ignore
                         setSelectedSports(userSports);
                     }
                 }
@@ -90,8 +93,8 @@ const SportInterested = () => {
         try {
             const userId = user?.id;
             const response = await SportService.registerUserToSport([...selectedSports.values()], userId);
-            if (params?.previousScreenName) {
-                router.navigate('/(tabs)');
+            if (paramData?.data) {
+                router.replace('/(tabs)');
             } else {
                 router.replace('/Welcome');
             }

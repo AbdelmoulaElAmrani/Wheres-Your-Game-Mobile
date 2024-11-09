@@ -6,10 +6,10 @@ import {
     Text,
     TouchableOpacity,
     TextInput,
-    View, Alert, ActivityIndicator
+    View, Alert, ActivityIndicator, Keyboard
 } from "react-native";
 import {ImageBackground} from "expo-image";
-import {SafeAreaView} from "react-native-safe-area-context";
+import {SafeAreaView, useSafeAreaInsets} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {router} from "expo-router";
 import {useEffect, useRef, useState} from "react";
@@ -22,6 +22,7 @@ import {Message} from "@/models/Conversation";
 import moment from 'moment-timezone';
 import {ChatService} from "@/services/ChatService";
 import {CHAT_REFRESH_TIMER} from "@/appConfig";
+import CustomChatNavigationHeader from "@/components/CustomChatNavigationHeader";
 
 const MAX_REFRESH_TIME: number = CHAT_REFRESH_TIMER * 1000;
 
@@ -39,8 +40,11 @@ const UserConversation = () => {
 
     const route = useRoute();
     const paramData = route.params as any;
+    const insets = useSafeAreaInsets();
+
 
     useEffect(() => {
+        console.log(insets);
         setLoading(true);
         const receiverId = paramData?.data;
         const fetchUserDataAndMessages = async () => {
@@ -53,12 +57,12 @@ const UserConversation = () => {
             }
         }
         fetchUserDataAndMessages();
+
         const lastMessageInterval = setInterval(_getNewMessages, MAX_REFRESH_TIME);
         return () => {
             clearInterval(lastMessageInterval);
         }
     }, []);
-
 
     const _getNewMessages = async () => {
         try {
@@ -147,24 +151,27 @@ const UserConversation = () => {
             loadMessages();
         }
     };
-    const _handleGoBack = () => {
-        if (router.canGoBack())
-            router.back();
+
+    const _handleBlockUser = () => {
+        //TODO:: call the service to block the user
+        console.log('block user => ', receiver?.id);
     }
+
 
     return (
         <ImageBackground
             style={StyleSheet.absoluteFill}
             source={require('../../../assets/images/signupBackGround.jpg')}>
-            <SafeAreaView style={{flex: 1}}>
-                <CustomNavigationHeader
-                    text={`${receiver?.firstName} ${receiver?.lastName}`}
-                    goBackFunction={_handleGoBack} showBackArrow/>
-                <KeyboardAvoidingView
-                    style={styles.chatContainer}
-                    behavior={Platform.OS === "ios" ? "padding" : "height"}
-                    keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}>
-                    <View style={styles.messagesContainer}>
+            <KeyboardAvoidingView
+                keyboardVerticalOffset={Platform.OS == 'ios' ? -insets.bottom : 0}
+                style={{flex: 1}}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}>
+                <SafeAreaView style={{flex: 1}}>
+                    <CustomChatNavigationHeader
+                        title={`${receiver?.firstName} ${receiver?.lastName}`}
+                        blockFunction={_handleBlockUser}
+                        role={receiver?.role}/>
+                    <View style={[styles.chatContainer]}>
                         <FlatList
                             data={messages}
                             renderItem={_renderMessage}
@@ -176,7 +183,7 @@ const UserConversation = () => {
                                 <ActivityIndicator style={{margin: 10}} size="small"/> : null}
                         />
                     </View>
-                    <View style={styles.inputContainer}>
+                    <View style={[styles.inputContainer]}>
                         <TextInput
                             style={styles.textInput}
                             placeholder='Type your message'
@@ -187,20 +194,25 @@ const UserConversation = () => {
                             <Ionicons name="send" size={24} color="white"/>
                         </TouchableOpacity>
                     </View>
-                </KeyboardAvoidingView>
-            </SafeAreaView>
-        </ImageBackground>);
+                </SafeAreaView>
+                <View style={{
+                    backgroundColor: 'white',
+                    position: "absolute",
+                    bottom: 0,
+                    height: insets.bottom,
+                    width: '100%'
+                }}/>
+            </KeyboardAvoidingView>
+        </ImageBackground>
+    );
 }
 
 const styles = StyleSheet.create({
     chatContainer: {
-        backgroundColor: 'white',
-        height: '100%',
-        width: '100%',
-    },
-    messagesContainer: {
-        height: '80%',
-        padding: 10,
+        flex: 1,
+        paddingHorizontal: 10,
+        paddingTop: 10,
+        backgroundColor: 'white'
     },
     messageContainer: {
         borderRadius: 20,
@@ -218,11 +230,6 @@ const styles = StyleSheet.create({
     },
     messageText: {
         fontSize: 16,
-    },
-    timestampText: {
-        fontSize: 12,
-        color: 'grey',
-        marginTop: 5,
     },
     inputContainer: {
         flexDirection: 'row',

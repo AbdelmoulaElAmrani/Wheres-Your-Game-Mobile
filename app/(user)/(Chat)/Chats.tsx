@@ -186,7 +186,8 @@ const Chats = () => {
         );
     });
 
-    const _renderConversation = memo(({item}: { item: Conversation }) => {
+    const _renderConversation = memo(({item}: { item: Conversation | undefined }) => {
+        if (!item) return <></>
         const userTimeZone = moment.tz.guess(); // Get the user's time zone
         const formattedDate = moment(item.lastActiveDate).tz(userTimeZone).toDate();
         return (
@@ -244,12 +245,20 @@ const Chats = () => {
                             <AntDesign name="pluscircle" size={30} color="#2757CB"/>
                         </TouchableOpacity>
                     </View>
+                    {<View style={styles.parentFilter}>
+                        <TouchableOpacity style={[styles.parentFilterBtn, {backgroundColor: 'white'}]}>
+                            <Text style={{color: '#2757CB', fontSize: 16}}>Adult</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[styles.parentFilterBtn, {backgroundColor: '#2757CB'}]}>
+                            <Text style={{color: 'white', fontSize: 16}}>Children</Text>
+                        </TouchableOpacity>
+                    </View>}
                     <View style={styles.conversationContainer}>
                         {recentChats.length > 0 ?
                             <FlashList
                                 data={recentChats}
                                 renderItem={({item}) => <_renderConversation item={item}/>}
-                                keyExtractor={(item, index) => item.user?.id + "-" + index}
+                                keyExtractor={(item, index) => item?.user?.id + "-" + index}
                                 estimatedItemSize={10}
                                 contentContainerStyle={{backgroundColor: 'white', padding: 10}}
                                 ListFooterComponent={<View style={{height: heightPercentageToDP(20)}}>
@@ -334,5 +343,18 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginLeft: widthPercentageToDP(2)
     },
+    parentFilter: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginVertical: 10
+    },
+    parentFilterBtn: {
+        borderWidth: 1,
+        paddingHorizontal: widthPercentageToDP(14),
+        paddingVertical: 10,
+        borderRadius: widthPercentageToDP(4),
+        borderColor: '#2757CB'
+    }
+
 });
 export default Chats;

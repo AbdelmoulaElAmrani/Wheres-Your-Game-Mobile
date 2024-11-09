@@ -52,7 +52,7 @@ const initialState = {
         role: UserType.DEFAULT
     },
     userData: {} as UserResponse,
-    userSport: [{}] as UserSportResponse[],
+    userSport: [] as UserSportResponse[],
     loading: false,
 };
 

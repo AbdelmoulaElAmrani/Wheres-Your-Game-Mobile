@@ -30,7 +30,7 @@ const Home = () => {
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
     const dispatch = useDispatch();
     const [players, setPlayers] = useState<Player[]>([]);
-    const [teams, setTeams] = useState<Team[]>([]);
+    const [teams, setTeams] = useState<Team[] | undefined>(undefined);
     const [selectedTeam, setSelectedTeam] = useState<Team | undefined>(undefined);
     const [selectedChild, setSelectedChild] = useState<Player | undefined>(undefined)
     //const [children, setChildren] = useState<Player[]>([])
@@ -67,9 +67,14 @@ const Home = () => {
             const fetchData = async () => {
                 try {
                     if (userData?.id) {
-                        setIsLoading(true);
-                        dispatch(getUserSports(userData.id) as any);
-                        await _getMyTeams();
+                        if (userSport.length == 0) {
+                            setIsLoading(true);
+                            dispatch(getUserSports(userData.id) as any);
+                        }
+                        if (!teams) {
+                            setIsLoading(true);
+                            await _getMyTeams();
+                        }
                     }
                 } catch (e) {
                     console.error(e);
@@ -87,7 +92,7 @@ const Home = () => {
             setPlayers([]);
             setSelectedTeam(undefined);
         }
-    }, [isFocused]);
+    }, [isFocused, userData]);
 
 
     const checkForNotification = async () => {

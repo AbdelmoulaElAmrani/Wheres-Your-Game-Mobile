@@ -23,6 +23,16 @@ const EditCoachProfile = () => {
     const {availableSport}: { availableSport: Sport[] } = useSelector((state: any) => state.sport);
     const dispatch = useDispatch();
     const [user, setUser] = useState<UserResponse>({
+        ageGroup: [],
+        city: "",
+        country: "",
+        followers: [],
+        organizationName: "",
+        preferenceSport: "",
+        skillLevel: [],
+        socialMediaLinks: undefined,
+        stateRegion: "",
+        visible: false,
         countryCode: "",
         isCertified: false,
         positionCoached: "",

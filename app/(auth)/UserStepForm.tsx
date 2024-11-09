@@ -19,7 +19,6 @@ import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import UserType from "@/models/UserType";
 import ParentIcon from "../../assets/images/svg/ParentIcon";
 import CoachIcon from "../../assets/images/svg/CoachIcon";
-import BusinessIcon from "../../assets/images/svg/BusinessIcon";
 import PlayerIcon from "../../assets/images/svg/PlayerIcon";
 import {router} from "expo-router";
 import {RegisterRequest} from "@/models/requestObjects/RegisterRequest";
