@@ -20,6 +20,7 @@ import Spinner from "@/components/Spinner";
 import {Image, ImageBackground} from "expo-image";
 import {NotificationService} from "@/services/NotificationService";
 import {NOTIFICATION_REFRESH_TIMER} from "@/appConfig";
+import {useIsFocused} from "@react-navigation/native";
 
 const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
 const REFRESH_NOTIFICATION_TIME = NOTIFICATION_REFRESH_TIMER * 1000;
@@ -55,32 +56,39 @@ const Home = () => {
             },
         ]
     );
+    const isFocused = useIsFocused();
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        try {
+        if (isFocused) {
             if (userData == undefined || userData.id == undefined) {
                 dispatch(getUserProfile() as any);
             }
-        } catch (e) {
-            console.error(e);
-        }
-        const fetchData = async () => {
-            try {
-                if (userData?.id) {
-                    dispatch(getUserSports(userData.id) as any);
-                    await _getMyTeams();
+            const fetchData = async () => {
+                try {
+                    if (userData?.id) {
+                        setIsLoading(true);
+                        dispatch(getUserSports(userData.id) as any);
+                        await _getMyTeams();
+                    }
+                } catch (e) {
+                    console.error(e);
+                } finally {
+                    setIsLoading(false);
                 }
-            } catch (e) {
-                console.error(e);
             }
+
+            fetchData();
+            checkForNotification();
+            const intervalId = setInterval(checkForNotification, REFRESH_NOTIFICATION_TIME);
+
+            return () => clearInterval(intervalId);
+        } else {
+            setPlayers([]);
+            setSelectedTeam(undefined);
         }
-        fetchData();
-        checkForNotification();
+    }, [isFocused]);
 
-        const intervalId = setInterval(checkForNotification, REFRESH_NOTIFICATION_TIME);
-
-        return () => clearInterval(intervalId);
-    }, []); // no dependencies to avoid the crash
 
     const checkForNotification = async () => {
         try {
@@ -295,7 +303,7 @@ const Home = () => {
                 source={require('../../assets/images/signupBackGround.jpg')}>
 
                 <SafeAreaView style={{height: hp(100)}}>
-                    {loading && <Spinner visible={loading}/>}
+                    {(loading || isLoading) && <Spinner visible={loading || isLoading}/>}
                     <View style={styles.headerContainer}>
                         <View>
                             <TouchableOpacity onPress={_handleOnOpenSearch}>

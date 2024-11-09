@@ -71,7 +71,12 @@ function RootLayoutNav() {
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
                 <SafeAreaProvider>
-                    <Stack>
+                    <Stack
+                        screenOptions={{
+                            gestureEnabled: false,
+                            headerShown: false,
+                        }}
+                    >
                         <Stack.Screen name="(auth)" options={{headerShown: false}}/>
                         <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
                         <Stack.Screen name="(user)" options={{headerShown: false}}/>
