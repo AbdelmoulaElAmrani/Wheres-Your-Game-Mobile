@@ -10,14 +10,16 @@ import {router, useRouter} from "expo-router";
 import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import UserType from "@/models/UserType";
+import {AuthService} from "@/services/AuthService";
 
 const Settings = () => {
     const dispatch = useDispatch();
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
     const _router = useRouter();
 
-    const _handleLogout = () => {
-        dispatch(logout({}));
+    const _handleLogout = async () => {
+        await AuthService.logOut();
+        await dispatch(logout({}));
         router.replace('/Login');
     }
 

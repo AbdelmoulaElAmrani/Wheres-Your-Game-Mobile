@@ -7,13 +7,16 @@ import React from "react";
 import {useDispatch} from "react-redux";
 import {router} from "expo-router";
 import {logout} from "@/redux/UserSlice";
+import {AuthService} from "@/services/AuthService";
 
 const More = () => {
     const dispatch = useDispatch();
 
-    const _handleLogout = () => {
-        dispatch(logout({}));
+    const _handleLogout = async () => {
+        await dispatch(logout({}));
+        await AuthService.logOut();
         router.replace('/Login');
+
     }
 
     return <>
