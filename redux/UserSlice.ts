@@ -71,7 +71,7 @@ const userSlice = createSlice({
             state.userData = initialState.userData;
             state.userSport = initialState.userSport;
             state.userRegister = initialState.userRegister;
-            AuthService.logOut();
+            //AuthService.logOut();
         }
     },
     // for promise methods like axios
