@@ -285,7 +285,11 @@ const Home = () => {
     ));
 
     const _handleOpenInviteChild = () => {
-
+        //TODO::
+        _router.push({
+            pathname: '/(user)/SearchUser',
+            params: {searchType: UserType.DEFAULT},
+        });
     }
 
 

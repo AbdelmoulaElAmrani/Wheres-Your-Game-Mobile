@@ -311,7 +311,7 @@ const GClips = () => {
                     </View>
                     <View style={styles.videoListContainer}>
                         {!loading && posts.length === 0 &&
-                            <Text style={{color: 'grey', fontSize: 16, textAlign: 'center', marginTop: 20}}>No videos
+                            <Text style={{color: 'grey', fontSize: 16, textAlign: 'center', marginTop: 20}}>No Post
                                 found</Text>}
                         {loading && posts.length === 0 &&
                             <ActivityIndicator animating={true} color={MD2Colors.blueA700} size={50}/>}

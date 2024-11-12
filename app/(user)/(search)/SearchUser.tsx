@@ -1,10 +1,10 @@
-import {FlatList, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
+import {FlatList, KeyboardAvoidingView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {ImageBackground} from "expo-image";
-import {router, useLocalSearchParams} from "expo-router";
-import React, {memo, useCallback, useEffect, useState} from "react";
-import {Avatar, Divider, Modal, Searchbar} from "react-native-paper";
+import {router} from "expo-router";
+import React, {useCallback, useEffect, useState} from "react";
+import {Avatar, Searchbar} from "react-native-paper";
 import {heightPercentageToDP, widthPercentageToDP} from "react-native-responsive-screen";
 import Spinner from "@/components/Spinner";
 import {UserService} from "@/services/UserService";
@@ -18,6 +18,7 @@ import {FriendRequestService} from "@/services/FriendRequestService";
 
 const SearchUser = () => {
     const [loading, setLoading] = useState<boolean>(false);
+    const [isParenting, setParenting] = useState<boolean>(false);
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
     const [searchType, setSearchType] = useState<UserType>();
     const route = useRoute();
@@ -25,9 +26,19 @@ const SearchUser = () => {
 
 
     useEffect(() => {
-        const param = params?.searchType as keyof typeof UserType;
-        setSearchType(UserType[param] as UserType);
-    }, []);
+        const param = params?.searchType as keyof typeof UserType | undefined;
+
+        if (param) {
+            const userTypeValue = UserType[param];
+            const isDefault = userTypeValue === UserType.DEFAULT;
+
+            setParenting(isDefault);
+
+            setSearchType(isDefault ? UserType.PLAYER : userTypeValue);
+        } else {
+            console.warn("Invalid or undefined searchType parameter");
+        }
+    }, [params?.searchType]);
 
     const _handleGoBack = () => {
         if (router.canGoBack())
@@ -64,6 +75,10 @@ const SearchUser = () => {
         });
     };
 
+    const _onSendingParentingRequest = async (receiverId: string) => {
+        //TODO:: make sure to alert a message to the user that the invite has been set successfully
+    };
+
     const _renderUserItem = ({item}: { item: UserSearchResponse }) => {
         return (
             <TouchableOpacity style={styles.userItem}>
@@ -80,12 +95,11 @@ const SearchUser = () => {
                 </View>
                 {!item.friend ?
                     <Ionicons
-                        onPress={() => _onAddFriendOrRemove(item.id)}
+                        onPress={() => isParenting ? _onSendingParentingRequest(item.id) : _onAddFriendOrRemove(item.id)}
                         name="person-add-outline" size={20} color="black"/>
                     :
                     <Ionicons name="person-sharp" size={20} color="#2757CB"/>
                 }
-
             </TouchableOpacity>
         );
     }
@@ -102,12 +116,15 @@ const SearchUser = () => {
                 {loading && (
                     <Spinner visible={loading}/>
                 )}
-                <CustomNavigationHeader text={`Search ${searchType ? UserType[searchType] : ''}`}
-                                        goBackFunction={_handleGoBack} showBackArrow/>
+                <CustomNavigationHeader
+                    text={isParenting ? 'Add a Child' : `Search ${searchType ? UserType[searchType] : ''}`}
+                    goBackFunction={_handleGoBack}
+                    showBackArrow
+                />
 
                 <View style={styles.searchBarContainer}>
                     <Searchbar
-                        placeholder='Search name'
+                        placeholder='Search name | email'
                         onChangeText={(value) => setSearchName(value)}
                         value={searchName}
                         onSubmitEditing={_onSearchSubmit}

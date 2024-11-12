@@ -23,6 +23,7 @@ import moment from 'moment-timezone';
 import {ChatService} from "@/services/ChatService";
 import {CHAT_REFRESH_TIMER} from "@/appConfig";
 import CustomChatNavigationHeader from "@/components/CustomChatNavigationHeader";
+import {BlockService} from "@/services/BlockService";
 
 const MAX_REFRESH_TIME: number = CHAT_REFRESH_TIMER * 1000;
 
@@ -152,9 +153,12 @@ const UserConversation = () => {
         }
     };
 
-    const _handleBlockUser = () => {
+    const _handleBlockUser = async () => {
         //TODO:: call the service to block the user
         console.log('block user => ', receiver?.id);
+        if (receiver) {
+            const res = await BlockService.blockUser(receiver.id);
+        }
     }
 
 
