@@ -6,13 +6,12 @@ import {
     Text,
     TouchableOpacity,
     TextInput,
-    View, Alert, ActivityIndicator, Keyboard
+    View, Alert, ActivityIndicator
 } from "react-native";
 import {ImageBackground} from "expo-image";
 import {SafeAreaView, useSafeAreaInsets} from "react-native-safe-area-context";
-import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {router} from "expo-router";
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useState} from "react";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {Ionicons} from "@expo/vector-icons";
 import {useSelector} from "react-redux";
@@ -45,7 +44,6 @@ const UserConversation = () => {
 
 
     useEffect(() => {
-        console.log(insets);
         setLoading(true);
         const receiverId = paramData?.data;
         const fetchUserDataAndMessages = async () => {
@@ -154,11 +152,41 @@ const UserConversation = () => {
     };
 
     const _handleBlockUser = async () => {
-        //TODO:: call the service to block the user
-        console.log('block user => ', receiver?.id);
-        if (receiver) {
-            const res = await BlockService.blockUser(receiver.id);
+        if (!receiver) {
+            console.error('No receiver found to block.');
+            return;
         }
+        Alert.alert(
+            'Confirm Block',
+            `Are you sure you want to block ${receiver.firstName} ${receiver.lastName}?`,
+            [
+                {
+                    text: 'Cancel',
+                    onPress: () => console.log('User block action canceled.'),
+                    style: 'cancel',
+                },
+                {
+                    text: 'Block',
+                    onPress: async () => {
+                        console.log('Block user => ', receiver.id);
+                        const res = await BlockService.blockUser(receiver.id);
+
+                        if (res) {
+                            Alert.alert(
+                                'User Blocked',
+                                `${receiver.firstName} ${receiver.lastName} has been blocked.`
+                            );
+                            router.back();
+                        } else {
+                            Alert.alert(
+                                'Error',
+                                `Failed to block ${receiver.firstName} ${receiver.lastName}. Please try again.`
+                            );
+                        }
+                    },
+                },
+            ]
+        );
     }
 
 
@@ -187,16 +215,28 @@ const UserConversation = () => {
                                 <ActivityIndicator style={{margin: 10}} size="small"/> : null}
                         />
                     </View>
-                    <View style={[styles.inputContainer]}>
-                        <TextInput
-                            style={styles.textInput}
-                            placeholder='Type your message'
-                            value={newMessage}
-                            onChangeText={setNewMessage}
-                        />
-                        <TouchableOpacity style={styles.sendButton} disabled={!enabledSend} onPress={onSendMessage}>
-                            <Ionicons name="send" size={24} color="white"/>
-                        </TouchableOpacity>
+                    <View
+                        style={[styles.inputContainer, (receiver?.blockedByPrincipal || receiver?.blockedByTheUser) && {
+                            backgroundColor: 'grey',
+                            justifyContent: 'center'
+                        }]}>
+                        {(!receiver?.blockedByPrincipal && !receiver?.blockedByTheUser) ?
+                            (<>
+                                <TextInput
+                                    style={styles.textInput}
+                                    placeholder='Type your message'
+                                    value={newMessage}
+                                    onChangeText={setNewMessage}
+                                />
+                                <TouchableOpacity style={styles.sendButton} disabled={!enabledSend}
+                                                  onPress={onSendMessage}>
+                                    <Ionicons name="send" size={24} color="white"/>
+                                </TouchableOpacity>
+                            </>) : (
+                                <Text style={{fontSize: 16, textAlign: 'center', padding: 10, color: 'white'}}>You
+                                    cannot chat with the
+                                    user</Text>)
+                        }
                     </View>
                 </SafeAreaView>
                 <View style={{

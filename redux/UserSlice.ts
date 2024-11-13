@@ -99,23 +99,17 @@ const userSlice = createSlice({
             .addCase(updateUserProfile.rejected, (state) => {
                 state.loading = false;
             })
-            /* .addCase(logout.pending, (state) => {
-                 state = initialState;
-             })
-             .addCase(logout.fulfilled, (state) => {
-                 state = initialState;
-             })
-             .addCase(logout.rejected, (state) => {
-                 state = initialState;
-             })*/
             .addCase(getUserSports.pending, (state) => {
+                console.log('start 1');
                 state.loading = true;
             })
             .addCase(getUserSports.fulfilled, (state, action) => {
+                console.log('end 1');
                 state.loading = false;
                 state.userSport = action.payload as UserSportResponse[];
             })
             .addCase(getUserSports.rejected, (state) => {
+                console.log('end 11');
                 state.loading = false;
             });
     }

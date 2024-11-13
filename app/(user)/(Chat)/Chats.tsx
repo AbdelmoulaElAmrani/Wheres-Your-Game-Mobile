@@ -11,18 +11,22 @@ import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {ImageBackground} from "expo-image";
 import {router, useRouter} from "expo-router";
-import {memo, useEffect, useRef, useState} from "react";
+import React, {memo, useEffect, useRef, useState} from "react";
 import {Conversation} from "@/models/Conversation";
 import {FlashList} from "@shopify/flash-list";
 import {Avatar, Divider, Modal} from "react-native-paper";
 import {Helpers} from "@/constants/Helpers";
 import {heightPercentageToDP, widthPercentageToDP} from "react-native-responsive-screen";
-import {AntDesign} from "@expo/vector-icons";
+import {AntDesign, Ionicons} from "@expo/vector-icons";
 import Spinner from "@/components/Spinner";
 import {ChatService} from "@/services/ChatService";
 import {UserService} from "@/services/UserService";
 import moment from 'moment-timezone';
 import {CONVERSATION_REFRESH_TIMER} from "@/appConfig";
+import {useSelector} from "react-redux";
+import {UserResponse} from "@/models/responseObjects/UserResponse";
+import UserType from "@/models/UserType";
+import RNPickerSelect from "react-native-picker-select";
 
 
 const MESSAGE_TIMER = CONVERSATION_REFRESH_TIMER * 1000;
@@ -32,6 +36,24 @@ const Chats = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [modalOpen, setModalOpen] = useState<boolean>(false);
     const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
+    const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
+
+
+    const [childrens, setChildrens] = useState<any[]>(
+        [
+            {
+                label: 'Child 1',
+                value: 'Child 1',
+                id: ''
+            },
+            {
+                label: 'Child 2',
+                value: 'Child 2',
+                id: ''
+            },
+        ]
+    );
+
 
     useEffect(() => {
         (async () => {
@@ -245,14 +267,41 @@ const Chats = () => {
                             <AntDesign name="pluscircle" size={30} color="#2757CB"/>
                         </TouchableOpacity>
                     </View>
-                    {<View style={styles.parentFilter}>
-                        <TouchableOpacity style={[styles.parentFilterBtn, {backgroundColor: 'white'}]}>
-                            <Text style={{color: '#2757CB', fontSize: 16}}>Adult</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={[styles.parentFilterBtn, {backgroundColor: '#2757CB'}]}>
-                            <Text style={{color: 'white', fontSize: 16}}>Children</Text>
-                        </TouchableOpacity>
-                    </View>}
+                    {currentUser.role == UserType[UserType.PARENT] && (<View style={styles.parentFilter}>
+                        <View style={{width: '80%'}}>
+                            <RNPickerSelect
+                                placeholder={{
+                                    label: 'Me',
+                                    value: null,
+                                    color: '#9EA0A4',
+                                }}
+                                items={childrens}
+                                onValueChange={(value, index) => {
+                                    //TODO:: Set The Selected Child
+                                    console.log(value);
+                                }}
+                                onDonePress={() => {
+                                    //TODO:: Call the function to get the child messages
+                                    console.log('done');
+                                }}
+                                style={{
+                                    ...pickerSelectStyles,
+                                    inputAndroid: {
+                                        ...pickerSelectStyles.inputAndroid,
+                                        backgroundColor: '#f0f0f0',
+                                    }
+                                }}
+                                Icon={() => (
+                                    <Ionicons
+                                        name="chevron-down"
+                                        size={24}
+                                        color="#333"
+                                        style={{position: 'absolute', top: '50%', marginTop: 12, right: 10}}
+                                    />
+                                )}
+                            />
+                        </View>
+                    </View>)}
                     <View style={styles.conversationContainer}>
                         {recentChats.length > 0 ?
                             <FlashList
@@ -267,7 +316,8 @@ const Chats = () => {
                                         <Text style={styles.endText}>End</Text>
                                     </View>
                                 </View>}
-                            /> : <Text style={{alignSelf: 'center'}}>No Message</Text>
+                            /> :
+                            <Text style={{alignSelf: 'center', marginTop: heightPercentageToDP(30)}}>No Message</Text>
                         }
                     </View>
                 </View>
@@ -344,17 +394,37 @@ const styles = StyleSheet.create({
         marginLeft: widthPercentageToDP(2)
     },
     parentFilter: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginVertical: 10
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-    parentFilterBtn: {
-        borderWidth: 1,
-        paddingHorizontal: widthPercentageToDP(14),
-        paddingVertical: 10,
-        borderRadius: widthPercentageToDP(4),
-        borderColor: '#2757CB'
-    }
+});
 
+const pickerSelectStyles = StyleSheet.create({
+    inputAndroid: {
+        fontSize: 16,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        color: '#333',
+        paddingRight: 30, // To ensure the text is not hidden by the icon
+        backgroundColor: '#fff',
+    },
+    inputIOS: {
+        fontSize: 16,
+        paddingHorizontal: 10,
+        paddingVertical: 12,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        color: '#333',
+        paddingRight: 30, // To ensure the text is not hidden by the icon
+        backgroundColor: '#fff',
+    },
+    placeholder: {
+        color: '#9EA0A4',
+        fontSize: 16,
+    },
 });
 export default Chats;

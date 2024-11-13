@@ -1,6 +1,6 @@
 import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {router, useRouter} from "expo-router";
 import {getUserProfile, getUserSports} from "@/redux/UserSlice";
 import {ImageBackground} from "expo-image";
@@ -28,6 +28,7 @@ export const ProfileV2 = () => {
     const _router = useRouter();
     const [selectOption, setSelectOption] = useState<MenuOption>(MenuOption.Overview);
     const isFocused = useIsFocused();
+    const hasRun = useRef(false);
 
     useEffect(() => {
         if (isFocused) {
@@ -38,8 +39,13 @@ export const ProfileV2 = () => {
     }, [isFocused]);
 
     useEffect(() => {
-        if (isFocused && currentUser?.id)
+        if (isFocused && currentUser?.id && !hasRun.current) {
             dispatch(getUserSports(currentUser.id) as any);
+            hasRun.current = true;
+        }
+        if (!isFocused) {
+            hasRun.current = false;
+        }
     }, [isFocused, currentUser]);
 
     const _handleSettings = () => {

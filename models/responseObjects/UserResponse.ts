@@ -30,4 +30,6 @@ export interface UserResponse {
     followers?: string [];
     preferenceSport?: string;
     visible: boolean;
+    blockedByPrincipal: boolean;
+    blockedByTheUser: boolean;
 }

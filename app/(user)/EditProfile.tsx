@@ -147,6 +147,7 @@ const EditProfile = () => {
     const [selectedSports, setSelectedSports] = useState<UserInterestedSport[]>([]);
 
     const [user, setUser] = useState<UserResponse>({
+        blockedByPrincipal: false, blockedByTheUser: false,
         ageGroup: [],
         city: "",
         country: "",
