@@ -1,18 +1,19 @@
-import {StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {ImageBackground} from "expo-image";
-import {SafeAreaView} from "react-native-safe-area-context";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ImageBackground } from "expo-image";
+import { SafeAreaView } from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import {router} from "expo-router";
-import {FlashList} from "@shopify/flash-list";
-import {heightPercentageToDP} from "react-native-responsive-screen";
-import {AntDesign, FontAwesome} from "@expo/vector-icons";
-import {memo, useCallback, useEffect, useState} from "react";
-import {ActivityIndicator, Avatar, Divider, MD2Colors} from "react-native-paper";
-import {Helpers} from "@/constants/Helpers";
-import {NotificationResponse} from "@/models/responseObjects/NotificationResponse";
-import {NotificationService} from "@/services/NotificationService";
+import { router } from "expo-router";
+import { FlashList } from "@shopify/flash-list";
+import { heightPercentageToDP } from "react-native-responsive-screen";
+import { AntDesign, FontAwesome } from "@expo/vector-icons";
+import { memo, useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, Avatar, Divider, MD2Colors } from "react-native-paper";
+import { Helpers } from "@/constants/Helpers";
+import { NotificationResponse } from "@/models/responseObjects/NotificationResponse";
+import { NotificationService } from "@/services/NotificationService";
 import NotificationType from "@/models/NotificationType";
-import {FriendRequestService} from "@/services/FriendRequestService";
+import { FriendRequestService } from "@/services/FriendRequestService";
+import { ChildrenService } from "@/services/ChildrenService";
 
 
 const Notifications = () => {
@@ -52,9 +53,14 @@ const Notifications = () => {
         }
     };
 
-    const _handleAcceptRequest = useCallback(async (requestId: string) => {
+    const _handleAcceptRequest = useCallback(async (requestId: string, type: NotificationType) => {
         try {
-            const acceptResponse = await FriendRequestService.acceptFriendRequest(requestId);
+            let acceptResponse: boolean = false;
+            if (type === NotificationType.PARENTING_REQUEST) {
+                acceptResponse = await ChildrenService.acceptParentRequest(requestId);
+            } else if (type === NotificationType.FRIEND_REQUEST) {
+                acceptResponse = await FriendRequestService.acceptFriendRequest(requestId);
+            }
             if (acceptResponse) {
                 setLoading(true);
                 const data = await NotificationService.getNotifications();
@@ -75,9 +81,14 @@ const Notifications = () => {
 
     }, []);
 
-    const _handleDeclineRequest = useCallback(async (requestId: string) => {
+    const _handleDeclineRequest = useCallback(async (requestId: string, type: NotificationType) => {
         try {
-            const declineResponse = await FriendRequestService.declineFriendRequest(requestId);
+            let declineResponse: boolean = false;
+            if (type === NotificationType.PARENTING_REQUEST) {
+                declineResponse = await ChildrenService.rejectParentRequest(requestId);
+            } else if (type === NotificationType.FRIEND_REQUEST) {
+                declineResponse = await FriendRequestService.declineFriendRequest(requestId);
+            }
             if (declineResponse) {
                 setLoading(true);
                 const data = await NotificationService.getNotifications();
@@ -98,13 +109,14 @@ const Notifications = () => {
 
     }, []);
 
-    const _renderNotifications = memo(({item}: { item: NotificationResponse }) => {
+    const _renderNotifications = memo(({ item }: { item: NotificationResponse }) => {
+        const isRequest = item.type === NotificationType.FRIEND_REQUEST || item.type === NotificationType.PARENTING_REQUEST;
         return (
             <TouchableOpacity onPress={() => _onOpenNotification(item)} style={styles.notification}>
                 <View style={styles.notificationContent}>
                     <View style={styles.avatarContainer}>
                         {item.imageUrl ? (
-                            <Avatar.Image size={45} source={{uri: item.imageUrl}}/>
+                            <Avatar.Image size={45} source={{ uri: item.imageUrl }} />
                         ) : (
                             <Avatar.Text
                                 size={45}
@@ -114,28 +126,19 @@ const Notifications = () => {
                     </View>
                     <View style={styles.notificationTextContainer}>
                         <View style={styles.notificationHeader}>
-                            <View style={{width: item.type === NotificationType.FRIEND_REQUEST ? '70%' : '100%'}}>
+                            <View style={{ width: isRequest ? '70%' : '100%' }}>
                                 <Text
                                     numberOfLines={2}
                                     ellipsizeMode={"tail"}
                                     style={styles.notificationContentText}>{item.content}</Text>
                             </View>
-                            {item.type === NotificationType.FRIEND_REQUEST && (
-                                <View style={{flexDirection: 'row', justifyContent: 'space-around', width: '30%'}}>
-                                    <TouchableOpacity onPress={() => _handleAcceptRequest(item.requestId)}>
-                                        <FontAwesome name="check" size={26} style={styles.acceptIcon}/>
+                            {isRequest && (
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '30%' }}>
+                                    <TouchableOpacity onPress={() => _handleAcceptRequest(item.requestId, item.type)}>
+                                        <FontAwesome name="check" size={26} style={styles.acceptIcon} />
                                     </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => _handleDeclineRequest(item.requestId)}>
-                                        <FontAwesome name="times" size={26} style={styles.declineIcon}/>
-                                    </TouchableOpacity>
-                                </View>)}
-                            {item.type === NotificationType.PARENTING_REQUEST && (
-                                <View style={{flexDirection: 'row', justifyContent: 'space-around', width: '30%'}}>
-                                    <TouchableOpacity onPress={() => _handleAcceptRequest(item.requestId)}>
-                                        <FontAwesome name="check" size={26} style={styles.acceptIcon}/>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => _handleDeclineRequest(item.requestId)}>
-                                        <FontAwesome name="times" size={26} style={styles.declineIcon}/>
+                                    <TouchableOpacity onPress={() => _handleDeclineRequest(item.requestId, item.type)}>
+                                        <FontAwesome name="times" size={26} style={styles.declineIcon} />
                                     </TouchableOpacity>
                                 </View>)}
                         </View>
@@ -150,22 +153,22 @@ const Notifications = () => {
     return (
         <ImageBackground style={styles.backgroundImage} source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                <CustomNavigationHeader text="Notification" goBackFunction={_handleGoBack} showBackArrow/>
+                <CustomNavigationHeader text="Notification" goBackFunction={_handleGoBack} showBackArrow />
                 <View style={styles.container}>
                     {loading ? (
-                        <ActivityIndicator animating color={MD2Colors.blueA700} size={50}/>
+                        <ActivityIndicator animating color={MD2Colors.blueA700} size={50} />
                     ) : (
                         <View style={styles.flashListContainer}>
                             <FlashList
                                 data={notifications}
-                                renderItem={({item}) => <_renderNotifications item={item}/>}
+                                renderItem={({ item }) => <_renderNotifications item={item} />}
                                 keyExtractor={item => item.id}
                                 estimatedItemSize={10}
                                 contentContainerStyle={styles.flashListContent}
                                 ListFooterComponent={
                                     <View style={styles.endFlashListContainer}>
                                         <View style={styles.endFlashList}>
-                                            <AntDesign name="checkcircle" size={20} color="#2757CB"/>
+                                            <AntDesign name="checkcircle" size={20} color="#2757CB" />
                                             <Text style={styles.endText}>End</Text>
                                         </View>
                                     </View>
