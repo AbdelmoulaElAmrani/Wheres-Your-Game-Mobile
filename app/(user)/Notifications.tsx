@@ -140,9 +140,7 @@ const Notifications = () => {
                                     <TouchableOpacity onPress={() => _handleDeclineRequest(item.requestId, item.type)}>
                                         <FontAwesome name="times" size={26} style={styles.declineIcon} />
                                     </TouchableOpacity>
-                                </View>
-                            )}
-
+                                </View>)}
                         </View>
                         <Text
                             style={styles.notifyDate}>{Helpers.formatDateOnNotificationOrChat(item.creationDate, true)}</Text>

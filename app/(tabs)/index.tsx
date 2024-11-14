@@ -23,6 +23,14 @@ import {NOTIFICATION_REFRESH_TIMER} from "@/appConfig";
 
 const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
 const REFRESH_NOTIFICATION_TIME = NOTIFICATION_REFRESH_TIMER * 1000;
+
+
+interface UserProfileProps {
+    userId: string,
+    sports: UserSportResponse[] | undefined,
+    teams: Team [] | undefined
+}
+
 const Home = () => {
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const loading = useSelector((state: any) => state.user.loading) as boolean;
@@ -57,6 +65,7 @@ const Home = () => {
     );
     const isFocused = useNavigation().isFocused();
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedProfile, setSelectedProfile] = useState<UserProfileProps>();
 
 
     useEffect(() => {
@@ -73,7 +82,7 @@ const Home = () => {
                         }
                         if (!teams) {
                             setIsLoading(true);
-                            await _getMyTeams();
+                            await _getMyTeams(userData.id);
                         }
                     }
                 } catch (e) {
@@ -94,6 +103,21 @@ const Home = () => {
         }
     }, [isFocused, userData]);
 
+    //TODO:: when selected profile selected run this function
+    useEffect(() => {
+        try {
+            //TODO::if the selected profileId is current user id then
+            //TODO:: get the data from th redux
+            //TODO:: if the selected profileId is diffrent than current user then call the service to get the user sport then get user Teams
+            setIsLoading(true);
+        } catch (e) {
+
+        } finally {
+            setIsLoading(false);
+        }
+
+    }, [])
+
 
     const checkForNotification = async () => {
         try {
@@ -106,9 +130,9 @@ const Home = () => {
         }
     }
 
-    const _getMyTeams = async () => {
+    const _getMyTeams = async (userId: string) => {
         try {
-            const result = await TeamService.getUserTeams(userData.id);
+            const result = await TeamService.getUserTeams(userId);
             setTeams(result);
         } catch (e) {
             console.error('_getMyTeams', e);
@@ -360,8 +384,13 @@ const Home = () => {
                                 borderRadius: 4,
                             }}>
                                 <RNPickerSelect
-                                    placeholder={{}}
+                                    placeholder={{
+                                        label: 'Me',
+                                        value: null,
+                                        color: '#9EA0A4',
+                                    }}
                                     items={childrens}
+                                    onOpen={() => console.log('open')}
                                     onValueChange={(value, index) => {
                                         //TODO:: Set The Selected Child
                                         console.log(value);
@@ -372,6 +401,14 @@ const Home = () => {
                                     }}
                                     style={pickerSelectStyles}
                                     value={selectedChild}
+                                    Icon={() => (
+                                        <Ionicons
+                                            name="chevron-down"
+                                            size={24}
+                                            color="white"
+                                            style={{position: 'absolute', top: '50%', marginTop: 5, right: 10}}
+                                        />
+                                    )}
                                 />
                             </View>
                         }
@@ -621,11 +658,11 @@ const pickerSelectStyles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
         fontSize: 16,
-        width: 120,
+        width: 140,
         paddingHorizontal: 10,
         paddingVertical: 6,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
     },
     inputAndroid: {
         color: 'white',

@@ -1,20 +1,28 @@
-import { Alert, FlatList, KeyboardAvoidingView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+
+import {Alert, FlatList, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
+import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import { ImageBackground } from "expo-image";
-import { router, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
-import { Avatar, Searchbar } from "react-native-paper";
-import { heightPercentageToDP, widthPercentageToDP } from "react-native-responsive-screen";
+import {ImageBackground} from "expo-image";
+import {router, useLocalSearchParams} from "expo-router";
+import React, {useCallback, useEffect, useState} from "react";
+import {Avatar, Modal, Searchbar} from "react-native-paper";
+import {heightPercentageToDP, widthPercentageToDP} from "react-native-responsive-screen";
 import Spinner from "@/components/Spinner";
 import { UserService } from "@/services/UserService";
 import { UserResponse } from "@/models/responseObjects/UserResponse";
 import UserType from "@/models/UserType";
-import { Ionicons } from "@expo/vector-icons";
-import { useSelector } from "react-redux";
-import { FriendRequestService } from "@/services/FriendRequestService";
-import { ChildrenService } from "@/services/ChildrenService";
+import {Ionicons} from "@expo/vector-icons";
+import {useSelector} from "react-redux";
+import {FriendRequestService} from "@/services/FriendRequestService";
+import {Helpers} from "@/constants/Helpers";
+import {ChildrenService} from "@/services/ChildrenService";
 
+
+
+interface InviteObject {
+    phoneNumber: string;
+    confirmPhoneNumber: string;
+}
 
 const SearchUser = () => {
     const [loading, setLoading] = useState<boolean>(false);
@@ -22,8 +30,10 @@ const SearchUser = () => {
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
     const [searchType, setSearchType] = useState<UserType>();
     const params = useLocalSearchParams<any>();
-    const [searchName, setSearchName] = useState<string>('');
-    const [people, setPeople] = useState<UserSearchResponse[]>([]);
+    const [isModalVisible, setModalVisible] = useState<boolean>(false);
+    const [enableInvite, setEnableInvite] = useState<boolean>(false);
+    const [inviteObject, setInviteObject] = useState<InviteObject>({phoneNumber: '', confirmPhoneNumber: ''})
+    const [errorMessage, setErrorMessage] = useState<string>('');
 
     useEffect(() => {
         const param = params?.searchType as keyof typeof UserType | undefined;
@@ -78,7 +88,6 @@ const SearchUser = () => {
             });
         });
     };
-
     const _onSendingParentingRequest = async (receiverId: string) => {
         try {
             const res = await ChildrenService.sendParentRequest(receiverId);
@@ -105,7 +114,8 @@ const SearchUser = () => {
         }
     }
 
-    const _renderUserItem = ({ item }: { item: UserSearchResponse }) => {
+
+    const _renderUserItem = ({item}: { item: UserSearchResponse }) => {
         return (
             <TouchableOpacity style={styles.userItem}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -130,6 +140,36 @@ const SearchUser = () => {
         );
     }
 
+
+    const _onOpenInviteChildModal = () => {
+        setModalVisible(true);
+    };
+
+    const _hideModal = () => {
+        setModalVisible(false);
+    };
+    const _handleInvite = async () => {
+        const response = await ChildrenService.sendParentInvite(inviteObject);
+    };
+
+
+    const handleInputChange = (field: keyof InviteObject, value: string): void => {
+        const updatedInviteObject = {...inviteObject, [field]: value};
+        setInviteObject(updatedInviteObject);
+        Helpers
+        // Validation logic
+        const {phoneNumber, confirmPhoneNumber} = updatedInviteObject;
+        if (Helpers.validatePhoneNumber(phoneNumber) && phoneNumber === confirmPhoneNumber) {
+            setErrorMessage('');
+            setEnableInvite(true);
+        } else if (phoneNumber !== confirmPhoneNumber) {
+            setErrorMessage('The phone numbers do not match.');
+            setEnableInvite(false);
+        } else {
+            setErrorMessage('Invalid phone number format.');
+            setEnableInvite(false);
+        }
+    };
 
     return (
         <ImageBackground
@@ -163,8 +203,16 @@ const SearchUser = () => {
                 </View>
                 <View style={styles.mainContainer}>
                     <KeyboardAvoidingView
-                        style={{ width: '100%', height: '100%', paddingVertical: 10, paddingHorizontal: 8, flex: 1 }}>
-                        <View style={{ width: '100%', marginBottom: 30, flex: 1 }}>
+                        style={{width: '100%', height: '100%', paddingVertical: 10, paddingHorizontal: 8, flex: 1}}>
+                        {isParenting && <View style={{alignItems: 'flex-end'}}>
+                            <TouchableOpacity
+                                onPress={_onOpenInviteChildModal}
+                                style={{backgroundColor: '#2757CB', width: 100, paddingVertical: 4, borderRadius: 10}}>
+                                <Text style={{color: 'white', fontWeight: 'bold', fontSize: 16, textAlign: 'center'}}>Invite
+                                    Child</Text>
+                            </TouchableOpacity>
+                        </View>}
+                        <View style={{width: '100%', marginBottom: 30, flex: 1}}>
                             {people.length > 0 ? <FlatList
                                 data={people}
                                 keyExtractor={(item) => item.id.toString()}
@@ -177,6 +225,81 @@ const SearchUser = () => {
                         </View>
                     </KeyboardAvoidingView>
                 </View>
+
+                <Modal visible={isModalVisible} onDismiss={_hideModal}
+                       contentContainerStyle={styles.modalContainer}>
+                    <Text style={{fontSize: 16, fontWeight: 'bold', paddingVertical: 20}}>Invite child by phone
+                        number</Text>
+                    <View style={{width: '90%', alignItems: 'center', marginTop: 10}}>
+                        <TextInput
+                            keyboardType={"phone-pad"}
+                            placeholder="Your child's phone number"
+                            style={[styles.inputStyle, {
+                                marginTop: 10,
+                                flexShrink: 1,  // Prevents wrapping
+                                width: '100%',
+                                height: 40,
+                            }]}
+                            cursorColor='black'
+                            placeholderTextColor={'grey'}
+                            multiline={false}
+                            onChangeText={(text) => handleInputChange('phoneNumber', text)}
+                            value={inviteObject.confirmPhoneNumber}
+                        />
+                        <TextInput
+                            keyboardType={"phone-pad"}
+                            placeholder="Confirm the number"
+                            style={[styles.inputStyle, {
+                                marginTop: 10,
+                                flexShrink: 1,  // Prevents wrapping
+                                width: '100%',
+                                height: 40,
+                            }]}
+                            cursorColor='black'
+                            placeholderTextColor={'grey'}
+                            multiline={false}
+                            onChangeText={(text) => handleInputChange('confirmPhoneNumber', text)}
+                            value={inviteObject.confirmPhoneNumber}
+                        />
+                        {errorMessage ? (
+                            <Text style={{color: 'red', marginTop: 5, textAlign: 'center'}}>{errorMessage}</Text>
+                        ) : null}
+                        <View style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            width: '80%',
+                            marginTop: 20
+                        }}>
+                            <TouchableOpacity
+                                disabled={!enableInvite}
+                                onPress={_handleInvite}
+                                style={{
+                                    backgroundColor: enableInvite ? '#2757CB' : 'grey',
+                                    width: 100,
+                                    paddingVertical: 4,
+                                    borderRadius: 10
+                                }}>
+                                <Text style={{
+                                    color: 'white',
+                                    fontWeight: 'bold',
+                                    fontSize: 16,
+                                    textAlign: 'center'
+                                }}>Invite</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={_hideModal}
+                                style={{
+                                    backgroundColor: 'white',
+                                    width: 100,
+                                    paddingVertical: 4,
+                                    borderRadius: 10,
+                                    borderWidth: 1
+                                }}>
+                                <Text style={{fontWeight: 'bold', fontSize: 16, textAlign: 'center'}}>Cancel</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
             </SafeAreaView>
         </ImageBackground>
     );
@@ -224,6 +347,36 @@ const styles = StyleSheet.create({
     searchBarContainer: {
         padding: 20,
         justifyContent: 'center'
+    },
+    modalContainer: {
+        backgroundColor: 'white',
+        borderRadius: 20,
+        paddingHorizontal: 5,
+        width: '95%',
+        height: '30%',
+        alignItems: 'center',
+        alignSelf: 'center',
+        justifyContent: 'flex-start',
+        marginTop: 10,
+        marginBottom: '30%'
+    },
+    inputStyle: {
+        backgroundColor: 'white',
+        height: 45,
+        fontSize: 16,
+        marginTop: 5,
+        color: 'black',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        borderBottomRightRadius: 20,
+        borderBottomLeftRadius: 20,
+        borderColor: '#D3D3D3',
+        borderWidth: 1,
+        width: '100%',
+        paddingLeft: 10,
+        paddingRight: 10,
+        marginBottom: 10
+
     },
 });
 export default SearchUser;

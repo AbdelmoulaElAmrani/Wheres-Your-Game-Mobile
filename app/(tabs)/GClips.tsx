@@ -534,7 +534,6 @@ const GClips = () => {
                                     shadowRadius: 2,
                                     elevation: 2,
                                 }}
-
                             />
                         </View>
                     </View>
