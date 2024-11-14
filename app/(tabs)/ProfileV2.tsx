@@ -1,7 +1,7 @@
 import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import React, {useEffect, useRef, useState} from "react";
-import {router, useRouter} from "expo-router";
+import {router, useNavigation, useRouter} from "expo-router";
 import {getUserProfile, getUserSports} from "@/redux/UserSlice";
 import {ImageBackground} from "expo-image";
 import {heightPercentageToDP as hp, widthPercentageToDP} from "react-native-responsive-screen";
@@ -12,7 +12,6 @@ import {Avatar, Divider} from "react-native-paper";
 import {FontAwesome6} from "@expo/vector-icons";
 import * as Linking from "expo-linking";
 import {Helpers} from "@/constants/Helpers";
-import {useIsFocused} from '@react-navigation/native';
 
 enum MenuOption {
     Overview,
@@ -24,10 +23,8 @@ export const ProfileV2 = () => {
     const dispatch = useDispatch()
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse | undefined;
     const loading = useSelector((state: any) => state.user.loading) as boolean;
-    const [refreshing, setRefreshing] = useState<boolean>(false);
-    const _router = useRouter();
     const [selectOption, setSelectOption] = useState<MenuOption>(MenuOption.Overview);
-    const isFocused = useIsFocused();
+    const isFocused = useNavigation().isFocused();
     const hasRun = useRef(false);
 
     useEffect(() => {
@@ -38,20 +35,19 @@ export const ProfileV2 = () => {
         }
     }, [isFocused]);
 
-    useEffect(() => {
-        if (isFocused && currentUser?.id && !hasRun.current) {
-            dispatch(getUserSports(currentUser.id) as any);
-            hasRun.current = true;
-        }
-        if (!isFocused) {
-            hasRun.current = false;
-        }
-    }, [isFocused, currentUser]);
+    /* useEffect(() => {
+         /!*if (isFocused && currentUser?.id && !hasRun.current) {
+             dispatch(getUserSports(currentUser.id) as any);
+             hasRun.current = true;
+         }
+         if (!isFocused) {
+             hasRun.current = false;
+         }*!/
+     }, [isFocused, currentUser]);*/
 
     const _handleSettings = () => {
         router.navigate('/(settings)');
     };
-
 
     const _option = (option: MenuOption) => {
         setSelectOption(option);
@@ -80,10 +76,6 @@ export const ProfileV2 = () => {
             style={{height: hp(100)}}
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                {loading && (
-                    <Spinner visible={loading}/>
-                )}
-
                 <View style={styles.mainContainer}>
                     <ScrollView showsVerticalScrollIndicator={false}
                                 contentContainerStyle={{alignItems: 'center'}}

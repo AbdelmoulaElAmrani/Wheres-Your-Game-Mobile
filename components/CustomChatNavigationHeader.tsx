@@ -9,9 +9,15 @@ interface CustomChatNavigationHeaderProps {
     title: string,
     role: string | undefined,
     blockFunction?: () => void,
+    isBlocked: boolean | undefined,
 }
 
-const CustomChatNavigationHeader: React.FC<CustomChatNavigationHeaderProps> = ({title, role, blockFunction}) => {
+const CustomChatNavigationHeader: React.FC<CustomChatNavigationHeaderProps> = ({
+                                                                                   title,
+                                                                                   role,
+                                                                                   blockFunction,
+                                                                                   isBlocked = false
+                                                                               }) => {
 
     const _handleGoBack = (): void => {
         if (router.canGoBack())
@@ -19,7 +25,7 @@ const CustomChatNavigationHeader: React.FC<CustomChatNavigationHeaderProps> = ({
     }
 
     const _handleBlock = (): void => {
-        if (blockFunction != null)
+        if (blockFunction != null && !isBlocked)
             blockFunction();
     }
 
@@ -28,12 +34,12 @@ const CustomChatNavigationHeader: React.FC<CustomChatNavigationHeaderProps> = ({
             <TouchableOpacity onPress={_handleGoBack}>
                 <Ionicons name="chevron-back" size={35} color="white"/>
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity disabled={isBlocked}>
                 <Text numberOfLines={1} style={styles.text}>{title}</Text>
                 <Text style={{color: 'white', textAlign: 'center', marginTop: 4}}>{role}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={_handleBlock}>
-                <Entypo name="block" size={25} color="red"/>
+                <Entypo name="block" size={25} color={isBlocked ? "red" : "grey"}/>
             </TouchableOpacity>
         </View>
     );

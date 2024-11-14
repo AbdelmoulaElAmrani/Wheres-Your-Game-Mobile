@@ -24,7 +24,6 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {getUserSports} from "@/redux/UserSlice";
 import Spinner from "@/components/Spinner";
-import {useRoute} from "@react-navigation/core";
 
 const SportInterested = () => {
 
@@ -35,8 +34,7 @@ const SportInterested = () => {
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
     const dispatch = useDispatch();
     const [loading, setLoading] = useState<boolean>(false);
-    const route = useRoute();
-    const paramData = route.params as any;
+    const paramData = useLocalSearchParams<any>();
 
     useEffect(() => {
         const fetchData = async () => {

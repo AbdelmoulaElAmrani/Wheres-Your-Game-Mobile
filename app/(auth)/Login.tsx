@@ -55,10 +55,11 @@ const Login = () => {
             await LocalStorageService.removeItem("otp");
             const token = await AuthService.getAccessToken();
             if (token && user?.id) {
-                router.replace("/(tabs)/");
+                router.replace("/(tabs)");
             } else {
                 dispatch(logout({}))
                 await persistor.purge();
+                await persistor.flush();
             }
         }
         fetchData();

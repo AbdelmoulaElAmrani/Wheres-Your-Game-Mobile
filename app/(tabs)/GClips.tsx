@@ -17,7 +17,7 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {getUserProfile} from "@/redux/UserSlice";
 import LinkPreviewComponent from "@/components/LinkPreviewComponent";
 import {Helpers} from "@/constants/Helpers";
-import {useIsFocused} from "@react-navigation/native";
+import {useNavigation} from "expo-router";
 
 
 const validDomains = {
@@ -48,7 +48,8 @@ const GClips = () => {
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const {socialMediaLinks} = useSelector((state: any) => state.user.userData) as UserResponse;
-    const isFocused = useIsFocused();
+    const isFocused = useNavigation().isFocused();
+
 
     const dispatch = useDispatch();
 
@@ -241,7 +242,7 @@ const GClips = () => {
                 alert('Sharing is not available on this device');
             }
         } catch (error) {
-            console.log('Error sharing:', error);
+            console.error('Error sharing:', error);
         }
     };
 

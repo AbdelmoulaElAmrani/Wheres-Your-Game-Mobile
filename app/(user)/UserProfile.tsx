@@ -4,7 +4,7 @@ import {SafeAreaView} from "react-native-safe-area-context";
 import Spinner from "@/components/Spinner";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React, {useEffect, useState} from "react";
-import {router} from "expo-router";
+import {router, useLocalSearchParams} from "expo-router";
 import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {Avatar, Divider} from "react-native-paper";
 import {useDispatch, useSelector} from "react-redux";
@@ -12,7 +12,6 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {FontAwesome6} from "@expo/vector-icons";
 import * as Linking from 'expo-linking';
 import {UserService} from "@/services/UserService";
-import {useRoute} from "@react-navigation/core";
 import {Helpers} from "@/constants/Helpers";
 import {getUserProfile} from "@/redux/UserSlice";
 
@@ -31,8 +30,8 @@ export const UserProfile = () => {
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
     const [selectOption, setSelectOption] = useState<MenuOption>(MenuOption.Overview);
     const dispatch = useDispatch();
-    const route = useRoute();
-    const paramData = route.params as any;
+    const paramData = useLocalSearchParams<any>();
+
     const _handleGoBack = () => {
         if (router.canGoBack())
             router.back();

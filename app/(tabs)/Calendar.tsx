@@ -25,7 +25,7 @@ import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
 import {EventService} from "@/services/EventService";
 import {SportEvent} from "@/models/SportEvent";
 import {SportEventRequest} from "@/models/requestObjects/SportEventRequest";
-import {useIsFocused} from "@react-navigation/native";
+import {useNavigation} from "expo-router";
 
 
 interface CheckboxProps {
@@ -81,7 +81,8 @@ const Calendar = () => {
         {title: 'All', isChecked: false}
 
     ]);
-    const isFocus = useIsFocused();
+    const isFocus = useNavigation().isFocused();
+
 
     useEffect(() => {
         if (user?.id) {

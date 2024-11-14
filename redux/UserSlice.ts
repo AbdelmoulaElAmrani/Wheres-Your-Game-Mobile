@@ -100,16 +100,13 @@ const userSlice = createSlice({
                 state.loading = false;
             })
             .addCase(getUserSports.pending, (state) => {
-                console.log('start 1');
-                state.loading = true;
+                //state.loading = true;
             })
             .addCase(getUserSports.fulfilled, (state, action) => {
-                console.log('end 1');
                 state.loading = false;
                 state.userSport = action.payload as UserSportResponse[];
             })
             .addCase(getUserSports.rejected, (state) => {
-                console.log('end 11');
                 state.loading = false;
             });
     }

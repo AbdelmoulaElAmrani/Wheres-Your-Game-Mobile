@@ -1,8 +1,8 @@
-import {FlatList, KeyboardAvoidingView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Alert, FlatList, KeyboardAvoidingView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {ImageBackground} from "expo-image";
-import {router} from "expo-router";
+import {router, useLocalSearchParams} from "expo-router";
 import React, {useCallback, useEffect, useState} from "react";
 import {Avatar, Searchbar} from "react-native-paper";
 import {heightPercentageToDP, widthPercentageToDP} from "react-native-responsive-screen";
@@ -10,7 +10,6 @@ import Spinner from "@/components/Spinner";
 import {UserService} from "@/services/UserService";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import UserType from "@/models/UserType";
-import {useRoute} from "@react-navigation/core";
 import {Ionicons} from "@expo/vector-icons";
 import {useSelector} from "react-redux";
 import {FriendRequestService} from "@/services/FriendRequestService";
@@ -21,17 +20,15 @@ const SearchUser = () => {
     const [isParenting, setParenting] = useState<boolean>(false);
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
     const [searchType, setSearchType] = useState<UserType>();
-    const route = useRoute();
-    const params = route.params as any;
+    const params = useLocalSearchParams<any>();
 
 
     useEffect(() => {
         const param = params?.searchType as keyof typeof UserType | undefined;
-
         if (param) {
             const userTypeValue = UserType[param];
-            const isDefault = userTypeValue === UserType.DEFAULT;
-
+            // @ts-ignore
+            const isDefault = param == UserType.DEFAULT;
             setParenting(isDefault);
 
             setSearchType(isDefault ? UserType.PLAYER : userTypeValue);
@@ -53,8 +50,14 @@ const SearchUser = () => {
             if (people.length > 0) setPeople([]);
             return;
         }
+        let data: UserSearchResponse[] | undefined;
         setLoading(true);
-        const data = await UserService.SearchUsersByFullName(searchName, searchType);
+        if (isParenting) {
+            //TODO:: call the search for pareting
+            data = await UserService.SearchUsersByFullName(searchName, searchType);
+        } else {
+            data = await UserService.SearchUsersByFullName(searchName, searchType);
+        }
         if (data)
             setPeople(data);
         else
@@ -77,7 +80,27 @@ const SearchUser = () => {
 
     const _onSendingParentingRequest = async (receiverId: string) => {
         //TODO:: make sure to alert a message to the user that the invite has been set successfully
-    };
+        try {
+            const senderId = currentUser.id;
+            //const d = await FriendRequestService.sendParentingRequest(senderId, receiverId);
+            Alert.alert(
+                'Invitation Sent',
+                'Your parenting request has been sent successfully.',
+                [{text: 'OK', onPress: () => console.log('Alert closed')}]
+            );
+            /*setPeople(oldPeople => {
+                        return oldPeople.map(person => {
+                            if (person.id === receiverId) {
+                                return {...person, friend: true};
+                            }
+                            return person;
+                        });
+                    });*/
+        } catch (error) {
+            console.error('Error sending parenting request:', error);
+            Alert.alert('Error', 'Failed to send parenting request. Please try again.');
+        }
+    }
 
     const _renderUserItem = ({item}: { item: UserSearchResponse }) => {
         return (
@@ -93,7 +116,7 @@ const SearchUser = () => {
                     )}
                     <Text style={styles.userName}>{`${item.firstName} ${item.lastName}`}</Text>
                 </View>
-                {!item.friend ?
+                {(!item.friend || (!item.parent && isParenting)) ?
                     <Ionicons
                         onPress={() => isParenting ? _onSendingParentingRequest(item.id) : _onAddFriendOrRemove(item.id)}
                         name="person-add-outline" size={20} color="black"/>
@@ -137,14 +160,14 @@ const SearchUser = () => {
                 </View>
                 <View style={styles.mainContainer}>
                     <KeyboardAvoidingView
-                        style={{width: '100%', height: '100%', paddingVertical: 10, paddingHorizontal: 8}}>
-                        <View style={{width: '100%', marginBottom: 30}}>
+                        style={{width: '100%', height: '100%', paddingVertical: 10, paddingHorizontal: 8, flex: 1}}>
+                        <View style={{width: '100%', marginBottom: 30, flex: 1}}>
                             {people.length > 0 ? <FlatList
                                 data={people}
                                 keyExtractor={(item) => item.id.toString()}
                                 renderItem={_renderUserItem}
                                 style={styles.userList}
-                                ListFooterComponent={<View style={{height: 50}}/>}
+                                ListFooterComponent={<View style={{height: heightPercentageToDP(80)}}/>}
                             /> : <Text
                                 style={{textAlign: 'center', fontWeight: 'bold', marginTop: heightPercentageToDP(30)}}>No
                                 User</Text>}
@@ -162,7 +185,7 @@ const styles = StyleSheet.create({
         height: '100%',
         width: '100%',
         borderTopRightRadius: 20,
-        borderTopLeftRadius: 20
+        borderTopLeftRadius: 20,
     },
     modal: {
         backgroundColor: 'white',

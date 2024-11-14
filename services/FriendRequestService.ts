@@ -27,4 +27,7 @@ export class FriendRequestService {
     }
 
 
+    static async sendParentingRequest(senderId: string, receiverId: string) {
+
+    }
 }

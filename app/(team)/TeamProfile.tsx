@@ -5,10 +5,8 @@ import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import React, {useEffect, useState} from "react";
-import {router} from "expo-router";
-import {useRoute} from "@react-navigation/core";
+import {router, useLocalSearchParams} from "expo-router";
 import {Avatar, Divider} from "react-native-paper";
-import TeamSearchCard from "@/components/Search/TeamSearchCard";
 import PersonSearchCard from "@/components/Search/PersonSearchCard";
 import {TeamService} from "@/services/TeamService";
 import {Team} from "@/models/Team";
@@ -26,9 +24,7 @@ const TeamProfile = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [team, setTeam] = useState<Team | undefined>(undefined);
     const [selectOption, setSelectOption] = useState<tabOption>(tabOption.Team);
-    const route = useRoute();
-    const paramData = route.params as any;
-
+    const paramData = useLocalSearchParams<any>();
     const _handleGoBack = () => {
         if (router.canGoBack())
             router.back();

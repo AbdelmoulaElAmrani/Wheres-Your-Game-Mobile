@@ -3,7 +3,7 @@ import {StatusBar} from "expo-status-bar";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
 import React, {memo, useEffect, useState} from "react";
-import {AntDesign, Feather, Fontisto, Ionicons, MaterialIcons} from "@expo/vector-icons";
+import {AntDesign, Feather, Fontisto, Ionicons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {Helpers} from "@/constants/Helpers";
@@ -13,14 +13,13 @@ import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {getUserProfile, getUserSports} from "@/redux/UserSlice";
 import UserType from "@/models/UserType";
 import {Team} from "@/models/Team";
-import {router, useRouter} from "expo-router";
+import {router, useRouter, useNavigation} from "expo-router";
 import RNPickerSelect from 'react-native-picker-select';
 import {TeamService} from "@/services/TeamService";
 import Spinner from "@/components/Spinner";
 import {Image, ImageBackground} from "expo-image";
 import {NotificationService} from "@/services/NotificationService";
 import {NOTIFICATION_REFRESH_TIMER} from "@/appConfig";
-import {useIsFocused} from "@react-navigation/native";
 
 const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
 const REFRESH_NOTIFICATION_TIME = NOTIFICATION_REFRESH_TIMER * 1000;
@@ -56,8 +55,9 @@ const Home = () => {
             },
         ]
     );
-    const isFocused = useIsFocused();
+    const isFocused = useNavigation().isFocused();
     const [isLoading, setIsLoading] = useState(false);
+
 
     useEffect(() => {
         if (isFocused) {
@@ -135,7 +135,7 @@ const Home = () => {
 
 
     const _handleOnOpenSearch = () => {
-        router.navigate('(user)/SearchGlobal');
+        router.navigate('/(user)/(search)/SearchGlobal');
     }
     const _onOpenNotification = () => {
         setNewNotif(false);
@@ -143,7 +143,7 @@ const Home = () => {
     }
 
     const _onOpenChat = () => {
-        router.navigate('/(user)/Chats');
+        router.navigate('/(user)/(Chat)/Chats');
     }
 
     const _onOpenMap = () => {
@@ -152,7 +152,7 @@ const Home = () => {
 
     const _onSearch = (searchType: UserType) => {
         _router.push({
-            pathname: '/(user)/SearchUser',
+            pathname: '/(user)/(search)/SearchUser',
             params: {searchType: UserType[searchType]},
         });
     }
@@ -161,7 +161,7 @@ const Home = () => {
     }
 
     const _onAddTeam = () => {
-        router.navigate('TeamForm');
+        router.navigate('/(team)/TeamForm');
     }
 
     const _onViewAll = () => {
@@ -287,7 +287,7 @@ const Home = () => {
     const _handleOpenInviteChild = () => {
         //TODO::
         _router.push({
-            pathname: '/(user)/SearchUser',
+            pathname: '/(user)/(search)/SearchUser',
             params: {searchType: UserType.DEFAULT},
         });
     }
@@ -310,9 +310,8 @@ const Home = () => {
                     flex: 1,
                 }}
                 source={require('../../assets/images/signupBackGround.jpg')}>
-
                 <SafeAreaView style={{height: hp(100)}}>
-                    {(loading || isLoading) && <Spinner visible={loading || isLoading}/>}
+                    {(loading || isLoading) && isFocused && <Spinner visible={(loading || isLoading) && isFocused}/>}
                     <View style={styles.headerContainer}>
                         <View>
                             <TouchableOpacity onPress={_handleOnOpenSearch}>

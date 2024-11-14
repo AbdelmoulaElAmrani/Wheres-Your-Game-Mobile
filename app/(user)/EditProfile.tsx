@@ -8,7 +8,7 @@ import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-nativ
 import {SafeAreaView} from "react-native-safe-area-context";
 import {Octicons} from '@expo/vector-icons';
 import * as ImagePicker from "expo-image-picker";
-import {router, useRouter} from "expo-router";
+import {router, useLocalSearchParams, useRouter} from "expo-router";
 import Gender from "@/models/Gender";
 import MaleIcon from "@/assets/images/svg/MaleIcon";
 import FemaleIcon from "@/assets/images/svg/FemaleIcon";
@@ -26,10 +26,8 @@ import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {UserRequest} from "@/models/requestObjects/UserRequest";
 import {manipulateAsync, SaveFormat} from "expo-image-manipulator";
 import {StorageService} from "@/services/StorageService";
-import {useRoute} from "@react-navigation/core";
 import UserType from "@/models/UserType";
 import {MultiSelect} from "react-native-element-dropdown";
-import {UserService} from "@/services/UserService";
 
 
 const _AgeGroup = [
@@ -178,8 +176,8 @@ const EditProfile = () => {
     });
     type GenderOrNull = Gender | null;
 
-    const route = useRoute();
-    const paramData = route.params as any;
+    const paramData = useLocalSearchParams<any>();
+
 
     const [currentStep, setCurrentStep] = useState<number>(1);
     registerTranslation("en", enGB);

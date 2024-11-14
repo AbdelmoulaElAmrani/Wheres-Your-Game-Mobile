@@ -10,13 +10,12 @@ import {
 } from "react-native";
 import {ImageBackground} from "expo-image";
 import {SafeAreaView, useSafeAreaInsets} from "react-native-safe-area-context";
-import {router} from "expo-router";
+import {router, useLocalSearchParams} from "expo-router";
 import {useEffect, useState} from "react";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {Ionicons} from "@expo/vector-icons";
 import {useSelector} from "react-redux";
 import {UserService} from "@/services/UserService";
-import {useRoute} from "@react-navigation/core";
 import {Message} from "@/models/Conversation";
 import moment from 'moment-timezone';
 import {ChatService} from "@/services/ChatService";
@@ -38,8 +37,7 @@ const UserConversation = () => {
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
 
-    const route = useRoute();
-    const paramData = route.params as any;
+    const paramData = useLocalSearchParams<any>();
     const insets = useSafeAreaInsets();
 
 
@@ -168,9 +166,7 @@ const UserConversation = () => {
                 {
                     text: 'Block',
                     onPress: async () => {
-                        console.log('Block user => ', receiver.id);
                         const res = await BlockService.blockUser(receiver.id);
-
                         if (res) {
                             Alert.alert(
                                 'User Blocked',
@@ -201,6 +197,7 @@ const UserConversation = () => {
                 <SafeAreaView style={{flex: 1}}>
                     <CustomChatNavigationHeader
                         title={`${receiver?.firstName} ${receiver?.lastName}`}
+                        isBlocked={receiver?.blockedByPrincipal || receiver?.blockedByTheUser}
                         blockFunction={_handleBlockUser}
                         role={receiver?.role}/>
                     <View style={[styles.chatContainer]}>
