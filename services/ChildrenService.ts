@@ -14,4 +14,12 @@ export class ChildrenService {
     static async rejectParentRequest() {
 
     }
+
+    static async sendParentInvite(inviteObject: any) {
+        try {
+
+        } catch (e) {
+
+        }
+    }
 }

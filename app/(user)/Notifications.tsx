@@ -24,11 +24,11 @@ const Notifications = () => {
             setLoading(true);
             try {
                 const data = await NotificationService.getNotifications();
-                if (data){
+                if (data) {
                     const sortedData = data.sort((a, b) => {
                         const dateA = new Date(a.creationDate);
                         const dateB = new Date(b.creationDate);
-                        return dateB.getTime() - dateA.getTime(); 
+                        return dateB.getTime() - dateA.getTime();
                     });
                     setNotifications(sortedData);
                 }
@@ -62,7 +62,7 @@ const Notifications = () => {
                     const sortedData = data.sort((a, b) => {
                         const dateA = new Date(a.creationDate);
                         const dateB = new Date(b.creationDate);
-                        return dateB.getTime() - dateA.getTime(); 
+                        return dateB.getTime() - dateA.getTime();
                     });
                     setNotifications(sortedData);
                 }
@@ -85,7 +85,7 @@ const Notifications = () => {
                     const sortedData = data.sort((a, b) => {
                         const dateA = new Date(a.creationDate);
                         const dateB = new Date(b.creationDate);
-                        return dateB.getTime() - dateA.getTime(); 
+                        return dateB.getTime() - dateA.getTime();
                     });
                     setNotifications(sortedData);
                 }
@@ -121,6 +121,15 @@ const Notifications = () => {
                                     style={styles.notificationContentText}>{item.content}</Text>
                             </View>
                             {item.type === NotificationType.FRIEND_REQUEST && (
+                                <View style={{flexDirection: 'row', justifyContent: 'space-around', width: '30%'}}>
+                                    <TouchableOpacity onPress={() => _handleAcceptRequest(item.requestId)}>
+                                        <FontAwesome name="check" size={26} style={styles.acceptIcon}/>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => _handleDeclineRequest(item.requestId)}>
+                                        <FontAwesome name="times" size={26} style={styles.declineIcon}/>
+                                    </TouchableOpacity>
+                                </View>)}
+                            {item.type === NotificationType.PARENTING_REQUEST && (
                                 <View style={{flexDirection: 'row', justifyContent: 'space-around', width: '30%'}}>
                                     <TouchableOpacity onPress={() => _handleAcceptRequest(item.requestId)}>
                                         <FontAwesome name="check" size={26} style={styles.acceptIcon}/>

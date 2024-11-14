@@ -143,5 +143,10 @@ export class Helpers {
         return youtubeRegex.test(url);
     };
 
+    static validatePhoneNumber = (phoneNumber: string): boolean => {
+        const phoneRegex = /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s./0-9]*$/; // Basic phone number regex
+        return phoneRegex.test(phoneNumber);
+    };
+
 
 }
