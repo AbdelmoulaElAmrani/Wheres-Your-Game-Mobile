@@ -1,7 +1,6 @@
 import {UserRequest} from "@/models/requestObjects/UserRequest";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import UserType from "@/models/UserType";
-import {AuthService} from "@/services/AuthService";
 import {UserService} from "@/services/UserService";
 import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 import {SportService} from "@/services/SportService";

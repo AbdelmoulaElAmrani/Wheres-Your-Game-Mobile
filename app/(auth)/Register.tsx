@@ -214,7 +214,6 @@ const Register = () => {
                                     codeTextStyle={styles.phoneCodeTextStyle}
                                     textInputStyle={styles.phoneInputTextStyle}
                                 />
-
                             </View>
                         </View>
                     </KeyboardAwareScrollView>

@@ -32,4 +32,10 @@ export interface UserResponse {
     visible: boolean;
     blockedByPrincipal: boolean;
     blockedByTheUser: boolean;
+    children?: ChildResponse [];
+}
+
+export interface ChildResponse {
+    fullName: string;
+    id: string;
 }

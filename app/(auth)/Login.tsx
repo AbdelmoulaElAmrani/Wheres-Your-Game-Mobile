@@ -30,6 +30,7 @@ import Spinner from '@/components/Spinner';
 import LocalStorageService from '@/services/LocalStorageService';
 //import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
 import {googleAndroidClientId, googleIosClientId, googleWebClientId} from "@/appConfig";
+import TokenManager from "@/services/TokenManager";
 
 
 const Login = () => {
@@ -53,7 +54,7 @@ const Login = () => {
     useEffect(() => {
         const fetchData = async () => {
             await LocalStorageService.removeItem("otp");
-            const token = await AuthService.getAccessToken();
+            const token = await TokenManager.getAccessToken();
             if (token && user?.id) {
                 router.replace("/(tabs)");
             } else {

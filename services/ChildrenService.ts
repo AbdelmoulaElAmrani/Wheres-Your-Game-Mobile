@@ -1,4 +1,4 @@
-import { String } from './../node_modules/lightningcss/node/ast.d';
+import {String} from './../node_modules/lightningcss/node/ast.d';
 import Requests from "./Requests";
 
 
@@ -14,13 +14,13 @@ export class ChildrenService {
                 return false;
             }
             return true;
-        } catch (e : any) {
+        } catch (e: any) {
             return false;
         }
 
     }
 
-    static async acceptParentRequest(requestId : String) {
+    static async acceptParentRequest(requestId: String) {
         try {
             console.log('in service' + requestId);
             const res = await Requests.post(`parent-child/respond-request?requestId=${requestId}&accept=${true}`, {});
@@ -28,25 +28,22 @@ export class ChildrenService {
                 return false;
             }
             return true;
-        }
-        catch (e : any) {
+        } catch (e: any) {
             console.error(e);
             return false;
         }
 
     }
 
-    static async rejectParentRequest(requestId : String) {
+    static async rejectParentRequest(requestId: String) {
         try {
             const res = await Requests.post(`parent-child/respond-request?requestId=${requestId}&accept=false`, {});
             if (res?.status !== 200) {
                 return false;
             }
             return true;
-        }
-        catch (e : any) {
+        } catch (e: any) {
             return false;
         }
-
     }
 }

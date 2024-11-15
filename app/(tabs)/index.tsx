@@ -39,8 +39,6 @@ const Home = () => {
     const [players, setPlayers] = useState<Player[]>([]);
     const [teams, setTeams] = useState<Team[] | undefined>(undefined);
     const [selectedTeam, setSelectedTeam] = useState<Team | undefined>(undefined);
-    const [selectedChild, setSelectedChild] = useState<Player | undefined>(undefined)
-    //const [children, setChildren] = useState<Player[]>([])
     const [playersLoading, setPlayersLoading] = useState<boolean>(false)
     const _router = useRouter();
     const [newNotif, setNewNotif] = useState<boolean>(false);
@@ -65,6 +63,7 @@ const Home = () => {
     );
     const isFocused = useNavigation().isFocused();
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedProfileId, setSelectedProfileId] = useState<any>();
     const [selectedProfile, setSelectedProfile] = useState<UserProfileProps>();
 
 
@@ -76,6 +75,7 @@ const Home = () => {
             const fetchData = async () => {
                 try {
                     if (userData?.id) {
+                        //setSelectedProfileId(userData.id);
                         if (userSport.length == 0) {
                             setIsLoading(true);
                             dispatch(getUserSports(userData.id) as any);
@@ -317,10 +317,6 @@ const Home = () => {
     }
 
 
-    const getAllChildren = () => {
-        //TODO:: Call Service Children and get the user children, then set it to
-    }
-
     return (
         <>
             <StatusBar style="light"/>
@@ -400,7 +396,7 @@ const Home = () => {
                                         console.log('done');
                                     }}
                                     style={pickerSelectStyles}
-                                    value={selectedChild}
+                                    value={selectedProfileId}
                                     Icon={() => (
                                         <Ionicons
                                             name="chevron-down"

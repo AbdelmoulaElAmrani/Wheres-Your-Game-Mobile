@@ -2,6 +2,7 @@ import * as React from "react"
 import Svg, { SvgProps, Path } from "react-native-svg"
 const PlayerIcon = (props: SvgProps) => (
   <Svg
+      // @ts-ignore
     xmlns="http://www.w3.org/2000/svg"
     width={31}
     height={52}

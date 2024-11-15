@@ -3,6 +3,7 @@ import {AuthService} from './AuthService';
 import {router} from 'expo-router';
 import {logout} from "@/redux/UserSlice";
 import {API_URI, AXIOS_TIMEOUT} from "@/appConfig";
+import TokenManager from "@/services/TokenManager";
 
 
 let store: any;
@@ -22,9 +23,9 @@ axiosInstance.interceptors.request.use(
     async (config) => {
         let accessToken: string | null = '';
         if (config.url?.includes('refreshtoken')) {
-            accessToken = await AuthService.getRefreshToken();
+            accessToken = await TokenManager.getRefreshToken();
         } else {
-            accessToken = await AuthService.getAccessToken();
+            accessToken = await TokenManager.getAccessToken();
         }
         if (accessToken) {
             config.headers.Authorizations = `Bearer ${accessToken}`;
