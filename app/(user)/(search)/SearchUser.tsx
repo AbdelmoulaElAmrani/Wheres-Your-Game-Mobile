@@ -148,7 +148,7 @@ const SearchUser = () => {
                     )}
                     <Text style={styles.userName}>{`${item.firstName} ${item.lastName}`}</Text>
                 </View>
-                {(!item.friend && (!item.parent && isParenting)) ?
+                {(!item.friend && (!(item.parent && item.parentPending) && isParenting)) ?
                     <Ionicons
                         onPress={() => isParenting ? _onSendingParentingRequest(item.id) : _onAddFriendOrRemove(item.id)}
                         name="person-add-outline" size={20} color="black"/>

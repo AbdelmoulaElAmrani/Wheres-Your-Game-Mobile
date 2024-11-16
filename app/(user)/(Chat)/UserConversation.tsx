@@ -73,7 +73,7 @@ const UserConversation = () => {
 
             const fromISOString = from?.toISOString();
 
-            const msgs = await ChatService.getLastMessages(currentUser.id, receiver.id, fromISOString);
+            const msgs = await ChatService.getLastMessages(receiver.id, fromISOString);
 
             if (msgs && msgs.length > 0) {
                 setMessages(oldMessages => {
@@ -125,7 +125,7 @@ const UserConversation = () => {
         if (loading || !hasMore || receiver == null) return;
         setLoading(true);
         try {
-            const data = await ChatService.getMessages(currentUser.id, receiver.id, page);
+            const data = await ChatService.getMessages(receiver.id, page);
             if (data?.content?.length) {
                 setMessages((prevMessages) => [...prevMessages, ...data.content]);
                 if (data.empty || data.last || data.content.length < 100) {

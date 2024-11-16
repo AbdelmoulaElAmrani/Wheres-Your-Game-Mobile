@@ -2,7 +2,7 @@ import ReactNative, {FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, V
 import {StatusBar} from "expo-status-bar";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
-import React, {memo, useEffect, useState} from "react";
+import React, {memo, useCallback, useEffect, useRef, useState} from "react";
 import {AntDesign, Feather, Fontisto, Ionicons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
@@ -13,13 +13,14 @@ import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {getUserProfile, getUserSports} from "@/redux/UserSlice";
 import UserType from "@/models/UserType";
 import {Team} from "@/models/Team";
-import {router, useRouter, useNavigation} from "expo-router";
+import {router, useRouter, useNavigation, useFocusEffect} from "expo-router";
 import RNPickerSelect from 'react-native-picker-select';
 import {TeamService} from "@/services/TeamService";
 import Spinner from "@/components/Spinner";
 import {Image, ImageBackground} from "expo-image";
 import {NotificationService} from "@/services/NotificationService";
 import {NOTIFICATION_REFRESH_TIMER} from "@/appConfig";
+import {SportService} from "@/services/SportService";
 
 const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
 const REFRESH_NOTIFICATION_TIME = NOTIFICATION_REFRESH_TIMER * 1000;
@@ -45,11 +46,6 @@ const Home = () => {
     const [childrens, setChildrens] = useState<any[]>(
         [
             {
-                label: 'All Children',
-                value: 'All Children',
-                id: ''
-            },
-            {
                 label: 'Child 1',
                 value: 'Child 1',
                 id: ''
@@ -61,14 +57,16 @@ const Home = () => {
             },
         ]
     );
-    const isFocused = useNavigation().isFocused();
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedProfileId, setSelectedProfileId] = useState<any>();
-    const [selectedProfile, setSelectedProfile] = useState<UserProfileProps>();
+    const [selectedProfileId, setSelectedProfileId] = useState<string>('');
+    const [tempSelectedProfileId, setTempSelectedProfileId] = useState<string>('');
+    const [selectedProfile, setSelectedProfile] = useState<UserProfileProps>({sports: [], teams: [], userId: ''});
+    const isFocused = useNavigation().isFocused();
 
 
-    useEffect(() => {
-        if (isFocused) {
+    useFocusEffect(
+        useCallback(() => {
+            console.log('here');
             if (userData == undefined || userData.id == undefined) {
                 dispatch(getUserProfile() as any);
             }
@@ -96,27 +94,48 @@ const Home = () => {
             checkForNotification();
             const intervalId = setInterval(checkForNotification, REFRESH_NOTIFICATION_TIME);
 
-            return () => clearInterval(intervalId);
-        } else {
-            setPlayers([]);
-            setSelectedTeam(undefined);
-        }
-    }, [isFocused, userData]);
+            return () => {
+                clearInterval(intervalId);
+                setPlayers([]);
+                setSelectedTeam(undefined);
+            };
+        }, [userData])
+    );
 
-    //TODO:: when selected profile selected run this function
+
+    useFocusEffect(useCallback(() => {
+        if ((selectedProfileId == userData.id || selectedProfileId == '')) {
+            setSelectedProfile(prevState => ({...prevState, sports: userSport}));
+        }
+    }, [userSport]))
+
+
+    const isFirstRender = useRef(true);
     useEffect(() => {
-        try {
-            //TODO::if the selected profileId is current user id then
-            //TODO:: get the data from th redux
-            //TODO:: if the selected profileId is diffrent than current user then call the service to get the user sport then get user Teams
-            setIsLoading(true);
-        } catch (e) {
-
-        } finally {
-            setIsLoading(false);
+        console.log('here');
+        const fetchData = async () => {
+            try {
+                setIsLoading(true);
+                if (selectedProfileId === userData.id || selectedProfileId === '') {
+                    setSelectedProfile((prevState) => ({...prevState, sports: userSport}));
+                    await _getMyTeams(userData.id);
+                } else {
+                    await _getUserSport(selectedProfileId);
+                    await _getMyTeams(selectedProfileId);
+                }
+            } catch (e) {
+                console.error('Error fetching data:', e); // Log the error for debugging
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        if (isFirstRender.current) {
+            console.log('first');
+            isFirstRender.current = false;
+            return;
         }
-
-    }, [])
+        //fetchData();
+    }, [selectedProfileId])
 
 
     const checkForNotification = async () => {
@@ -130,10 +149,26 @@ const Home = () => {
         }
     }
 
+    const _getUserSport = async (userId: string) => {
+        try {
+            if (userId == userData.id) {
+                setSelectedProfile(prevState => ({...prevState, sport: userSport}));
+            } else {
+                const result = SportService.getUserSport(selectedProfileId);
+                if (result != undefined) {
+                    setSelectedProfile(prevState => ({...prevState, sport: result}));
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
     const _getMyTeams = async (userId: string) => {
         try {
             const result = await TeamService.getUserTeams(userId);
-            setTeams(result);
+            setSelectedProfile(prev => ({...prev, teams: result}));
+            //setTeams(result);
         } catch (e) {
             console.error('_getMyTeams', e);
         }
@@ -382,18 +417,23 @@ const Home = () => {
                                 <RNPickerSelect
                                     placeholder={{
                                         label: 'Me',
-                                        value: null,
+                                        value: userData.id,
                                         color: '#9EA0A4',
                                     }}
                                     items={childrens}
-                                    onOpen={() => console.log('open')}
                                     onValueChange={(value, index) => {
-                                        //TODO:: Set The Selected Child
-                                        console.log(value);
+                                        setTempSelectedProfileId(value);
+                                        console.log('Temporary value => ', value);
                                     }}
                                     onDonePress={() => {
                                         //TODO:: Call the function to get the child data
+                                        setSelectedProfileId(tempSelectedProfileId);
+                                        console.log('Final selected value => ', tempSelectedProfileId);
                                         console.log('done');
+                                    }}
+                                    onClose={() => {
+                                        setTempSelectedProfileId(selectedProfileId);
+                                        console.log('Picker closed without Done, reverted to => ', selectedProfileId);
                                     }}
                                     style={pickerSelectStyles}
                                     value={selectedProfileId}
@@ -438,7 +478,7 @@ const Home = () => {
                                         style={styles.count}>{userSport?.length}</Text></Text>
                                 </View>
                                 <FlatList
-                                    data={userSport}
+                                    data={selectedProfile?.sports}
                                     renderItem={({item}) => <_renderSportItem item={item}/>}
                                     keyExtractor={item => item.sportId + item.sportName}
                                     horizontal={true}
@@ -451,7 +491,7 @@ const Home = () => {
                                 <View style={styles.menuTitleContainer}>
                                     <View style={{flexDirection: 'row'}}>
                                         <Text style={styles.menuTitle}>Your Teams <Text
-                                            style={styles.count}>{teams?.length}</Text></Text>
+                                            style={styles.count}>{selectedProfile.teams?.length}</Text></Text>
                                     </View>
                                     {isCoach() && <TouchableOpacity
                                         onPress={_onAddTeam}
@@ -461,7 +501,7 @@ const Home = () => {
                                     </TouchableOpacity>}
                                 </View>
                                 <FlatList
-                                    data={teams}
+                                    data={selectedProfile?.teams}
                                     renderItem={({item}) => <_renderTeam item={item}/>}
                                     keyExtractor={item => item.id}
                                     horizontal={true}

@@ -38,6 +38,8 @@ const Chats = () => {
     const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
 
+    const [selectedProfileId, setSelectedProfileId] = useState<string>('');
+    const [tempSelectedProfileId, setTempSelectedProfileId] = useState<string>('');
 
     const [childrens, setChildrens] = useState<any[]>(
         [
@@ -272,17 +274,26 @@ const Chats = () => {
                             <RNPickerSelect
                                 placeholder={{
                                     label: 'Me',
-                                    value: null,
+                                    value: currentUser.id,
                                     color: '#9EA0A4',
                                 }}
                                 items={childrens}
                                 onValueChange={(value, index) => {
-                                    //TODO:: Set The Selected Child
-                                    console.log(value);
+                                    setTempSelectedProfileId(value);
+                                    console.log('Temporary value => ', value);
                                 }}
                                 onDonePress={() => {
-                                    //TODO:: Call the function to get the child messages
+                                    setSelectedProfileId(tempSelectedProfileId);
+                                    console.log('Final selected value => ', tempSelectedProfileId);
                                     console.log('done');
+                                }}
+                                onClose={() => {
+                                    if (selectedProfileId == currentUser.id) {
+                                        setTempSelectedProfileId('');
+                                    } else {
+                                        setTempSelectedProfileId(selectedProfileId);
+                                    }
+                                    console.log('Picker closed without Done, reverted to => ', selectedProfileId);
                                 }}
                                 style={{
                                     ...pickerSelectStyles,

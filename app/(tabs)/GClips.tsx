@@ -3,7 +3,7 @@ import {StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, Platform} fro
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {SafeAreaView} from "react-native-safe-area-context";
 import {ActivityIndicator, MD2Colors, Modal, Searchbar, TextInput} from 'react-native-paper';
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {AntDesign, FontAwesome} from '@expo/vector-icons';
 import {ImageBackground} from "expo-image";
 import VideoComponent from "@/components/VideoComponent";
@@ -17,7 +17,7 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {getUserProfile} from "@/redux/UserSlice";
 import LinkPreviewComponent from "@/components/LinkPreviewComponent";
 import {Helpers} from "@/constants/Helpers";
-import {useNavigation} from "expo-router";
+import {useFocusEffect, useNavigation} from "expo-router";
 
 
 const validDomains = {
@@ -48,32 +48,28 @@ const GClips = () => {
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const {socialMediaLinks} = useSelector((state: any) => state.user.userData) as UserResponse;
-    const isFocused = useNavigation().isFocused();
 
 
     const dispatch = useDispatch();
 
-    useEffect(() => {
-        if (isFocused) {
-            (async () => {
-                await dispatch(getUserProfile() as any)
-            })()
-            setSocialMediaLink({
-                facebook: socialMediaLinks?.facebookAccount || '',
-                instagram: socialMediaLinks?.instagramAccount || '',
-                tiktok: socialMediaLinks?.tiktokAccount || '',
-                youtube: socialMediaLinks?.youtubeAccount || '',
-            });
-        }
-    }, [isFocused]);
+    useFocusEffect(useCallback(() => {
+        (async () => {
+            await dispatch(getUserProfile() as any)
+        })()
+        setSocialMediaLink({
+            facebook: socialMediaLinks?.facebookAccount || '',
+            instagram: socialMediaLinks?.instagramAccount || '',
+            tiktok: socialMediaLinks?.tiktokAccount || '',
+            youtube: socialMediaLinks?.youtubeAccount || '',
+        });
+    }, []));
 
-    useEffect(() => {
-        if (isFocused) {
-            setPosts([]);
-            setHasMore(true);
-            handleFetchPosts();
-        }
-    }, [page, selectedTag, isFocused]);
+    useFocusEffect(useCallback(() => {
+        setPosts([]);
+        setHasMore(true);
+        handleFetchPosts();
+    }, [page, selectedTag]))
+
 
     const handleFetchPosts = async () => {
         if (loading || !hasMore) return;

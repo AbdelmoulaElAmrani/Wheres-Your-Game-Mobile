@@ -1,7 +1,7 @@
 import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
-import React, {useEffect, useRef, useState} from "react";
-import {router, useNavigation, useRouter} from "expo-router";
+import React, {useCallback, useEffect, useRef, useState} from "react";
+import {router, useFocusEffect, useNavigation, useRouter} from "expo-router";
 import {getUserProfile, getUserSports} from "@/redux/UserSlice";
 import {ImageBackground} from "expo-image";
 import {heightPercentageToDP as hp, widthPercentageToDP} from "react-native-responsive-screen";
@@ -24,16 +24,14 @@ export const ProfileV2 = () => {
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse | undefined;
     const loading = useSelector((state: any) => state.user.loading) as boolean;
     const [selectOption, setSelectOption] = useState<MenuOption>(MenuOption.Overview);
-    const isFocused = useNavigation().isFocused();
     const hasRun = useRef(false);
 
-    useEffect(() => {
-        if (isFocused) {
-            (async () => {
-                await dispatch(getUserProfile() as any);
-            })()
-        }
-    }, [isFocused]);
+    useFocusEffect(useCallback(() => {
+        (async () => {
+            await dispatch(getUserProfile() as any);
+        })()
+    }, []))
+
 
     /* useEffect(() => {
          /!*if (isFocused && currentUser?.id && !hasRun.current) {
