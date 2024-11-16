@@ -122,7 +122,7 @@ const SearchUser = () => {
             setPeople(oldPeople => {
                 return oldPeople.map(person => {
                     if (person.id === receiverId) {
-                        return {...person, parent: true};
+                        return {...person, parentPending: true};
                     }
                     return person;
                 });
@@ -148,7 +148,7 @@ const SearchUser = () => {
                     )}
                     <Text style={styles.userName}>{`${item.firstName} ${item.lastName}`}</Text>
                 </View>
-                {(!item.friend && (!(item.parent && item.parentPending) && isParenting)) ?
+                {((!item.friend && !isParenting) || (isParenting && !item.parent && !item.parentPending)) ?
                     <Ionicons
                         onPress={() => isParenting ? _onSendingParentingRequest(item.id) : _onAddFriendOrRemove(item.id)}
                         name="person-add-outline" size={20} color="black"/>

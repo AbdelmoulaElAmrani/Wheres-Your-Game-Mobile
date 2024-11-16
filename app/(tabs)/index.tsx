@@ -482,7 +482,7 @@ const Home = () => {
                                     renderItem={({item}) => <_renderSportItem item={item}/>}
                                     keyExtractor={item => item.sportId + item.sportName}
                                     horizontal={true}
-                                    showsHorizontalScrollIndicator={true}
+                                    showsHorizontalScrollIndicator={false}
                                     focusable={true}
                                     nestedScrollEnabled={true}
                                 />
@@ -505,7 +505,7 @@ const Home = () => {
                                     renderItem={({item}) => <_renderTeam item={item}/>}
                                     keyExtractor={item => item.id}
                                     horizontal={true}
-                                    showsHorizontalScrollIndicator={true}
+                                    showsHorizontalScrollIndicator={false}
                                     focusable={true}
                                     nestedScrollEnabled={true}
                                 />
@@ -531,7 +531,7 @@ const Home = () => {
                                         renderItem={({item}) => <_renderPlayer item={item}/>}
                                         keyExtractor={item => item.id}
                                         horizontal={true}
-                                        showsHorizontalScrollIndicator={true}
+                                        showsHorizontalScrollIndicator={false}
                                         focusable={true}
                                         nestedScrollEnabled={true}
                                     />)}
