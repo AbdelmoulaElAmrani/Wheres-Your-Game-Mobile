@@ -29,6 +29,7 @@ import { StorageService } from '@/services/StorageService';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Spinner from "@/components/Spinner";
 import { DatePickerModal, enGB, registerTranslation, TimePickerModal } from 'react-native-paper-dates';
+import OverlaySpinner from '@/components/OverlaySpinner';
 
 
 function TeamForm() {
@@ -186,7 +187,7 @@ function TeamForm() {
             source={require('../../assets/images/signupBackGround.jpg')}
         >
             <SafeAreaView style={{ flex: 1 }}>
-                {creating && <Spinner visible={creating} />}
+                {creating && <OverlaySpinner visible={creating}/>}
                 <CustomNavigationHeader text={isAddTeam ? 'Create Team' : 'Edit Team'} showBackArrow />
                 <View style={styles.cardContainer}>
                     <KeyboardAwareScrollView

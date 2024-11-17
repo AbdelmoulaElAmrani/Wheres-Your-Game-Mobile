@@ -14,6 +14,7 @@ import * as Linking from 'expo-linking';
 import {UserService} from "@/services/UserService";
 import {Helpers} from "@/constants/Helpers";
 import {getUserProfile} from "@/redux/UserSlice";
+import OverlaySpinner from "@/components/OverlaySpinner";
 
 
 enum MenuOption {
@@ -95,7 +96,7 @@ export const UserProfile = () => {
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
                 {loading && (
-                    <Spinner visible={loading}/>
+                    <OverlaySpinner visible={loading}/>
                 )}
                 <CustomNavigationHeader text={'Player'} goBackFunction={_handleGoBack} showBackArrow/>
 

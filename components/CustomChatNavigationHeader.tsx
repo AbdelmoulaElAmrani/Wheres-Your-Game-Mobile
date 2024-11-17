@@ -39,7 +39,7 @@ const CustomChatNavigationHeader: React.FC<CustomChatNavigationHeaderProps> = ({
                 <Text style={{color: 'white', textAlign: 'center', marginTop: 4}}>{role}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={_handleBlock}>
-                <Entypo name="block" size={25} color={isBlocked ? "red" : "grey"}/>
+                <Entypo name="block" size={25} color={!isBlocked ? "red" : "grey"}/>
             </TouchableOpacity>
         </View>
     );

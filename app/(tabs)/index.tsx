@@ -21,6 +21,7 @@ import {Image, ImageBackground} from "expo-image";
 import {NotificationService} from "@/services/NotificationService";
 import {NOTIFICATION_REFRESH_TIMER} from "@/appConfig";
 import {SportService} from "@/services/SportService";
+import OverlaySpinner from "@/components/OverlaySpinner";
 
 const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
 const REFRESH_NOTIFICATION_TIME = NOTIFICATION_REFRESH_TIMER * 1000;
@@ -350,8 +351,10 @@ const Home = () => {
                     flex: 1,
                 }}
                 source={require('../../assets/images/signupBackGround.jpg')}>
+                  {(loading || isLoading) && isFocused && (
+                            <OverlaySpinner visible={true}/>
+                    )}
                 <SafeAreaView style={{height: hp(100)}}>
-                    {(loading || isLoading) && isFocused && <Spinner visible={(loading || isLoading) && isFocused}/>}
                     <View style={styles.headerContainer}>
                         <View>
                             <TouchableOpacity onPress={_handleOnOpenSearch}>

@@ -33,6 +33,7 @@ import CampIcon from "@/assets/images/svg/CampIcon";
 import CoachIconV2 from "@/assets/images/svg/CoachIconV2";
 import BusinessIconV2 from "@/assets/images/svg/BusinessIconV2";
 import Spinner from "@/components/Spinner";
+import OverlaySpinner from "@/components/OverlaySpinner";
 
 
 const UserStepForm = () => {
@@ -377,7 +378,7 @@ const UserStepForm = () => {
                     height: hp(45)
                 }}>
                     {loading && (
-                        <Spinner visible={loading}/>
+                        <OverlaySpinner visible={loading}/>
                     )}
                     <Text style={{
                         marginBottom: 20,

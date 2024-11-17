@@ -24,6 +24,7 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {getUserSports} from "@/redux/UserSlice";
 import Spinner from "@/components/Spinner";
+import OverlaySpinner from "@/components/OverlaySpinner";
 
 const SportInterested = () => {
 
@@ -254,7 +255,7 @@ const SportInterested = () => {
             style={StyleSheet.absoluteFill}
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView style={{flex: 1}}>
-                <Spinner visible={loading}/>
+                {loading && (<OverlaySpinner visible={loading}/>)}
                 <CustomNavigationHeader text={"Sport"} goBackFunction={_handleGoBack()} showBackArrow/>
                 <Text style={styles.stepText}>Step {currentStep}/2</Text>
                 <View style={styles.mainContainer}>

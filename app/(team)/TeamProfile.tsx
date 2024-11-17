@@ -12,6 +12,7 @@ import {TeamService} from "@/services/TeamService";
 import {Team} from "@/models/Team";
 import {useSelector} from "react-redux";
 import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
+import OverlaySpinner from "@/components/OverlaySpinner";
 
 enum tabOption {
     Team,
@@ -54,7 +55,7 @@ const TeamProfile = () => {
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
                 {loading && (
-                    <Spinner visible={loading}/>
+                    <OverlaySpinner visible={loading}/>
                 )}
                 <CustomNavigationHeader text={`Team Profile`}
                                         goBackFunction={_handleGoBack} showBackArrow/>

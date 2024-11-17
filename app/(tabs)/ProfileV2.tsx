@@ -12,6 +12,7 @@ import {Avatar, Divider} from "react-native-paper";
 import {FontAwesome6} from "@expo/vector-icons";
 import * as Linking from "expo-linking";
 import {Helpers} from "@/constants/Helpers";
+import OverlaySpinner from "@/components/OverlaySpinner";
 
 enum MenuOption {
     Overview,
@@ -74,6 +75,7 @@ export const ProfileV2 = () => {
             style={{height: hp(100)}}
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
+                {loading && ( <OverlaySpinner visible={true}/>)}
                 <View style={styles.mainContainer}>
                     <ScrollView showsVerticalScrollIndicator={false}
                                 contentContainerStyle={{alignItems: 'center'}}
