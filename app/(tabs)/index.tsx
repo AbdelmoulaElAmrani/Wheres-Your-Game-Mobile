@@ -43,20 +43,6 @@ const Home = () => {
     const [playersLoading, setPlayersLoading] = useState<boolean>(false)
     const _router = useRouter();
     const [newNotif, setNewNotif] = useState<boolean>(false);
-    const [childrens, setChildrens] = useState<any[]>(
-        [
-            {
-                label: 'Child 1',
-                value: 'Child 1',
-                id: ''
-            },
-            {
-                label: 'Child 2',
-                value: 'Child 2',
-                id: ''
-            },
-        ]
-    );
     const [isLoading, setIsLoading] = useState(false);
     const [selectedProfileId, setSelectedProfileId] = useState<string>('');
     const [tempSelectedProfileId, setTempSelectedProfileId] = useState<string>('');
@@ -73,7 +59,6 @@ const Home = () => {
             const fetchData = async () => {
                 try {
                     if (userData?.id) {
-                        //setSelectedProfileId(userData.id);
                         if (userSport.length == 0) {
                             setIsLoading(true);
                             dispatch(getUserSports(userData.id) as any);
@@ -112,7 +97,7 @@ const Home = () => {
 
     const isFirstRender = useRef(true);
     useEffect(() => {
-        console.log('here');
+        console.log('here with value of => ', selectedProfileId);
         const fetchData = async () => {
             try {
                 setIsLoading(true);
@@ -134,7 +119,7 @@ const Home = () => {
             isFirstRender.current = false;
             return;
         }
-        //fetchData();
+        fetchData();
     }, [selectedProfileId])
 
 
@@ -417,26 +402,31 @@ const Home = () => {
                                 <RNPickerSelect
                                     placeholder={{
                                         label: 'Me',
-                                        value: userData.id,
+                                        value: null,
                                         color: '#9EA0A4',
                                     }}
-                                    items={childrens}
+                                    items={userData?.children?.map(child => ({
+                                        label: child.fullName,
+                                        value: child.id,
+                                        id: child.id,
+                                        color: '#9EA0A4',
+                                    })) || []}
                                     onValueChange={(value, index) => {
-                                        setTempSelectedProfileId(value);
-                                        console.log('Temporary value => ', value);
+                                        if (value === null) {
+                                            // Reset to default if placeholder is selected
+                                            setTempSelectedProfileId('');
+                                        } else {
+                                            setTempSelectedProfileId(value);
+                                        }
                                     }}
                                     onDonePress={() => {
-                                        //TODO:: Call the function to get the child data
                                         setSelectedProfileId(tempSelectedProfileId);
-                                        console.log('Final selected value => ', tempSelectedProfileId);
-                                        console.log('done');
                                     }}
                                     onClose={() => {
                                         setTempSelectedProfileId(selectedProfileId);
-                                        console.log('Picker closed without Done, reverted to => ', selectedProfileId);
                                     }}
                                     style={pickerSelectStyles}
-                                    value={selectedProfileId}
+                                    value={tempSelectedProfileId}
                                     Icon={() => (
                                         <Ionicons
                                             name="chevron-down"
