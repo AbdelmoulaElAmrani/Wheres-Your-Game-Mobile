@@ -48,6 +48,7 @@ const UserConversation = () => {
             const userData = await UserService.getUserProfileById(receiverId);
             setLoading(false);
             if (userData) {
+                console.log(userData);
                 setReceiver(userData);
             } else {
                 router.back();

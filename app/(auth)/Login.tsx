@@ -31,6 +31,7 @@ import LocalStorageService from '@/services/LocalStorageService';
 //import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
 import {googleAndroidClientId, googleIosClientId, googleWebClientId} from "@/appConfig";
 import TokenManager from "@/services/TokenManager";
+import OverlaySpinner from '@/components/OverlaySpinner';
 
 
 const Login = () => {
@@ -155,7 +156,7 @@ const Login = () => {
 
                         <View style={styles.cardContainer}>
                             {loading && (
-                                <Spinner visible={loading}/>
+                                <OverlaySpinner visible={loading}/>
                             )}
 
                             <View style={styles.headerContainer}>

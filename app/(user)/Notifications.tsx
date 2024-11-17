@@ -14,6 +14,8 @@ import { NotificationService } from "@/services/NotificationService";
 import NotificationType from "@/models/NotificationType";
 import { FriendRequestService } from "@/services/FriendRequestService";
 import { ChildrenService } from "@/services/ChildrenService";
+import { Overlay } from "react-native-maps";
+import OverlaySpinner from "@/components/OverlaySpinner";
 
 
 const Notifications = () => {
@@ -156,7 +158,8 @@ const Notifications = () => {
                 <CustomNavigationHeader text="Notification" goBackFunction={_handleGoBack} showBackArrow />
                 <View style={styles.container}>
                     {loading ? (
-                        <ActivityIndicator animating color={MD2Colors.blueA700} size={50} />
+                        // <ActivityIndicator animating color={MD2Colors.blueA700} size={50} />
+                        <OverlaySpinner visible={loading} />
                     ) : (
                         <View style={styles.flashListContainer}>
                             <FlashList

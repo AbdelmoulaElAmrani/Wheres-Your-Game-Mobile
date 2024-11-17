@@ -27,6 +27,7 @@ import {Helpers} from "@/constants/Helpers";
 import {ChildrenService} from "@/services/ChildrenService";
 import PhoneInput from "react-native-phone-number-input";
 import {InvitationService} from "@/services/InvitationService";
+import OverlaySpinner from "@/components/OverlaySpinner";
 
 
 interface InviteObject {
@@ -245,7 +246,7 @@ const SearchUser = () => {
             source={require('../../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
                 {loading && (
-                    <Spinner visible={loading}/>
+                    <OverlaySpinner visible={loading}/>
                 )}
                 <CustomNavigationHeader
                     text={isParenting ? 'Add a Child' : `Search ${searchType ? UserType[searchType] : ''}`}

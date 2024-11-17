@@ -27,6 +27,7 @@ import {useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import UserType from "@/models/UserType";
 import RNPickerSelect from "react-native-picker-select";
+import OverlaySpinner from "@/components/OverlaySpinner";
 
 
 const MESSAGE_TIMER = CONVERSATION_REFRESH_TIMER * 1000;
@@ -256,12 +257,12 @@ const Chats = () => {
                 width: '100%',
             }}
             source={require('../../../assets/images/signupBackGround.jpg')}>
+            {loading && (
+                <OverlaySpinner visible={loading}/>
+            )}
             <SafeAreaView>
                 <CustomNavigationHeader text={"Message"} goBackFunction={_handleGoBack} showBackArrow/>
                 <View style={styles.mainContainer}>
-                    {loading && (
-                        <Spinner visible={loading}/>
-                    )}
                     <View style={styles.searchContainer}>
                         <TouchableOpacity
                             onPress={_showSearchUserModal}
