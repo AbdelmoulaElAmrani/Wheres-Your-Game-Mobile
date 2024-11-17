@@ -4,7 +4,7 @@ import {Conversation, Message} from "@/models/Conversation";
 export class ChatService {
     static async getConversation(childId: string | undefined = undefined) {
         try {
-            var res = await Requests.get(`chat/conversation?childId=${childId}`);
+            var res = await Requests.get(`chat/conversation?childId=${childId ? childId : ""}`);
             if (res?.status === 200 && res?.data) {
                 return res.data as Conversation[];
             }
@@ -16,7 +16,7 @@ export class ChatService {
 
     static async getMessages(userId2: string, page = 0, childId: string | undefined = undefined, size = 100) {
         try {
-            var res = await Requests.get(`chat/messages?userId1=${childId}&userId2=${userId2}&page=${page}&size=${size}`);
+            var res = await Requests.get(`chat/messages?userId1=${childId ? childId : ""}&userId2=${userId2}&page=${page}&size=${size}`);
             if (res?.status === 200 && res?.data) {
                 return res.data
             }
@@ -28,7 +28,7 @@ export class ChatService {
 
     static async getLastMessages(userId2: string, from: any, childId: string | undefined = undefined) {
         try {
-            var res = await Requests.get(`chat/lastMessages?userId1=${childId}&userId2=${userId2}&from=${from}`);
+            var res = await Requests.get(`chat/lastMessages?userId1=${childId ? childId : ""}&userId2=${userId2}&from=${from}`);
             if (res?.status === 200 && res?.data) {
                 return res.data as Message[];
             }
@@ -39,7 +39,7 @@ export class ChatService {
     }
 
     static async sendMessage(message: Message, childId: string | undefined = undefined) {
-        const res = await Requests.post(`chat/message?childId=${childId}`, message);
+        const res = await Requests.post(`chat/message?childId=${childId ? childId : ""}`, message);
         if (res?.status === 200 && res?.data) {
             return res.data as Message;
         }

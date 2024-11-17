@@ -76,7 +76,6 @@ const UserConversation = () => {
             }
 
             const fromISOString = from?.toISOString();
-            console.log('child => ', childId);
             const msgs = await ChatService.getLastMessages(receiver.id, fromISOString, childId);
 
             if (msgs && msgs.length > 0) {
@@ -97,7 +96,7 @@ const UserConversation = () => {
         try {
             if (newMessage.trim() && receiver) {
                 const message: Message = {
-                    senderId: currentUser.id,
+                    senderId: childId ? childId : currentUser.id,
                     receiverId: receiver.id,
                     message: newMessage,
                     timestamp: timestamp,
@@ -115,7 +114,7 @@ const UserConversation = () => {
     }
 
     const _renderMessage = ({item}: { item: Message }) => {
-        const isCurrentUser = item.senderId === currentUser.id;
+        const isCurrentUser = item.senderId === (childId ? childId : currentUser.id);
 
         return (
             <View
@@ -130,8 +129,6 @@ const UserConversation = () => {
         setLoading(true);
         try {
             const data = await ChatService.getMessages(receiver.id, page, childId);
-            console.log(childId);
-            console.log(data);
             if (data?.content?.length) {
                 setMessages((prevMessages) => [...prevMessages, ...data.content]);
                 if (data.empty || data.last || data.content.length < 100) {
