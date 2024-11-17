@@ -53,7 +53,6 @@ const Home = () => {
 
     useFocusEffect(
         useCallback(() => {
-            console.log('here');
             if (userData == undefined || userData.id == undefined) {
                 dispatch(getUserProfile() as any);
             }
@@ -98,7 +97,6 @@ const Home = () => {
 
     const isFirstRender = useRef(true);
     useEffect(() => {
-        console.log('here with value of => ', selectedProfileId);
         const fetchData = async () => {
             try {
                 setIsLoading(true);
@@ -116,7 +114,6 @@ const Home = () => {
             }
         };
         if (isFirstRender.current) {
-            console.log('first');
             isFirstRender.current = false;
             return;
         }
@@ -154,9 +151,11 @@ const Home = () => {
         try {
             const result = await TeamService.getUserTeams(userId);
             setSelectedProfile(prev => ({...prev, teams: result}));
-            //setTeams(result);
         } catch (e) {
             console.error('_getMyTeams', e);
+        } finally {
+            setSelectedTeam(undefined);
+            setPlayers([]);
         }
     }
 
@@ -237,7 +236,8 @@ const Home = () => {
     const isCoach = (): boolean => userData.role == UserType[UserType.COACH] || userData.role == UserType[UserType.ORGANIZATION];
 
     const isPlayersVisible = (): boolean =>
-        (isCoach() || UserType[UserType.PLAYER] == userData.role) && selectedTeam !== undefined;
+        //(isCoach() || UserType[UserType.PLAYER] == userData.role) && selectedTeam !== undefined;
+        selectedTeam !== undefined;
 
 
     const _renderSportItem = memo(({item}: { item: UserSportResponse }) => {
@@ -351,9 +351,9 @@ const Home = () => {
                     flex: 1,
                 }}
                 source={require('../../assets/images/signupBackGround.jpg')}>
-                  {(loading || isLoading) && isFocused && (
-                            <OverlaySpinner visible={true}/>
-                    )}
+                {(loading || isLoading) && isFocused && (
+                    <OverlaySpinner visible={true}/>
+                )}
                 <SafeAreaView style={{height: hp(100)}}>
                     <View style={styles.headerContainer}>
                         <View>
@@ -416,7 +416,6 @@ const Home = () => {
                                     })) || []}
                                     onValueChange={(value, index) => {
                                         if (value === null) {
-                                            // Reset to default if placeholder is selected
                                             setTempSelectedProfileId('');
                                         } else {
                                             setTempSelectedProfileId(value);
@@ -429,7 +428,7 @@ const Home = () => {
                                         setTempSelectedProfileId(selectedProfileId);
                                     }}
                                     style={pickerSelectStyles}
-                                    value={tempSelectedProfileId}
+                                    //value={tempSelectedProfileId}
                                     Icon={() => (
                                         <Ionicons
                                             name="chevron-down"

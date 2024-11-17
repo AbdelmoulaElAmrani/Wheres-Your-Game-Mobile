@@ -122,7 +122,8 @@ export const UserProfile = () => {
                                 <Text style={{
                                     fontWeight: 'bold',
                                     fontSize: 18
-                                }}>{`${person?.firstName.charAt(0).toUpperCase()}${person?.firstName.slice(1).toLowerCase()} ${person?.lastName.charAt(0).toUpperCase()}${person?.lastName.slice(1).toLowerCase()}`}
+                                }}>
+                                    {`${person?.firstName?.charAt(0).toUpperCase() || ''}${person?.firstName?.slice(1).toLowerCase() || ''} ${person?.lastName?.charAt(0).toUpperCase() || ''}${person?.lastName?.slice(1).toLowerCase() || ''}`}
                                 </Text>
                                 <Text style={{color: 'grey', fontSize: 16, marginTop: 5}}>
                                     {`${person?.city || ''}${person?.city && person?.stateRegion ? ', ' : ''}${person?.stateRegion || ''}${person?.stateRegion && person?.country ? ', ' : ''}${person?.country || ''}`}

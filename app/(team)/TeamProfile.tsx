@@ -130,7 +130,7 @@ const TeamProfile = () => {
                         <Divider bold={true} style={{width: '100%'}}/>
                     </View>
                     <View style={{width: '90%'}}>
-                        <Text style={{fontWeight: 'bold', marginTop: 10, fontSize: 16}}>Team List</Text>
+                        {/* <Text style={{fontWeight: 'bold', marginTop: 10, fontSize: 16}}>Team List</Text>*/}
                         <View style={{marginTop: hp('2%'), height: '75%'}}>
                             <FlatList
                                 contentContainerStyle={{

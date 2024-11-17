@@ -10,8 +10,8 @@ import {
 } from "react-native";
 import {ImageBackground} from "expo-image";
 import {SafeAreaView, useSafeAreaInsets} from "react-native-safe-area-context";
-import {router, useLocalSearchParams} from "expo-router";
-import {useEffect, useState} from "react";
+import {router, useFocusEffect, useLocalSearchParams} from "expo-router";
+import {useCallback, useState} from "react";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {Ionicons} from "@expo/vector-icons";
 import {useSelector} from "react-redux";
@@ -33,6 +33,7 @@ const UserConversation = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [enabledSend, setEnabledSend] = useState<boolean>(true);
+    const [childId, setChildId] = useState<string | undefined>(undefined);
 
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
@@ -40,15 +41,13 @@ const UserConversation = () => {
     const paramData = useLocalSearchParams<any>();
     const insets = useSafeAreaInsets();
 
-
-    useEffect(() => {
+    useFocusEffect(useCallback(() => {
         setLoading(true);
         const receiverId = paramData?.data;
         const fetchUserDataAndMessages = async () => {
             const userData = await UserService.getUserProfileById(receiverId);
             setLoading(false);
             if (userData) {
-                console.log(userData);
                 setReceiver(userData);
             } else {
                 router.back();
@@ -60,7 +59,7 @@ const UserConversation = () => {
         return () => {
             clearInterval(lastMessageInterval);
         }
-    }, []);
+    }, []));
 
     const _getNewMessages = async () => {
         try {

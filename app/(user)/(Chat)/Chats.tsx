@@ -10,8 +10,8 @@ import {
 import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {ImageBackground} from "expo-image";
-import {router, useRouter} from "expo-router";
-import React, {memo, useEffect, useRef, useState} from "react";
+import {router, useFocusEffect, useRouter} from "expo-router";
+import React, {memo, useCallback, useEffect, useRef, useState} from "react";
 import {Conversation} from "@/models/Conversation";
 import {FlashList} from "@shopify/flash-list";
 import {Avatar, Divider, Modal} from "react-native-paper";
@@ -42,20 +42,10 @@ const Chats = () => {
     const [selectedProfileId, setSelectedProfileId] = useState<string>('');
     const [tempSelectedProfileId, setTempSelectedProfileId] = useState<string>('');
 
-    const [childrens, setChildrens] = useState<any[]>(
-        [
-            {
-                label: 'Child 1',
-                value: 'Child 1',
-                id: ''
-            },
-            {
-                label: 'Child 2',
-                value: 'Child 2',
-                id: ''
-            },
-        ]
-    );
+    const _handleGoBack = () => {
+        if (router.canGoBack())
+            router.back();
+    }
 
 
     useEffect(() => {
@@ -95,14 +85,9 @@ const Chats = () => {
         }
     };
 
-    const _handleGoBack = () => {
-        if (router.canGoBack())
-            router.back();
-    }
-
     const fetchConversations = async () => {
         if (!modalOpen) {
-            const data = await ChatService.getConversation();
+            const data = await ChatService.getConversation(selectedProfileId);
             if (data) {
                 try {
                     const sortedData = data.sort((a, b) => {
@@ -148,7 +133,6 @@ const Chats = () => {
             const data = await UserService.SearchUsersByFullName(searchName);
             setPeople(data || []);
         }
-
         const _renderUserItem = ({item}: { item: UserSearchResponse }) => (
             <TouchableOpacity style={styles.userItem} onPress={() => startChatWithUser(item)}>
 
@@ -163,7 +147,6 @@ const Chats = () => {
                 <Text style={styles.userName}>{`${item.firstName} ${item.lastName}`}</Text>
             </TouchableOpacity>
         );
-
         return (
             <Modal visible={modalOpen}
                    onDismiss={_hideSearchUserModal}
@@ -250,6 +233,18 @@ const Chats = () => {
         );
     });
 
+    const isFirstRender = useRef<boolean>(true);
+
+    useFocusEffect(useCallback(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        fetchConversations();
+        stopInterval();
+        startInterval();
+    }, [selectedProfileId]));
+
     return (
         <ImageBackground
             style={{
@@ -264,37 +259,39 @@ const Chats = () => {
                 <CustomNavigationHeader text={"Message"} goBackFunction={_handleGoBack} showBackArrow/>
                 <View style={styles.mainContainer}>
                     <View style={styles.searchContainer}>
-                        <TouchableOpacity
-                            onPress={_showSearchUserModal}
-                            style={{alignItems: 'flex-end', marginRight: 15, marginTop: '4%'}}>
-                            <AntDesign name="pluscircle" size={30} color="#2757CB"/>
-                        </TouchableOpacity>
+                        {(selectedProfileId == '' || selectedProfileId == currentUser.id) &&
+                            <TouchableOpacity
+                                onPress={_showSearchUserModal}
+                                style={{alignItems: 'flex-end', marginRight: 15, marginTop: '4%'}}>
+                                <AntDesign name="pluscircle" size={30} color="#2757CB"/>
+                            </TouchableOpacity>}
                     </View>
                     {currentUser.role == UserType[UserType.PARENT] && (<View style={styles.parentFilter}>
                         <View style={{width: '80%'}}>
                             <RNPickerSelect
                                 placeholder={{
                                     label: 'Me',
-                                    value: currentUser.id,
-                                    color: '#9EA0A4',
+                                    value: '',
+                                    color: 'black',
                                 }}
-                                items={childrens}
+                                items={currentUser?.children?.map(child => ({
+                                    label: child.fullName,
+                                    value: child.id,
+                                    id: child.id,
+                                    color: 'black',
+                                })) || []}
                                 onValueChange={(value, index) => {
-                                    setTempSelectedProfileId(value);
-                                    console.log('Temporary value => ', value);
+                                    if (value === '') {
+                                        setTempSelectedProfileId('');
+                                    } else {
+                                        setTempSelectedProfileId(value);
+                                    }
                                 }}
                                 onDonePress={() => {
                                     setSelectedProfileId(tempSelectedProfileId);
-                                    console.log('Final selected value => ', tempSelectedProfileId);
-                                    console.log('done');
                                 }}
                                 onClose={() => {
-                                    if (selectedProfileId == currentUser.id) {
-                                        setTempSelectedProfileId('');
-                                    } else {
-                                        setTempSelectedProfileId(selectedProfileId);
-                                    }
-                                    console.log('Picker closed without Done, reverted to => ', selectedProfileId);
+                                    setTempSelectedProfileId(selectedProfileId);
                                 }}
                                 style={{
                                     ...pickerSelectStyles,
@@ -408,6 +405,7 @@ const styles = StyleSheet.create({
     parentFilter: {
         alignItems: 'center',
         justifyContent: 'center',
+        marginBottom: 20
     },
 });
 
