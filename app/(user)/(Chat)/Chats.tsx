@@ -107,7 +107,7 @@ const Chats = () => {
         const receptionId = chat.user?.id;
         _router.push({
             pathname: '/UserConversation',
-            params: {data: receptionId},
+            params: {receptionId: receptionId, childId: selectedProfileId},
         });
     }
 

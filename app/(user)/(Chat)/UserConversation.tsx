@@ -11,7 +11,7 @@ import {
 import {ImageBackground} from "expo-image";
 import {SafeAreaView, useSafeAreaInsets} from "react-native-safe-area-context";
 import {router, useFocusEffect, useLocalSearchParams} from "expo-router";
-import {useCallback, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {Ionicons} from "@expo/vector-icons";
 import {useSelector} from "react-redux";
@@ -41,9 +41,13 @@ const UserConversation = () => {
     const paramData = useLocalSearchParams<any>();
     const insets = useSafeAreaInsets();
 
+
     useFocusEffect(useCallback(() => {
         setLoading(true);
-        const receiverId = paramData?.data;
+        const receiverId = paramData?.receptionId;
+        const child = paramData?.childId;
+        if (child)
+            setChildId(child);
         const fetchUserDataAndMessages = async () => {
             const userData = await UserService.getUserProfileById(receiverId);
             setLoading(false);
@@ -72,8 +76,8 @@ const UserConversation = () => {
             }
 
             const fromISOString = from?.toISOString();
-
-            const msgs = await ChatService.getLastMessages(receiver.id, fromISOString);
+            console.log('child => ', childId);
+            const msgs = await ChatService.getLastMessages(receiver.id, fromISOString, childId);
 
             if (msgs && msgs.length > 0) {
                 setMessages(oldMessages => {
@@ -98,7 +102,7 @@ const UserConversation = () => {
                     message: newMessage,
                     timestamp: timestamp,
                 };
-                const response = await ChatService.sendMessage(message);
+                const response = await ChatService.sendMessage(message, childId);
                 setNewMessage('');
                 setMessages(old => [response, ...old]);
             }
@@ -125,7 +129,9 @@ const UserConversation = () => {
         if (loading || !hasMore || receiver == null) return;
         setLoading(true);
         try {
-            const data = await ChatService.getMessages(receiver.id, page);
+            const data = await ChatService.getMessages(receiver.id, page, childId);
+            console.log(childId);
+            console.log(data);
             if (data?.content?.length) {
                 setMessages((prevMessages) => [...prevMessages, ...data.content]);
                 if (data.empty || data.last || data.content.length < 100) {
@@ -166,7 +172,7 @@ const UserConversation = () => {
                 {
                     text: 'Block',
                     onPress: async () => {
-                        const res = await BlockService.blockUser(receiver.id);
+                        const res = await BlockService.blockUser(receiver.id, childId);
                         if (res) {
                             Alert.alert(
                                 'User Blocked',

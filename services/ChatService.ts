@@ -16,7 +16,7 @@ export class ChatService {
 
     static async getMessages(userId2: string, page = 0, childId: string | undefined = undefined, size = 100) {
         try {
-            var res = await Requests.get(`chat/messages?childId=${childId}&userId2=${userId2}&page=${page}&size=${size}`);
+            var res = await Requests.get(`chat/messages?userId1=${childId}&userId2=${userId2}&page=${page}&size=${size}`);
             if (res?.status === 200 && res?.data) {
                 return res.data
             }
@@ -28,7 +28,7 @@ export class ChatService {
 
     static async getLastMessages(userId2: string, from: any, childId: string | undefined = undefined) {
         try {
-            var res = await Requests.get(`chat/lastMessages?childId=${childId}&userId2=${userId2}&from=${from}`);
+            var res = await Requests.get(`chat/lastMessages?userId1=${childId}&userId2=${userId2}&from=${from}`);
             if (res?.status === 200 && res?.data) {
                 return res.data as Message[];
             }
