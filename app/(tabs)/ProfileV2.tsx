@@ -6,13 +6,13 @@ import {getUserProfile, getUserSports} from "@/redux/UserSlice";
 import {ImageBackground} from "expo-image";
 import {heightPercentageToDP as hp, widthPercentageToDP} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
-import Spinner from "@/components/Spinner";
 import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {Avatar, Divider} from "react-native-paper";
 import {FontAwesome6} from "@expo/vector-icons";
 import * as Linking from "expo-linking";
 import {Helpers} from "@/constants/Helpers";
 import OverlaySpinner from "@/components/OverlaySpinner";
+import { UserSportResponse } from "@/models/responseObjects/UserSportResponse";
 
 enum MenuOption {
     Overview,
@@ -26,6 +26,8 @@ export const ProfileV2 = () => {
     const loading = useSelector((state: any) => state.user.loading) as boolean;
     const [selectOption, setSelectOption] = useState<MenuOption>(MenuOption.Overview);
     const hasRun = useRef(false);
+
+    const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
 
     useFocusEffect(useCallback(() => {
         (async () => {
@@ -163,7 +165,9 @@ export const ProfileV2 = () => {
                                 }}>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Skills Focus</Text>
-                                        <Text style={styles.infoText}>{currentUser?.skillLevel?.[0] ?? ""}</Text>
+                                        <Text style={styles.infoText}>
+                                            {currentUser?.role === "COACH" ? userSport[0]?.sportLevel : currentUser?.skillLevel?.[0] ?? ""}
+                                        </Text>
                                     </View>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Followers</Text>
@@ -348,7 +352,7 @@ const styles = StyleSheet.create({
     infoText: {
         fontWeight: 'bold',
         color: 'blue',
-        fontSize: 14,
+        fontSize: 12,
         marginTop: 5
     },
     followBtn: {

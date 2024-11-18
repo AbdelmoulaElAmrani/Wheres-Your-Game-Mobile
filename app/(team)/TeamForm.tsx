@@ -101,9 +101,7 @@ function TeamForm() {
             Alert.alert('Error', errors.join('\n'));
             return;
         }
-        console.log(team?.founded ? new Date(team.founded).toISOString().split('T')[0] : null);
        
-
         try {
             setCreating(true);
             const response = await TeamService.createTeam({
@@ -136,7 +134,7 @@ function TeamForm() {
         } catch (e) {
             setCreating(false);
             console.error(e);
-            Alert.alert('Error', 'Something went wrong');
+            Alert.alert('Error', 'Something went wrong ' + e);
         }
     };
 
