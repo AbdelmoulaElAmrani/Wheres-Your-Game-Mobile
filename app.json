@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
-      "resizeMode": "cover"
+      "resizeMode": "cover",
+      "enableFullScreenImage_legacy": "true"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -61,7 +62,14 @@
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash.png",
+          "enableFullScreenImage_legacy": "true"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
