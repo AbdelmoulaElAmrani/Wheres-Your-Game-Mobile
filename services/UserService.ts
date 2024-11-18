@@ -4,8 +4,8 @@ import {UserRequest} from "@/models/requestObjects/UserRequest";
 import UserType from "@/models/UserType";
 import {SocialMediaLinksResponse} from "@/models/responseObjects/SocialMediaLinksResponse";
 import {SocialMediaLinksRequest} from "@/models/requestObjects/SocialMediaLinksRequest";
-import { User } from "@react-native-google-signin/google-signin";
-import { UserSettingsRequest } from "@/models/requestObjects/UserSettingsRequest";
+import {User} from "@react-native-google-signin/google-signin";
+import {UserSettingsRequest} from "@/models/requestObjects/UserSettingsRequest";
 
 
 export class UserService {
@@ -40,9 +40,10 @@ export class UserService {
         }
     }
 
-    static async getUserProfileById(id: string) {
+    static async getUserProfileById(id: string, childId: string | undefined = "") {
         try {
-            var res = await Requests.get(`user/${id}`);
+            if (!childId) childId = "";
+            var res = await Requests.get(`user/${id}?childId=${childId}`);
             if (res?.status === 200 && res?.data) {
                 return res?.data as UserResponse;
             }
@@ -118,8 +119,8 @@ export class UserService {
             return false;
         }
     }
-    
-    static  updateUserSettings = async (formData:  UserSettingsRequest): Promise<boolean> => {
+
+    static updateUserSettings = async (formData: UserSettingsRequest): Promise<boolean> => {
         try {
             var res = await Requests.put('user/settings', formData);
             return res?.status === 200;

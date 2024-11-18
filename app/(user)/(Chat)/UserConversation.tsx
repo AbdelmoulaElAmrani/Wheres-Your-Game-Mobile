@@ -49,7 +49,7 @@ const UserConversation = () => {
         if (child)
             setChildId(child);
         const fetchUserDataAndMessages = async () => {
-            const userData = await UserService.getUserProfileById(receiverId);
+            const userData = await UserService.getUserProfileById(receiverId, childId);
             setLoading(false);
             if (userData) {
                 setReceiver(userData);
