@@ -1,6 +1,6 @@
 import {
     FlatList,
-    KeyboardAvoidingView,
+    KeyboardAvoidingView, Platform,
     StyleSheet,
     Text,
     TextInput,
@@ -285,6 +285,9 @@ const Chats = () => {
                                         setTempSelectedProfileId('');
                                     } else {
                                         setTempSelectedProfileId(value);
+                                    }
+                                    if (Platform.OS != 'ios') {
+                                        setSelectedProfileId(value);
                                     }
                                 }}
                                 onDonePress={() => {

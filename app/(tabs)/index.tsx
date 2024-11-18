@@ -1,4 +1,4 @@
-import ReactNative, {FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import ReactNative, {FlatList, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {StatusBar} from "expo-status-bar";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -22,6 +22,7 @@ import {NotificationService} from "@/services/NotificationService";
 import {NOTIFICATION_REFRESH_TIMER} from "@/appConfig";
 import {SportService} from "@/services/SportService";
 import OverlaySpinner from "@/components/OverlaySpinner";
+import {PlatformOSType} from "react-native/Libraries/Utilities/Platform";
 
 const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
 const REFRESH_NOTIFICATION_TIME = NOTIFICATION_REFRESH_TIMER * 1000;
@@ -419,6 +420,9 @@ const Home = () => {
                                             setTempSelectedProfileId('');
                                         } else {
                                             setTempSelectedProfileId(value);
+                                        }
+                                        if (Platform.OS != 'ios') {
+                                            setSelectedProfileId(value === null ? '' : value);
                                         }
                                     }}
                                     onDonePress={() => {
