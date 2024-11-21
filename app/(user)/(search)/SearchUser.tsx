@@ -2,10 +2,9 @@ import {
     Alert,
     FlatList,
     Keyboard,
-    KeyboardAvoidingView,
+    KeyboardAvoidingView, Platform,
     StyleSheet,
     Text,
-    TextInput,
     TouchableOpacity, TouchableWithoutFeedback,
     View
 } from "react-native";
@@ -16,18 +15,17 @@ import {router, useLocalSearchParams} from "expo-router";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import {Avatar, Modal, Searchbar} from "react-native-paper";
 import {heightPercentageToDP, widthPercentageToDP} from "react-native-responsive-screen";
-import Spinner from "@/components/Spinner";
 import {UserService} from "@/services/UserService";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import UserType from "@/models/UserType";
 import {Ionicons} from "@expo/vector-icons";
 import {useSelector} from "react-redux";
 import {FriendRequestService} from "@/services/FriendRequestService";
-import {Helpers} from "@/constants/Helpers";
 import {ChildrenService} from "@/services/ChildrenService";
 import PhoneInput from "react-native-phone-number-input";
 import {InvitationService} from "@/services/InvitationService";
 import OverlaySpinner from "@/components/OverlaySpinner";
+import * as SMS from 'expo-sms';
 
 
 interface InviteObject {
@@ -73,6 +71,23 @@ const SearchUser = () => {
     const _handleGoBack = () => {
         if (router.canGoBack())
             router.back();
+    }
+
+
+    const _sendSmsInvitation = async (phoneNumber: string) => {
+        const isAvailable = await SMS.isAvailableAsync();
+        if (isAvailable) {
+            const appLink =
+                Platform.OS === 'android'
+                    ? 'https://play.google.com/store/apps/details?id=com.digiboost.sportgames'
+                    : 'https://apps.apple.com/us/app/wheres-your-game/id6502469400';
+            const invitationMessage = `Hi! Join me on "Where's Your Game" to connect, play, and train. Download here: ${appLink}`;
+            try {
+                await SMS.sendSMSAsync(phoneNumber, invitationMessage);
+            } catch (e) {
+                console.error(e);
+            }
+        }
     }
 
 
@@ -134,7 +149,6 @@ const SearchUser = () => {
         }
     }
 
-
     const _renderUserItem = ({item}: { item: UserSearchResponse }) => {
         return (
             <TouchableOpacity style={styles.userItem}>
@@ -159,7 +173,6 @@ const SearchUser = () => {
             </TouchableOpacity>
         );
     }
-
 
     const _onOpenInviteChildModal = () => {
         setModalVisible(true);
@@ -198,7 +211,10 @@ const SearchUser = () => {
                     [
                         {
                             text: "OK",
-                            onPress: _hideModal // Run _hideModal when user presses OK
+                            onPress: () => {
+                                _hideModal();
+                                _sendSmsInvitation(inviteObject.countryCode + inviteObject.phoneNumber);
+                            }
                         }
                     ]
                 );
