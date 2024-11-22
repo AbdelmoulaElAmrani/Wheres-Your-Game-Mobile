@@ -225,8 +225,8 @@ const GClips = () => {
             const shareOptions = {
                 message: '🔥 Discover Where\'s Your Game - the ultimate app to find and track live sports events! 🏀🏈🎾 Stay updated and never miss a game with real-time event notifications! Download it now and join the action: ',
                 url: Platform.OS === 'ios'
-                    ? 'https://apps.apple.com/us/app/wheres-your-game/id6502469400' //TODO: App Store URL for iOS
-                    : 'https://play.google.com/store/apps/details?id=com.example.app', //TODO: Play Store URL for Android
+                    ? 'https://apps.apple.com/us/app/wheres-your-game/id6502469400'
+                    : 'https://play.google.com/store/apps/details?id=com.digiboost.sportgames'
             };
 
             if (await Sharing.isAvailableAsync()) {

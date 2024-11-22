@@ -133,7 +133,7 @@ const Login = () => {
         router.replace('/Register');
     }
 
-    const _isLoginFormNotValid = (): boolean => (email.trim() === '' || password.trim() === '');
+    const _isLoginFormNotValid = (): boolean => (email.trim() === '' || password.trim() === '') && !loading;
 
     return (
         <>
