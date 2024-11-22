@@ -1,9 +1,9 @@
-import ReactNative, {FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import ReactNative, {FlatList, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {StatusBar} from "expo-status-bar";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
-import React, {memo, useEffect, useState} from "react";
-import {AntDesign, Feather, Fontisto, Ionicons, MaterialIcons} from "@expo/vector-icons";
+import React, {memo, useCallback, useEffect, useRef, useState} from "react";
+import {AntDesign, Feather, Fontisto, Ionicons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {Helpers} from "@/constants/Helpers";
@@ -13,63 +13,61 @@ import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {getUserProfile, getUserSports} from "@/redux/UserSlice";
 import UserType from "@/models/UserType";
 import {Team} from "@/models/Team";
-import {router, useRouter} from "expo-router";
+import {router, useRouter, useNavigation, useFocusEffect} from "expo-router";
 import RNPickerSelect from 'react-native-picker-select';
 import {TeamService} from "@/services/TeamService";
 import Spinner from "@/components/Spinner";
 import {Image, ImageBackground} from "expo-image";
 import {NotificationService} from "@/services/NotificationService";
 import {NOTIFICATION_REFRESH_TIMER} from "@/appConfig";
-import {useIsFocused} from "@react-navigation/native";
+import {SportService} from "@/services/SportService";
+import OverlaySpinner from "@/components/OverlaySpinner";
+import {PlatformOSType} from "react-native/Libraries/Utilities/Platform";
 
 const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
 const REFRESH_NOTIFICATION_TIME = NOTIFICATION_REFRESH_TIMER * 1000;
+
+
+interface UserProfileProps {
+    userId: string,
+    sports: UserSportResponse[] | undefined,
+    teams: Team [] | undefined
+}
+
 const Home = () => {
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const loading = useSelector((state: any) => state.user.loading) as boolean;
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
     const dispatch = useDispatch();
     const [players, setPlayers] = useState<Player[]>([]);
-    const [teams, setTeams] = useState<Team[]>([]);
+    const [teams, setTeams] = useState<Team[] | undefined>(undefined);
     const [selectedTeam, setSelectedTeam] = useState<Team | undefined>(undefined);
-    const [selectedChild, setSelectedChild] = useState<Player | undefined>(undefined)
-    //const [children, setChildren] = useState<Player[]>([])
     const [playersLoading, setPlayersLoading] = useState<boolean>(false)
     const _router = useRouter();
     const [newNotif, setNewNotif] = useState<boolean>(false);
-    const [childrens, setChildrens] = useState<any[]>(
-        [
-            {
-                label: 'All Children',
-                value: 'All Children',
-                id: ''
-            },
-            {
-                label: 'Child 1',
-                value: 'Child 1',
-                id: ''
-            },
-            {
-                label: 'Child 2',
-                value: 'Child 2',
-                id: ''
-            },
-        ]
-    );
-    const isFocused = useIsFocused();
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedProfileId, setSelectedProfileId] = useState<string>('');
+    const [tempSelectedProfileId, setTempSelectedProfileId] = useState<string>('');
+    const [selectedProfile, setSelectedProfile] = useState<UserProfileProps>({sports: [], teams: [], userId: ''});
+    const isFocused = useNavigation().isFocused();
 
-    useEffect(() => {
-        if (isFocused) {
+
+    useFocusEffect(
+        useCallback(() => {
             if (userData == undefined || userData.id == undefined) {
                 dispatch(getUserProfile() as any);
             }
             const fetchData = async () => {
                 try {
                     if (userData?.id) {
-                        setIsLoading(true);
-                        dispatch(getUserSports(userData.id) as any);
-                        await _getMyTeams();
+                        if (userSport.length == 0) {
+                            setIsLoading(true);
+                            dispatch(getUserSports(userData.id) as any);
+                        }
+                        if (!teams) {
+                            setIsLoading(true);
+                            await _getMyTeams(userData.id);
+                        }
                     }
                 } catch (e) {
                     console.error(e);
@@ -82,12 +80,46 @@ const Home = () => {
             checkForNotification();
             const intervalId = setInterval(checkForNotification, REFRESH_NOTIFICATION_TIME);
 
-            return () => clearInterval(intervalId);
-        } else {
-            setPlayers([]);
-            setSelectedTeam(undefined);
+            return () => {
+                clearInterval(intervalId);
+                setPlayers([]);
+                setSelectedTeam(undefined);
+            };
+        }, [userData])
+    );
+
+
+    useFocusEffect(useCallback(() => {
+        if ((selectedProfileId == userData.id || selectedProfileId == '')) {
+            setSelectedProfile(prevState => ({...prevState, sports: userSport}));
         }
-    }, [isFocused]);
+    }, [userSport]))
+
+
+    const isFirstRender = useRef(true);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setIsLoading(true);
+                if (selectedProfileId === userData.id || selectedProfileId === '') {
+                    setSelectedProfile((prevState) => ({...prevState, sports: userSport}));
+                    await _getMyTeams(userData.id);
+                } else {
+                    await _getUserSport(selectedProfileId);
+                    await _getMyTeams(selectedProfileId);
+                }
+            } catch (e) {
+                console.error('Error fetching data:', e); // Log the error for debugging
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        fetchData();
+    }, [selectedProfileId])
 
 
     const checkForNotification = async () => {
@@ -101,12 +133,30 @@ const Home = () => {
         }
     }
 
-    const _getMyTeams = async () => {
+    const _getUserSport = async (userId: string) => {
         try {
-            const result = await TeamService.getUserTeams(userData.id);
-            setTeams(result);
+            if (userId == userData.id) {
+                setSelectedProfile(prevState => ({...prevState, sport: userSport}));
+            } else {
+                const result = SportService.getUserSport(selectedProfileId);
+                if (result != undefined) {
+                    setSelectedProfile(prevState => ({...prevState, sport: result}));
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    const _getMyTeams = async (userId: string) => {
+        try {
+            const result = await TeamService.getUserTeams(userId);
+            setSelectedProfile(prev => ({...prev, teams: result}));
         } catch (e) {
             console.error('_getMyTeams', e);
+        } finally {
+            setSelectedTeam(undefined);
+            setPlayers([]);
         }
     }
 
@@ -130,7 +180,7 @@ const Home = () => {
 
 
     const _handleOnOpenSearch = () => {
-        router.navigate('(user)/SearchGlobal');
+        router.navigate('/(user)/(search)/SearchGlobal');
     }
     const _onOpenNotification = () => {
         setNewNotif(false);
@@ -138,7 +188,7 @@ const Home = () => {
     }
 
     const _onOpenChat = () => {
-        router.navigate('/(user)/Chats');
+        router.navigate('/(user)/(Chat)/Chats');
     }
 
     const _onOpenMap = () => {
@@ -147,7 +197,7 @@ const Home = () => {
 
     const _onSearch = (searchType: UserType) => {
         _router.push({
-            pathname: '/(user)/SearchUser',
+            pathname: '/(user)/(search)/SearchUser',
             params: {searchType: UserType[searchType]},
         });
     }
@@ -156,7 +206,7 @@ const Home = () => {
     }
 
     const _onAddTeam = () => {
-        router.navigate('TeamForm');
+        router.navigate('/(team)/TeamForm');
     }
 
     const _onViewAll = () => {
@@ -187,7 +237,8 @@ const Home = () => {
     const isCoach = (): boolean => userData.role == UserType[UserType.COACH] || userData.role == UserType[UserType.ORGANIZATION];
 
     const isPlayersVisible = (): boolean =>
-        (isCoach() || UserType[UserType.PLAYER] == userData.role) && selectedTeam !== undefined;
+        //(isCoach() || UserType[UserType.PLAYER] == userData.role) && selectedTeam !== undefined;
+        selectedTeam !== undefined;
 
 
     const _renderSportItem = memo(({item}: { item: UserSportResponse }) => {
@@ -280,13 +331,13 @@ const Home = () => {
     ));
 
     const _handleOpenInviteChild = () => {
-
+        //TODO::
+        _router.push({
+            pathname: '/(user)/(search)/SearchUser',
+            params: {searchType: UserType.DEFAULT},
+        });
     }
 
-
-    const getAllChildren = () => {
-        //TODO:: Call Service Children and get the user children, then set it to
-    }
 
     return (
         <>
@@ -301,9 +352,10 @@ const Home = () => {
                     flex: 1,
                 }}
                 source={require('../../assets/images/signupBackGround.jpg')}>
-
+                {(loading || isLoading) && isFocused && (
+                    <OverlaySpinner visible={true}/>
+                )}
                 <SafeAreaView style={{height: hp(100)}}>
-                    {(loading || isLoading) && <Spinner visible={loading || isLoading}/>}
                     <View style={styles.headerContainer}>
                         <View>
                             <TouchableOpacity onPress={_handleOnOpenSearch}>
@@ -352,18 +404,43 @@ const Home = () => {
                                 borderRadius: 4,
                             }}>
                                 <RNPickerSelect
-                                    placeholder={{}}
-                                    items={childrens}
+                                    placeholder={{
+                                        label: 'Me',
+                                        value: null,
+                                        color: '#9EA0A4',
+                                    }}
+                                    items={userData?.children?.map(child => ({
+                                        label: child.fullName,
+                                        value: child.id,
+                                        id: child.id,
+                                        color: '#9EA0A4',
+                                    })) || []}
                                     onValueChange={(value, index) => {
-                                        //TODO:: Set The Selected Child
-                                        console.log(value);
+                                        if (value === null) {
+                                            setTempSelectedProfileId('');
+                                        } else {
+                                            setTempSelectedProfileId(value);
+                                        }
+                                        if (Platform.OS != 'ios') {
+                                            setSelectedProfileId(value === null ? '' : value);
+                                        }
                                     }}
                                     onDonePress={() => {
-                                        //TODO:: Call the function to get the child data
-                                        console.log('done');
+                                        setSelectedProfileId(tempSelectedProfileId);
+                                    }}
+                                    onClose={() => {
+                                        setTempSelectedProfileId(selectedProfileId);
                                     }}
                                     style={pickerSelectStyles}
-                                    value={selectedChild}
+                                    //value={tempSelectedProfileId}
+                                    Icon={() => (
+                                        <Ionicons
+                                            name="chevron-down"
+                                            size={24}
+                                            color="white"
+                                            style={{position: 'absolute', top: '50%', marginTop: 5, right: 10}}
+                                        />
+                                    )}
                                 />
                             </View>
                         }
@@ -397,11 +474,11 @@ const Home = () => {
                                         style={styles.count}>{userSport?.length}</Text></Text>
                                 </View>
                                 <FlatList
-                                    data={userSport}
+                                    data={selectedProfile?.sports}
                                     renderItem={({item}) => <_renderSportItem item={item}/>}
                                     keyExtractor={item => item.sportId + item.sportName}
                                     horizontal={true}
-                                    showsHorizontalScrollIndicator={true}
+                                    showsHorizontalScrollIndicator={false}
                                     focusable={true}
                                     nestedScrollEnabled={true}
                                 />
@@ -410,7 +487,7 @@ const Home = () => {
                                 <View style={styles.menuTitleContainer}>
                                     <View style={{flexDirection: 'row'}}>
                                         <Text style={styles.menuTitle}>Your Teams <Text
-                                            style={styles.count}>{teams?.length}</Text></Text>
+                                            style={styles.count}>{selectedProfile.teams?.length}</Text></Text>
                                     </View>
                                     {isCoach() && <TouchableOpacity
                                         onPress={_onAddTeam}
@@ -420,11 +497,11 @@ const Home = () => {
                                     </TouchableOpacity>}
                                 </View>
                                 <FlatList
-                                    data={teams}
+                                    data={selectedProfile?.teams}
                                     renderItem={({item}) => <_renderTeam item={item}/>}
                                     keyExtractor={item => item.id}
                                     horizontal={true}
-                                    showsHorizontalScrollIndicator={true}
+                                    showsHorizontalScrollIndicator={false}
                                     focusable={true}
                                     nestedScrollEnabled={true}
                                 />
@@ -450,7 +527,7 @@ const Home = () => {
                                         renderItem={({item}) => <_renderPlayer item={item}/>}
                                         keyExtractor={item => item.id}
                                         horizontal={true}
-                                        showsHorizontalScrollIndicator={true}
+                                        showsHorizontalScrollIndicator={false}
                                         focusable={true}
                                         nestedScrollEnabled={true}
                                     />)}
@@ -613,11 +690,11 @@ const pickerSelectStyles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
         fontSize: 16,
-        width: 120,
+        width: 140,
         paddingHorizontal: 10,
         paddingVertical: 6,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
     },
     inputAndroid: {
         color: 'white',

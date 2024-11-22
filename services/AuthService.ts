@@ -5,6 +5,7 @@ import Requests from "./Requests";
 import {persistor} from "@/redux/ReduxConfig";
 import {FeatureTogglingConfig} from "@/models/responseObjects/FeatureTogglingConfig";
 import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
+import TokenManager from "@/services/TokenManager";
 
 
 export class AuthService {
@@ -16,44 +17,13 @@ export class AuthService {
         await persistor.flush();
     }
 
-    static getAccessToken = async (): Promise<string | null> => {
-        try {
-            const token = await LocalStorageService.getItem<string>('accessToken');
-            return token;
-        } catch (err) {
-            return null;
-        }
-    }
-
-    static getRefreshToken = async (): Promise<string | null> => {
-        try {
-            const token = await LocalStorageService.getItem<string>('refreshToken');
-            return token;
-        } catch (err) {
-            return null;
-        }
-    }
-
-    static setAccessToken = (token: string): void => {
-        LocalStorageService.storeItem<string>('accessToken', token);
-    }
-
-    static setRefreshToken = (token: string): void => {
-        LocalStorageService.storeItem<string>('refreshToken', token);
-    }
-
-    static setAuthTokens = (tokens: AuthenticationResponse): void => {
-        AuthService.setAccessToken(tokens.token);
-        AuthService.setRefreshToken(tokens.refreshToken);
-    }
-
     static refreshToken = async (): Promise<string | undefined> => {
         const res = await Requests.get('auth/refreshtoken',);
         if (res.status !== 200) {
             return undefined;
         }
         if (res.data) {
-            AuthService.setAuthTokens(res.data);
+            TokenManager.setAuthTokens(res.data);
         }
         return res.data;
     }
@@ -64,7 +34,7 @@ export class AuthService {
             return undefined;
         }
         if (res.data) {
-            AuthService.setAuthTokens(res.data);
+            TokenManager.setAuthTokens(res.data);
         }
         return res.data;
     }
@@ -75,7 +45,7 @@ export class AuthService {
             return undefined;
         }
         if (res.data) {
-            AuthService.setAuthTokens(res.data);
+            TokenManager.setAuthTokens(res.data);
         }
         return res.data;
     }
@@ -122,7 +92,7 @@ export class AuthService {
         if (res.status !== 200 || !res.data) {
             return undefined;
         }
-        AuthService.setAuthTokens(res.data);
+        TokenManager.setAuthTokens(res.data);
         return res.data;
     }
 

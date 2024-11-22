@@ -4,7 +4,7 @@ import {SafeAreaView} from "react-native-safe-area-context";
 import Spinner from "@/components/Spinner";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React, {useEffect, useState} from "react";
-import {router} from "expo-router";
+import {router, useLocalSearchParams} from "expo-router";
 import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {Avatar, Divider} from "react-native-paper";
 import {useDispatch, useSelector} from "react-redux";
@@ -12,9 +12,9 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {FontAwesome6} from "@expo/vector-icons";
 import * as Linking from 'expo-linking';
 import {UserService} from "@/services/UserService";
-import {useRoute} from "@react-navigation/core";
 import {Helpers} from "@/constants/Helpers";
 import {getUserProfile} from "@/redux/UserSlice";
+import OverlaySpinner from "@/components/OverlaySpinner";
 
 
 enum MenuOption {
@@ -31,8 +31,8 @@ export const UserProfile = () => {
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
     const [selectOption, setSelectOption] = useState<MenuOption>(MenuOption.Overview);
     const dispatch = useDispatch();
-    const route = useRoute();
-    const paramData = route.params as any;
+    const paramData = useLocalSearchParams<any>();
+
     const _handleGoBack = () => {
         if (router.canGoBack())
             router.back();
@@ -96,7 +96,7 @@ export const UserProfile = () => {
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
                 {loading && (
-                    <Spinner visible={loading}/>
+                    <OverlaySpinner visible={loading}/>
                 )}
                 <CustomNavigationHeader text={'Player'} goBackFunction={_handleGoBack} showBackArrow/>
 
@@ -122,7 +122,8 @@ export const UserProfile = () => {
                                 <Text style={{
                                     fontWeight: 'bold',
                                     fontSize: 18
-                                }}>{`${person?.firstName.charAt(0).toUpperCase()}${person?.firstName.slice(1).toLowerCase()} ${person?.lastName.charAt(0).toUpperCase()}${person?.lastName.slice(1).toLowerCase()}`}
+                                }}>
+                                    {`${person?.firstName?.charAt(0).toUpperCase() || ''}${person?.firstName?.slice(1).toLowerCase() || ''} ${person?.lastName?.charAt(0).toUpperCase() || ''}${person?.lastName?.slice(1).toLowerCase() || ''}`}
                                 </Text>
                                 <Text style={{color: 'grey', fontSize: 16, marginTop: 5}}>
                                     {`${person?.city || ''}${person?.city && person?.stateRegion ? ', ' : ''}${person?.stateRegion || ''}${person?.stateRegion && person?.country ? ', ' : ''}${person?.country || ''}`}

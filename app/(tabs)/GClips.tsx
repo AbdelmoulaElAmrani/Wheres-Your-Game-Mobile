@@ -3,7 +3,7 @@ import {StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, Platform} fro
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {SafeAreaView} from "react-native-safe-area-context";
 import {ActivityIndicator, MD2Colors, Modal, Searchbar, TextInput} from 'react-native-paper';
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {AntDesign, FontAwesome} from '@expo/vector-icons';
 import {ImageBackground} from "expo-image";
 import VideoComponent from "@/components/VideoComponent";
@@ -17,11 +17,15 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {getUserProfile} from "@/redux/UserSlice";
 import LinkPreviewComponent from "@/components/LinkPreviewComponent";
 import {Helpers} from "@/constants/Helpers";
-import {useIsFocused} from "@react-navigation/native";
+import {useFocusEffect, useNavigation} from "expo-router";
 
 
-const validDomains = ['facebook.com', 'instagram.com', 'youtube.com', 'tiktok.com'];
-
+const validDomains = {
+    youtube: /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/,
+    facebook: /^(https?:\/\/)?(www\.)?facebook\.com\/.+$/,
+    instagram: /^(https?:\/\/)?(www\.)?instagram\.com\/.+$/,
+    tiktok: /^(https?:\/\/)?(www\.)?tiktok\.com\/.+$/
+};
 const GClips = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedTag, setSelectedTag] = useState('New');
@@ -44,11 +48,11 @@ const GClips = () => {
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const {socialMediaLinks} = useSelector((state: any) => state.user.userData) as UserResponse;
-    const isFocused = useIsFocused();
+
 
     const dispatch = useDispatch();
 
-    useEffect(() => {
+    useFocusEffect(useCallback(() => {
         (async () => {
             await dispatch(getUserProfile() as any)
         })()
@@ -58,13 +62,14 @@ const GClips = () => {
             tiktok: socialMediaLinks?.tiktokAccount || '',
             youtube: socialMediaLinks?.youtubeAccount || '',
         });
-    }, [isFocused]);
+    }, []));
 
-    useEffect(() => {
+    useFocusEffect(useCallback(() => {
         setPosts([]);
         setHasMore(true);
         handleFetchPosts();
-    }, [page, selectedTag, isFocused]);
+    }, [page, selectedTag]))
+
 
     const handleFetchPosts = async () => {
         if (loading || !hasMore) return;
@@ -149,7 +154,7 @@ const GClips = () => {
     }
     const _handlePost = async () => {
         setPostLinkError('');
-        const isValidLink = validDomains.some(domain => postLink.includes(domain));
+        const isValidLink = Object.values(validDomains).some(pattern => pattern.test(postLink));
         if (!isValidLink) {
             setPostLinkError('Please enter a valid link from Facebook, Instagram, YouTube, or TikTok.');
             return;
@@ -168,7 +173,8 @@ const GClips = () => {
             title: createdPost.title,
             link: createdPost.link,
             postedAt: createdPost.postedAt,
-            accountId: createdPost.accountId
+            accountId: createdPost.accountId,
+            id: createdPost.id,
         } as PostResponse]);
 
 
@@ -219,8 +225,8 @@ const GClips = () => {
             const shareOptions = {
                 message: '🔥 Discover Where\'s Your Game - the ultimate app to find and track live sports events! 🏀🏈🎾 Stay updated and never miss a game with real-time event notifications! Download it now and join the action: ',
                 url: Platform.OS === 'ios'
-                    ? 'https://apps.apple.com/app/idxxxxxxxx' //TODO: App Store URL for iOS
-                    : 'https://play.google.com/store/apps/details?id=com.example.app', //TODO: Play Store URL for Android
+                    ? 'https://apps.apple.com/us/app/wheres-your-game/id6502469400'
+                    : 'https://play.google.com/store/apps/details?id=com.digiboost.sportgames'
             };
 
             if (await Sharing.isAvailableAsync()) {
@@ -233,7 +239,7 @@ const GClips = () => {
                 alert('Sharing is not available on this device');
             }
         } catch (error) {
-            console.log('Error sharing:', error);
+            console.error('Error sharing:', error);
         }
     };
 
@@ -303,7 +309,7 @@ const GClips = () => {
                     </View>
                     <View style={styles.videoListContainer}>
                         {!loading && posts.length === 0 &&
-                            <Text style={{color: 'grey', fontSize: 16, textAlign: 'center', marginTop: 20}}>No videos
+                            <Text style={{color: 'grey', fontSize: 16, textAlign: 'center', marginTop: 20}}>No Post
                                 found</Text>}
                         {loading && posts.length === 0 &&
                             <ActivityIndicator animating={true} color={MD2Colors.blueA700} size={50}/>}
@@ -341,7 +347,13 @@ const GClips = () => {
                     <View style={{width: '90%', alignItems: 'center', marginTop: 40}}>
                         <TextInput
                             placeholder="Title"
-                            style={[styles.inputStyle, {marginTop: 15}]}
+                            //style={[styles.inputStyle, {marginTop: 15}]}
+                            style={[styles.inputStyle, {
+                                marginTop: 10,
+                                flexShrink: 1,  // Prevents wrapping
+                                width: '100%',
+                                height: 55,
+                            }]}
                             cursorColor='black'
                             placeholderTextColor={'grey'}
                             underlineColor={"transparent"}
@@ -352,7 +364,13 @@ const GClips = () => {
                         />
                         <TextInput
                             placeholder="Paste your link here"
-                            style={[styles.inputStyle, {marginTop: 15}]}
+                            //style={[styles.inputStyle, {marginTop: 15}]}
+                            style={[styles.inputStyle, {
+                                marginTop: 10,
+                                flexShrink: 1,  // Prevents wrapping
+                                width: '100%',
+                                height: 55,
+                            }]}
                             cursorColor='black'
                             placeholderTextColor={'grey'}
                             underlineColor={"transparent"}
@@ -525,7 +543,6 @@ const GClips = () => {
                                     shadowRadius: 2,
                                     elevation: 2,
                                 }}
-
                             />
                         </View>
                     </View>

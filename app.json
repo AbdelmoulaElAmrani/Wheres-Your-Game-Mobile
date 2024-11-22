@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
-      "resizeMode": "cover"
+      "resizeMode": "cover",
+      "enableFullScreenImage_legacy": "true"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -27,10 +28,10 @@
         "googleMapsApiKey": "AIzaSyDlFo6upaajnGewXn4DX4-naBhsWPcn8VE"
       },
       "bundleIdentifier": "com.digiboost.sportgames",
-      "buildNumber": "5"
+      "buildNumber": "7"
     },
     "android": {
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#160076"
@@ -61,7 +62,14 @@
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash.png",
+          "enableFullScreenImage_legacy": "true"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

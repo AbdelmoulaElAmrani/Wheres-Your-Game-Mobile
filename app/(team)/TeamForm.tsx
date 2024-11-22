@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
     ImageBackground,
-    Keyboard,
-    TouchableWithoutFeedback,
     View,
     StyleSheet,
     Alert
@@ -27,8 +25,8 @@ import * as ImagePicker from "expo-image-picker";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { StorageService } from '@/services/StorageService';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Spinner from "@/components/Spinner";
 import { DatePickerModal, enGB, registerTranslation, TimePickerModal } from 'react-native-paper-dates';
+import OverlaySpinner from '@/components/OverlaySpinner';
 
 
 function TeamForm() {
@@ -103,9 +101,7 @@ function TeamForm() {
             Alert.alert('Error', errors.join('\n'));
             return;
         }
-        console.log(team?.founded ? new Date(team.founded).toISOString().split('T')[0] : null);
        
-
         try {
             setCreating(true);
             const response = await TeamService.createTeam({
@@ -138,7 +134,7 @@ function TeamForm() {
         } catch (e) {
             setCreating(false);
             console.error(e);
-            Alert.alert('Error', 'Something went wrong');
+            Alert.alert('Error', 'Something went wrong ' + e);
         }
     };
 
@@ -183,10 +179,9 @@ function TeamForm() {
     return (
         <ImageBackground
             style={{ flex: 1, width: '100%' }}
-            source={require('../../assets/images/signupBackGround.jpg')}
-        >
+            source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView style={{ flex: 1 }}>
-                {creating && <Spinner visible={creating} />}
+                {creating && <OverlaySpinner visible={creating}/>}
                 <CustomNavigationHeader text={isAddTeam ? 'Create Team' : 'Edit Team'} showBackArrow />
                 <View style={styles.cardContainer}>
                     <KeyboardAwareScrollView
@@ -221,13 +216,13 @@ function TeamForm() {
                                             items={availableSport.map((sport: Sport) => ({
                                                 label: sport.name,
                                                 value: sport.id,
-                                                key: sport.id
+                                                key: sport.id,
+                                                color: '#000'
                                             }))}
                                             placeholder={{ label: 'Select sport', value: null }}
                                             onValueChange={(value) =>
                                                 setSelectedSportId(value)
                                             }
-
                                             value={selectedSportId}
                                         />
                                     )}
@@ -323,7 +318,8 @@ function TeamForm() {
                                     containerStyle={styles.containerStyle}
                                     data={players.map((player: any) => ({
                                         label: player.firstName + ' ' + player.lastName,
-                                        value: player.id
+                                        value: player.id,
+                                        color: '#000'
                                     }))}
                                     placeholder="Select players"
                                     value={selectedPlayers}

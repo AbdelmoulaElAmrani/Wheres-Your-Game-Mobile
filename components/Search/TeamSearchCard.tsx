@@ -1,8 +1,7 @@
 import React from 'react';
 import {TouchableOpacity, View, Image, Text, StyleSheet} from 'react-native';
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
-import {router, useRouter} from "expo-router";
-import {any} from "prop-types";
+import {useRouter} from "expo-router";
 import {Team} from "@/models/Team";
 import {Avatar} from "react-native-paper";
 
@@ -11,7 +10,7 @@ const TeamSearchCard = ({team}: { team: Team }) => {
 
     const _handleOpenTeamProfile = () => {
         _router.push({
-            pathname: '(team)/TeamProfile',
+            pathname: '/(team)/TeamProfile',
             params: {teamId: team.id},
         });
     }

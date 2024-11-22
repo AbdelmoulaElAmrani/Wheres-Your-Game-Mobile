@@ -6,7 +6,7 @@ import {
     widthPercentageToDP as wp
 } from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
-import React, {memo, useCallback, useEffect, useState} from "react";
+import React, {memo, useCallback, useState} from "react";
 import {Image, ImageBackground} from "expo-image";
 import ReactNativeCalendarStrip from "react-native-calendar-strip";
 import moment from "moment";
@@ -25,7 +25,7 @@ import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
 import {EventService} from "@/services/EventService";
 import {SportEvent} from "@/models/SportEvent";
 import {SportEventRequest} from "@/models/requestObjects/SportEventRequest";
-import {useIsFocused} from "@react-navigation/native";
+import {useFocusEffect, useNavigation} from "expo-router";
 
 
 interface CheckboxProps {
@@ -81,9 +81,10 @@ const Calendar = () => {
         {title: 'All', isChecked: false}
 
     ]);
-    const isFocus = useIsFocused();
+    const isFocus = useNavigation().isFocused();
 
-    useEffect(() => {
+
+    useFocusEffect(useCallback(() => {
         if (user?.id) {
             if (user.role == UserType[UserType.COACH] || user.role == UserType[UserType.ORGANIZATION]) {
                 getCoachEvents();
@@ -91,7 +92,7 @@ const Calendar = () => {
                 getUserEvents();
             }
         }
-    }, [selectedDate, user.id, isFocus]);
+    }, [selectedDate, user.id]))
 
     const [selectedSportLevel, setSelectedSportLevel] = useState<string[]>([]);
     registerTranslation("en", enGB);

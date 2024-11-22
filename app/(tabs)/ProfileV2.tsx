@@ -1,18 +1,18 @@
 import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
-import React, {useEffect, useState} from "react";
-import {router, useRouter} from "expo-router";
-import {getUserProfile} from "@/redux/UserSlice";
+import React, {useCallback, useEffect, useRef, useState} from "react";
+import {router, useFocusEffect, useNavigation, useRouter} from "expo-router";
+import {getUserProfile, getUserSports} from "@/redux/UserSlice";
 import {ImageBackground} from "expo-image";
 import {heightPercentageToDP as hp, widthPercentageToDP} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
-import Spinner from "@/components/Spinner";
 import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {Avatar, Divider} from "react-native-paper";
 import {FontAwesome6} from "@expo/vector-icons";
 import * as Linking from "expo-linking";
 import {Helpers} from "@/constants/Helpers";
-import {useIsFocused} from '@react-navigation/native';
+import OverlaySpinner from "@/components/OverlaySpinner";
+import { UserSportResponse } from "@/models/responseObjects/UserSportResponse";
 
 enum MenuOption {
     Overview,
@@ -24,22 +24,31 @@ export const ProfileV2 = () => {
     const dispatch = useDispatch()
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse | undefined;
     const loading = useSelector((state: any) => state.user.loading) as boolean;
-    const [refreshing, setRefreshing] = useState<boolean>(false);
-    const _router = useRouter();
     const [selectOption, setSelectOption] = useState<MenuOption>(MenuOption.Overview);
-    const isFocused = useIsFocused();
+    const hasRun = useRef(false);
 
-    useEffect(() => {
+    const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
+
+    useFocusEffect(useCallback(() => {
         (async () => {
-            await dispatch(getUserProfile() as any)
+            await dispatch(getUserProfile() as any);
         })()
-    }, [isFocused]);
+    }, []))
 
+
+    /* useEffect(() => {
+         /!*if (isFocused && currentUser?.id && !hasRun.current) {
+             dispatch(getUserSports(currentUser.id) as any);
+             hasRun.current = true;
+         }
+         if (!isFocused) {
+             hasRun.current = false;
+         }*!/
+     }, [isFocused, currentUser]);*/
 
     const _handleSettings = () => {
         router.navigate('/(settings)');
     };
-
 
     const _option = (option: MenuOption) => {
         setSelectOption(option);
@@ -68,10 +77,7 @@ export const ProfileV2 = () => {
             style={{height: hp(100)}}
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                {loading && (
-                    <Spinner visible={loading}/>
-                )}
-
+                {loading && ( <OverlaySpinner visible={true}/>)}
                 <View style={styles.mainContainer}>
                     <ScrollView showsVerticalScrollIndicator={false}
                                 contentContainerStyle={{alignItems: 'center'}}
@@ -159,7 +165,9 @@ export const ProfileV2 = () => {
                                 }}>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Skills Focus</Text>
-                                        <Text style={styles.infoText}>{currentUser?.skillLevel?.[0] ?? ""}</Text>
+                                        <Text style={styles.infoText}>
+                                            {currentUser?.role === "COACH" ? userSport[0]?.sportLevel : currentUser?.skillLevel?.[0] ?? ""}
+                                        </Text>
                                     </View>
                                     <View style={styles.infoMiniCard}>
                                         <Text style={styles.infoTitle}>Followers</Text>
@@ -344,7 +352,7 @@ const styles = StyleSheet.create({
     infoText: {
         fontWeight: 'bold',
         color: 'blue',
-        fontSize: 14,
+        fontSize: 12,
         marginTop: 5
     },
     followBtn: {
