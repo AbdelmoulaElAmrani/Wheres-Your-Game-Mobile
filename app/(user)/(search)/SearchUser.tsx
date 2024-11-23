@@ -181,6 +181,7 @@ const SearchUser = () => {
     const _hideModal = () => {
         setModalVisible(false);
         setEnableInvite(false);
+        setErrorMessage('');
         setInviteObject({
             confirmCountryCode: "",
             countryCode: "",
@@ -468,9 +469,9 @@ const styles = StyleSheet.create({
     },
     inputStyle: {
         backgroundColor: 'white',
-        height: 45,
+        height: 50,
         fontSize: 16,
-        marginTop: 5,
+        marginTop: 10,
         color: 'black',
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
@@ -479,30 +480,32 @@ const styles = StyleSheet.create({
         borderColor: '#D3D3D3',
         borderWidth: 1,
         width: '100%',
-        paddingLeft: 10,
-        paddingRight: 10,
-        marginBottom: 10
-
+        marginBottom: 10,
     },
     textPhoneInputContainer: {
         color: 'black',
+        backgroundColor: 'white',
+        height: 60,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         borderBottomRightRadius: 20,
         borderBottomLeftRadius: 20,
-        backgroundColor: 'white',
-        height: 50,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
     },
     phoneCodeTextStyle: {
         color: 'grey',
         fontSize: 17,
+        textAlignVertical: 'center',
+        height: '100%'
     },
     phoneInputTextStyle: {
         color: 'grey',
         fontSize: 17,
-        height: 50,
-        marginTop: 4
-
+        height: '100%',
+        textAlignVertical: 'center',
     }
 });
 export default SearchUser;
