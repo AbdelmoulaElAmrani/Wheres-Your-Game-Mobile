@@ -534,7 +534,7 @@ const Home = () => {
                             </View>}
 
                             <View style={[styles.menuContainer, {marginBottom: 100}]}>
-                                <View style={styles.menuTitleContainer}>
+                                {/*<View style={styles.menuTitleContainer}>
                                     <View style={{flexDirection: 'row'}}>
                                         <Text style={styles.menuTitle}>Explore by Categories</Text>
                                     </View>
@@ -556,8 +556,7 @@ const Home = () => {
                                         numColumns={2}
                                         keyExtractor={(item) => item}
                                     />
-                                </View>
-
+                                </View>*/}
                             </View>
                         </ScrollView>
                     </View>
