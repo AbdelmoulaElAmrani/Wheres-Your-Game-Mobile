@@ -303,18 +303,31 @@ const SearchUser = () => {
                         </View>}
                         <View style={{width: '100%', marginBottom: 30, flex: 1}}>
                             {people.length > 0 ? <FlatList
-                                data={people}
-                                keyExtractor={(item) => item.id.toString()}
-                                renderItem={_renderUserItem}
-                                style={styles.userList}
-                                ListFooterComponent={<View style={{height: heightPercentageToDP(80)}}/>}
-                            /> : <Text
-                                style={{
-                                    textAlign: 'center',
-                                    fontWeight: 'bold',
-                                    marginTop: heightPercentageToDP(30)
-                                }}>No
-                                User</Text>}
+                                    data={people}
+                                    keyExtractor={(item) => item.id.toString()}
+                                    renderItem={_renderUserItem}
+                                    style={styles.userList}
+                                    ListFooterComponent={<View style={{height: heightPercentageToDP(80)}}/>}
+                                /> :
+                                <>
+                                    <Text style={{
+                                        textAlign: 'center',
+                                        fontWeight: 'bold',
+                                        marginTop: heightPercentageToDP(30)
+                                    }}>
+                                        {isParenting && (
+                                            <Text style={{
+                                                textAlign: 'center',
+                                                fontWeight: 'bold',
+                                                fontSize: 16
+                                            }}>Your child account could be set to private.
+                                            </Text>)}
+                                    </Text>
+                                    {!isParenting && (
+                                        <Text style={{
+                                            textAlign: 'center',
+                                            fontWeight: 'bold',
+                                        }}>No User</Text>)}</>}
                         </View>
                     </KeyboardAvoidingView>
                 </View>
