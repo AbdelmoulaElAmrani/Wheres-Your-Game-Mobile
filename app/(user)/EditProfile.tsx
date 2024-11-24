@@ -488,7 +488,10 @@ const EditProfile = () => {
                                     underlineColor={"transparent"}
                                 />
                                 <View style={styles.buttonContainer}>
-                                    <CustomButton text="Continue" onPress={_handleContinueUserInfo}/>
+                                    <CustomButton
+                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                    text="Save & Continue"
+                                     onPress={_handleContinueUserInfo}/>
                                 </View>
                             </View>
                         </View>
@@ -557,13 +560,14 @@ const EditProfile = () => {
                         text="Back"
                         onPress={goToPreviousStep}
                         style={styles.backButton}
-                        textStyle={styles.buttonText}
+                        textStyle={[styles.buttonText, {fontSize: 15, fontWeight: 'bold'}]}
                     />
                     <CustomButton
                         disabled={selectedGender === Gender.DEFAULT}
-                        text="Continue"
+                        text="Save & Continue"
                         onPress={_handleContinueGenderEdit}
-                        style={styles.continueButton}
+                        textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                        style={[styles.continueButton, { width: wp('42%'), marginRight: wp('5%') }]}
                     />
                 </View>
             </View>
@@ -703,7 +707,9 @@ const EditProfile = () => {
                                 />
 
                                 <View style={{marginTop: 30}}>
-                                    <CustomButton text="Continue" onPress={_handleCoachSportInfoEdit}/>
+                                    <CustomButton
+                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                    text="Save & Continue" onPress={_handleCoachSportInfoEdit}/>
                                 </View>
                             </View>
                         </View>
@@ -886,7 +892,9 @@ const EditProfile = () => {
                                     onChangeText={(text) => setEditUser({...editUser, city: text})}
                                 />
                                 <View style={{marginTop: 30}}>
-                                    <CustomButton text="Continue" onPress={_handleOrganizationInfoEdit}/>
+                                    <CustomButton
+                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                    text="Save & Continue" onPress={_handleOrganizationInfoEdit}/>
                                 </View>
                             </View>
                         </View>
@@ -1053,8 +1061,12 @@ const EditProfile = () => {
                                 />
 
                                 <View style={{marginTop: 20}}>
-                                    <CustomButton text="Add another sport" onPress={_handleAddAnotherSport}/>
-                                    <CustomButton text="Finish" onPress={_handleSubmit} style={{marginTop: 10}}/>
+                                    <CustomButton
+                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                    text="Add another sport" onPress={_handleAddAnotherSport}/>
+                                    <CustomButton 
+                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                    text="Finish" onPress={_handleSubmit} style={{marginTop: 10}}/>
                                 </View>
                             </View>
                         </View>
@@ -1225,7 +1237,8 @@ const styles = StyleSheet.create({
     sideBySideButtons: {
         flexDirection: 'row',
         position: 'absolute',
-        bottom: 10
+        bottom: 10,
+        justifyContent: 'space-between',
     },
     backButton: {
         backgroundColor: 'white',
@@ -1236,7 +1249,7 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         alignSelf: "center",
         justifyContent: "center",
-        marginRight: wp(10)
+        marginRight: wp(3)
     },
     continueButton: {
         backgroundColor: "#2757CB",

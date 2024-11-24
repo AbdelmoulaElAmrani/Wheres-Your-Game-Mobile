@@ -270,12 +270,12 @@ const SportInterested = () => {
                         <TouchableOpacity
                             onPress={_handleGoBack()}
                             style={styles.btn}>
-                            <Text style={{textAlign: 'center', fontSize: 18, color: '#2757CB'}}>Back</Text>
+                            <Text style={{textAlign: 'center', fontSize: 15, color: '#2757CB', fontWeight: 'bold'}}>Back</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => _onNext()}
                             style={[styles.btn, {backgroundColor: '#2757CB'}]}>
-                            <Text style={{textAlign: 'center', fontSize: 18, color: 'white'}}>Continue</Text>
+                            <Text style={{textAlign: 'center', fontSize: 15, color: 'white', fontWeight: 'bold'}}>Save & Continue</Text>
                         </TouchableOpacity>
                     </View>
                     {/*</KeyboardAwareScrollView>*/}
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     btnContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        marginTop: 50
+        marginTop: 20
     },
     infoContainer: {
         flexDirection: 'row'

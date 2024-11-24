@@ -39,7 +39,13 @@ export const ProfileV2 = () => {
     useFocusEffect(useCallback(() => {
         (async () => {
             await dispatch(getUserProfile() as any);
-        })()
+        })();
+        setSocialMediaLink({
+            facebook: currentUser?.socialMediaLinks?.facebookAccount || '',
+            instagram: currentUser?.socialMediaLinks?.instagramAccount || '',
+            tiktok: currentUser?.socialMediaLinks?.tiktokAccount || '',
+            youtube: currentUser?.socialMediaLinks?.youtubeAccount || '',
+        });
     }, []))
 
 
@@ -87,7 +93,7 @@ export const ProfileV2 = () => {
             youtube: updatedLink?.youtubeAccount || '',
         });
         setSocialMediaCardVisible(false);
-        //TODO:: we may need to refresh the redux
+        await dispatch(getUserProfile() as any);
     };
 
     const _handleSettings = () => {
@@ -312,7 +318,7 @@ export const ProfileV2 = () => {
 
                 {/******User Social Medial links*******/}
                 <Modal visible={isSocialMediaCardVisible} onDismiss={_hideSocialMediaCard}
-                       contentContainerStyle={[styles.postModalContainer, {height: '50%'}]}>
+                       contentContainerStyle={[styles.postModalContainer, {height: '60%'}]}>
                     <Text style={{
                         fontSize: 25,
                         fontWeight: 'bold',
@@ -406,7 +412,7 @@ export const ProfileV2 = () => {
                                 textStyle={{color: 'black'}}
                             />
                             <CustomButton
-                                text="Link"
+                                text="Save"
                                 onPress={_handleSocialMediaLink}
                                 style={{
                                     marginTop: 20,
@@ -424,7 +430,6 @@ export const ProfileV2 = () => {
                             />
                         </View>
                     </View>
-
                 </Modal>
             </SafeAreaView>
         </ImageBackground>);
@@ -547,7 +552,7 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         paddingHorizontal: 5,
         width: '95%',
-        height: '40%',
+        height: '100%',
         alignItems: 'center',
         alignSelf: 'center',
         justifyContent: 'flex-start',

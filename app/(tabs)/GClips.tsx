@@ -55,7 +55,7 @@ const GClips = () => {
     useFocusEffect(useCallback(() => {
         (async () => {
             await dispatch(getUserProfile() as any)
-        })()
+        })();
         setSocialMediaLink({
             facebook: socialMediaLinks?.facebookAccount || '',
             instagram: socialMediaLinks?.instagramAccount || '',
@@ -528,7 +528,7 @@ const GClips = () => {
                                 textStyle={{color: 'black'}}
                             />
                             <CustomButton
-                                text="Link"
+                                text="Save"
                                 onPress={_handleSocialMediaLink}
                                 style={{
                                     marginTop: 20,
