@@ -9,19 +9,19 @@ import {
     View, Alert, ActivityIndicator
 } from "react-native";
 import {ImageBackground} from "expo-image";
-import {SafeAreaView} from "react-native-safe-area-context";
-import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import {router} from "expo-router";
-import {useEffect, useRef, useState} from "react";
+import {SafeAreaView, useSafeAreaInsets} from "react-native-safe-area-context";
+import {router, useFocusEffect, useLocalSearchParams} from "expo-router";
+import {useCallback, useEffect, useState} from "react";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {Ionicons} from "@expo/vector-icons";
 import {useSelector} from "react-redux";
 import {UserService} from "@/services/UserService";
-import {useRoute} from "@react-navigation/core";
 import {Message} from "@/models/Conversation";
 import moment from 'moment-timezone';
 import {ChatService} from "@/services/ChatService";
 import {CHAT_REFRESH_TIMER} from "@/appConfig";
+import CustomChatNavigationHeader from "@/components/CustomChatNavigationHeader";
+import {BlockService} from "@/services/BlockService";
 
 const MAX_REFRESH_TIME: number = CHAT_REFRESH_TIMER * 1000;
 
@@ -33,18 +33,23 @@ const UserConversation = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [enabledSend, setEnabledSend] = useState<boolean>(true);
+    const [childId, setChildId] = useState<string | undefined>(undefined);
 
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
 
-    const route = useRoute();
-    const paramData = route.params as any;
+    const paramData = useLocalSearchParams<any>();
+    const insets = useSafeAreaInsets();
 
-    useEffect(() => {
+
+    useFocusEffect(useCallback(() => {
         setLoading(true);
-        const receiverId = paramData?.data;
+        const receiverId = paramData?.receptionId;
+        const child = paramData?.childId;
+        if (child)
+            setChildId(child);
         const fetchUserDataAndMessages = async () => {
-            const userData = await UserService.getUserProfileById(receiverId);
+            const userData = await UserService.getUserProfileById(receiverId, child);
             setLoading(false);
             if (userData) {
                 setReceiver(userData);
@@ -53,12 +58,12 @@ const UserConversation = () => {
             }
         }
         fetchUserDataAndMessages();
+
         const lastMessageInterval = setInterval(_getNewMessages, MAX_REFRESH_TIME);
         return () => {
             clearInterval(lastMessageInterval);
         }
-    }, []);
-
+    }, []));
 
     const _getNewMessages = async () => {
         try {
@@ -71,8 +76,7 @@ const UserConversation = () => {
             }
 
             const fromISOString = from?.toISOString();
-
-            const msgs = await ChatService.getLastMessages(currentUser.id, receiver.id, fromISOString);
+            const msgs = await ChatService.getLastMessages(receiver.id, fromISOString, childId);
 
             if (msgs && msgs.length > 0) {
                 setMessages(oldMessages => {
@@ -92,12 +96,12 @@ const UserConversation = () => {
         try {
             if (newMessage.trim() && receiver) {
                 const message: Message = {
-                    senderId: currentUser.id,
+                    senderId: childId ? childId : currentUser.id,
                     receiverId: receiver.id,
                     message: newMessage,
                     timestamp: timestamp,
                 };
-                const response = await ChatService.sendMessage(message);
+                const response = await ChatService.sendMessage(message, childId);
                 setNewMessage('');
                 setMessages(old => [response, ...old]);
             }
@@ -110,7 +114,7 @@ const UserConversation = () => {
     }
 
     const _renderMessage = ({item}: { item: Message }) => {
-        const isCurrentUser = item.senderId === currentUser.id;
+        const isCurrentUser = item.senderId === (childId ? childId : currentUser.id);
 
         return (
             <View
@@ -124,7 +128,7 @@ const UserConversation = () => {
         if (loading || !hasMore || receiver == null) return;
         setLoading(true);
         try {
-            const data = await ChatService.getMessages(currentUser.id, receiver.id, page);
+            const data = await ChatService.getMessages(receiver.id, page, childId);
             if (data?.content?.length) {
                 setMessages((prevMessages) => [...prevMessages, ...data.content]);
                 if (data.empty || data.last || data.content.length < 100) {
@@ -147,24 +151,59 @@ const UserConversation = () => {
             loadMessages();
         }
     };
-    const _handleGoBack = () => {
-        if (router.canGoBack())
-            router.back();
+
+    const _handleBlockUser = async () => {
+        if (!receiver) {
+            console.error('No receiver found to block.');
+            return;
+        }
+        Alert.alert(
+            'Confirm Block',
+            `Are you sure you want to block ${receiver.firstName} ${receiver.lastName}?`,
+            [
+                {
+                    text: 'Cancel',
+                    onPress: () => console.log('User block action canceled.'),
+                    style: 'cancel',
+                },
+                {
+                    text: 'Block',
+                    onPress: async () => {
+                        const res = await BlockService.blockUser(receiver.id, childId);
+                        if (res) {
+                            Alert.alert(
+                                'User Blocked',
+                                `${receiver.firstName} ${receiver.lastName} has been blocked.`
+                            );
+                            router.back();
+                        } else {
+                            Alert.alert(
+                                'Error',
+                                `Failed to block ${receiver.firstName} ${receiver.lastName}. Please try again.`
+                            );
+                        }
+                    },
+                },
+            ]
+        );
     }
+
 
     return (
         <ImageBackground
             style={StyleSheet.absoluteFill}
             source={require('../../../assets/images/signupBackGround.jpg')}>
-            <SafeAreaView style={{flex: 1}}>
-                <CustomNavigationHeader
-                    text={`${receiver?.firstName} ${receiver?.lastName}`}
-                    goBackFunction={_handleGoBack} showBackArrow/>
-                <KeyboardAvoidingView
-                    style={styles.chatContainer}
-                    behavior={Platform.OS === "ios" ? "padding" : "height"}
-                    keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}>
-                    <View style={styles.messagesContainer}>
+            <KeyboardAvoidingView
+                keyboardVerticalOffset={Platform.OS == 'ios' ? -insets.bottom : 0}
+                style={{flex: 1}}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}>
+                <SafeAreaView style={{flex: 1}}>
+                    <CustomChatNavigationHeader
+                        title={`${receiver?.firstName} ${receiver?.lastName}`}
+                        isBlocked={receiver?.blockedByPrincipal || receiver?.blockedByTheUser}
+                        blockFunction={_handleBlockUser}
+                        role={receiver?.role}/>
+                    <View style={[styles.chatContainer]}>
                         <FlatList
                             data={messages}
                             renderItem={_renderMessage}
@@ -176,31 +215,48 @@ const UserConversation = () => {
                                 <ActivityIndicator style={{margin: 10}} size="small"/> : null}
                         />
                     </View>
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            style={styles.textInput}
-                            placeholder='Type your message'
-                            value={newMessage}
-                            onChangeText={setNewMessage}
-                        />
-                        <TouchableOpacity style={styles.sendButton} disabled={!enabledSend} onPress={onSendMessage}>
-                            <Ionicons name="send" size={24} color="white"/>
-                        </TouchableOpacity>
+                    <View
+                        style={[styles.inputContainer, (receiver?.blockedByPrincipal || receiver?.blockedByTheUser) && {
+                            backgroundColor: 'grey',
+                            justifyContent: 'center'
+                        }]}>
+                        {(!receiver?.blockedByPrincipal && !receiver?.blockedByTheUser) ?
+                            (<>
+                                <TextInput
+                                    style={styles.textInput}
+                                    placeholder='Type your message'
+                                    value={newMessage}
+                                    onChangeText={setNewMessage}
+                                />
+                                <TouchableOpacity style={styles.sendButton} disabled={!enabledSend}
+                                                  onPress={onSendMessage}>
+                                    <Ionicons name="send" size={24} color="white"/>
+                                </TouchableOpacity>
+                            </>) : (
+                                <Text style={{fontSize: 16, textAlign: 'center', padding: 10, color: 'white'}}>You
+                                    cannot chat with the
+                                    user</Text>)
+                        }
                     </View>
-                </KeyboardAvoidingView>
-            </SafeAreaView>
-        </ImageBackground>);
+                </SafeAreaView>
+                <View style={{
+                    backgroundColor: 'white',
+                    position: "absolute",
+                    bottom: 0,
+                    height: insets.bottom,
+                    width: '100%'
+                }}/>
+            </KeyboardAvoidingView>
+        </ImageBackground>
+    );
 }
 
 const styles = StyleSheet.create({
     chatContainer: {
-        backgroundColor: 'white',
-        height: '100%',
-        width: '100%',
-    },
-    messagesContainer: {
-        height: '80%',
-        padding: 10,
+        flex: 1,
+        paddingHorizontal: 10,
+        paddingTop: 10,
+        backgroundColor: 'white'
     },
     messageContainer: {
         borderRadius: 20,
@@ -218,11 +274,6 @@ const styles = StyleSheet.create({
     },
     messageText: {
         fontSize: 16,
-    },
-    timestampText: {
-        fontSize: 12,
-        color: 'grey',
-        marginTop: 5,
     },
     inputContainer: {
         flexDirection: 'row',

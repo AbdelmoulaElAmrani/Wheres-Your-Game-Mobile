@@ -2,16 +2,18 @@ import React, {useEffect} from 'react';
 import {TouchableOpacity, View, Text, StyleSheet} from 'react-native';
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {AntDesign} from "@expo/vector-icons";
-import {router, useRouter} from "expo-router";
+
 import {Player} from "@/models/Player";
 import {Avatar} from "react-native-paper";
 import {Image} from "expo-image";
+import {useRouter} from "expo-router";
 
 const PersonSearchCard = ({player, disabled = false}: { player: Player, disabled?: boolean }) => {
     const _router = useRouter();
+
     const handleOpenPersonProfile = () => {
         _router.push({
-            pathname: '(user)/UserProfile',
+            pathname: '/(user)/UserProfile',
             params: {userId: player.id},
         });
     }

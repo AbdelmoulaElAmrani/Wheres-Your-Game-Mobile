@@ -44,7 +44,7 @@ const Intro = () => {
         const checkIntroViewed = async () => {
             const isIntroViewed = await LocalStorageService.getItem<boolean>('intro');
             if (user?.id) {
-                router.replace("/(tabs)/");
+                router.replace("/(tabs)");
             } else {
                 if (isIntroViewed) {
                     router.replace("/Login");

@@ -30,6 +30,8 @@ import Spinner from '@/components/Spinner';
 import LocalStorageService from '@/services/LocalStorageService';
 //import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
 import {googleAndroidClientId, googleIosClientId, googleWebClientId} from "@/appConfig";
+import TokenManager from "@/services/TokenManager";
+import OverlaySpinner from '@/components/OverlaySpinner';
 
 
 const Login = () => {
@@ -53,12 +55,13 @@ const Login = () => {
     useEffect(() => {
         const fetchData = async () => {
             await LocalStorageService.removeItem("otp");
-            const token = await AuthService.getAccessToken();
+            const token = await TokenManager.getAccessToken();
             if (token && user?.id) {
-                router.replace("/(tabs)/");
+                router.replace("/(tabs)");
             } else {
                 dispatch(logout({}))
                 await persistor.purge();
+                await persistor.flush();
             }
         }
         fetchData();
@@ -111,7 +114,7 @@ const Login = () => {
             }
             dispatch(getUserProfile() as any)
             setLoading(false);
-            router.replace('/Welcome');
+            router.replace('/(tabs)');
         } catch (error) {
             console.error('Login failed:', error);
             setErrorMessages('Password or email not correct');
@@ -130,7 +133,7 @@ const Login = () => {
         router.replace('/Register');
     }
 
-    const _isLoginFormNotValid = (): boolean => (email.trim() === '' || password.trim() === '');
+    const _isLoginFormNotValid = (): boolean => (email.trim() === '' || password.trim() === '') && !loading;
 
     return (
         <>
@@ -153,7 +156,7 @@ const Login = () => {
 
                         <View style={styles.cardContainer}>
                             {loading && (
-                                <Spinner visible={loading}/>
+                                <OverlaySpinner visible={loading}/>
                             )}
 
                             <View style={styles.headerContainer}>

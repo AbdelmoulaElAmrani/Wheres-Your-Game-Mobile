@@ -26,5 +26,4 @@ export class FriendRequestService {
         return res?.data;
     }
 
-
 }
