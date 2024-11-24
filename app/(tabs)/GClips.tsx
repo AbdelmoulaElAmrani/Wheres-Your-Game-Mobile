@@ -190,10 +190,11 @@ const GClips = () => {
     }
     const _handleSocialMediaLink = async () => {
         // Check if any link is provided and validate against domains
-        var isValidLink = socialMediaLink.facebook.length > 0 && socialMediaLink.facebook.includes('facebook.com')
-            || socialMediaLink.instagram.length > 0 && socialMediaLink.instagram.includes('instagram.com')
-            || socialMediaLink.tiktok.length > 0 && socialMediaLink.tiktok.includes('tiktok.com')
-            || socialMediaLink.youtube.length > 0 && socialMediaLink.youtube.includes('youtube.com');
+        const isValidLink =
+            (socialMediaLink.facebook && (socialMediaLink.facebook.includes('facebook.com') || socialMediaLink.facebook.includes('fb.com'))) ||
+            (socialMediaLink.instagram && socialMediaLink.instagram.includes('instagram.com')) ||
+            (socialMediaLink.tiktok && (socialMediaLink.tiktok.includes('tiktok.com') || socialMediaLink.tiktok.includes('vm.tiktok.com'))) ||
+            (socialMediaLink.youtube && (socialMediaLink.youtube.includes('youtube.com') || socialMediaLink.youtube.includes('youtu.be')));
 
         if (!isValidLink) {
             // Show an error alert if the link is invalid
@@ -205,7 +206,7 @@ const GClips = () => {
             return;
         }
 
-        var updatedLink = await UserService.updateUserSocialLinks({
+        const updatedLink = await UserService.updateUserSocialLinks({
             facebookAccount: socialMediaLink.facebook,
             instagramAccount: socialMediaLink.instagram,
             tiktokAccount: socialMediaLink.tiktok,
@@ -218,7 +219,6 @@ const GClips = () => {
             youtube: updatedLink?.youtubeAccount || '',
         });
         setSocialMediaCardVisible(false);
-
     };
     const shareAppLink = async () => {
         try {
@@ -712,7 +712,6 @@ const styles = StyleSheet.create({
         paddingLeft: 10,
         paddingRight: 10,
         marginBottom: 10
-
     },
 })
 

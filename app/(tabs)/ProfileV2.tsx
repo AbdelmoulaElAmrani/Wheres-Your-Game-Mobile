@@ -6,13 +6,15 @@ import {getUserProfile, getUserSports} from "@/redux/UserSlice";
 import {ImageBackground} from "expo-image";
 import {heightPercentageToDP as hp, widthPercentageToDP} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
-import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {Avatar, Divider} from "react-native-paper";
+import {Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Avatar, Divider, Modal, TextInput} from "react-native-paper";
 import {FontAwesome6} from "@expo/vector-icons";
 import * as Linking from "expo-linking";
 import {Helpers} from "@/constants/Helpers";
 import OverlaySpinner from "@/components/OverlaySpinner";
-import { UserSportResponse } from "@/models/responseObjects/UserSportResponse";
+import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
+import CustomButton from "@/components/CustomButton";
+import {UserService} from "@/services/UserService";
 
 enum MenuOption {
     Overview,
@@ -25,8 +27,13 @@ export const ProfileV2 = () => {
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse | undefined;
     const loading = useSelector((state: any) => state.user.loading) as boolean;
     const [selectOption, setSelectOption] = useState<MenuOption>(MenuOption.Overview);
-    const hasRun = useRef(false);
-
+    const [isSocialMediaCardVisible, setSocialMediaCardVisible] = useState(false);
+    const [socialMediaLink, setSocialMediaLink] = useState({
+        facebook: '',
+        instagram: '',
+        tiktok: '',
+        youtube: ''
+    });
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
 
     useFocusEffect(useCallback(() => {
@@ -46,8 +53,49 @@ export const ProfileV2 = () => {
          }*!/
      }, [isFocused, currentUser]);*/
 
+    const _hideSocialMediaCard = () => setSocialMediaCardVisible(false);
+
+    const _showSocialMediaCard = () => setSocialMediaCardVisible(true);
+
+
+    const _handleSocialMediaLink = async () => {
+        const isValidLink =
+            (socialMediaLink.facebook && (socialMediaLink.facebook.includes('facebook.com') || socialMediaLink.facebook.includes('fb.com'))) ||
+            (socialMediaLink.instagram && socialMediaLink.instagram.includes('instagram.com')) ||
+            (socialMediaLink.tiktok && (socialMediaLink.tiktok.includes('tiktok.com') || socialMediaLink.tiktok.includes('vm.tiktok.com'))) ||
+            (socialMediaLink.youtube && (socialMediaLink.youtube.includes('youtube.com') || socialMediaLink.youtube.includes('youtu.be')));
+
+        if (!isValidLink) {
+            Alert.alert(
+                'Invalid Link',
+                'Please enter a valid link from Facebook, Instagram, YouTube, or TikTok.',
+                [{text: 'OK'}]
+            );
+            return;
+        }
+
+        const updatedLink = await UserService.updateUserSocialLinks({
+            facebookAccount: socialMediaLink.facebook,
+            instagramAccount: socialMediaLink.instagram,
+            tiktokAccount: socialMediaLink.tiktok,
+            youtubeAccount: socialMediaLink.youtube,
+        });
+        setSocialMediaLink({
+            facebook: updatedLink?.facebookAccount || '',
+            instagram: updatedLink?.instagramAccount || '',
+            tiktok: updatedLink?.tiktokAccount || '',
+            youtube: updatedLink?.youtubeAccount || '',
+        });
+        setSocialMediaCardVisible(false);
+        //TODO:: we may need to refresh the redux
+    };
+
     const _handleSettings = () => {
-        router.navigate('/(settings)');
+        if (selectOption == MenuOption.Videos) {
+            _showSocialMediaCard();
+        } else {
+            router.navigate('/(settings)');
+        }
     };
 
     const _option = (option: MenuOption) => {
@@ -77,7 +125,7 @@ export const ProfileV2 = () => {
             style={{height: hp(100)}}
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                {loading && ( <OverlaySpinner visible={true}/>)}
+                {loading && (<OverlaySpinner visible={true}/>)}
                 <View style={styles.mainContainer}>
                     <ScrollView showsVerticalScrollIndicator={false}
                                 contentContainerStyle={{alignItems: 'center'}}
@@ -122,7 +170,6 @@ export const ProfileV2 = () => {
                                 </Text>
                                 {selectOption == MenuOption.Overview && <View style={styles.underline}/>}
                             </TouchableOpacity>
-
                             <TouchableOpacity onPress={() => _option(MenuOption.Videos)}>
                                 <Text
                                     style={[styles.selectionText, selectOption == MenuOption.Videos && styles.selectedText]}>
@@ -211,8 +258,7 @@ export const ProfileV2 = () => {
                                         <TouchableOpacity
                                             onPress={() => currentUser?.socialMediaLinks?.facebookAccount && _handleOpenUrl(currentUser?.socialMediaLinks?.facebookAccount)}
                                             style={styles.iconCard}
-                                            disabled={!currentUser?.socialMediaLinks?.facebookAccount}
-                                        >
+                                            disabled={!currentUser?.socialMediaLinks?.facebookAccount}>
                                             <FontAwesome6
                                                 name="facebook"
                                                 size={40}
@@ -263,6 +309,123 @@ export const ProfileV2 = () => {
                         </View>
                     </ScrollView>
                 </View>
+
+                {/******User Social Medial links*******/}
+                <Modal visible={isSocialMediaCardVisible} onDismiss={_hideSocialMediaCard}
+                       contentContainerStyle={[styles.postModalContainer, {height: '50%'}]}>
+                    <Text style={{
+                        fontSize: 25,
+                        fontWeight: 'bold',
+                        marginTop: 20
+                    }}>Link Social Media</Text>
+                    <View style={{width: '97%', alignItems: 'center', marginTop: 10}}>
+                        <TextInput
+                            placeholder="Facebook"
+                            style={[styles.inputStyle, {
+                                marginTop: 10,
+                                flexShrink: 1,  // Prevents wrapping
+                                width: '100%',
+                                height: 55,
+                            }]}
+                            cursorColor='black'
+                            placeholderTextColor={'grey'}
+                            underlineColor={"transparent"}
+                            left={<TextInput.Icon color={'#D3D3D3'} icon='facebook' size={25}/>}
+                            value={socialMediaLink.facebook}
+                            onChangeText={text => setSocialMediaLink({...socialMediaLink, facebook: text})}
+                            multiline={false}
+                        />
+                        <TextInput
+                            placeholder="Instagram"
+                            style={[styles.inputStyle, {
+                                marginTop: 5,
+                                flexShrink: 1,
+                                width: '100%',
+                                height: 55,
+                            }]}
+                            cursorColor='black'
+                            placeholderTextColor={'grey'}
+                            underlineColor={"transparent"}
+                            left={<TextInput.Icon color={'#D3D3D3'} icon='instagram' size={25}/>}
+                            value={socialMediaLink.instagram}
+                            onChangeText={text => setSocialMediaLink({...socialMediaLink, instagram: text})}
+                            multiline={false}
+                        />
+                        <TextInput
+                            placeholder="Tiktok"
+                            style={[styles.inputStyle, {
+                                marginTop: 5,
+                                flexShrink: 1,
+                                width: '100%',
+                                height: 55,
+                            }]}
+                            cursorColor='black'
+                            placeholderTextColor={'grey'}
+                            underlineColor={"transparent"}
+                            left={<TextInput.Icon color={'#D3D3D3'} icon='link' size={25}/>}
+                            value={socialMediaLink.tiktok}
+                            onChangeText={text => setSocialMediaLink({...socialMediaLink, tiktok: text})}
+                            multiline={false}
+                        />
+                        <TextInput
+                            placeholder="Youtube"
+                            style={[styles.inputStyle, {
+                                marginTop: 5,
+                                flexShrink: 1,
+                                width: '100%',
+                                height: 55,
+                            }]}
+                            cursorColor='black'
+                            placeholderTextColor={'grey'}
+                            underlineColor={"transparent"}
+                            left={<TextInput.Icon color={'#D3D3D3'} icon='youtube' size={25}/>}
+                            value={socialMediaLink.youtube}
+                            onChangeText={text => setSocialMediaLink({...socialMediaLink, youtube: text})}
+                            multiline={false}
+                        />
+                        <View style={{flexDirection: 'row', justifyContent: 'space-between', width: '80%'}}>
+                            <CustomButton
+                                text="Cancel"
+                                onPress={_hideSocialMediaCard}
+                                style={{
+                                    marginTop: 20,
+                                    width: '40%',
+                                    height: 35,
+                                    backgroundColor: 'white',
+                                    borderColor: '#ccc',
+                                    borderWidth: 1,
+                                    borderRadius: 8,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    shadowColor: '#000',
+                                    shadowOffset: {width: 0, height: 2},
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 2,
+                                    elevation: 2,
+                                }}
+                                textStyle={{color: 'black'}}
+                            />
+                            <CustomButton
+                                text="Link"
+                                onPress={_handleSocialMediaLink}
+                                style={{
+                                    marginTop: 20,
+                                    width: '40%',
+                                    height: 35,
+                                    borderRadius: 8,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    shadowColor: '#000',
+                                    shadowOffset: {width: 0, height: 2},
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 2,
+                                    elevation: 2,
+                                }}
+                            />
+                        </View>
+                    </View>
+
+                </Modal>
             </SafeAreaView>
         </ImageBackground>);
 }
@@ -378,7 +541,36 @@ const styles = StyleSheet.create({
         shadowRadius: 5,
         elevation: 5,
         borderColor: 'grey',
-    }
+    },
+    postModalContainer: {
+        backgroundColor: 'white',
+        borderRadius: 20,
+        paddingHorizontal: 5,
+        width: '95%',
+        height: '40%',
+        alignItems: 'center',
+        alignSelf: 'center',
+        justifyContent: 'flex-start',
+        marginTop: 10,
+        marginBottom: '30%'
+    },
+    inputStyle: {
+        backgroundColor: 'white',
+        height: 45,
+        fontSize: 16,
+        marginTop: 5,
+        color: 'black',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        borderBottomRightRadius: 20,
+        borderBottomLeftRadius: 20,
+        borderColor: '#D3D3D3',
+        borderWidth: 1,
+        width: '100%',
+        paddingLeft: 10,
+        paddingRight: 10,
+        marginBottom: 10
+    },
 });
 
 export default ProfileV2;
