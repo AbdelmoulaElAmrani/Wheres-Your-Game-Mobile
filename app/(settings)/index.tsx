@@ -24,7 +24,7 @@ const Settings = () => {
     }
 
     const _openPrivacySettings = () => {
-        router.navigate('(privacySettings)');
+        router.navigate('/(settings)/(privacySettings)');
     };
     const _openLocationSettings = () => {
         Linking.openSettings().catch(() => {
@@ -33,7 +33,7 @@ const Settings = () => {
     };
 
     const _openProfilePreference = () => {
-        router.navigate('ProfilePreference');
+        router.navigate('/(settings)/ProfilePreference');
 
     };
     const _openEditProfile = () => {

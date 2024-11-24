@@ -4,4 +4,6 @@ interface UserSearchResponse {
     lastName: string,
     imageUrl: string,
     friend: boolean,
+    parent: boolean,
+    parentPending: boolean
 }

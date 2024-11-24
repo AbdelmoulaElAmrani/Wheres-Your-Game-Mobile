@@ -30,4 +30,12 @@ export interface UserResponse {
     followers?: string [];
     preferenceSport?: string;
     visible: boolean;
+    blockedByPrincipal: boolean;
+    blockedByTheUser: boolean;
+    children?: ChildResponse [];
+}
+
+export interface ChildResponse {
+    fullName: string;
+    id: string;
 }

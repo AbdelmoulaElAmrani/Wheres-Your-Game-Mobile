@@ -1,6 +1,6 @@
 import {
     FlatList,
-    KeyboardAvoidingView,
+    KeyboardAvoidingView, Platform,
     StyleSheet,
     Text,
     TextInput,
@@ -10,19 +10,24 @@ import {
 import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {ImageBackground} from "expo-image";
-import {router, useRouter} from "expo-router";
-import {memo, useEffect, useRef, useState} from "react";
+import {router, useFocusEffect, useRouter} from "expo-router";
+import React, {memo, useCallback, useEffect, useRef, useState} from "react";
 import {Conversation} from "@/models/Conversation";
 import {FlashList} from "@shopify/flash-list";
 import {Avatar, Divider, Modal} from "react-native-paper";
 import {Helpers} from "@/constants/Helpers";
 import {heightPercentageToDP, widthPercentageToDP} from "react-native-responsive-screen";
-import {AntDesign} from "@expo/vector-icons";
+import {AntDesign, Ionicons} from "@expo/vector-icons";
 import Spinner from "@/components/Spinner";
 import {ChatService} from "@/services/ChatService";
 import {UserService} from "@/services/UserService";
 import moment from 'moment-timezone';
 import {CONVERSATION_REFRESH_TIMER} from "@/appConfig";
+import {useSelector} from "react-redux";
+import {UserResponse} from "@/models/responseObjects/UserResponse";
+import UserType from "@/models/UserType";
+import RNPickerSelect from "react-native-picker-select";
+import OverlaySpinner from "@/components/OverlaySpinner";
 
 
 const MESSAGE_TIMER = CONVERSATION_REFRESH_TIMER * 1000;
@@ -32,6 +37,16 @@ const Chats = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [modalOpen, setModalOpen] = useState<boolean>(false);
     const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
+    const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
+
+    const [selectedProfileId, setSelectedProfileId] = useState<string>('');
+    const [tempSelectedProfileId, setTempSelectedProfileId] = useState<string>('');
+
+    const _handleGoBack = () => {
+        if (router.canGoBack())
+            router.back();
+    }
+
 
     useEffect(() => {
         (async () => {
@@ -70,14 +85,9 @@ const Chats = () => {
         }
     };
 
-    const _handleGoBack = () => {
-        if (router.canGoBack())
-            router.back();
-    }
-
     const fetchConversations = async () => {
         if (!modalOpen) {
-            const data = await ChatService.getConversation();
+            const data = await ChatService.getConversation(selectedProfileId);
             if (data) {
                 try {
                     const sortedData = data.sort((a, b) => {
@@ -97,7 +107,7 @@ const Chats = () => {
         const receptionId = chat.user?.id;
         _router.push({
             pathname: '/UserConversation',
-            params: {data: receptionId},
+            params: {receptionId: receptionId, childId: selectedProfileId},
         });
     }
 
@@ -123,7 +133,6 @@ const Chats = () => {
             const data = await UserService.SearchUsersByFullName(searchName);
             setPeople(data || []);
         }
-
         const _renderUserItem = ({item}: { item: UserSearchResponse }) => (
             <TouchableOpacity style={styles.userItem} onPress={() => startChatWithUser(item)}>
 
@@ -138,7 +147,6 @@ const Chats = () => {
                 <Text style={styles.userName}>{`${item.firstName} ${item.lastName}`}</Text>
             </TouchableOpacity>
         );
-
         return (
             <Modal visible={modalOpen}
                    onDismiss={_hideSearchUserModal}
@@ -186,7 +194,8 @@ const Chats = () => {
         );
     });
 
-    const _renderConversation = memo(({item}: { item: Conversation }) => {
+    const _renderConversation = memo(({item}: { item: Conversation | undefined }) => {
+        if (!item) return <></>
         const userTimeZone = moment.tz.guess(); // Get the user's time zone
         const formattedDate = moment(item.lastActiveDate).tz(userTimeZone).toDate();
         return (
@@ -224,6 +233,18 @@ const Chats = () => {
         );
     });
 
+    const isFirstRender = useRef<boolean>(true);
+
+    useFocusEffect(useCallback(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        fetchConversations();
+        stopInterval();
+        startInterval();
+    }, [selectedProfileId]));
+
     return (
         <ImageBackground
             style={{
@@ -231,25 +252,74 @@ const Chats = () => {
                 width: '100%',
             }}
             source={require('../../../assets/images/signupBackGround.jpg')}>
+            {loading && (
+                <OverlaySpinner visible={loading}/>
+            )}
             <SafeAreaView>
                 <CustomNavigationHeader text={"Message"} goBackFunction={_handleGoBack} showBackArrow/>
                 <View style={styles.mainContainer}>
-                    {loading && (
-                        <Spinner visible={loading}/>
-                    )}
                     <View style={styles.searchContainer}>
-                        <TouchableOpacity
-                            onPress={_showSearchUserModal}
-                            style={{alignItems: 'flex-end', marginRight: 15, marginTop: '4%'}}>
-                            <AntDesign name="pluscircle" size={30} color="#2757CB"/>
-                        </TouchableOpacity>
+                        {(selectedProfileId == '' || selectedProfileId == currentUser.id) &&
+                            <TouchableOpacity
+                                onPress={_showSearchUserModal}
+                                style={{alignItems: 'flex-end', marginRight: 15, marginTop: '4%'}}>
+                                <AntDesign name="pluscircle" size={30} color="#2757CB"/>
+                            </TouchableOpacity>}
                     </View>
+                    {currentUser.role == UserType[UserType.PARENT] && (<View style={styles.parentFilter}>
+                        <View style={{width: '80%'}}>
+                            <RNPickerSelect
+                                placeholder={{
+                                    label: 'Me',
+                                    value: '',
+                                    color: 'black',
+                                }}
+                                items={currentUser?.children?.map(child => ({
+                                    label: child.fullName,
+                                    value: child.id,
+                                    id: child.id,
+                                    color: 'black',
+                                })) || []}
+                                onValueChange={(value, index) => {
+                                    if (value === '') {
+                                        setTempSelectedProfileId('');
+                                    } else {
+                                        setTempSelectedProfileId(value);
+                                    }
+                                    if (Platform.OS != 'ios') {
+                                        setSelectedProfileId(value);
+                                    }
+                                }}
+                                onDonePress={() => {
+                                    setSelectedProfileId(tempSelectedProfileId);
+                                }}
+                                onClose={() => {
+                                    setTempSelectedProfileId(selectedProfileId);
+                                }}
+                                style={{
+                                    ...pickerSelectStyles,
+                                    inputAndroid: {
+                                        ...pickerSelectStyles.inputAndroid,
+                                        backgroundColor: '#f0f0f0',
+                                    }
+                                }}
+                                Icon={() => (
+                                    <Ionicons
+                                        name="chevron-down"
+                                        size={24}
+                                        color="#333"
+                                        style={{position: 'absolute', top: '50%', marginTop: 12, right: 10}}
+                                    />
+                                )}
+                            />
+                        </View>
+                    </View>)}
                     <View style={styles.conversationContainer}>
                         {recentChats.length > 0 ?
                             <FlashList
                                 data={recentChats}
                                 renderItem={({item}) => <_renderConversation item={item}/>}
-                                keyExtractor={(item, index) => item.user?.id + "-" + index}
+                                keyExtractor={(item, index) => item?.user?.id + "-" + index}
                                 estimatedItemSize={10}
                                 contentContainerStyle={{backgroundColor: 'white', padding: 10}}
                                 ListFooterComponent={<View style={{height: heightPercentageToDP(20)}}>
@@ -258,7 +328,8 @@ const Chats = () => {
                                         <Text style={styles.endText}>End</Text>
                                     </View>
                                 </View>}
-                            /> : <Text style={{alignSelf: 'center'}}>No Message</Text>
+                            /> :
+                            <Text style={{alignSelf: 'center', marginTop: heightPercentageToDP(30)}}>No Message</Text>
                         }
                     </View>
                 </View>
@@ -333,6 +404,40 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         marginLeft: widthPercentageToDP(2)
+    },
+    parentFilter: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 20
+    },
+});
+
+const pickerSelectStyles = StyleSheet.create({
+    inputAndroid: {
+        fontSize: 16,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        color: '#333',
+        paddingRight: 30, // To ensure the text is not hidden by the icon
+        backgroundColor: '#fff',
+    },
+    inputIOS: {
+        fontSize: 16,
+        paddingHorizontal: 10,
+        paddingVertical: 12,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        color: '#333',
+        paddingRight: 30, // To ensure the text is not hidden by the icon
+        backgroundColor: '#fff',
+    },
+    placeholder: {
+        color: '#9EA0A4',
+        fontSize: 16,
     },
 });
 export default Chats;

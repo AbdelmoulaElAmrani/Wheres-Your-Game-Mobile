@@ -1,7 +1,6 @@
 import {UserRequest} from "@/models/requestObjects/UserRequest";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import UserType from "@/models/UserType";
-import {AuthService} from "@/services/AuthService";
 import {UserService} from "@/services/UserService";
 import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 import {SportService} from "@/services/SportService";
@@ -52,7 +51,7 @@ const initialState = {
         role: UserType.DEFAULT
     },
     userData: {} as UserResponse,
-    userSport: [{}] as UserSportResponse[],
+    userSport: [] as UserSportResponse[],
     loading: false,
 };
 
@@ -99,17 +98,8 @@ const userSlice = createSlice({
             .addCase(updateUserProfile.rejected, (state) => {
                 state.loading = false;
             })
-            /* .addCase(logout.pending, (state) => {
-                 state = initialState;
-             })
-             .addCase(logout.fulfilled, (state) => {
-                 state = initialState;
-             })
-             .addCase(logout.rejected, (state) => {
-                 state = initialState;
-             })*/
             .addCase(getUserSports.pending, (state) => {
-                state.loading = true;
+                //state.loading = true;
             })
             .addCase(getUserSports.fulfilled, (state, action) => {
                 state.loading = false;

@@ -8,7 +8,7 @@ import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-nativ
 import {SafeAreaView} from "react-native-safe-area-context";
 import {Octicons} from '@expo/vector-icons';
 import * as ImagePicker from "expo-image-picker";
-import {router} from "expo-router";
+import {router, useLocalSearchParams, useRouter} from "expo-router";
 import Gender from "@/models/Gender";
 import MaleIcon from "@/assets/images/svg/MaleIcon";
 import FemaleIcon from "@/assets/images/svg/FemaleIcon";
@@ -26,11 +26,8 @@ import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {UserRequest} from "@/models/requestObjects/UserRequest";
 import {manipulateAsync, SaveFormat} from "expo-image-manipulator";
 import {StorageService} from "@/services/StorageService";
-import {useRoute} from "@react-navigation/core";
 import UserType from "@/models/UserType";
-import { MultiSelect } from "react-native-element-dropdown";
-import _ from "lodash";
-import { UserService } from "@/services/UserService";
+import {MultiSelect} from "react-native-element-dropdown";
 
 
 const _AgeGroup = [
@@ -136,18 +133,29 @@ const _countries = [
 ];
 
 
-
-
 const EditProfile = () => {
 
     const dispatch = useDispatch();
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
 
+    const _router = useRouter();
+
     const [sports, setSports] = useState<Sport[]>([]);
     const [selectedSports, setSelectedSports] = useState<UserInterestedSport[]>([]);
 
     const [user, setUser] = useState<UserResponse>({
+        blockedByPrincipal: false, blockedByTheUser: false,
+        ageGroup: [],
+        city: "",
+        country: "",
+        followers: [],
+        organizationName: "",
+        preferenceSport: "",
+        skillLevel: [],
+        socialMediaLinks: undefined,
+        stateRegion: "",
+        visible: false,
         address: "",
         age: 0,
         bio: "",
@@ -168,8 +176,8 @@ const EditProfile = () => {
     });
     type GenderOrNull = Gender | null;
 
-    const route = useRoute();
-    const paramData = route.params as any;
+    const paramData = useLocalSearchParams<any>();
+
 
     const [currentStep, setCurrentStep] = useState<number>(1);
     registerTranslation("en", enGB);
@@ -219,13 +227,11 @@ const EditProfile = () => {
             if (currentStep >= 3) {
                 try {
                     await _handleUpdateUser(selectedGender);
-                    if (paramData?.data)
-                        router.setParams({previousScreenName: 'profile'})
-
                     if (selectedSports.length > 0 && userSport.length === 0) {
                         const response = await SportService.registerUserToSport(selectedSports, userData.id);
                     }
                     router.navigate('/(tabs)');
+                    return;
                 } catch (e) {
                     console.log(e);
                 }
@@ -234,13 +240,6 @@ const EditProfile = () => {
             setCurrentStep(oldValue => Math.min(4, oldValue + 1));
             if (currentStep >= 2) {
                 try {
-
-                    
-                    if (paramData?.data)
-                        router.setParams({previousScreenName: 'profile'})
-
-                    
-
                 } catch (e) {
                     console.log(e);
                 }
@@ -250,9 +249,14 @@ const EditProfile = () => {
             if (currentStep >= 2) {
                 try {
                     await _handleUpdateUser(selectedGender);
-                    if (paramData?.data)
-                        router.setParams({previousScreenName: 'profile'})
-                    router.navigate('/SportInterested');
+                    let flag = false;
+                    if (paramData?.data) {
+                        flag = true;
+                    }
+                    _router.push({
+                        pathname: '/SportInterested',
+                        params: {data: flag ? 'profile' : null},
+                    });
                 } catch (e) {
                     console.log(e);
                 }
@@ -484,7 +488,10 @@ const EditProfile = () => {
                                     underlineColor={"transparent"}
                                 />
                                 <View style={styles.buttonContainer}>
-                                    <CustomButton text="Continue" onPress={_handleContinueUserInfo}/>
+                                    <CustomButton
+                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                    text="Save & Continue"
+                                     onPress={_handleContinueUserInfo}/>
                                 </View>
                             </View>
                         </View>
@@ -553,13 +560,14 @@ const EditProfile = () => {
                         text="Back"
                         onPress={goToPreviousStep}
                         style={styles.backButton}
-                        textStyle={styles.buttonText}
+                        textStyle={[styles.buttonText, {fontSize: 15, fontWeight: 'bold'}]}
                     />
                     <CustomButton
                         disabled={selectedGender === Gender.DEFAULT}
-                        text="Continue"
+                        text="Save & Continue"
                         onPress={_handleContinueGenderEdit}
-                        style={styles.continueButton}
+                        textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                        style={[styles.continueButton, { width: wp('42%'), marginRight: wp('5%') }]}
                     />
                 </View>
             </View>
@@ -699,7 +707,9 @@ const EditProfile = () => {
                                 />
 
                                 <View style={{marginTop: 30}}>
-                                    <CustomButton text="Continue" onPress={_handleCoachSportInfoEdit}/>
+                                    <CustomButton
+                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                    text="Save & Continue" onPress={_handleCoachSportInfoEdit}/>
                                 </View>
                             </View>
                         </View>
@@ -724,7 +734,7 @@ const EditProfile = () => {
             setUser(({
                 ...editUser,
                 bio: editUser.bio,
-                organizationName : organizationName,
+                organizationName: organizationName,
                 isCertified: isCertified,
                 ageGroup: selectedAgeGroup,
                 skillLevel: selectedSportLevel,
@@ -756,8 +766,8 @@ const EditProfile = () => {
             //this condition is not working because we are seting the global state
             // if (selectedSports.length === 0 && userSport.length === 0)
             //     return;
-            
-            
+
+
             await _handleContinue();
         }
 
@@ -829,7 +839,7 @@ const EditProfile = () => {
                                     inputSearchStyle={styles.inputSearchStyle}
                                     containerStyle={styles.containerStyle}
                                     data={_generateSportLevelItems()}
-                                    placeholder= {selectedSportLevel.length > 0 ? `Selected ${selectedSportLevel.map((item) => item).join(', ')}` : 'Select Skill Level'}
+                                    placeholder={selectedSportLevel.length > 0 ? `Selected ${selectedSportLevel.map((item) => item).join(', ')}` : 'Select Skill Level'}
                                     value={selectedSportLevel}
                                     labelField="label"
                                     valueField="value"
@@ -882,7 +892,9 @@ const EditProfile = () => {
                                     onChangeText={(text) => setEditUser({...editUser, city: text})}
                                 />
                                 <View style={{marginTop: 30}}>
-                                    <CustomButton text="Continue" onPress={_handleOrganizationInfoEdit}/>
+                                    <CustomButton
+                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                    text="Save & Continue" onPress={_handleOrganizationInfoEdit}/>
                                 </View>
                             </View>
                         </View>
@@ -920,8 +932,7 @@ const EditProfile = () => {
             if (!selectedSport && userSport.length === 0) {
                 Alert.alert('No sport selected', 'Please select a sport', [{text: 'OK'}], {cancelable: false});
                 return null;
-            }
-            else if (userSport.length > 0 && !selectedSport) {
+            } else if (userSport.length > 0 && !selectedSport) {
                 return null;
             }
             setSelectedSports([...selectedSports, selectedSport]);
@@ -954,7 +965,7 @@ const EditProfile = () => {
                 _handleUpdateUser();
                 router.navigate('/(tabs)');
             }
-        
+
             try {
                 const updatedGlobalState = await new Promise<UserInterestedSport[]>((resolve) =>
                     setGlobalState((prevState: UserInterestedSport[]) => {
@@ -963,14 +974,14 @@ const EditProfile = () => {
                         return newState;
                     })
                 );
-        
+
                 if (updatedGlobalState.length > 0) {
                     await SportService.registerUserToSport(updatedGlobalState, userData.id);
-                    
+
                 }
                 await _handleUpdateUser();
                 router.navigate('/(tabs)');
-                
+
 
             } catch (e) {
                 console.log(e);
@@ -990,14 +1001,20 @@ const EditProfile = () => {
                                     style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
                                     items={sportsList}
                                     placeholder={{label: 'Select sport', value: null}}
-                                    onValueChange={(value) => 
+                                    onValueChange={(value) =>
                                         setSelectedSport(sports.find(sport => sport.id === value) || null)
                                     }
                                     value={selectedSport?.value}
                                 />
                                 <Text style={styles.textLabel}>Estimated Cost</Text>
                                 <TextInput
-                                    style={[styles.inputInfoStyle, {height: 40, borderTopLeftRadius: 20, borderTopRightRadius: 20 , borderBottomRightRadius: 20, borderBottomLeftRadius: 20}]}
+                                    style={[styles.inputInfoStyle, {
+                                        height: 40,
+                                        borderTopLeftRadius: 20,
+                                        borderTopRightRadius: 20,
+                                        borderBottomRightRadius: 20,
+                                        borderBottomLeftRadius: 20
+                                    }]}
                                     placeholder={'Estimated Cost'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
@@ -1006,19 +1023,21 @@ const EditProfile = () => {
                                     onChangeText={(value) => setEstimatedCost(Number(value))}
                                     underlineColor={"transparent"}
                                 />
-                                <Text style={styles.textLabel}>Type of Game</Text>                                
-                                <MultiSelect 
+                                <Text style={styles.textLabel}>Type of Game</Text>
+                                <MultiSelect
                                     style={styles.inputStyle}
                                     placeholderStyle={styles.placeholderStyle}
                                     selectedTextStyle={styles.selectedTextStyle}
-                                    inputSearchStyle={styles.inputSearchStyle }
+                                    inputSearchStyle={styles.inputSearchStyle}
                                     containerStyle={styles.containerStyle}
                                     data={_typeOfGame}
                                     placeholder={selectedTypeOfGame.length > 0 ? `Selected ${selectedTypeOfGame.map((item) => item).join(', ')}` : 'Select Type of Game'}
                                     value={selectedTypeOfGame}
                                     labelField="label"
                                     valueField="value"
-                                    onChange={item => { setSelectedTypeOfGame(item); }}
+                                    onChange={item => {
+                                        setSelectedTypeOfGame(item);
+                                    }}
                                     iconStyle={styles.iconStyle}
                                     selectedStyle={styles.selectedStyle}
                                     activeColor='#4564f5'
@@ -1042,8 +1061,12 @@ const EditProfile = () => {
                                 />
 
                                 <View style={{marginTop: 20}}>
-                                    <CustomButton text="Add another sport" onPress={_handleAddAnotherSport}/>
-                                    <CustomButton text="Finish" onPress={_handleSubmit} style={{marginTop: 10}}/>
+                                    <CustomButton
+                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                    text="Add another sport" onPress={_handleAddAnotherSport}/>
+                                    <CustomButton 
+                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                    text="Finish" onPress={_handleSubmit} style={{marginTop: 10}}/>
                                 </View>
                             </View>
                         </View>
@@ -1123,7 +1146,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         paddingLeft: 15
     },
-  
+
     mgTop: {
         marginTop: 5
     },
@@ -1214,7 +1237,8 @@ const styles = StyleSheet.create({
     sideBySideButtons: {
         flexDirection: 'row',
         position: 'absolute',
-        bottom: 10
+        bottom: 10,
+        justifyContent: 'space-between',
     },
     backButton: {
         backgroundColor: 'white',
@@ -1225,7 +1249,7 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         alignSelf: "center",
         justifyContent: "center",
-        marginRight: wp(10)
+        marginRight: wp(3)
     },
     continueButton: {
         backgroundColor: "#2757CB",

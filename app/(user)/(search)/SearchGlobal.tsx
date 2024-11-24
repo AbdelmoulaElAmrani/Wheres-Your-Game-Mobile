@@ -11,6 +11,7 @@ import TeamSearchCard from "@/components/Search/TeamSearchCard";
 import {SearchGlobalResponse} from "@/models/SearchGlobalResponse";
 import PersonSearchCard from "@/components/Search/PersonSearchCard";
 import {TeamService} from "@/services/TeamService";
+import OverlaySpinner from "@/components/OverlaySpinner";
 
 enum searchOption {
     Teams,
@@ -62,7 +63,7 @@ const SearchGlobal = () => {
             source={require('../../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
                 {loading && (
-                    <Spinner visible={loading}/>
+                    <OverlaySpinner visible={loading}/>
                 )}
                 <CustomNavigationHeader text={`Search           `}
                                         goBackFunction={_handleGoBack} showBackArrow/>
