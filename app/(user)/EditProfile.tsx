@@ -327,9 +327,15 @@ const EditProfile = () => {
 
         const onConfirmSingle = useCallback(
             (params: any) => {
+                if (params && params.date) {
+                    setEditUser((prevState) => ({
+                        ...prevState,
+                        dateOfBirth: params.date,
+                    }));
+                }
                 setOpen(false);
             },
-            [setOpen]
+            [setOpen, setEditUser]
         );
         const _handleContinueUserInfo = async () => {
             const errors = _verifyUserInfo(editUser);
@@ -431,12 +437,6 @@ const EditProfile = () => {
                                 label="Select birth date"
                                 animationType="slide"
                                 locale="en"
-                                onChange={(p) => {
-                                    if (p && p.date) {
-                                        setEditUser({...editUser, dateOfBirth: new Date(p.date)});
-                                    }
-                                }
-                                }
                             />
                             <TextInput
                                 style={styles.inputStyle}
@@ -444,10 +444,21 @@ const EditProfile = () => {
                                 cursorColor='black'
                                 placeholderTextColor={'grey'}
                                 left={<TextInput.Icon color={'#D3D3D3'} icon='calendar' size={30}/>}
-                                value={new Date(editUser.dateOfBirth).toLocaleDateString()}
-                                onFocus={() => setOpen(true)}
+                                value={
+                                    editUser.dateOfBirth
+                                        ? new Date(editUser.dateOfBirth).toLocaleDateString()
+                                        : new Date().toLocaleDateString()
+                                }
+                                onFocus={() => {
+                                    if (!editUser.dateOfBirth) {
+                                        setEditUser((prevState) => ({
+                                            ...prevState,
+                                            dateOfBirth: new Date(), // Initialize with today's date if null
+                                        }));
+                                    }
+                                    setOpen(true); // Open the modal
+                                }}
                                 underlineColor={"transparent"}
-
                             />
 
                             <Text style={styles.textLabel}>Phone number</Text>
