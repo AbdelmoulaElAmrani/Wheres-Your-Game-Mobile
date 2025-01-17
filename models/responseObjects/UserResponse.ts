@@ -37,5 +37,6 @@ export interface UserResponse {
 
 export interface ChildResponse {
     fullName: string;
+    imageUrl: string;
     id: string;
 }
