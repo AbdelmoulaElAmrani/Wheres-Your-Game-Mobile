@@ -732,8 +732,6 @@ const EditProfile = () => {
 
         const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
         const [organizationName, setOrganizationName] = useState<string>(user.organizationName || '');
-        const [sportLevel, setSportLevel] = useState<SportLevel>(SportLevel.Beginner);
-        const [isCertified, setIsCertified] = useState<boolean>(user.isCertified);
         const [selectedSportLevel, setSelectedSportLevel] = useState<any[]>(user.skillLevel || []);
         const [selectedAgeGroup, setSelectedAgeGroup] = useState<string[]>(user.ageGroup || []);
         const [editUser, setEditUser] = useState<UserResponse>({...user});
@@ -743,7 +741,6 @@ const EditProfile = () => {
                 ...editUser,
                 bio: editUser.bio,
                 organizationName: organizationName,
-                isCertified: isCertified,
                 ageGroup: selectedAgeGroup,
                 skillLevel: selectedSportLevel,
                 country: editUser.country,
