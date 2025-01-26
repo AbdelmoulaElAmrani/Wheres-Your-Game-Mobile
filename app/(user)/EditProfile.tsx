@@ -4,7 +4,6 @@ import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {
     Alert,
     Keyboard,
-    Platform,
     StyleSheet,
     TouchableOpacity,
     TouchableWithoutFeedback,
@@ -24,7 +23,7 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {useDispatch, useSelector} from "react-redux";
 import {getUserProfile, getUserSports, updateUserProfile} from "@/redux/UserSlice";
 import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
-import DateTimePicker from '@react-native-community/datetimepicker';
+import {DatePickerModal, enGB, registerTranslation, tr} from 'react-native-paper-dates';
 import Sport from "@/models/Sport";
 import RNPickerSelect from 'react-native-picker-select';
 import {SportService} from "@/services/SportService";
@@ -182,6 +181,7 @@ const EditProfile = () => {
         positionCoached: "",
         yearsOfExperience: 0
     });
+
     type GenderOrNull = Gender | null;
 
     const paramData = useLocalSearchParams<any>();
@@ -189,6 +189,7 @@ const EditProfile = () => {
 
     const [currentStep, setCurrentStep] = useState<number>(1);
 
+    registerTranslation("en", enGB);
 
     useEffect(() => {
         dispatch(getUserProfile() as any);
@@ -333,17 +334,12 @@ const EditProfile = () => {
         }, [setOpen]);
 
         const onConfirmSingle = useCallback(
-            (event: any, selectedDate: any) => {
+            (params: any) => {
                 setOpen(false);
-                if (selectedDate) {
-                    setEditUser((prevState) => ({
-                        ...prevState,
-                        dateOfBirth: selectedDate,
-                    }));
-                }
             },
-            [setOpen, setEditUser]
+            [setOpen]
         );
+
         const _handleContinueUserInfo = async () => {
             const errors = _verifyUserInfo(editUser);
 
@@ -434,24 +430,34 @@ const EditProfile = () => {
                                 disabled={true}
                             />
                             <Text style={styles.textLabel}>Date of Birth</Text>
-                            <TouchableOpacity
-                                style={[styles.inputStyle, {flexDirection: 'row', alignItems: 'center'}]}
-                                onPress={() => setOpen(true)}>
-                                <Ionicons name="calendar-outline" size={30} color="#D3D3D3" style={{marginRight: 30}}/>
-                                <Text style={{fontSize: 16}}>
-                                    {editUser.dateOfBirth
-                                        ? new Date(editUser.dateOfBirth).toLocaleDateString()
-                                        : 'Select Date'}
-                                </Text>
-                            </TouchableOpacity>
-                            {open && (
-                                <DateTimePicker
-                                    mode="date"
-                                    value={editUser.dateOfBirth ? new Date(editUser.dateOfBirth) : new Date()}
-                                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                    onChange={onConfirmSingle}
-                                />
-                            )}
+                            <DatePickerModal
+                                mode="single"
+                                visible={open}
+                                onDismiss={onDismissSingle}
+                                date={editUser.dateOfBirth ? new Date(editUser.dateOfBirth) : new Date()}
+                                onConfirm={onConfirmSingle}
+                                saveLabel="Select Date"
+                                label="Select birth date"
+                                animationType="slide"
+                                locale="en"
+                                onChange={(p) => {
+                                    if (p && p.date) {
+                                        setEditUser({...editUser, dateOfBirth: new Date(p.date)});
+                                    }
+                                }
+                                }
+                            />
+                            <TextInput
+                                style={styles.inputStyle}
+                                placeholder={'Date of Birth'}
+                                cursorColor='black'
+                                placeholderTextColor={'grey'}
+                                left={<TextInput.Icon color={'#D3D3D3'} icon='calendar' size={30}/>}
+                                value={new Date(editUser.dateOfBirth).toLocaleDateString()}
+                                onFocus={() => setOpen(true)}
+                                underlineColor={"transparent"}
+
+                            />
                             <Text style={styles.textLabel}>Phone number</Text>
                             <View style={styles.mgTop}>
                                 <TextInput
