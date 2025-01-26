@@ -697,7 +697,7 @@ const EditProfile = () => {
                                     }]}
                                     placeholder={{label: 'Select certification', value: null}}
                                     onValueChange={(value) => setIsCertified(value as boolean)}
-                                    value={isCertified || null}
+                                    value={isCertified}
                                 />
 
 
