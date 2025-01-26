@@ -1,12 +1,20 @@
 import CustomButton from "@/components/CustomButton";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React, {useCallback, useEffect, useMemo, useState} from "react";
-import {Alert, Keyboard, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, View} from "react-native"
+import {
+    Alert,
+    Keyboard,
+    Platform,
+    StyleSheet,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View
+} from "react-native"
 import {ImageBackground} from "expo-image";
 import {Avatar, Text, TextInput} from "react-native-paper";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {SafeAreaView} from "react-native-safe-area-context";
-import {Octicons} from '@expo/vector-icons';
+import {Ionicons, Octicons} from '@expo/vector-icons';
 import * as ImagePicker from "expo-image-picker";
 import {router, useLocalSearchParams, useRouter} from "expo-router";
 import Gender from "@/models/Gender";
@@ -16,7 +24,7 @@ import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {useDispatch, useSelector} from "react-redux";
 import {getUserProfile, getUserSports, updateUserProfile} from "@/redux/UserSlice";
 import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
-import {DatePickerModal, enGB, registerTranslation, tr} from 'react-native-paper-dates';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import Sport from "@/models/Sport";
 import RNPickerSelect from 'react-native-picker-select';
 import {SportService} from "@/services/SportService";
@@ -180,7 +188,6 @@ const EditProfile = () => {
 
 
     const [currentStep, setCurrentStep] = useState<number>(1);
-    registerTranslation("en", enGB);
 
 
     useEffect(() => {
@@ -326,14 +333,14 @@ const EditProfile = () => {
         }, [setOpen]);
 
         const onConfirmSingle = useCallback(
-            (params: any) => {
-                if (params && params.date) {
+            (event: any, selectedDate: any) => {
+                setOpen(false);
+                if (selectedDate) {
                     setEditUser((prevState) => ({
                         ...prevState,
-                        dateOfBirth: params.date,
+                        dateOfBirth: selectedDate,
                     }));
                 }
-                setOpen(false);
             },
             [setOpen, setEditUser]
         );
@@ -427,40 +434,24 @@ const EditProfile = () => {
                                 disabled={true}
                             />
                             <Text style={styles.textLabel}>Date of Birth</Text>
-                            <DatePickerModal
-                                mode="single"
-                                visible={open}
-                                onDismiss={onDismissSingle}
-                                date={editUser.dateOfBirth ? new Date(editUser.dateOfBirth) : new Date()}
-                                onConfirm={onConfirmSingle}
-                                saveLabel="Select Date"
-                                label="Select birth date"
-                                animationType="slide"
-                                locale="en"
-                            />
-                            <TextInput
-                                style={styles.inputStyle}
-                                placeholder={'Date of Birth'}
-                                cursorColor='black'
-                                placeholderTextColor={'grey'}
-                                left={<TextInput.Icon color={'#D3D3D3'} icon='calendar' size={30}/>}
-                                value={
-                                    editUser.dateOfBirth
+                            <TouchableOpacity
+                                style={[styles.inputStyle, {flexDirection: 'row', alignItems: 'center'}]}
+                                onPress={() => setOpen(true)}>
+                                <Ionicons name="calendar-outline" size={30} color="#D3D3D3" style={{marginRight: 30}}/>
+                                <Text style={{fontSize: 16}}>
+                                    {editUser.dateOfBirth
                                         ? new Date(editUser.dateOfBirth).toLocaleDateString()
-                                        : new Date().toLocaleDateString()
-                                }
-                                onFocus={() => {
-                                    if (!editUser.dateOfBirth) {
-                                        setEditUser((prevState) => ({
-                                            ...prevState,
-                                            dateOfBirth: new Date(), // Initialize with today's date if null
-                                        }));
-                                    }
-                                    setOpen(true); // Open the modal
-                                }}
-                                underlineColor={"transparent"}
-                            />
-
+                                        : 'Select Date'}
+                                </Text>
+                            </TouchableOpacity>
+                            {open && (
+                                <DateTimePicker
+                                    mode="date"
+                                    value={editUser.dateOfBirth ? new Date(editUser.dateOfBirth) : new Date()}
+                                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                    onChange={onConfirmSingle}
+                                />
+                            )}
                             <Text style={styles.textLabel}>Phone number</Text>
                             <View style={styles.mgTop}>
                                 <TextInput
@@ -500,9 +491,9 @@ const EditProfile = () => {
                                 />
                                 <View style={styles.buttonContainer}>
                                     <CustomButton
-                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
-                                    text="Save & Continue"
-                                     onPress={_handleContinueUserInfo}/>
+                                        textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                        text="Save & Continue"
+                                        onPress={_handleContinueUserInfo}/>
                                 </View>
                             </View>
                         </View>
@@ -578,7 +569,7 @@ const EditProfile = () => {
                         text="Save & Continue"
                         onPress={_handleContinueGenderEdit}
                         textStyle={{fontSize: 15, fontWeight: 'bold'}}
-                        style={[styles.continueButton, { width: wp('42%'), marginRight: wp('5%') }]}
+                        style={[styles.continueButton, {width: wp('42%'), marginRight: wp('5%')}]}
                     />
                 </View>
             </View>
@@ -719,8 +710,8 @@ const EditProfile = () => {
 
                                 <View style={{marginTop: 30}}>
                                     <CustomButton
-                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
-                                    text="Save & Continue" onPress={_handleCoachSportInfoEdit}/>
+                                        textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                        text="Save & Continue" onPress={_handleCoachSportInfoEdit}/>
                                 </View>
                             </View>
                         </View>
@@ -904,8 +895,8 @@ const EditProfile = () => {
                                 />
                                 <View style={{marginTop: 30}}>
                                     <CustomButton
-                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
-                                    text="Save & Continue" onPress={_handleOrganizationInfoEdit}/>
+                                        textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                        text="Save & Continue" onPress={_handleOrganizationInfoEdit}/>
                                 </View>
                             </View>
                         </View>
@@ -1073,11 +1064,11 @@ const EditProfile = () => {
 
                                 <View style={{marginTop: 20}}>
                                     <CustomButton
-                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
-                                    text="Add another sport" onPress={_handleAddAnotherSport}/>
-                                    <CustomButton 
-                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
-                                    text="Finish" onPress={_handleSubmit} style={{marginTop: 10}}/>
+                                        textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                        text="Add another sport" onPress={_handleAddAnotherSport}/>
+                                    <CustomButton
+                                        textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                        text="Finish" onPress={_handleSubmit} style={{marginTop: 10}}/>
                                 </View>
                             </View>
                         </View>
@@ -1121,16 +1112,6 @@ const styles = StyleSheet.create({
         paddingBottom: 55,
         marginTop: 55,
     },
-    userInfoContainer: {
-        //backgroundColor: 'red'
-    },
-    editIcon: {
-        top: hp(2),
-        right: wp(-20),
-        padding: 5,
-        zIndex: 3,
-        position: 'absolute'
-    },
     formContainer: {
         alignSelf: "center",
         width: wp(100),
@@ -1157,37 +1138,8 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         paddingLeft: 15
     },
-
     mgTop: {
         marginTop: 5
-    },
-    selectedFlagContainer: {
-        backgroundColor: 'white',
-        flexDirection: "row",
-        alignItems: "center",
-        alignContent: "center",
-        borderRadius: 10,
-        marginRight: 5,
-        height: 45,
-    },
-    phoneInputContainer: {
-        backgroundColor: 'white',
-        height: 51,
-        width: wp(90),
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        borderBottomRightRadius: 20,
-        borderBottomLeftRadius: 20,
-        borderColor: '#D3D3D3',
-        borderWidth: 1,
-    },
-    textPhoneInputContainer: {
-        color: 'black',
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        borderBottomRightRadius: 20,
-        borderBottomLeftRadius: 20,
-        backgroundColor: 'white'
     },
     buttonContainer: {
         marginTop: 15
@@ -1275,29 +1227,6 @@ const styles = StyleSheet.create({
         color: '#2757CB',
         textAlign: 'center'
     },
-    ageList: {
-        alignItems: 'center',
-        marginTop: hp(9),
-        marginBottom: hp(2),
-        height: hp(35),
-        width: wp(80),
-    },
-    ageItem: {
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
-    },
-    selectedAgeItem: {
-        backgroundColor: '#e0e0e0',
-
-    },
-    itemAgeText: {
-        fontSize: 18,
-    },
-    selectedAgeItemText: {
-        color: '#2757CB',
-    },
     inputInfoStyle: {
         backgroundColor: 'white',
         textAlign: 'left',
@@ -1359,7 +1288,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 2.50,
         elevation: 5
-    }
+    },
 })
 
 
