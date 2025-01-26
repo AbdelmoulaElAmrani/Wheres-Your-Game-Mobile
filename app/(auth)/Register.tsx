@@ -317,12 +317,15 @@ const styles = StyleSheet.create({
     phoneCodeTextStyle: {
         color: 'grey',
         fontSize: 17,
+        height: 20
+        
     },
     phoneInputTextStyle: {
         color: 'grey',
         fontSize: 17,
         height: 50,
-        marginTop: 4
+        marginTop: 4,
+        marginBottom: 4,
 
     }
 });
