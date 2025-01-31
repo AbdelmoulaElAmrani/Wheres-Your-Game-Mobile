@@ -1,28 +1,28 @@
-import ReactNative, { FlatList, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { StatusBar } from "expo-status-bar";
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
-import { SafeAreaView } from "react-native-safe-area-context";
-import React, { memo, useCallback, useEffect, useRef, useState } from "react";
-import { AntDesign, Feather, Fontisto, Ionicons } from "@expo/vector-icons";
-import { useDispatch, useSelector } from "react-redux";
-import { UserResponse } from "@/models/responseObjects/UserResponse";
-import { Helpers } from "@/constants/Helpers";
-import { Player } from "@/models/Player";
-import { ActivityIndicator, Avatar, MD2Colors } from "react-native-paper";
-import { UserSportResponse } from "@/models/responseObjects/UserSportResponse";
-import { getUserProfile, getUserSports } from "@/redux/UserSlice";
+import ReactNative, {FlatList, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {StatusBar} from "expo-status-bar";
+import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
+import {SafeAreaView} from "react-native-safe-area-context";
+import React, {memo, useCallback, useEffect, useRef, useState} from "react";
+import {AntDesign, Feather, Fontisto, Ionicons} from "@expo/vector-icons";
+import {useDispatch, useSelector} from "react-redux";
+import {UserResponse} from "@/models/responseObjects/UserResponse";
+import {Helpers} from "@/constants/Helpers";
+import {Player} from "@/models/Player";
+import {ActivityIndicator, Avatar, MD2Colors} from "react-native-paper";
+import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
+import {getUserProfile, getUserSports} from "@/redux/UserSlice";
 import UserType from "@/models/UserType";
-import { Team } from "@/models/Team";
-import { router, useRouter, useNavigation, useFocusEffect } from "expo-router";
+import {Team} from "@/models/Team";
+import {router, useRouter, useNavigation, useFocusEffect} from "expo-router";
 import RNPickerSelect from 'react-native-picker-select';
-import { TeamService } from "@/services/TeamService";
+import {TeamService} from "@/services/TeamService";
 import Spinner from "@/components/Spinner";
-import { Image, ImageBackground } from "expo-image";
-import { NotificationService } from "@/services/NotificationService";
-import { NOTIFICATION_REFRESH_TIMER } from "@/appConfig";
-import { SportService } from "@/services/SportService";
+import {Image, ImageBackground} from "expo-image";
+import {NotificationService} from "@/services/NotificationService";
+import {NOTIFICATION_REFRESH_TIMER} from "@/appConfig";
+import {SportService} from "@/services/SportService";
 import OverlaySpinner from "@/components/OverlaySpinner";
-import { PlatformOSType } from "react-native/Libraries/Utilities/Platform";
+import {PlatformOSType} from "react-native/Libraries/Utilities/Platform";
 
 const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
 const REFRESH_NOTIFICATION_TIME = NOTIFICATION_REFRESH_TIMER * 1000;
@@ -48,7 +48,7 @@ const Home = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [selectedProfileId, setSelectedProfileId] = useState<string>('');
     const [tempSelectedProfileId, setTempSelectedProfileId] = useState<string>('');
-    const [selectedProfile, setSelectedProfile] = useState<UserProfileProps>({ sports: [], teams: [], userId: '' });
+    const [selectedProfile, setSelectedProfile] = useState<UserProfileProps>({sports: [], teams: [], userId: ''});
     const isFocused = useNavigation().isFocused();
 
 
@@ -91,7 +91,7 @@ const Home = () => {
 
     useFocusEffect(useCallback(() => {
         if ((selectedProfileId == userData.id || selectedProfileId == '')) {
-            setSelectedProfile(prevState => ({ ...prevState, sports: userSport }));
+            setSelectedProfile(prevState => ({...prevState, sports: userSport}));
         }
     }, [userSport]))
 
@@ -102,7 +102,7 @@ const Home = () => {
             try {
                 setIsLoading(true);
                 if (selectedProfileId === userData.id || selectedProfileId === '') {
-                    setSelectedProfile((prevState) => ({ ...prevState, sports: userSport }));
+                    setSelectedProfile((prevState) => ({...prevState, sports: userSport}));
                     await _getMyTeams(userData.id);
                 } else {
                     await _getUserSport(selectedProfileId);
@@ -136,11 +136,11 @@ const Home = () => {
     const _getUserSport = async (userId: string) => {
         try {
             if (userId == userData.id) {
-                setSelectedProfile(prevState => ({ ...prevState, sport: userSport }));
+                setSelectedProfile(prevState => ({...prevState, sport: userSport}));
             } else {
                 const result = SportService.getUserSport(selectedProfileId);
                 if (result != undefined) {
-                    setSelectedProfile(prevState => ({ ...prevState, sport: result }));
+                    setSelectedProfile(prevState => ({...prevState, sport: result}));
                 }
             }
         } catch (e) {
@@ -151,7 +151,7 @@ const Home = () => {
     const _getMyTeams = async (userId: string) => {
         try {
             const result = await TeamService.getUserTeams(userId);
-            setSelectedProfile(prev => ({ ...prev, teams: result }));
+            setSelectedProfile(prev => ({...prev, teams: result}));
         } catch (e) {
             console.error('_getMyTeams', e);
         } finally {
@@ -170,8 +170,11 @@ const Home = () => {
             } else {
                 setPlayers([]);
             }
-        } catch (e) { console.error('_getAllPlayerOfSelectedTeam', e); }
-        finally { setPlayersLoading(false); }
+        } catch (e) {
+            console.error('_getAllPlayerOfSelectedTeam', e);
+        } finally {
+            setPlayersLoading(false);
+        }
 
     }
 
@@ -195,7 +198,7 @@ const Home = () => {
     const _onSearch = (searchType: UserType) => {
         _router.push({
             pathname: '/(user)/(search)/SearchUser',
-            params: { searchType: UserType[searchType] },
+            params: {searchType: UserType[searchType]},
         });
     }
 
@@ -222,7 +225,13 @@ const Home = () => {
             }
         }
     }
-    const _onSelectPlayer = (player: any) => {
+    const _onSelectPlayer = (player: Player | undefined) => {
+        if (player?.id) {
+            _router.push({
+                pathname: '/(user)/UserProfile',
+                params: {userId: player.id},
+            });
+        }
     }
 
     const _onSelectCategory = (category: any) => {
@@ -238,23 +247,23 @@ const Home = () => {
         selectedTeam !== undefined;
 
 
-    const _renderSportItem = memo(({ item }: { item: UserSportResponse }) => {
+    const _renderSportItem = memo(({item}: { item: UserSportResponse }) => {
         return (<TouchableOpacity
             disabled={true}
-            style={{ justifyContent: 'center', alignItems: 'center', alignContent: 'center' }}
+            style={{justifyContent: 'center', alignItems: 'center', alignContent: 'center'}}
             onPress={() => _onSelectSport(item.id)}>
             <View style={styles.circle}>
                 <Image
                     placeholder={require('../../assets/images/sport/sport.png')}
                     placeholderContentFit={'contain'}
-                    source={{ uri: item.iconUrl }}
-                    style={styles.iconImage} />
+                    source={{uri: item.iconUrl}}
+                    style={styles.iconImage}/>
             </View>
             <Text style={styles.tagText}>{item.sportName}</Text>
         </TouchableOpacity>);
     });
 
-    const _renderTeam = memo(({ item }: { item: Team }) => {
+    const _renderTeam = memo(({item}: { item: Team }) => {
         return (
             <TouchableOpacity
                 style={[styles.card, selectedTeam?.id == item.id ? styles.selectedTag : null]}
@@ -262,7 +271,7 @@ const Home = () => {
                 <View>
                     <View style={styles.cardImage}>
                         {item.imgUrl ? (
-                            <Avatar.Image size={60} source={{ uri: item.imgUrl }} />
+                            <Avatar.Image size={60} source={{uri: item.imgUrl}}/>
                         ) : (
                             <Avatar.Text
                                 size={60}
@@ -275,7 +284,7 @@ const Home = () => {
                                         // If there is only one word, take the first two characters
                                         return (item.name.charAt(0) + item.name.charAt(1)).toUpperCase();
                                     }
-                                })()} />
+                                })()}/>
                         )}
                     </View>
                 </View>
@@ -291,15 +300,14 @@ const Home = () => {
         )
     });
 
-    const _renderPlayer = memo(({ item }: { item: Player }) => (
+    const _renderPlayer = memo(({item}: { item: Player }) => (
         <TouchableOpacity
-            disabled={true}
             style={styles.card}
             onPress={() => _onSelectPlayer(item)}>
             <View>
                 <View style={styles.cardImage}>
                     {item.imageUrl ? (
-                        <Avatar.Image size={60} source={{ uri: item.imageUrl }} />
+                        <Avatar.Image size={60} source={{uri: item.imageUrl}}/>
                     ) : (
                         <Avatar.Text
                             size={60}
@@ -318,12 +326,12 @@ const Home = () => {
         </TouchableOpacity>
     ));
 
-    const _renderCategory = memo(({ item }: { item: any }) => (
+    const _renderCategory = memo(({item}: { item: any }) => (
         <TouchableOpacity
             disabled={true}
             style={styles.categoryContainer}
             onPress={() => _onSelectCategory(item)}>
-            <Text style={{ fontSize: 14, fontWeight: 'bold', textAlign: 'center', color: 'white' }}>{item}</Text>
+            <Text style={{fontSize: 14, fontWeight: 'bold', textAlign: 'center', color: 'white'}}>{item}</Text>
         </TouchableOpacity>
     ));
 
@@ -331,14 +339,14 @@ const Home = () => {
         //TODO::
         _router.push({
             pathname: '/(user)/(search)/SearchUser',
-            params: { searchType: UserType.DEFAULT },
+            params: {searchType: UserType.DEFAULT},
         });
     }
 
 
     return (
         <>
-            <StatusBar style="light" />
+            <StatusBar style="light"/>
             <ImageBackground
                 style={{
                     position: "absolute",
@@ -350,36 +358,36 @@ const Home = () => {
                 }}
                 source={require('../../assets/images/signupBackGround.jpg')}>
                 {(loading || isLoading) && isFocused && (
-                    <OverlaySpinner visible={true} />
+                    <OverlaySpinner visible={true}/>
                 )}
-                <SafeAreaView style={{ height: hp(100) }}>
+                <SafeAreaView style={{height: hp(100)}}>
                     <View style={styles.headerContainer}>
                         <View>
                             <TouchableOpacity onPress={_handleOnOpenSearch}>
-                                <Feather name="search" size={30} color="white" />
+                                <Feather name="search" size={30} color="white"/>
                             </TouchableOpacity>
                         </View>
-                        <View style={{ marginLeft: 20 }}>
+                        <View style={{marginLeft: 20}}>
                             <ReactNative.Image style={styles.logoContainer}
-                                source={require('../../assets/images/homeLogo.png')} />
+                                               source={require('../../assets/images/homeLogo.png')}/>
 
                             {userData.role == UserType[UserType.PARENT] && <TouchableOpacity
                                 onPress={_handleOpenInviteChild}
-                                style={{ borderColor: 'white', borderWidth: 0.5, marginTop: 1, borderRadius: 5 }}>
-                                <Text style={{ color: 'white', textAlign: 'center', fontSize: 16, paddingVertical: 5 }}>Invite
+                                style={{borderColor: 'white', borderWidth: 0.5, marginTop: 1, borderRadius: 5}}>
+                                <Text style={{color: 'white', textAlign: 'center', fontSize: 16, paddingVertical: 5}}>Invite
                                     Child</Text>
                             </TouchableOpacity>}
                         </View>
                         <View style={styles.sideHiderContainer}>
                             <TouchableOpacity
                                 onPress={_onOpenNotification}
-                                style={{ marginRight: 20 }}>
+                                style={{marginRight: 20}}>
                                 <Fontisto name={newNotif ? "bell-alt" : "bell"} size={30}
-                                    color={newNotif ? "red" : "white"} />
+                                          color={newNotif ? "red" : "white"}/>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={_onOpenChat}>
-                                <Ionicons name="chatbubble-ellipses-outline" size={30} color="white" />
+                                <Ionicons name="chatbubble-ellipses-outline" size={30} color="white"/>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -435,7 +443,7 @@ const Home = () => {
                                             name="chevron-down"
                                             size={24}
                                             color="white"
-                                            style={{ position: 'absolute', top: '50%', marginTop: 5, right: 10 }}
+                                            style={{position: 'absolute', top: '50%', marginTop: 5, right: 10}}
                                         />
                                     )}
                                 />
@@ -443,7 +451,7 @@ const Home = () => {
                         }
                     </View>
                     <View style={styles.mainContainer}>
-                        <View style={{ marginBottom: 10, flexDirection: 'row', justifyContent: 'center' }}>
+                        <View style={{marginBottom: 10, flexDirection: 'row', justifyContent: 'center'}}>
                             <TouchableOpacity
                                 onPress={() => _onSearch(UserType.COACH)}
                                 style={styles.tag}>
@@ -463,7 +471,7 @@ const Home = () => {
                             </TouchableOpacity>
                         </View>
                         <ScrollView
-                            style={{ flex: 1 }}
+                            style={{flex: 1}}
                             showsVerticalScrollIndicator={true}>
                             <View style={styles.menuContainer}>
                                 <View style={styles.menuTitleContainer}>
@@ -472,7 +480,7 @@ const Home = () => {
                                 </View>
                                 <FlatList
                                     data={selectedProfile?.sports}
-                                    renderItem={({ item }) => <_renderSportItem item={item} />}
+                                    renderItem={({item}) => <_renderSportItem item={item}/>}
                                     keyExtractor={item => item.sportId + item.sportName}
                                     horizontal={true}
                                     showsHorizontalScrollIndicator={false}
@@ -482,7 +490,7 @@ const Home = () => {
                             </View>
                             <View style={styles.menuContainer}>
                                 <View style={styles.menuTitleContainer}>
-                                    <View style={{ flexDirection: 'row' }}>
+                                    <View style={{flexDirection: 'row'}}>
                                         <Text style={styles.menuTitle}>Your Teams <Text
                                             style={styles.count}>{selectedProfile.teams?.length}</Text></Text>
                                     </View>
@@ -490,12 +498,12 @@ const Home = () => {
                                         onPress={_onAddTeam}
                                         style={styles.btnContainer}>
                                         <Text style={styles.btnText}>Add Team</Text>
-                                        <AntDesign name="right" size={20} color="#4361EE" />
+                                        <AntDesign name="right" size={20} color="#4361EE"/>
                                     </TouchableOpacity>}
                                 </View>
                                 <FlatList
                                     data={selectedProfile?.teams}
-                                    renderItem={({ item }) => <_renderTeam item={item} />}
+                                    renderItem={({item}) => <_renderTeam item={item}/>}
                                     keyExtractor={item => item.id}
                                     horizontal={true}
                                     showsHorizontalScrollIndicator={false}
@@ -506,7 +514,7 @@ const Home = () => {
 
                             {isPlayersVisible() && <View style={styles.menuContainer}>
                                 <View style={styles.menuTitleContainer}>
-                                    <View style={{ flexDirection: 'row' }}>
+                                    <View style={{flexDirection: 'row'}}>
                                         <Text style={styles.menuTitle}>{isCoach() ? 'Your ' : ''}Players <Text
                                             style={styles.count}>{players?.length}</Text></Text>
                                     </View>
@@ -514,14 +522,14 @@ const Home = () => {
                                         onPress={_onAddPlayer}
                                         style={styles.btnContainer}>
                                         <Text style={styles.btnText}>Add Player</Text>
-                                        <AntDesign name="right" size={20} color="#4361EE" />
+                                        <AntDesign name="right" size={20} color="#4361EE"/>
                                     </TouchableOpacity>}
                                 </View>
                                 {playersLoading ? (
-                                    <ActivityIndicator animating={true} color={MD2Colors.blueA700} size={35} />) :
+                                        <ActivityIndicator animating={true} color={MD2Colors.blueA700} size={35}/>) :
                                     (<FlatList
                                         data={players}
-                                        renderItem={({ item }) => <_renderPlayer item={item} />}
+                                        renderItem={({item}) => <_renderPlayer item={item}/>}
                                         keyExtractor={item => item.id}
                                         horizontal={true}
                                         showsHorizontalScrollIndicator={false}
@@ -530,7 +538,7 @@ const Home = () => {
                                     />)}
                             </View>}
 
-                            <View style={[styles.menuContainer, { marginBottom: 100 }]}>
+                            <View style={[styles.menuContainer, {marginBottom: 100}]}>
                                 {/*<View style={styles.menuTitleContainer}>
                                     <View style={{flexDirection: 'row'}}>
                                         <Text style={styles.menuTitle}>Explore by Categories</Text>
@@ -639,7 +647,7 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 10,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.1,
         shadowRadius: 6,
         elevation: 3,
@@ -675,7 +683,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         margin: 10,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.1,
         shadowRadius: 6,
         elevation: 3,
