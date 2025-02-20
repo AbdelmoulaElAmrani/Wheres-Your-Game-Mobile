@@ -317,8 +317,7 @@ const styles = StyleSheet.create({
     phoneCodeTextStyle: {
         color: 'grey',
         fontSize: 17,
-        height: 20
-        
+        height: 20,
     },
     phoneInputTextStyle: {
         color: 'grey',

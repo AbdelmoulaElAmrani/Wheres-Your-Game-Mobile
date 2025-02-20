@@ -1,7 +1,7 @@
 import { ImageBackground } from "expo-image";
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
+import {heightPercentageToDP as hp} from "react-native-responsive-screen";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Alert, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {Alert, ScrollView, StyleSheet, Text, View} from "react-native";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React, { useEffect, useState } from "react";
 import { TextInput } from "react-native-paper";
@@ -13,7 +13,6 @@ import { UserService } from "@/services/UserService";
 import { router } from "expo-router";
 import { UserResponse } from "@/models/responseObjects/UserResponse";
 import { getUserProfile } from "@/redux/UserSlice";
-import SportLevel from "@/models/SportLevel";
 
 const ProfilePreference = () => {
 
@@ -120,10 +119,16 @@ const ProfilePreference = () => {
                                     placeholder="Enter your bio here..."
                                     placeholderTextColor="gray"
                                     multiline={true}
-                                    numberOfLines={4}
-                                    onChangeText={(text) => setFormData((prev: any) => ({ ...prev, bio: text }))}
+                                    numberOfLines={3}
+                                    onChangeText={(text) => {
+                                        // Prevent manual line breaks
+                                        const formattedText = text.replace(/\n/g, ' '); // Replace new lines with spaces
+                                        setFormData((prev: any) => ({...prev, bio: formattedText}));
+                                    }}
                                     value={formData.bio}
                                     textAlignVertical={'top'}
+                                    returnKeyType="done"
+                                    blurOnSubmit={true}
                                 />
                             </View>
                             <CustomButton style={{ marginTop: 30 }} text={'Save'} onPress={_handleSave} />
@@ -178,6 +183,7 @@ const styles = StyleSheet.create({
         textAlignVertical: 'top', // For Android
         fontSize: 16,
         lineHeight: 24,
+        overflow: 'hidden'
     },
 });
 

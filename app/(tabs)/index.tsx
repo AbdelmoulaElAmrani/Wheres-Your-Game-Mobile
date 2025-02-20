@@ -31,7 +31,7 @@ const REFRESH_NOTIFICATION_TIME = NOTIFICATION_REFRESH_TIMER * 1000;
 interface UserProfileProps {
     userId: string,
     sports: UserSportResponse[] | undefined,
-    teams: Team [] | undefined
+    teams: Team[] | undefined
 }
 
 const Home = () => {
@@ -162,20 +162,20 @@ const Home = () => {
 
     const _getAllPlayerOfSelectedTeam = async (team?: Team | undefined) => {
         try {
-            const id = selectedTeam?.id ? selectedTeam.id : team?.id ? team.id : undefined;
+            const id = team?.id ?? selectedTeam?.id;
             if (id) {
                 setPlayersLoading(true);
                 const teamPlayers = await TeamService.getTeamPlayers(id);
-                setPlayers(old => {
-                    setPlayersLoading(false);
-                    return teamPlayers;
-                });
+                setPlayers(teamPlayers);
+            } else {
+                setPlayers([]);
             }
         } catch (e) {
             console.error('_getAllPlayerOfSelectedTeam', e);
         } finally {
             setPlayersLoading(false);
         }
+
     }
 
 
@@ -225,7 +225,13 @@ const Home = () => {
             }
         }
     }
-    const _onSelectPlayer = (player: any) => {
+    const _onSelectPlayer = (player: Player | undefined) => {
+        if (player?.id) {
+            _router.push({
+                pathname: '/(user)/UserProfile',
+                params: {userId: player.id},
+            });
+        }
     }
 
     const _onSelectCategory = (category: any) => {
@@ -296,7 +302,6 @@ const Home = () => {
 
     const _renderPlayer = memo(({item}: { item: Player }) => (
         <TouchableOpacity
-            disabled={true}
             style={styles.card}
             onPress={() => _onSelectPlayer(item)}>
             <View>
