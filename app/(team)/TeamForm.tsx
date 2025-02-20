@@ -277,7 +277,7 @@ function TeamForm() {
                                     visible={openDatePicker}
                                     onDismiss={() => setOpenDatePicker(false)}
                                     onConfirm={onConfirmSingle}
-                                    date={team?.founded}
+                                    date={team?.founded ? new Date(team.founded) : new Date()}
                                     saveLabel="Save"
                                     label="Select date"
                                     animationType="slide"
@@ -290,12 +290,12 @@ function TeamForm() {
                                
                                 <TextInput
                                     style={styles.inputStyle}
-                                    placeholder={team?.founded?.length > 0 ? team?.founded : 'yyyy-mm-dd'}
+                                    placeholder={'yyyy-mm-dd'}
                                     cursorColor={'black'}
                                     placeholderTextColor={'grey'}
                                     left={<TextInput.Icon color={'#D3D3D3'} icon='calendar' />}
                                     underlineColor="transparent"
-                                    value={team?.founded}
+                                    value={team?.founded ? new Date(team.founded).toISOString().split('T')[0] : ''}
                                     onFocus={() => setOpenDatePicker(true)}
                                 />
                                  <Text style={styles.textLabel}>League</Text>
