@@ -6,7 +6,7 @@ import {persistor} from "@/redux/ReduxConfig";
 import {FeatureTogglingConfig} from "@/models/responseObjects/FeatureTogglingConfig";
 import {GoogleUserRequest} from "@/models/requestObjects/GoogleUserRequest";
 import TokenManager from "@/services/TokenManager";
-
+import VerificationResponse from "@/models/responseObjects/VerificationResponse";
 
 export class AuthService {
 
@@ -106,8 +106,32 @@ export class AuthService {
             newPassword: passwordData.newPassword
         }
         const res = await Requests.put('user/reset-password', body);
-        console.log(res);
         return res?.status === 200;
+    }
+
+    static sendOTFG = async (email: string): Promise<boolean | undefined> => {
+        const res = await Requests.get(`auth/generateOTP/${email}`);
+        return res?.status === 200;
+    }
+
+    static verifyOTPFG = async (code: string, email: string): Promise<VerificationResponse | null> => {
+        const res = await Requests.post(`auth/verifyCode`, {code, email});
+        if (res?.status == 200) {
+            return res.data;
+        }
+        return null;
+    }
+
+    static resetPasswordFG = async (resetPassword: {
+        newPassword: string;
+        resetToken: string
+        id: string
+    }): Promise<VerificationResponse | null> => {
+        const res = await Requests.post(`auth/resetPassword`, resetPassword);
+        if (res?.status == 200) {
+            return res.data;
+        }
+        return null;
     }
 }
 

@@ -129,4 +129,8 @@ export class UserService {
             return false;
         }
     }
+
+    static async getUserInfoByEmail(email: string) {
+        return null;
+    }
 }

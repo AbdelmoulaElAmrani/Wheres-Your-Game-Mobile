@@ -127,6 +127,7 @@ const Login = () => {
 
 
     const _handleForgotPassword = () => {
+        router.navigate('/(forget)')
     }
 
     const _handleSignUp = () => {
@@ -204,12 +205,12 @@ const Login = () => {
                                                   disabled={_isLoginFormNotValid()}/>
                                 </View>
                                 {/* forgot password ? */}
-                                {/*<View style={styles.mgTop}>
+                                <View style={styles.mgTop}>
                                     <TouchableOpacity onPress={_handleForgotPassword}>
                                         <Text style={{color: 'blue', textAlign: 'center', fontSize: 18}}>Forgot Password
                                             ?</Text>
                                     </TouchableOpacity>
-                                </View>*/}
+                                </View>
 
                                 {/* Sign in with */}
                                 {/*<View style={styles.dividerContainerSignUp}>
