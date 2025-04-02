@@ -8,7 +8,11 @@ import {Avatar} from "react-native-paper";
 import {Image} from "expo-image";
 import {useRouter} from "expo-router";
 
-const PersonSearchCard = ({player, disabled = false}: { player: Player, disabled?: boolean }) => {
+const PersonSearchCard = ({player, disabled = false, isMe = false}: {
+    player: Player,
+    disabled?: boolean,
+    isMe?: boolean
+}) => {
     const _router = useRouter();
 
     const handleOpenPersonProfile = () => {
@@ -20,7 +24,8 @@ const PersonSearchCard = ({player, disabled = false}: { player: Player, disabled
 
     // @ts-ignore
     return (
-        <TouchableOpacity disabled={disabled} onPress={handleOpenPersonProfile} style={styles.container}>
+        <TouchableOpacity disabled={disabled} onPress={handleOpenPersonProfile}
+                          style={[styles.container, disabled && {backgroundColor: 'rgb(159,159,164)'}]}>
             <View style={styles.row}>
                 <View style={styles.image}>
                     {player?.imageUrl ? (<Image
@@ -33,10 +38,12 @@ const PersonSearchCard = ({player, disabled = false}: { player: Player, disabled
 
                 </View>
                 <View style={styles.textContainer}>
-                    <Text style={styles.title}>{player.firstName} {player.lastName}</Text>
+                    <Text style={styles.title}>
+                        {(isMe && disabled) ? 'Me' : `${player.firstName} ${player.lastName}`}
+                    </Text>
                     <Text style={styles.subtitle}>{player.position}</Text>
                 </View>
-                <AntDesign name="right" size={wp('6%')} color="grey"/>
+                {!disabled && <AntDesign name="right" size={wp('6%')} color="grey"/>}
             </View>
         </TouchableOpacity>
     );

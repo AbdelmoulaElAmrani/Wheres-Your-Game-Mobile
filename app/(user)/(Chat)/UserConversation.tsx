@@ -11,7 +11,7 @@ import {
 import {ImageBackground} from "expo-image";
 import {SafeAreaView, useSafeAreaInsets} from "react-native-safe-area-context";
 import {router, useFocusEffect, useLocalSearchParams} from "expo-router";
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useState} from "react";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {Ionicons} from "@expo/vector-icons";
 import {useSelector} from "react-redux";
@@ -199,7 +199,7 @@ const UserConversation = () => {
                 behavior={Platform.OS === "ios" ? "padding" : "height"}>
                 <SafeAreaView style={{flex: 1}}>
                     <CustomChatNavigationHeader
-                        title={`${receiver?.firstName} ${receiver?.lastName}`}
+                        title={`${receiver?.firstName || ''} ${receiver?.lastName || ''}`}
                         isBlocked={receiver?.blockedByPrincipal || receiver?.blockedByTheUser}
                         blockFunction={_handleBlockUser}
                         role={receiver?.role}/>
