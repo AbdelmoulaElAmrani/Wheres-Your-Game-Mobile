@@ -16,15 +16,12 @@ import {Team} from "@/models/Team";
 import {router, useRouter, useNavigation, useFocusEffect} from "expo-router";
 import RNPickerSelect from 'react-native-picker-select';
 import {TeamService} from "@/services/TeamService";
-import Spinner from "@/components/Spinner";
 import {Image, ImageBackground} from "expo-image";
 import {NotificationService} from "@/services/NotificationService";
 import {NOTIFICATION_REFRESH_TIMER} from "@/appConfig";
 import {SportService} from "@/services/SportService";
 import OverlaySpinner from "@/components/OverlaySpinner";
-import {PlatformOSType} from "react-native/Libraries/Utilities/Platform";
 
-const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
 const REFRESH_NOTIFICATION_TIME = NOTIFICATION_REFRESH_TIMER * 1000;
 
 
@@ -203,6 +200,7 @@ const Home = () => {
     }
 
     const _onAddPlayer = () => {
+        _onSearch(UserType.PLAYER);
     }
 
     const _onAddTeam = () => {

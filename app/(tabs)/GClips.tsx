@@ -1,5 +1,5 @@
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import {StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, Platform} from "react-native";
+import {StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, Platform, Share} from "react-native";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {SafeAreaView} from "react-native-safe-area-context";
 import {ActivityIndicator, MD2Colors, Modal, Searchbar, TextInput} from 'react-native-paper';
@@ -141,7 +141,20 @@ const GClips = () => {
     }
 
     const _handleShareClip = async (video: any) => {
-        await Sharing.shareAsync(video.link);
+        try {
+            if (video.link.startsWith("http")) {
+                const message = `${video.title}\n\nWatch it on Where's Your Game:\n${video.link}`;
+                await Share.share({
+                    message,
+                    title: video.title,
+                    url: video.link
+                });
+            } else {
+                await Sharing.shareAsync(video.link);
+            }
+        } catch (e) {
+            console.error(e);
+        }
     }
     const _showPostModal = () => {
         setPostModalVisible(true);

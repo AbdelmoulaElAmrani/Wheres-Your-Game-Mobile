@@ -1,7 +1,7 @@
 import { ImageBackground } from "expo-image";
 import {heightPercentageToDP as hp} from "react-native-responsive-screen";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {Alert, ScrollView, StyleSheet, Text, View} from "react-native";
+import {Alert, Platform, ScrollView, StyleSheet, Text, View} from "react-native";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React, { useEffect, useState } from "react";
 import { TextInput } from "react-native-paper";
@@ -78,7 +78,8 @@ const ProfilePreference = () => {
                                 <RNPickerSelect
                                     style={{
                                         inputIOS: [styles.inputText, { paddingLeft: 15 }],
-                                        inputAndroid: [styles.inputText, { paddingLeft: 15 }]
+                                        inputAndroid: [styles.inputText, { paddingLeft: 15}],
+                                        placeholder: {color: 'black'}
                                     }}
                                     items={availableSport.map((sport: UserSportResponse) => ({
                                         label: sport.sportName,
@@ -180,7 +181,9 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 5,
         marginTop: 10,
-        textAlignVertical: 'top', // For Android
+        ...(Platform.OS === "android"
+            ? { textAlignVertical: "top" }
+            : { paddingTop: 15 }),
         fontSize: 16,
         lineHeight: 24,
         overflow: 'hidden'

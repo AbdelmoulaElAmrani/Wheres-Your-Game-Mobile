@@ -52,7 +52,7 @@ const SportMap = () => {
     })) as RadioBoxFilter[];
     const [expandedFilter, setExpandedFilter] = useState<Filters | undefined>(Filters.SPORT);
     const [filter, setFilter] = useState<FilterState>({category: [], sport: [], sortBy: {} as RadioBoxFilter});
-    const mapRef = useRef<MapView>(null);
+    const [region, setRegion] = useState<any>(null);
     const dispatch = useDispatch();
 
 
@@ -68,13 +68,12 @@ const SportMap = () => {
                 const latitude = parseFloat(String(location.coords.latitude));
                 const longitude = parseFloat(String(location.coords.longitude));
 
-                const region = {
+                setRegion({
                     latitudeDelta: 0.0092,
                     longitudeDelta: 0.0092,
                     latitude,
                     longitude,
-                };
-                mapRef.current?.animateToRegion(region, 2000);
+                })
             }
             if (availableSport.length == 0) {
                 await dispatch(getSports() as any);
@@ -120,7 +119,7 @@ const SportMap = () => {
     return (
         <SafeAreaView style={{flex: 1}}>
             <MapView
-                ref={mapRef}
+                initialRegion={region}
                 showsUserLocation={true}
                 onPress={Keyboard.dismiss}
                 provider={PROVIDER_GOOGLE}

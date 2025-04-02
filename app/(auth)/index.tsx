@@ -2,7 +2,7 @@ import {Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View}
 import {SafeAreaView} from 'react-native-safe-area-context';
 import React, {useEffect, useState} from "react";
 import {StatusBar} from 'expo-status-bar';
-import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
+import {heightPercentageToDP as hp} from "react-native-responsive-screen";
 import Carousel from 'react-native-reanimated-carousel';
 import LocalStorageService from "@/services/LocalStorageService";
 import {router} from "expo-router";

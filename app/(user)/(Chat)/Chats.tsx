@@ -18,7 +18,6 @@ import {Avatar, Divider, Modal} from "react-native-paper";
 import {Helpers} from "@/constants/Helpers";
 import {heightPercentageToDP, widthPercentageToDP} from "react-native-responsive-screen";
 import {AntDesign, Ionicons} from "@expo/vector-icons";
-import Spinner from "@/components/Spinner";
 import {ChatService} from "@/services/ChatService";
 import {UserService} from "@/services/UserService";
 import moment from 'moment-timezone';
@@ -120,7 +119,7 @@ const Chats = () => {
         const receptionId = item.id;
         _router.push({
             pathname: '/UserConversation',
-            params: {data: receptionId},
+            params: {receptionId: receptionId},
         });
     }
 
