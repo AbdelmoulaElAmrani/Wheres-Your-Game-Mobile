@@ -10,9 +10,7 @@ import {getUserProfile, logout} from "@/redux/UserSlice";
 import {router} from "expo-router";
 import {useDispatch, useSelector} from "react-redux";
 import {UserService} from "@/services/UserService";
-import UserType from "@/models/UserType";
-import {state} from "sucrase/dist/types/parser/traverser/base";
-import {UserResponse} from "@/models/responseObjects/UserResponse";
+
 
 const PrivacySettings = () => {
     const dispatch = useDispatch();

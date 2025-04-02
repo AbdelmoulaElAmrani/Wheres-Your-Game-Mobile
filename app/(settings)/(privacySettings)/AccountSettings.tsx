@@ -18,7 +18,6 @@ import {TextInput} from "react-native-paper";
 import {Helpers} from "@/constants/Helpers";
 import {AuthService} from "@/services/AuthService";
 
-const EMAIL = ""
 
 const AccountSettings = () => {
     const dispatch = useDispatch();

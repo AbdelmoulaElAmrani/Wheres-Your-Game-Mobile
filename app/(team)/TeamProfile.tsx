@@ -32,7 +32,6 @@ const TeamProfile = () => {
     }
 
     useEffect(() => {
-        //TODO:: call the service to get team profile from the back end
         const fetchTeamById = async () => {
             setLoading(true);
             const data = await TeamService.getTeamById(paramData.teamId);
@@ -142,6 +141,7 @@ const TeamProfile = () => {
                                 ListFooterComponent={<View
                                     style={{height: hp('10%')}}/>}  // Extra space at the bottom
                                 renderItem={({item}) => <PersonSearchCard disabled={item.id == currentUser.id}
+                                                                          isMe={true}
                                                                           player={item}/>}
                                 keyExtractor={(item, index) => index.toString()}
                             />
