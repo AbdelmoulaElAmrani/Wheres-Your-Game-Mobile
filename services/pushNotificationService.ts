@@ -121,18 +121,3 @@ export function setupNotificationListeners(
         Notifications.removeNotificationSubscription(responseListener);
     };
 }
-
-/**
- * Check if app has notification permissions
- */
-export async function checkNotificationPermissions(): Promise<boolean> {
-    const { status } = await Notifications.getPermissionsAsync();
-    return status === 'granted';
-}
-
-/**
- * Get the last notification that was received
- */
-export async function getLastNotificationResponse(): Promise<Notifications.NotificationResponse | null> {
-    return await Notifications.getLastNotificationResponseAsync();
-}

@@ -39,7 +39,6 @@ const Home = () => {
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
     const dispatch = useDispatch();
     const [players, setPlayers] = useState<Player[]>([]);
-    const [teams, setTeams] = useState<Team[] | undefined>(undefined);
     const [selectedTeam, setSelectedTeam] = useState<Team | undefined>(undefined);
     const [playersLoading, setPlayersLoading] = useState<boolean>(false)
     const _router = useRouter();
@@ -70,7 +69,7 @@ const Home = () => {
                             setIsLoading(true);
                             dispatch(getUserSports(userData.id) as any);
                         }
-                        if (!teams) {
+                        if (!selectedProfile.teams || selectedProfile.teams.length === 0)  {
                             setIsLoading(true);
                             await _getMyTeams(userData.id);
                         }
@@ -154,9 +153,9 @@ const Home = () => {
         }
     }
 
-    const _getMyTeams = async (userId: string) => {
+    const _getMyTeams = async (userId: string, sportId?:string) => {
         try {
-            const result = await TeamService.getUserTeams(userId);
+            const result = await TeamService.getUserTeams(userId, sportId);
             setSelectedProfile(prev => ({...prev, teams: result}));
         } catch (e) {
             console.error('_getMyTeams', e);
@@ -228,7 +227,6 @@ const Home = () => {
                 setSelectedProfile(prev => ({...prev, coaches: [], teams: []}));
 
                 setSelectedTeam(undefined);
-                setTeams([]);
 
                 setPlayers([]);
 
@@ -242,16 +240,15 @@ const Home = () => {
 
     const _onSelectCoach = async (coach: UserResponse) => {
         if (!isOrganization()) return;
-
         if (selectedCoach?.id == coach.id) {
             setSelectedCoach(undefined)
             setSelectedTeam(undefined);
-            setTeams([]);
+            setSelectedProfile(prev => ({...prev, teams: []}));
             setPlayers([]);
         } else {
             try {
                 setSelectedCoach(coach);
-                //TODO:: get all teams of selected Coach and selected sport
+                await _getMyTeams(coach.id, selectedSport);
             } catch (e) {
                 console.error(e);
             }
@@ -312,7 +309,7 @@ const Home = () => {
     const _renderCoaches = memo(({item}: { item: UserResponse }) => {
         return (
             <TouchableOpacity
-                style={[styles.card, selectedTeam?.id == item.id ? styles.selectedTag : null]}
+                style={[styles.card, selectedCoach?.id == item.id ? styles.selectedTag : null]}
                 onPress={() => _onSelectCoach(item)}>
                 <View>
                     <View style={styles.cardImage}>

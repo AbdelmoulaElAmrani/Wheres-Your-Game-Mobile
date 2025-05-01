@@ -1,8 +1,12 @@
 import Requests from "@/services/Requests";
 
 export class TeamService {
-    static getUserTeams = async (userId: string) => {
-        const res = await Requests.get(`team/all/${userId}`);
+    static getUserTeams = async (userId: string, sportId?:string) => {
+        const url = sportId
+            ? `team/all/${userId}?sportId=${sportId}`
+            : `team/all/${userId}`;
+
+        const res = await Requests.get(url);
         if (res?.status !== 200) {
             return undefined;
         }

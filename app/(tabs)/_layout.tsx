@@ -10,16 +10,17 @@ import {
     sendPushTokenToBackend,
     setupNotificationListeners
 } from "@/services/pushNotificationService";
+import LocalStorageService from "@/services/LocalStorageService";
 
 const Layout = () => {
 
-    const [notificationSetupComplete, setNotificationSetupComplete] = useState(false);
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const dispatch = useDispatch();
 
     useEffect(() => {
         if (userData == undefined || userData.id == undefined) {
             dispatch(getUserProfile() as any);
+            return;
         }
         async function setupPushNotifications() {
             try {
@@ -28,8 +29,8 @@ const Layout = () => {
 
                 // If we got a token, send it to the backend
                 if (token && userData.id) {
-                    await sendPushTokenToBackend(token);
-                    setNotificationSetupComplete(true);
+                    const result = await sendPushTokenToBackend(token);
+                    if (result) await LocalStorageService.storeItem<string>('expoPushToken', token);
                 }
             } catch (error) {
                 console.error('Error setting up push notifications:', error);
