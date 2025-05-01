@@ -190,7 +190,7 @@ const UserStepForm = () => {
                     </View>
                     <Text
                         style={[styles.userTypeDescIcon, {color: _verifySelectedType(UserType.COACH) ? 'white' : 'black'}]}>Camps/Games
-                        Leagues Officiating Organization</Text>
+                        Leagues Officiating</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.ORGANIZATION}))}
                                   style={[styles.squareContainer, {backgroundColor: _verifySelectedType(UserType.ORGANIZATION) ? '#2757CB' : 'white'}]}>

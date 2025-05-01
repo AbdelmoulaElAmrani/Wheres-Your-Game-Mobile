@@ -1,4 +1,4 @@
-import {StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
+import {Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View} from "react-native";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {ImageBackground} from "expo-image";
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -8,104 +8,102 @@ import React, {useState} from "react";
 import {UserService} from "@/services/UserService";
 import {Helpers} from "@/constants/Helpers";
 import {Avatar} from "react-native-paper";
+import {useRouter} from "expo-router";
+import {IUserInfo} from "@/models/IUserInfo";
 
-interface IUserInfo {
-    userId: string,
-    firstName: string,
-    lastName: string,
-    email: string,
-    phoneNumber: string,
-    countyCode: string,
-    imageUrl?: string
-}
+
 
 const Index = () => {
     const [userInfo, setUerInfo] = useState<IUserInfo | null>(null);
-    const [email, setEmail] = useState<string>('hello');
+    const [email, setEmail] = useState<string>('');
     const [error, setError] = useState<boolean>(false);
+    const _router = useRouter();
+
     const _handleSearchUserByEmail = async () => {
-        //const user = await UserService.getUserInfoByEmail(email);
-        const user = 'hi';
+        const user = await UserService.getUserInfoByEmail(email);
         if (user != null) {
-            setUerInfo({
-                userId: '',
-                email: email,
-                firstName: 'Mehdi',
-                lastName: 'EL OUAKIFI',
-                countyCode: '1',
-                phoneNumber: '0321421341',
-            } as IUserInfo);
+            setUerInfo(user as IUserInfo);
             setError(false);
         } else {
             setError(true);
             setUerInfo(null);
         }
+        Keyboard.dismiss();
     }
 
     const _handleUserPress = () => {
+        if (userInfo != null){
+            _router.push({
+                pathname: '/FPVerification',
+                params: {userInfo: JSON.stringify(userInfo)},
+            });
+        }
     };
     return (
         <ImageBackground
             style={{height: hp(100)}}
             source={require('../../../assets/images/signupBackGround.jpg')}>
-            <SafeAreaView>
-                <CustomNavigationHeader showBackArrow={true} showSkip={false} showLogo={true}/>
-                <View style={styles.container}>
-                    <View style={styles.mainContainer}>
-                        <View style={styles.titleContainer}>
-                            <Text style={styles.title}>Forget Password</Text>
-                            <Text style={styles.subTitle}>Please enter your registered email to reset your
-                                password
-                            </Text>
-                        </View>
-                        <View style={{marginTop: hp(5), alignItems: 'center'}}>
-                            <TextInput textContentType={"emailAddress"}
-                                       onChangeText={(text) => setEmail(text)}
-                                       placeholder={'Email'}
-                                       style={styles.inputText}/>
-                            <CustomButton text={'Search'}
-                                          disabled={!Helpers.validEmail(email)}
-                                          style={{marginTop: 30, width: wp(50), height: hp(5)}}
-                                          onPress={_handleSearchUserByEmail}/>
-
-                            {userInfo !== null && (
-                                <View style={{marginTop: 50}}>
-                                    <Text style={{fontWeight: 'bold', fontSize: 18, marginBottom: 20}}>Is that
-                                        you?</Text>
-                                    <TouchableOpacity
-                                        style={styles.card}
-                                        onPress={() => _handleUserPress()}>
-                                        <View style={styles.cardImage}>
-                                            {userInfo.imageUrl ? (
-                                                <Avatar.Image size={50} source={{uri: userInfo.imageUrl}}/>
-                                            ) : (
-                                                <Avatar.Text
-                                                    size={50}
-                                                    label={(userInfo.firstName.charAt(0) + userInfo.lastName.charAt(1)).toUpperCase()}
-                                                />
-                                            )}
-                                        </View>
-                                        <Text style={{
-                                            textAlign: 'center',
-                                            fontSize: 16,
-                                            fontWeight: "600",
-                                            marginTop: 10,
-                                        }}>{`${userInfo.firstName} ${userInfo.lastName}`}</Text>
-                                    </TouchableOpacity>
-                                </View>
-
-                            )}
-
-                            {error && (
-                                <Text style={styles.errorText}>
-                                    The user with this email {email} is not found or the user is signed in with Gmail
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <SafeAreaView>
+                    <CustomNavigationHeader showBackArrow={true} showSkip={false} showLogo={true}/>
+                    <View style={styles.container}>
+                        <View style={styles.mainContainer}>
+                            <View style={styles.titleContainer}>
+                                <Text style={styles.title}>Forget Password</Text>
+                                <Text style={styles.subTitle}>Please enter your registered email to reset your
+                                    password
                                 </Text>
-                            )}
-                            <View></View>
+                            </View>
+                            <View style={{marginTop: hp(5), alignItems: 'center'}}>
+                                <TextInput textContentType={"emailAddress"}
+                                           onChangeText={(text) => setEmail(text)}
+                                           placeholder={'Email'}
+                                           style={styles.inputText}/>
+                                <CustomButton text={'Search'}
+                                              disabled={!Helpers.validEmail(email)}
+                                              style={{marginTop: 30, width: wp(50), height: hp(5)}}
+                                              onPress={_handleSearchUserByEmail}/>
+
+                                {userInfo !== null && (
+                                    <View style={{marginTop: 50}}>
+                                        <Text style={{fontWeight: 'bold', fontSize: 18, marginBottom: 20}}>Is that
+                                            you?</Text>
+                                        <TouchableOpacity
+                                            style={styles.card}
+                                            onPress={() => _handleUserPress()}>
+                                            <View style={styles.cardImage}>
+                                                {userInfo.imageUrl ? (
+                                                    <Avatar.Image size={50} source={{uri: userInfo.imageUrl}}/>
+                                                ) : (
+                                                    <Avatar.Text
+                                                        size={50}
+                                                        label={(userInfo.firstName.charAt(0) + userInfo.lastName.charAt(1)).toUpperCase()}
+                                                    />
+                                                )}
+                                            </View>
+                                            <Text style={{
+                                                textAlign: 'center',
+                                                fontSize: 16,
+                                                fontWeight: "600",
+                                                marginTop: 10,
+                                            }}>{`${userInfo.firstName} ${userInfo.lastName}`}</Text>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                )}
+
+                                {error && (
+                                    <Text style={styles.errorText}>
+                                        The user with this email {email} is not found or the user is signed in with
+                                        Gmail
+                                    </Text>
+                                )}
+                                <View></View>
+                            </View>
                         </View>
                     </View>
-                </View>
-            </SafeAreaView>
+                </SafeAreaView>
+            </TouchableWithoutFeedback>
         </ImageBackground>
     );
 }

@@ -1,32 +1,33 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
     ImageBackground,
     View,
     StyleSheet,
     Alert
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import CustomNavigationHeader from '@/components/CustomNavigationHeader';
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { Text, TextInput } from 'react-native-paper';
+import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
+import {Text, TextInput} from 'react-native-paper';
 import RNPickerSelect from 'react-native-picker-select';
-import { useDispatch, useSelector } from 'react-redux';
-import { getSports } from '@/redux/SportSlice';
+import {useDispatch, useSelector} from 'react-redux';
+import {getSports} from '@/redux/SportSlice';
 import Sport from '@/models/Sport';
-import { MultiSelect } from 'react-native-element-dropdown';
+import {MultiSelect} from 'react-native-element-dropdown';
 import CustomButton from '@/components/CustomButton';
-import { AntDesign } from '@expo/vector-icons';
-import { PlayerService } from '@/services/PlayerService';
-import { TeamService } from '@/services/TeamService';
-import { UserResponse } from '@/models/responseObjects/UserResponse';
-import { getUserProfile } from '@/redux/UserSlice';
-import { router } from 'expo-router';
+import {AntDesign} from '@expo/vector-icons';
+import {PlayerService} from '@/services/PlayerService';
+import {TeamService} from '@/services/TeamService';
+import {UserResponse} from '@/models/responseObjects/UserResponse';
+import {getUserProfile} from '@/redux/UserSlice';
+import {router} from 'expo-router';
 import * as ImagePicker from "expo-image-picker";
-import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
-import { StorageService } from '@/services/StorageService';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { DatePickerModal, enGB, registerTranslation, TimePickerModal } from 'react-native-paper-dates';
+import {manipulateAsync, SaveFormat} from "expo-image-manipulator";
+import {StorageService} from '@/services/StorageService';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import {DatePickerModal, enGB, registerTranslation, TimePickerModal} from 'react-native-paper-dates';
 import OverlaySpinner from '@/components/OverlaySpinner';
+import {OrganizationService} from "@/services/OrganizationService";
 
 
 function TeamForm() {
@@ -36,7 +37,9 @@ function TeamForm() {
     const [creating, setCreating] = useState(false);
     const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
     const [selectedSportId, setSelectedSportId] = useState<string | null>(null);
+    const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
     const [players, setPlayers] = useState<any[]>([]);
+    const [organizations, setOrganizations] = useState<any[]>([]);
     const [team, setTeam] = useState<any>();
     const [manipulatedImageUri, setManipulatedImageUri] = useState<any>(null);
     const [openDatePicker, setOpenDatePicker] = useState(false);
@@ -75,15 +78,23 @@ function TeamForm() {
         if (!userData?.id) {
             dispatch(getUserProfile() as any);
         }
+        if (userData.id) {
+            _fetchCoachOrganization();
+        }
     }, [userData]);
 
+
+    const _fetchCoachOrganization = async () => {
+        const data: UserResponse[] = await OrganizationService.getOrganizationsByCoachId(userData.id);
+        setOrganizations(data);
+    }
 
     const renderPlayerItem = (item: { label: string, value: any }, selected?: boolean) => {
         return (
             <View style={styles.item}>
                 {selected ?
-                    <Text style={{ fontSize: 14, color: 'white', fontWeight: 'bold' }}>{item.label}</Text>
-                    : <Text style={{ fontSize: 14, }}>{item.label}</Text>}
+                    <Text style={{fontSize: 14, color: 'white', fontWeight: 'bold'}}>{item.label}</Text>
+                    : <Text style={{fontSize: 14,}}>{item.label}</Text>}
             </View>
         );
     };
@@ -101,12 +112,13 @@ function TeamForm() {
             Alert.alert('Error', errors.join('\n'));
             return;
         }
-       
+
         try {
             setCreating(true);
             const response = await TeamService.createTeam({
                 ...team,
                 sportId: selectedSportId,
+                organizationId: selectedOrganizationId,
                 players: selectedPlayers,
                 accountId: userData.id,
                 imgUrl: '',
@@ -178,15 +190,15 @@ function TeamForm() {
 
     return (
         <ImageBackground
-            style={{ flex: 1, width: '100%' }}
+            style={{flex: 1, width: '100%'}}
             source={require('../../assets/images/signupBackGround.jpg')}>
-            <SafeAreaView style={{ flex: 1 }}>
+            <SafeAreaView style={{flex: 1}}>
                 {creating && <OverlaySpinner visible={creating}/>}
-                <CustomNavigationHeader text={isAddTeam ? 'Create Team' : 'Edit Team'} showBackArrow />
+                <CustomNavigationHeader text={isAddTeam ? 'Create Team' : 'Edit Team'} showBackArrow/>
                 <View style={styles.cardContainer}>
                     <KeyboardAwareScrollView
-                        contentContainerStyle={{ paddingBottom: 90 }}
-                        style={{ flex: 1 }}>
+                        contentContainerStyle={{paddingBottom: 90}}
+                        style={{flex: 1}}>
                         <View style={styles.formContainer}>
                             <Text style={styles.title}>{isAddTeam ? 'Create Team' : 'Edit Team'}</Text>
                             <View style={styles.mgTop}>
@@ -196,22 +208,47 @@ function TeamForm() {
                                     placeholder={'Name'}
                                     cursorColor={'black'}
                                     placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='trophy-outline' />}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='trophy-outline'/>}
                                     underlineColor="transparent"
                                     value={team?.name}
-                                    onChangeText={(text) => setTeam({ ...team, name: text })}
+                                    onChangeText={(text) => setTeam({...team, name: text})}
                                 />
+                                <Text style={styles.textLabel}>Organization</Text>
+                                {(loading || !organizations)
+                                    ? (
+                                        <TextInput style={styles.inputStyle} placeholder={'Loading...'}
+                                                   cursorColor={'black'} placeholderTextColor={'grey'}
+                                                   editable={false}/>
+                                    ) : (
+                                        <RNPickerSelect
+                                            style={{
+                                                inputIOS: [styles.inputStyle, {paddingLeft: 15}],
+                                                inputAndroid: [styles.inputStyle, {paddingLeft: 15}]
+                                            }}
+                                            items={organizations.map((org: UserResponse) => ({
+                                                label: org.organizationName?.trim() ? org.organizationName : `${org.firstName} ${org.lastName}`,
+                                                value: org.id,
+                                                key: org.id,
+                                                color: '#000'
+                                            }))}
+                                            placeholder={{label: 'Select Organization', value: null}}
+                                            onValueChange={(value) =>
+                                                setSelectedOrganizationId(value)
+                                            }
+                                            value={selectedOrganizationId}
+                                        />
+                                    )}
                                 <Text style={styles.textLabel}>Sport type</Text>
                                 {(loading || !availableSport || availableSport.length === 0)
                                     ? (
                                         <TextInput style={styles.inputStyle} placeholder={'Loading...'}
-                                            cursorColor={'black'} placeholderTextColor={'grey'}
-                                            editable={false} />
+                                                   cursorColor={'black'} placeholderTextColor={'grey'}
+                                                   editable={false}/>
                                     ) : (
                                         <RNPickerSelect
                                             style={{
-                                                inputIOS: [styles.inputStyle, { paddingLeft: 15 }],
-                                                inputAndroid: [styles.inputStyle, { paddingLeft: 15 }]
+                                                inputIOS: [styles.inputStyle, {paddingLeft: 15}],
+                                                inputAndroid: [styles.inputStyle, {paddingLeft: 15}]
                                             }}
                                             items={availableSport.map((sport: Sport) => ({
                                                 label: sport.name,
@@ -219,7 +256,7 @@ function TeamForm() {
                                                 key: sport.id,
                                                 color: '#000'
                                             }))}
-                                            placeholder={{ label: 'Select sport', value: null }}
+                                            placeholder={{label: 'Select sport', value: null}}
                                             onValueChange={(value) =>
                                                 setSelectedSportId(value)
                                             }
@@ -232,7 +269,7 @@ function TeamForm() {
                                     placeholder={'Image'}
                                     cursorColor={'black'}
                                     placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='image' />}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='image'/>}
                                     underlineColor="transparent"
                                     onPress={_handleImagePicker}
                                     disabled={true}
@@ -244,10 +281,10 @@ function TeamForm() {
                                     placeholder={'Address'}
                                     cursorColor={'black'}
                                     placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' />}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline'/>}
                                     underlineColor="transparent"
                                     value={team?.address}
-                                    onChangeText={(text) => setTeam({ ...team, address: text })}
+                                    onChangeText={(text) => setTeam({...team, address: text})}
                                 />
                                 <Text style={styles.textLabel}>Country</Text>
                                 <TextInput
@@ -255,10 +292,10 @@ function TeamForm() {
                                     placeholder={'Country'}
                                     cursorColor={'black'}
                                     placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='earth' />}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='earth'/>}
                                     underlineColor="transparent"
                                     value={team?.country}
-                                    onChangeText={(text) => setTeam({ ...team, country: text })}
+                                    onChangeText={(text) => setTeam({...team, country: text})}
                                 />
                                 <Text style={styles.textLabel}>Foundation date</Text>
                                 {/* <TextInput
@@ -283,31 +320,31 @@ function TeamForm() {
                                     animationType="slide"
                                     onChange={(p) => {
                                         if (p && p.date) {
-                                            setTeam({ ...team, founded: p.date });
+                                            setTeam({...team, founded: p.date});
                                         }
                                     }}
                                 />
-                               
+
                                 <TextInput
                                     style={styles.inputStyle}
                                     placeholder={'yyyy-mm-dd'}
                                     cursorColor={'black'}
                                     placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='calendar' />}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='calendar'/>}
                                     underlineColor="transparent"
                                     value={team?.founded ? new Date(team.founded).toISOString().split('T')[0] : ''}
                                     onFocus={() => setOpenDatePicker(true)}
                                 />
-                                 <Text style={styles.textLabel}>League</Text>
+                                <Text style={styles.textLabel}>League</Text>
                                 <TextInput
                                     style={styles.inputStyle}
                                     placeholder={'League'}
                                     cursorColor={'black'}
                                     placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='trophy-outline' />}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='trophy-outline'/>}
                                     underlineColor="transparent"
                                     value={team?.league}
-                                    onChangeText={(text) => setTeam({ ...team, league: text })}
+                                    onChangeText={(text) => setTeam({...team, league: text})}
                                 />
                                 <Text style={styles.textLabel}>Players</Text>
                                 <MultiSelect
@@ -345,8 +382,8 @@ function TeamForm() {
                                     selectedStyle={styles.selectedStyle}
                                     activeColor='#4564f5'
                                 />
-                                <View style={{ marginTop: 90 }}>
-                                    <CustomButton text='Create' onPress={_onCreateTeam} />
+                                <View style={{marginTop: 90}}>
+                                    <CustomButton text='Create' onPress={_onCreateTeam}/>
                                 </View>
                             </View>
                         </View>
@@ -442,7 +479,7 @@ const styles = StyleSheet.create({
     containerStyle: {
         borderRadius: 15,
         shadowColor: 'black',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5
@@ -453,7 +490,7 @@ const styles = StyleSheet.create({
         borderColor: 'grey',
         borderWidth: 0.3,
         shadowColor: 'black',
-        shadowOffset: { width: 0, height: 1 },
+        shadowOffset: {width: 0, height: 1},
         shadowOpacity: 0.25,
         shadowRadius: 2.50,
         elevation: 5

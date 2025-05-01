@@ -131,6 +131,13 @@ export class UserService {
     }
 
     static async getUserInfoByEmail(email: string) {
-        return null;
+        try {
+            var res = await Requests.get(`user/public/info/${email}`);
+            if(res?.status === 200) return res.data;
+            else return null;
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
     }
 }

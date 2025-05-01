@@ -5,5 +5,7 @@ interface UserSearchResponse {
     imageUrl: string,
     friend: boolean,
     parent: boolean,
-    parentPending: boolean
+    parentPending: boolean,
+    yourCoach: boolean,
+    coachPending: boolean,
 }

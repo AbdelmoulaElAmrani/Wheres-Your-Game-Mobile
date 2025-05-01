@@ -109,29 +109,40 @@ export class AuthService {
         return res?.status === 200;
     }
 
-    static sendOTFG = async (email: string): Promise<boolean | undefined> => {
-        const res = await Requests.get(`auth/generateOTP/${email}`);
-        return res?.status === 200;
-    }
-
-    static verifyOTPFG = async (code: string, email: string): Promise<VerificationResponse | null> => {
-        const res = await Requests.post(`auth/verifyCode`, {code, email});
-        if (res?.status == 200) {
-            return res.data;
+    static sendOTFG = async (email: string): Promise<boolean> => {
+        try {
+            const res = await Requests.get(`auth/generateOTP/${email}`);
+            return res?.status === 200;
+        }catch (e) {
+            return false;
         }
-        return null;
+
     }
 
     static resetPasswordFG = async (resetPassword: {
         newPassword: string;
         resetToken: string
         id: string
-    }): Promise<VerificationResponse | null> => {
-        const res = await Requests.post(`auth/resetPassword`, resetPassword);
-        if (res?.status == 200) {
-            return res.data;
+    }): Promise<boolean | null> => {
+        try {
+            const res = await Requests.post(`auth/resetPassword`, resetPassword);
+            return res?.status == 200;
+        } catch (e) {
+            console.log('resetPasswordFG', e);
+            return false;
         }
-        return null;
+    }
+    static verifyOTPFG = async (code: string, email: string): Promise<VerificationResponse | null> => {
+        try {
+            const res = await Requests.post(`auth/verifyCode`, {code, email});
+            if (res?.status == 200) {
+                return res.data as VerificationResponse;
+            }
+            return null;
+        } catch (e) {
+            console.log('verifyTokenForForgetPassword => ', e);
+            return null;
+        }
     }
 }
 
