@@ -16,7 +16,7 @@ export class OrganizationService {
     static async acceptOrganizationRequest(requestId: string): Promise<boolean> {
         try {
             const res = await Requests.post(`organization/accept/invitation?requestId=${requestId}`, {});
-            return res?.status === 200 ? res.data : null;
+            return res?.status === 200;
         } catch (error) {
             console.error('Error accepting invitation:', error);
             return false;

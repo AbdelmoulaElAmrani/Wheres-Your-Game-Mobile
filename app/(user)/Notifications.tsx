@@ -55,6 +55,7 @@ const Notifications = () => {
         }
     };
 
+
     const _handleAcceptRequest = useCallback(async (requestId: string, type: NotificationType) => {
         try {
             let acceptResponse: boolean = false;
@@ -115,6 +116,7 @@ const Notifications = () => {
 
     }, []);
 
+
     const _renderNotifications = memo(({ item }: { item: NotificationResponse }) => {
         const isRequest = item.type === NotificationType.FRIEND_REQUEST || item.type === NotificationType.PARENTING_REQUEST || item.type === NotificationType.ORGANIZATION_REQUEST;
         return (
@@ -134,7 +136,6 @@ const Notifications = () => {
                         <View style={styles.notificationHeader}>
                             <View style={{ width: isRequest ? '70%' : '100%' }}>
                                 <Text
-                                    numberOfLines={2}
                                     ellipsizeMode={"tail"}
                                     style={styles.notificationContentText}>{item.content}</Text>
                             </View>
@@ -226,8 +227,7 @@ const styles = StyleSheet.create({
         marginBottom: 10
     },
     notificationContentText: {
-        fontWeight: '500',
-        fontSize: 14,
+        fontSize: 12,
     },
     acceptIcon: {
         marginRight: 10,
