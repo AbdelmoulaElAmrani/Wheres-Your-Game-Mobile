@@ -68,7 +68,8 @@
     "redux-persist": "^6.0.0",
     "@react-native-community/datetimepicker": "8.0.1",
     "expo-notifications": "~0.28.19",
-    "expo-device": "~6.0.2"
+    "expo-device": "~6.0.2",
+    "expo-dev-client": "~4.0.29"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

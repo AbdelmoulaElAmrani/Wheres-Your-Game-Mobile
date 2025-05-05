@@ -155,7 +155,8 @@ const Home = () => {
 
     const _getMyTeams = async (userId: string, sportId?:string) => {
         try {
-            const result = await TeamService.getUserTeams(userId, sportId);
+            const organizationId = isOrganization() ? userData.id : undefined;
+            const result = await TeamService.getUserTeams(userId, sportId, organizationId);
             setSelectedProfile(prev => ({...prev, teams: result}));
         } catch (e) {
             console.error('_getMyTeams', e);

@@ -8,15 +8,19 @@
       "distribution": "internal",
       "ios": {
         "resourceClass": "m1-medium",
-        "simulator": true
-      }
+        "simulator": false
+      },
     },
     "preview": {
       "distribution": "internal",
       "developmentClient": true,
       "releaseChannel": "staging"
     },
-    "production": {}
+    "production": {
+      "ios": {
+        "image": "macos-sequoia-15.3-xcode-16.2"
+      }
+    }
   },
   "submit": {
     "production": {

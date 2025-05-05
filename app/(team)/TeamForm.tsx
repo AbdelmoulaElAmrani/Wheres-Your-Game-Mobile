@@ -123,7 +123,6 @@ function TeamForm() {
                 accountId: userData.id,
                 imgUrl: '',
                 founded: team?.founded ? new Date(team.founded).toISOString().split('T')[0] : null
-
             });
 
             if (response) {

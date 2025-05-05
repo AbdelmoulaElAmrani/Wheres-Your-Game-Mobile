@@ -14,21 +14,23 @@ import LocalStorageService from "@/services/LocalStorageService";
 
 const Layout = () => {
 
-    const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const dispatch = useDispatch();
+    const userData = useSelector((state: any) => state.user.userData) as UserResponse | null;
 
     useEffect(() => {
-        if (userData == undefined || userData.id == undefined) {
+        if (!userData || !userData.id) {
             dispatch(getUserProfile() as any);
-            return;
         }
+    }, [userData]);
+
+    useEffect(() => {
+        if (!userData || !userData.id) return;
+
         async function setupPushNotifications() {
             try {
                 // Register for push notifications and get token
                 const token = await registerForPushNotificationsAsync();
-
-                // If we got a token, send it to the backend
-                if (token && userData.id) {
+                if (token) {
                     const result = await sendPushTokenToBackend(token);
                     if (result) await LocalStorageService.storeItem<string>('expoPushToken', token);
                 }
@@ -42,7 +44,7 @@ const Layout = () => {
 
     // Set up notification listeners
     useEffect(() => {
-        // Example of setting up listeners with custom handlers
+        // setting up listeners with custom handlers
         const removeListeners = setupNotificationListeners(
             (notification) => {
                 // Handle notification received when app is in foreground
@@ -64,7 +66,7 @@ const Layout = () => {
         // Clean up listeners on unmount
         return removeListeners;
     }, []);
-
+    if (!userData) return null;
     return (<Tabs
         screenOptions={{
             tabBarActiveTintColor: Colors.light.tabIconSelected,

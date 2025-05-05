@@ -2,7 +2,7 @@
   "expo": {
     "name": "Where's Your Game",
     "slug": "Sport-Games",
-    "version": "1.0.7",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "sport-app",
@@ -28,10 +28,10 @@
         "googleMapsApiKey": "AIzaSyDlFo6upaajnGewXn4DX4-naBhsWPcn8VE"
       },
       "bundleIdentifier": "com.digiboost.sportgames",
-      "buildNumber": "14"
+      "buildNumber": "4"
     },
     "android": {
-      "versionCode": 4,
+      "versionCode": 5,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#160076"
