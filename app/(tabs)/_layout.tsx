@@ -14,10 +14,10 @@ import LocalStorageService from "@/services/LocalStorageService";
 
 const Layout = () => {
 
-    const dispatch = useDispatch();
-    const userData = useSelector((state: any) => state.user.userData) as UserResponse | null;
+    /*const dispatch = useDispatch();
+    const userData = useSelector((state: any) => state.user.userData) as UserResponse | null;*/
 
-    useEffect(() => {
+    /*useEffect(() => {
         if (!userData || !userData.id) {
             dispatch(getUserProfile() as any);
         }
@@ -66,7 +66,7 @@ const Layout = () => {
         // Clean up listeners on unmount
         return removeListeners;
     }, []);
-    if (!userData) return null;
+    if (!userData) return null;*/
     return (<Tabs
         screenOptions={{
             tabBarActiveTintColor: Colors.light.tabIconSelected,
