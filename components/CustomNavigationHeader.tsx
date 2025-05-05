@@ -20,7 +20,7 @@ const CustomNavigationHeader = ({
 }) => {
 
     const _handleGoBack = (): void => {
-        if (goBackFunction != null && goBackFunction != undefined) {
+        if (goBackFunction != null) {
             goBackFunction();
         } else {
             if (router.canGoBack())
@@ -29,7 +29,7 @@ const CustomNavigationHeader = ({
     }
 
     const _handleSkip = (): void => {
-        if (skipNavigation != null && skipNavigation != undefined)
+        if (skipNavigation != null)
             _handleSkip();
     }
 

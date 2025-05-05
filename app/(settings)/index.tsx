@@ -11,6 +11,8 @@ import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import UserType from "@/models/UserType";
 import {AuthService} from "@/services/AuthService";
+import {removePushToken} from "@/services/pushNotificationService";
+import LocalStorageService from "@/services/LocalStorageService";
 
 const Settings = () => {
     const dispatch = useDispatch();
@@ -18,9 +20,19 @@ const Settings = () => {
     const _router = useRouter();
 
     const _handleLogout = async () => {
-        await AuthService.logOut();
-        await dispatch(logout({}));
-        router.replace('/Login');
+        try {
+            const token = await LocalStorageService.getItem<string>('expoPushToken');
+            if (token) {
+                await removePushToken(token);
+                await LocalStorageService.removeItem('expoPushToken')
+            }
+        } catch (error) {
+            console.error("failed removing token:", error);
+        }finally {
+            await AuthService.logOut();
+            await dispatch(logout({}));
+            router.replace('/Login');
+        }
     }
 
     const _openPrivacySettings = () => {
