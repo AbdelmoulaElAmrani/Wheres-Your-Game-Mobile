@@ -4,15 +4,12 @@ import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-nativ
 import CustomButton from '@/components/CustomButton';
 import {router} from "expo-router";
 import {Image, ImageBackground} from "expo-image";
-import {useEffect} from "react";
 
 const Welcome = () => {
 
     const _handleGetStarted = () => {
         router.navigate('/(tabs)');
     }
-
-
     return (
         <>
             <StatusBar style="light"/>

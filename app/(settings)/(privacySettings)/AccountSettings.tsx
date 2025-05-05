@@ -18,7 +18,6 @@ import {TextInput} from "react-native-paper";
 import {Helpers} from "@/constants/Helpers";
 import {AuthService} from "@/services/AuthService";
 
-const EMAIL = ""
 
 const AccountSettings = () => {
     const dispatch = useDispatch();
@@ -62,7 +61,7 @@ const AccountSettings = () => {
         }
 
         if (!Helpers._isPasswordValid(passwordData.newPassword)) {
-            alert('New password must be at least 6 characters long and include at least one uppercase letter.');
+            alert('New password must be at least 8 characters long and include at least one uppercase letter.');
             return;
         }
 

@@ -1,21 +1,21 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { ImageBackground } from "expo-image";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {ImageBackground} from "expo-image";
+import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
-import { router } from "expo-router";
-import { FlashList } from "@shopify/flash-list";
-import { heightPercentageToDP } from "react-native-responsive-screen";
-import { AntDesign, FontAwesome } from "@expo/vector-icons";
-import { memo, useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Avatar, Divider, MD2Colors } from "react-native-paper";
-import { Helpers } from "@/constants/Helpers";
-import { NotificationResponse } from "@/models/responseObjects/NotificationResponse";
-import { NotificationService } from "@/services/NotificationService";
+import {router} from "expo-router";
+import {FlashList} from "@shopify/flash-list";
+import {heightPercentageToDP} from "react-native-responsive-screen";
+import {AntDesign, FontAwesome} from "@expo/vector-icons";
+import {memo, useCallback, useEffect, useState} from "react";
+import {Avatar} from "react-native-paper";
+import {Helpers} from "@/constants/Helpers";
+import {NotificationResponse} from "@/models/responseObjects/NotificationResponse";
+import {NotificationService} from "@/services/NotificationService";
 import NotificationType from "@/models/NotificationType";
-import { FriendRequestService } from "@/services/FriendRequestService";
-import { ChildrenService } from "@/services/ChildrenService";
-import { Overlay } from "react-native-maps";
+import {FriendRequestService} from "@/services/FriendRequestService";
+import {ChildrenService} from "@/services/ChildrenService";
 import OverlaySpinner from "@/components/OverlaySpinner";
+import {OrganizationService} from "@/services/OrganizationService";
 
 
 const Notifications = () => {
@@ -55,6 +55,7 @@ const Notifications = () => {
         }
     };
 
+
     const _handleAcceptRequest = useCallback(async (requestId: string, type: NotificationType) => {
         try {
             let acceptResponse: boolean = false;
@@ -62,6 +63,8 @@ const Notifications = () => {
                 acceptResponse = await ChildrenService.acceptParentRequest(requestId);
             } else if (type === NotificationType.FRIEND_REQUEST) {
                 acceptResponse = await FriendRequestService.acceptFriendRequest(requestId);
+            } else if (type === NotificationType.ORGANIZATION_REQUEST){
+                acceptResponse = await OrganizationService.acceptOrganizationRequest(requestId);
             }
             if (acceptResponse) {
                 setLoading(true);
@@ -90,6 +93,8 @@ const Notifications = () => {
                 declineResponse = await ChildrenService.rejectParentRequest(requestId);
             } else if (type === NotificationType.FRIEND_REQUEST) {
                 declineResponse = await FriendRequestService.declineFriendRequest(requestId);
+            }else if (type === NotificationType.ORGANIZATION_REQUEST){
+                declineResponse = await OrganizationService.declineOrganizationRequest(requestId);
             }
             if (declineResponse) {
                 setLoading(true);
@@ -111,8 +116,9 @@ const Notifications = () => {
 
     }, []);
 
+
     const _renderNotifications = memo(({ item }: { item: NotificationResponse }) => {
-        const isRequest = item.type === NotificationType.FRIEND_REQUEST || item.type === NotificationType.PARENTING_REQUEST;
+        const isRequest = item.type === NotificationType.FRIEND_REQUEST || item.type === NotificationType.PARENTING_REQUEST || item.type === NotificationType.ORGANIZATION_REQUEST;
         return (
             <TouchableOpacity onPress={() => _onOpenNotification(item)} style={styles.notification}>
                 <View style={styles.notificationContent}>
@@ -130,7 +136,6 @@ const Notifications = () => {
                         <View style={styles.notificationHeader}>
                             <View style={{ width: isRequest ? '70%' : '100%' }}>
                                 <Text
-                                    numberOfLines={2}
                                     ellipsizeMode={"tail"}
                                     style={styles.notificationContentText}>{item.content}</Text>
                             </View>
@@ -222,8 +227,7 @@ const styles = StyleSheet.create({
         marginBottom: 10
     },
     notificationContentText: {
-        fontWeight: '500',
-        fontSize: 14,
+        fontSize: 12,
     },
     acceptIcon: {
         marginRight: 10,

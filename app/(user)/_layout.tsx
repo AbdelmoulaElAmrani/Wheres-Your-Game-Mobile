@@ -9,7 +9,7 @@ const UserLayout = () => {
         <Stack.Screen name="EditProfile" options={{headerShown: false}}/>
         <Stack.Screen name="SportInterested" options={{headerShown: false}}/>
         <Stack.Screen name="(Chat)" options={{headerShown: false}}/>
-        <Stack.Screen name="EditCoachProfile" options={{headerShown: false}}/>
+        {/*<Stack.Screen name="EditCoachProfile" options={{headerShown: false}}/>*/}
         <Stack.Screen name="Notifications" options={{headerShown: false}}/>
         <Stack.Screen name="(search)" options={{headerShown: false}}/>
         <Stack.Screen name="UserProfile" options={{headerShown: false}}/>

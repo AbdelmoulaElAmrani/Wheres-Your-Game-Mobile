@@ -22,7 +22,6 @@ export class ChildrenService {
 
     static async acceptParentRequest(requestId: String) {
         try {
-            console.log('in service' + requestId);
             const res = await Requests.post(`parent-child/respond-request?requestId=${requestId}&accept=${true}`, {});
             if (res?.status !== 200) {
                 return false;
@@ -32,7 +31,6 @@ export class ChildrenService {
             console.error(e);
             return false;
         }
-
     }
 
     static async rejectParentRequest(requestId: String) {

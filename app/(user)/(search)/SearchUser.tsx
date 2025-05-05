@@ -2,10 +2,12 @@ import {
     Alert,
     FlatList,
     Keyboard,
-    KeyboardAvoidingView, Platform,
+    KeyboardAvoidingView,
+    Platform,
     StyleSheet,
     Text,
-    TouchableOpacity, TouchableWithoutFeedback,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
     View
 } from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -26,6 +28,7 @@ import PhoneInput from "react-native-phone-number-input";
 import {InvitationService} from "@/services/InvitationService";
 import OverlaySpinner from "@/components/OverlaySpinner";
 import * as SMS from 'expo-sms';
+import {OrganizationService} from "@/services/OrganizationService";
 
 
 interface InviteObject {
@@ -73,7 +76,6 @@ const SearchUser = () => {
             router.back();
     }
 
-
     const _sendSmsInvitation = async (phoneNumber: string) => {
         const isAvailable = await SMS.isAvailableAsync();
         if (isAvailable) {
@@ -90,7 +92,6 @@ const SearchUser = () => {
         }
     }
 
-
     const _onSearchSubmit = useCallback(async () => {
         if (searchName.trim() === '') {
             if (people.length > 0) setPeople([]);
@@ -99,7 +100,6 @@ const SearchUser = () => {
         let data: UserSearchResponse[] | undefined;
         setLoading(true);
         if (isParenting) {
-            //TODO:: call the search for pareting
             data = await UserService.SearchUsersByFullName(searchName, searchType);
         } else {
             data = await UserService.SearchUsersByFullName(searchName, searchType);
@@ -111,6 +111,36 @@ const SearchUser = () => {
         setLoading(false);
     }, [searchName, searchType]);
 
+    const _onSendRequest = async (receiverId: string) => {
+        if (isParenting) {
+            await _onSendingParentingRequest(receiverId);
+        } else {
+            if (currentUser?.role == UserType[UserType.ORGANIZATION] && searchType == UserType.COACH) {
+                await _onSendInvitationToCoachFromOrganization(receiverId);
+            } else {
+                await _onAddFriendOrRemove(receiverId);
+            }
+        }
+    }
+    const _onSendInvitationToCoachFromOrganization = async (coachId: string) => {
+        //TODO:: call the back end
+        console.log('inviting coach', coachId);
+        const res : boolean = await OrganizationService.sendCoachInviteRequest(coachId);
+        if (!res) {
+            Alert.alert('Error', 'Failed to send the invitation request. Please try again.');
+            return;
+        }
+        Alert.alert(
+            'Invitation Sent',
+            'Your invitation request has been sent successfully to the coach.',
+            [{text: 'OK', onPress: () => console.log('Alert closed')}]
+        );
+        setPeople((oldPeople) =>
+            oldPeople.map((person) =>
+                person.id === coachId ? { ...person, coachPending: true } : person
+            )
+        );
+    }
     const _onAddFriendOrRemove = async (receiverId: string) => {
         const senderId = currentUser.id;
         const d = await FriendRequestService.sendFriendRequest(senderId, receiverId);
@@ -123,6 +153,7 @@ const SearchUser = () => {
             });
         });
     };
+
     const _onSendingParentingRequest = async (receiverId: string) => {
         try {
             const res = await ChildrenService.sendParentRequest(receiverId);
@@ -150,8 +181,12 @@ const SearchUser = () => {
     }
 
     const _renderUserItem = ({item}: { item: UserSearchResponse }) => {
+        console.log('search type => ', item);
+        const canSendRequest = (((searchType == UserType.COACH && currentUser.role == UserType[UserType.ORGANIZATION]) && (!item.yourCoach && !item.coachPending))
+        || (isParenting && !item.parent && !item.parentPending) || (!isParenting && !(searchType == UserType.COACH && currentUser.role == UserType[UserType.ORGANIZATION]) && !item.friend))
+        console.log(canSendRequest);
         return (
-            <TouchableOpacity style={styles.userItem}>
+            <View style={styles.userItem}>
                 <View style={{flexDirection: 'row', alignItems: 'center'}}>
                     {item.imageUrl ? (
                         <Avatar.Image size={35} source={{uri: item.imageUrl}}/>
@@ -163,14 +198,14 @@ const SearchUser = () => {
                     )}
                     <Text style={styles.userName}>{`${item.firstName} ${item.lastName}`}</Text>
                 </View>
-                {((!item.friend && !isParenting) || (isParenting && !item.parent && !item.parentPending)) ?
+                {canSendRequest ?
                     <Ionicons
-                        onPress={() => isParenting ? _onSendingParentingRequest(item.id) : _onAddFriendOrRemove(item.id)}
+                        onPress={() => _onSendRequest(item.id)}
                         name="person-add-outline" size={20} color="black"/>
                     :
                     <Ionicons name="person-sharp" size={20} color="#2757CB"/>
                 }
-            </TouchableOpacity>
+            </View>
         );
     }
 

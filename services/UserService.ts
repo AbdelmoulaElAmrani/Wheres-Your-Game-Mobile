@@ -129,4 +129,15 @@ export class UserService {
             return false;
         }
     }
+
+    static async getUserInfoByEmail(email: string) {
+        try {
+            var res = await Requests.get(`user/public/info/${email}`);
+            if(res?.status === 200) return res.data;
+            else return null;
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    }
 }

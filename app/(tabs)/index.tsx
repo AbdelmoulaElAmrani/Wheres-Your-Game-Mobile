@@ -16,15 +16,13 @@ import {Team} from "@/models/Team";
 import {router, useRouter, useNavigation, useFocusEffect} from "expo-router";
 import RNPickerSelect from 'react-native-picker-select';
 import {TeamService} from "@/services/TeamService";
-import Spinner from "@/components/Spinner";
 import {Image, ImageBackground} from "expo-image";
 import {NotificationService} from "@/services/NotificationService";
 import {NOTIFICATION_REFRESH_TIMER} from "@/appConfig";
 import {SportService} from "@/services/SportService";
 import OverlaySpinner from "@/components/OverlaySpinner";
-import {PlatformOSType} from "react-native/Libraries/Utilities/Platform";
+import {OrganizationService} from "@/services/OrganizationService";
 
-const categories = ['Sports Category', 'Sports Training', 'Multimedia Sharing', 'Educational Resources', 'Account', 'Advertising', 'Analytics', 'Virtual Events', 'Augmented Reality (AR)'];
 const REFRESH_NOTIFICATION_TIME = NOTIFICATION_REFRESH_TIMER * 1000;
 
 
@@ -32,6 +30,7 @@ interface UserProfileProps {
     userId: string,
     sports: UserSportResponse[] | undefined,
     teams: Team[] | undefined
+    coaches: UserResponse[] | undefined
 }
 
 const Home = () => {
@@ -40,15 +39,21 @@ const Home = () => {
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
     const dispatch = useDispatch();
     const [players, setPlayers] = useState<Player[]>([]);
-    const [teams, setTeams] = useState<Team[] | undefined>(undefined);
     const [selectedTeam, setSelectedTeam] = useState<Team | undefined>(undefined);
     const [playersLoading, setPlayersLoading] = useState<boolean>(false)
     const _router = useRouter();
     const [newNotif, setNewNotif] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedProfileId, setSelectedProfileId] = useState<string>('');
+    const [selectedSport, setSelectedSport] = useState<string | undefined>(undefined);
+    const [selectedCoach, setSelectedCoach] = useState<UserResponse | undefined>(undefined);
     const [tempSelectedProfileId, setTempSelectedProfileId] = useState<string>('');
-    const [selectedProfile, setSelectedProfile] = useState<UserProfileProps>({sports: [], teams: [], userId: ''});
+    const [selectedProfile, setSelectedProfile] = useState<UserProfileProps>({
+        sports: [],
+        teams: [],
+        userId: '',
+        coaches: []
+    });
     const isFocused = useNavigation().isFocused();
 
 
@@ -64,7 +69,7 @@ const Home = () => {
                             setIsLoading(true);
                             dispatch(getUserSports(userData.id) as any);
                         }
-                        if (!teams) {
+                        if (!selectedProfile.teams || selectedProfile.teams.length === 0)  {
                             setIsLoading(true);
                             await _getMyTeams(userData.id);
                         }
@@ -95,15 +100,16 @@ const Home = () => {
         }
     }, [userSport]))
 
-
     const isFirstRender = useRef(true);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
                 if (selectedProfileId === userData.id || selectedProfileId === '') {
                     setSelectedProfile((prevState) => ({...prevState, sports: userSport}));
-                    await _getMyTeams(userData.id);
+                    if (!isOrganization())
+                        await _getMyTeams(userData.id);
                 } else {
                     await _getUserSport(selectedProfileId);
                     await _getMyTeams(selectedProfileId);
@@ -120,7 +126,6 @@ const Home = () => {
         }
         fetchData();
     }, [selectedProfileId])
-
 
     const checkForNotification = async () => {
         try {
@@ -148,9 +153,10 @@ const Home = () => {
         }
     }
 
-    const _getMyTeams = async (userId: string) => {
+    const _getMyTeams = async (userId: string, sportId?:string) => {
         try {
-            const result = await TeamService.getUserTeams(userId);
+            const organizationId = isOrganization() ? userData.id : undefined;
+            const result = await TeamService.getUserTeams(userId, sportId, organizationId);
             setSelectedProfile(prev => ({...prev, teams: result}));
         } catch (e) {
             console.error('_getMyTeams', e);
@@ -175,7 +181,6 @@ const Home = () => {
         } finally {
             setPlayersLoading(false);
         }
-
     }
 
 
@@ -202,14 +207,53 @@ const Home = () => {
         });
     }
 
+    const _onOpenAdRequest = () => {
+        router.navigate('/(organization)');
+    }
+
     const _onAddPlayer = () => {
+        _onSearch(UserType.PLAYER);
     }
 
     const _onAddTeam = () => {
         router.navigate('/(team)/TeamForm');
     }
 
-    const _onViewAll = () => {
+    const _onSelectSport = async (id: any) => {
+        if (isOrganization()) {
+            if (selectedSport == id) {
+                setSelectedSport(undefined);
+
+                setSelectedCoach(undefined);
+                setSelectedProfile(prev => ({...prev, coaches: [], teams: []}));
+
+                setSelectedTeam(undefined);
+
+                setPlayers([]);
+
+            } else {
+                setSelectedSport(id);
+                const data = await OrganizationService.getAllCoachesOfThisSport(userData.id, id);
+                setSelectedProfile(prev => ({...prev, coaches: data}));
+            }
+        }
+    }
+
+    const _onSelectCoach = async (coach: UserResponse) => {
+        if (!isOrganization()) return;
+        if (selectedCoach?.id == coach.id) {
+            setSelectedCoach(undefined)
+            setSelectedTeam(undefined);
+            setSelectedProfile(prev => ({...prev, teams: []}));
+            setPlayers([]);
+        } else {
+            try {
+                setSelectedCoach(coach);
+                await _getMyTeams(coach.id, selectedSport);
+            } catch (e) {
+                console.error(e);
+            }
+        }
     }
 
     const _onSelectTeam = async (team: Team) => {
@@ -234,13 +278,12 @@ const Home = () => {
         }
     }
 
-    const _onSelectCategory = (category: any) => {
-    }
+    /*const _onSelectCategory = (category: any) => {
+    }*/
 
-    const _onSelectSport = (id: any) => {
-    }
 
-    const isCoach = (): boolean => userData.role == UserType[UserType.COACH] || userData.role == UserType[UserType.ORGANIZATION];
+    const isCoach = (): boolean => userData.role == UserType[UserType.COACH];
+    const isOrganization = (): boolean => userData.role == UserType[UserType.ORGANIZATION];
 
     const isPlayersVisible = (): boolean =>
         //(isCoach() || UserType[UserType.PLAYER] == userData.role) && selectedTeam !== undefined;
@@ -249,18 +292,47 @@ const Home = () => {
 
     const _renderSportItem = memo(({item}: { item: UserSportResponse }) => {
         return (<TouchableOpacity
-            disabled={true}
+            disabled={!isOrganization()}
             style={{justifyContent: 'center', alignItems: 'center', alignContent: 'center'}}
-            onPress={() => _onSelectSport(item.id)}>
-            <View style={styles.circle}>
+            onPress={() => _onSelectSport(item.id.sportId)}>
+            <View style={[styles.circle, selectedSport == item.id.sportId && styles.selectedTag]}>
                 <Image
                     placeholder={require('../../assets/images/sport/sport.png')}
                     placeholderContentFit={'contain'}
                     source={{uri: item.iconUrl}}
                     style={styles.iconImage}/>
             </View>
-            <Text style={styles.tagText}>{item.sportName}</Text>
+            <Text
+                style={[styles.tagText, selectedSport == item.id.sportId && {fontWeight: 'bold'}]}>{item.sportName}</Text>
         </TouchableOpacity>);
+    });
+
+    const _renderCoaches = memo(({item}: { item: UserResponse }) => {
+        return (
+            <TouchableOpacity
+                style={[styles.card, selectedCoach?.id == item.id ? styles.selectedTag : null]}
+                onPress={() => _onSelectCoach(item)}>
+                <View>
+                    <View style={styles.cardImage}>
+                        {item.imageUrl ? (
+                            <Avatar.Image size={60} source={{uri: item.imageUrl}}/>
+                        ) : (
+                            <Avatar.Text
+                                size={60}
+                                label={(item.firstName.charAt(0) + item.lastName.charAt(1)).toUpperCase()}
+                            />
+                        )}
+                    </View>
+                </View>
+                <Text style={{
+                    textAlign: 'center',
+                    fontSize: 16,
+                    fontWeight: "600",
+                    marginTop: 10,
+                    width: 105
+                }}>{`${item.firstName} ${item.lastName}`}</Text>
+            </TouchableOpacity>
+        )
     });
 
     const _renderTeam = memo(({item}: { item: Team }) => {
@@ -326,23 +398,21 @@ const Home = () => {
         </TouchableOpacity>
     ));
 
-    const _renderCategory = memo(({item}: { item: any }) => (
-        <TouchableOpacity
-            disabled={true}
-            style={styles.categoryContainer}
-            onPress={() => _onSelectCategory(item)}>
-            <Text style={{fontSize: 14, fontWeight: 'bold', textAlign: 'center', color: 'white'}}>{item}</Text>
-        </TouchableOpacity>
-    ));
+    /* const _renderCategory = memo(({item}: { item: any }) => (
+         <TouchableOpacity
+             disabled={true}
+             style={styles.categoryContainer}
+             onPress={() => _onSelectCategory(item)}>
+             <Text style={{fontSize: 14, fontWeight: 'bold', textAlign: 'center', color: 'white'}}>{item}</Text>
+         </TouchableOpacity>
+     ));*/
 
     const _handleOpenInviteChild = () => {
-        //TODO::
         _router.push({
             pathname: '/(user)/(search)/SearchUser',
             params: {searchType: UserType.DEFAULT},
         });
     }
-
 
     return (
         <>
@@ -457,6 +527,11 @@ const Home = () => {
                                 style={styles.tag}>
                                 <Text style={styles.tagText}>Add Coach</Text>
                             </TouchableOpacity>
+                            {isOrganization() && <TouchableOpacity
+                                onPress={_onOpenAdRequest}
+                                style={[styles.tag, {paddingHorizontal: 40}]}>
+                                <Text style={styles.tagText}>Advertising</Text>
+                            </TouchableOpacity>}
                             {isCoach() && <TouchableOpacity
                                 onPress={() => _onSearch(UserType.PLAYER)}
                                 style={styles.tag}>
@@ -488,30 +563,47 @@ const Home = () => {
                                     nestedScrollEnabled={true}
                                 />
                             </View>
-                            <View style={styles.menuContainer}>
+                            {isOrganization() && <View style={styles.menuContainer}>
                                 <View style={styles.menuTitleContainer}>
                                     <View style={{flexDirection: 'row'}}>
-                                        <Text style={styles.menuTitle}>Your Teams <Text
+                                        <Text style={styles.menuTitle}>Your Coaches <Text
                                             style={styles.count}>{selectedProfile.teams?.length}</Text></Text>
                                     </View>
-                                    {isCoach() && <TouchableOpacity
-                                        onPress={_onAddTeam}
-                                        style={styles.btnContainer}>
-                                        <Text style={styles.btnText}>Add Team</Text>
-                                        <AntDesign name="right" size={20} color="#4361EE"/>
-                                    </TouchableOpacity>}
                                 </View>
                                 <FlatList
-                                    data={selectedProfile?.teams}
-                                    renderItem={({item}) => <_renderTeam item={item}/>}
+                                    data={selectedProfile?.coaches}
+                                    renderItem={({item}) => <_renderCoaches item={item}/>}
                                     keyExtractor={item => item.id}
                                     horizontal={true}
                                     showsHorizontalScrollIndicator={false}
                                     focusable={true}
                                     nestedScrollEnabled={true}
                                 />
-                            </View>
-
+                            </View>}
+                            {((!isOrganization()) || (isOrganization() && (selectedProfile?.teams?.length ?? 0) > 0)) &&
+                                <View style={styles.menuContainer}>
+                                    <View style={styles.menuTitleContainer}>
+                                        <View style={{flexDirection: 'row'}}>
+                                            <Text style={styles.menuTitle}>Your Teams <Text
+                                                style={styles.count}>{selectedProfile.teams?.length}</Text></Text>
+                                        </View>
+                                        {isCoach() && <TouchableOpacity
+                                            onPress={_onAddTeam}
+                                            style={styles.btnContainer}>
+                                            <Text style={styles.btnText}>Add Team</Text>
+                                            <AntDesign name="right" size={20} color="#4361EE"/>
+                                        </TouchableOpacity>}
+                                    </View>
+                                    <FlatList
+                                        data={selectedProfile?.teams}
+                                        renderItem={({item}) => <_renderTeam item={item}/>}
+                                        keyExtractor={item => item.id}
+                                        horizontal={true}
+                                        showsHorizontalScrollIndicator={false}
+                                        focusable={true}
+                                        nestedScrollEnabled={true}
+                                    />
+                                </View>}
                             {isPlayersVisible() && <View style={styles.menuContainer}>
                                 <View style={styles.menuTitleContainer}>
                                     <View style={{flexDirection: 'row'}}>

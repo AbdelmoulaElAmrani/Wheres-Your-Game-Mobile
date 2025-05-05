@@ -495,6 +495,13 @@ const EditProfile = () => {
                                     onChangeText={(text) => setEditUser({...editUser, zipCode: text})}
                                     underlineColor={"transparent"}
                                 />
+                                {userData?.role == UserType[UserType.ORGANIZATION] && <View style={{marginTop: 20}}>
+                                    <Text style={{textAlign: 'center', fontWeight: 'bold'}}>Note:</Text>
+                                    <Text style={{textAlign: 'center', fontWeight: 'bold'}}>If you are signing up on
+                                        behalf of an organization, please ensure you provide the organization’s primary
+                                        point of contact. This is required to verify and manage organizational
+                                        access.</Text>
+                                </View>}
                                 <View style={styles.buttonContainer}>
                                     <CustomButton
                                         textStyle={{fontSize: 15, fontWeight: 'bold'}}
