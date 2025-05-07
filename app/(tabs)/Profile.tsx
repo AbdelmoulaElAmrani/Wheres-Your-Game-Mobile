@@ -14,6 +14,7 @@ import Gender from "@/models/Gender";
 import UserType from "@/models/UserType";
 import {UserService} from "@/services/UserService";
 import Ionicons from '@expo/vector-icons/Ionicons';
+import {AuthService} from "@/services/AuthService";
 const Profile = () => {
     const dispatch = useDispatch()
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
@@ -34,8 +35,9 @@ const Profile = () => {
         });
     }
 
-    const _handleLogout = () => {
+    const _handleLogout = async () => {
         dispatch(logout({}));
+        await AuthService.logOut();
         router.replace('/Login');
     }
 
