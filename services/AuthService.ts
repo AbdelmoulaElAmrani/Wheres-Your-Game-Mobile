@@ -13,6 +13,7 @@ export class AuthService {
     static logOut = async (): Promise<void> => {
         await LocalStorageService.removeItem('accessToken');
         await LocalStorageService.removeItem('refreshToken');
+        await LocalStorageService.removeItem('expoPushToken')
         await persistor.purge();
         await persistor.flush();
     }
