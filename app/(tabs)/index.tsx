@@ -93,7 +93,6 @@ const Home = () => {
         }, [userData])
     );
 
-
     useFocusEffect(useCallback(() => {
         if ((selectedProfileId == userData.id || selectedProfileId == '')) {
             setSelectedProfile(prevState => ({...prevState, sports: userSport}));
