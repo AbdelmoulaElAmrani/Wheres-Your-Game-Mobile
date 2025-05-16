@@ -470,7 +470,7 @@ const Home = () => {
                             color: 'white',
                             fontWeight: 'bold',
                             fontSize: 18
-                        }}>Hi {`${Helpers.capitalize(userData?.firstName)}`}</Text>
+                        }}>Hi {`${Helpers.capitalize(userData?.firstName)}`} </Text>
                         {userData.role == UserType[UserType.PARENT] &&
                             <View style={{
                                 borderWidth: 1,

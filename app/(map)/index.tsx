@@ -52,7 +52,12 @@ const SportMap = () => {
     })) as RadioBoxFilter[];
     const [expandedFilter, setExpandedFilter] = useState<Filters | undefined>(Filters.SPORT);
     const [filter, setFilter] = useState<FilterState>({category: [], sport: [], sortBy: {} as RadioBoxFilter});
-    const [region, setRegion] = useState<any>(null);
+    const [region, setRegion] = useState<any>({
+        latitude: 39.8283,  // Center of US
+        longitude: -98.5795,
+        latitudeDelta: 50,  // Zoomed out to show most of US
+        longitudeDelta: 50
+    });
     const dispatch = useDispatch();
 
 
@@ -68,12 +73,13 @@ const SportMap = () => {
                 const latitude = parseFloat(String(location.coords.latitude));
                 const longitude = parseFloat(String(location.coords.longitude));
 
-                setRegion({
-                    latitudeDelta: 0.0092,
-                    longitudeDelta: 0.0092,
-                    latitude,
-                    longitude,
-                })
+                // Only update region if user explicitly requests their location
+                // setRegion({
+                //     latitudeDelta: 0.0092,
+                //     longitudeDelta: 0.0092,
+                //     latitude,
+                //     longitude,
+                // })
             }
             if (availableSport.length == 0) {
                 await dispatch(getSports() as any);
