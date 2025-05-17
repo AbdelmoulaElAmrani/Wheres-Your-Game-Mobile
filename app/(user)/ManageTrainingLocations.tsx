@@ -3,34 +3,61 @@ import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityInd
 import {Stack, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import { TrainingLocationService } from '@/services/TrainingLocationService';
-import { TrainingLocation } from '@/models/responseObjects/TrainingLocation';
-import { useSelector } from 'react-redux';
-import { GooglePlacesAutocomplete } from 'expo-google-places-autocomplete';
+import { TrainingLocation } from '@/models/TrainingLocation';
+import { useSelector, useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ImageBackground } from 'expo-image';
+import { List } from 'react-native-paper';
+import { getUserSports } from '@/redux/UserSlice';
+import { UserSportResponse } from '@/models/responseObjects/UserSportResponse';
+import Requests from '@/services/Requests';
 
 const GOOGLE_PLACES_API_KEY = "AIzaSyDlFo6upaajnGewXn4DX4-naBhsWPcn8VE";
 
 const ManageTrainingLocations = () => {
     const router = useRouter();
+    const dispatch = useDispatch();
     const [locations, setLocations] = useState<TrainingLocation[]>([]);
     const [isModalVisible, setModalVisible] = useState(false);
     const [newLocation, setNewLocation] = useState({
         name: '',
         address: '',
         latitude: 0,
-        longitude: 0
+        longitude: 0,
+        sport: {
+            id: '',
+            name: ''
+        }
     });
     const [isLoading, setIsLoading] = useState(false);
     const [isVerifying, setIsVerifying] = useState(false);
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [selectedResult, setSelectedResult] = useState<any | null>(null);
+    const [editingLocation, setEditingLocation] = useState<TrainingLocation | null>(null);
+    const [expandedSport, setExpandedSport] = useState(false);
     const user = useSelector((state: any) => state.user.userData);
-    // console.log('Redux user object:', user);
+    const userSports = useSelector((state: any) => state.user.userSport);
 
     useEffect(() => {
         loadLocations();
-    }, []);
+        if (user && user.id) {
+            dispatch(getUserSports(user.id) as any);
+        }
+    }, [user]);
+
+    // If user has only one sport, select it automatically
+    useEffect(() => {
+        if (userSports && userSports.length === 1) {
+            const sport = userSports[0];
+            setNewLocation(prev => ({
+                ...prev,
+                sport: {
+                    id: sport.sportId,
+                    name: sport.sportName
+                }
+            }));
+        }
+    }, [userSports]);
 
     const loadLocations = async () => {
         try {
@@ -83,23 +110,36 @@ const ManageTrainingLocations = () => {
     };
 
     const handleAddLocation = async () => {
-        console.log('Add Location clicked', newLocation, selectedResult);
-        if (!newLocation.name || !selectedResult) {
-            Alert.alert('Error', 'Please fill in all fields and select an address');
+        if (!newLocation.name || !selectedResult || !newLocation.sport.id) {
+            Alert.alert('Error', 'Please fill in all fields and select an address and sport');
             return;
         }
+
+        console.log('Current newLocation state:', JSON.stringify(newLocation, null, 2));
+        
         try {
             setIsLoading(true);
-            console.log('userId being sent:', user.id);
             const location = await TrainingLocationService.createTrainingLocation({
-                ...newLocation,
+                name: newLocation.name,
+                address: newLocation.address,
+                latitude: newLocation.latitude,
+                longitude: newLocation.longitude,
+                sport: {
+                    id: newLocation.sport.id,
+                    name: newLocation.sport.name
+                },
                 createdBy: user.id
             });
-            console.log('API result:', location);
             if (location) {
                 setLocations([...locations, location]);
                 setModalVisible(false);
-                setNewLocation({ name: '', address: '', latitude: 0, longitude: 0 });
+                setNewLocation({ 
+                    name: '', 
+                    address: '', 
+                    latitude: 0, 
+                    longitude: 0, 
+                    sport: { id: '', name: '' } 
+                });
                 setSelectedResult(null);
                 setSearchResults([]);
                 Alert.alert('Success', 'Location added successfully');
@@ -115,19 +155,157 @@ const ManageTrainingLocations = () => {
     };
 
     const handleDeleteLocation = async (id: string) => {
+        Alert.alert(
+            "Delete Location",
+            "Are you sure you want to delete this location?",
+            [
+                {
+                    text: "Cancel",
+                    style: "cancel"
+                },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            setIsLoading(true);
+                            const success = await TrainingLocationService.deleteTrainingLocation(id);
+                            if (success) {
+                                setLocations(locations.filter(loc => loc.id !== id));
+                                Alert.alert('Success', 'Location deleted successfully');
+                            }
+                        } catch (error) {
+                            console.error('Error deleting location:', error);
+                            Alert.alert('Error', 'Failed to delete location');
+                        } finally {
+                            setIsLoading(false);
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleEditLocation = (location: TrainingLocation) => {
+        console.log('Editing location:', JSON.stringify(location, null, 2));
+        setEditingLocation(location);
+        const sportData = {
+            id: location.sport.id,
+            name: location.sport.name
+        };
+        console.log('Setting sport data:', JSON.stringify(sportData, null, 2));
+        setNewLocation({
+            name: location.name,
+            address: location.address,
+            latitude: location.latitude,
+            longitude: location.longitude,
+            sport: sportData
+        });
+        setSelectedResult({
+            formatted_address: location.address,
+            geometry: {
+                location: {
+                    lat: location.latitude,
+                    lng: location.longitude
+                }
+            }
+        });
+        setModalVisible(true);
+    };
+
+    const handleCloseModal = () => {
+        setModalVisible(false);
+        setEditingLocation(null);
+        setNewLocation({ 
+            name: '', 
+            address: '', 
+            latitude: 0, 
+            longitude: 0, 
+            sport: { id: '', name: '' } 
+        });
+        setSelectedResult(null);
+        setSearchResults([]);
+    };
+
+    const handleSaveEdit = async () => {
+        if (!selectedResult || !editingLocation || !newLocation.sport.id) {
+            Alert.alert('Error', 'Please select a valid address and sport');
+            return;
+        }
+
         try {
             setIsLoading(true);
-            const success = await TrainingLocationService.deleteTrainingLocation(id);
-            if (success) {
-                setLocations(locations.filter(loc => loc.id !== id));
-                Alert.alert('Success', 'Location deleted successfully');
+            const updated = await TrainingLocationService.updateTrainingLocation(
+                editingLocation.id,
+                {
+                    name: newLocation.name,
+                    address: newLocation.address,
+                    latitude: newLocation.latitude,
+                    longitude: newLocation.longitude,
+                    sport: {
+                        id: newLocation.sport.id,
+                        name: newLocation.sport.name
+                    },
+                    createdBy: user.id
+                }
+            );
+            if (updated) {
+                setLocations(locations.map(loc => 
+                    loc.id === updated.id ? updated : loc
+                ));
+                setModalVisible(false);
+                setNewLocation({ 
+                    name: '', 
+                    address: '', 
+                    latitude: 0, 
+                    longitude: 0, 
+                    sport: { id: '', name: '' } 
+                });
+                setSelectedResult(null);
+                setSearchResults([]);
+                setEditingLocation(null);
+                Alert.alert('Success', 'Location updated successfully');
             }
         } catch (error) {
-            console.error('Error deleting location:', error);
-            Alert.alert('Error', 'Failed to delete location');
+            console.error('Error updating location:', error);
+            Alert.alert('Error', 'Failed to update location');
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleDeleteAllLocations = async () => {
+        Alert.alert(
+            "Delete All Locations",
+            "Are you sure you want to delete all locations? This action cannot be undone.",
+            [
+                {
+                    text: "Cancel",
+                    style: "cancel"
+                },
+                {
+                    text: "Delete All",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            setIsLoading(true);
+                            const res = await Requests.delete('training-locations/all');
+                            if (res?.status === 200) {
+                                setLocations([]);
+                                Alert.alert('Success', 'All locations have been deleted');
+                            } else {
+                                Alert.alert('Error', 'Failed to delete all locations');
+                            }
+                        } catch (error) {
+                            console.error('Error deleting all locations:', error);
+                            Alert.alert('Error', 'Failed to delete all locations');
+                        } finally {
+                            setIsLoading(false);
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     return (
@@ -146,7 +324,11 @@ const ManageTrainingLocations = () => {
                         <Ionicons name="arrow-back" size={24} color="white" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Manage Training Locations</Text>
-                    <View style={styles.headerRight} />
+                    {/* <TouchableOpacity 
+                        onPress={handleDeleteAllLocations} 
+                        style={styles.deleteAllButton}>
+                        <Ionicons name="trash-outline" size={24} color="white" />
+                    </TouchableOpacity> */}
                 </View>
                 
                 {isLoading && (
@@ -177,9 +359,7 @@ const ManageTrainingLocations = () => {
                                     <View style={styles.locationActions}>
                                         <TouchableOpacity 
                                             style={styles.editButton}
-                                            onPress={() => {
-                                                // TODO: Implement edit location functionality
-                                            }}>
+                                            onPress={() => handleEditLocation(location)}>
                                             <Ionicons name="pencil" size={20} color="#2757CB" />
                                         </TouchableOpacity>
                                         <TouchableOpacity 
@@ -206,37 +386,97 @@ const ManageTrainingLocations = () => {
                     visible={isModalVisible}
                     animationType="slide"
                     transparent={true}
-                    onRequestClose={() => setModalVisible(false)}>
+                    onRequestClose={handleCloseModal}>
                     <TouchableOpacity 
                         style={styles.modalOverlay}
                         activeOpacity={1}
                         onPress={() => {
                             Keyboard.dismiss();
-                            setModalVisible(false);
+                            handleCloseModal();
                         }}>
                         <View style={styles.modalContent}>
                             <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>Add New Location</Text>
-                                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                <Text style={styles.modalTitle}>
+                                    {editingLocation ? 'Edit Location' : 'Add New Location'}
+                                </Text>
+                                <TouchableOpacity onPress={handleCloseModal}>
                                     <Ionicons name="close" size={24} color="#666" />
                                 </TouchableOpacity>
                             </View>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Location Name"
-                                value={newLocation.name}
-                                onChangeText={(text) => setNewLocation({...newLocation, name: text})}
-                            />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Address"
-                                value={newLocation.address}
-                                onChangeText={(text) => {
-                                    setNewLocation({...newLocation, address: text});
-                                    setSelectedResult(null);
-                                    setSearchResults([]);
-                                }}
-                            />
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.inputLabel}>Location Name</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Enter location name"
+                                    value={newLocation.name}
+                                    onChangeText={(text) => setNewLocation({...newLocation, name: text})}
+                                />
+                            </View>
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.inputLabel}>Sport</Text>
+                                <List.Section>
+                                    <List.Accordion
+                                        title={newLocation.sport.id ? newLocation.sport.name : "Select a sport"}
+                                        expanded={expandedSport}
+                                        onPress={() => setExpandedSport(!expandedSport)}
+                                        style={[
+                                            styles.accordion,
+                                            newLocation.sport.id ? styles.accordionSelected : null
+                                        ]}
+                                        titleStyle={[
+                                            styles.accordionTitle,
+                                            newLocation.sport.id ? styles.accordionTitleSelected : null
+                                        ]}>
+                                        {userSports && userSports.map((sport: UserSportResponse) => {
+                                            const isSelected = newLocation.sport.id === sport.sportId;
+                                            console.log('Sport item:', {
+                                                sportId: sport.sportId,
+                                                sportName: sport.sportName,
+                                                isSelected,
+                                                currentSportId: newLocation.sport.id
+                                            });
+                                            return (
+                                                <List.Item
+                                                    key={sport.id}
+                                                    title={sport.sportName}
+                                                    onPress={() => {
+                                                        console.log('Selected sport:', sport);
+                                                        setNewLocation(prev => ({
+                                                            ...prev,
+                                                            sport: {
+                                                                id: sport.sportId,
+                                                                name: sport.sportName
+                                                            }
+                                                        }));
+                                                        setExpandedSport(false);
+                                                    }}
+                                                    style={[
+                                                        styles.sportItem,
+                                                        isSelected && styles.selectedSport
+                                                    ]}
+                                                    titleStyle={[
+                                                        styles.sportItemText,
+                                                        isSelected && styles.selectedSportText
+                                                    ]}
+                                                />
+                                            );
+                                        })}
+                                    </List.Accordion>
+                                </List.Section>
+                            </View>
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.inputLabel}>Address</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Enter address"
+                                    value={newLocation.address}
+                                    onChangeText={(text) => {
+                                        setNewLocation({...newLocation, address: text});
+                                        setSelectedResult(null);
+                                        setSearchResults([]);
+                                    }}
+                                />
+                            </View>
                             <TouchableOpacity
                                 style={[styles.modalAddButton, styles.searchButton, isVerifying && styles.disabledButton]}
                                 onPress={handleSearchAddress}
@@ -264,11 +504,13 @@ const ManageTrainingLocations = () => {
                                 />
                             )}
                             <TouchableOpacity 
-                                style={[styles.modalAddButton, (!selectedResult || isVerifying) && styles.disabledButton]}
-                                onPress={handleAddLocation}
-                                disabled={!selectedResult || isVerifying}
+                                style={[styles.modalAddButton, (!selectedResult || !newLocation.sport.id || isVerifying) && styles.disabledButton]}
+                                onPress={editingLocation ? handleSaveEdit : handleAddLocation}
+                                disabled={!selectedResult || !newLocation.sport.id || isVerifying}
                             >
-                                <Text style={styles.modalAddButtonText}>Add Location</Text>
+                                <Text style={styles.modalAddButtonText}>
+                                    {editingLocation ? 'Save Changes' : 'Add Location'}
+                                </Text>
                             </TouchableOpacity>
                         </View>
                     </TouchableOpacity>
@@ -295,10 +537,10 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
     },
-    headerRight: {
-        width: 24,
-    },
     backButton: {
+        padding: 5,
+    },
+    deleteAllButton: {
         padding: 5,
     },
     content: {
@@ -421,13 +663,22 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
     },
+    inputContainer: {
+        marginBottom: 15,
+    },
+    inputLabel: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: '#333',
+        marginBottom: 8,
+    },
     input: {
         borderWidth: 1,
         borderColor: '#ddd',
         borderRadius: 8,
         padding: 12,
-        marginBottom: 15,
         fontSize: 16,
+        backgroundColor: '#F8F9FA',
     },
     searchButton: {
         backgroundColor: '#888',
@@ -464,6 +715,41 @@ const styles = StyleSheet.create({
     },
     disabledButton: {
         opacity: 0.7,
+    },
+    accordion: {
+        borderRadius: 10,
+        marginBottom: 15,
+        backgroundColor: '#F8F9FA',
+        borderWidth: 1,
+        borderColor: '#ddd',
+    },
+    accordionSelected: {
+        backgroundColor: '#E8F0FE',
+        borderColor: '#2757CB',
+    },
+    accordionTitle: {
+        fontWeight: '500',
+        color: '#666',
+        fontSize: 16,
+    },
+    accordionTitleSelected: {
+        color: '#2757CB',
+        fontWeight: 'bold',
+    },
+    sportItem: {
+        marginBottom: 12,
+        paddingVertical: 8,
+    },
+    sportItemText: {
+        fontSize: 16,
+        color: '#333',
+    },
+    selectedSport: {
+        backgroundColor: '#E8F0FE',
+    },
+    selectedSportText: {
+        fontWeight: 'bold',
+        color: '#2757CB',
     },
 });
 

@@ -331,7 +331,17 @@ export const ProfileV2 = () => {
                                             </View>
                                             <View style={styles.locationsList}>
                                                 {/* This will be populated with actual locations data */}
-                                                <Text style={styles.noLocationsText}>No training locations added yet</Text>
+                                                {(userSport[0]?.trainingLocations && userSport[0].trainingLocations.length > 0) ? (
+                                                    <Text style={styles.noLocationsText}>
+                                                        You currently have {userSport[0].trainingLocations.length} location{userSport[0].trainingLocations.length > 1 ? 's' : ''}.
+                                                    </Text>
+                                                ) : (currentUser?.trainingLocations && currentUser.trainingLocations.length > 0) ? (
+                                                    <Text style={styles.noLocationsText}>
+                                                        You currently have {currentUser.trainingLocations.length} location{currentUser.trainingLocations.length > 1 ? 's' : ''}.
+                                                    </Text>
+                                                ) : (
+                                                    <Text style={styles.noLocationsText}>No training locations added yet</Text>
+                                                )}
                                             </View>
                                         </View>
                                     )}
@@ -371,17 +381,19 @@ export const ProfileV2 = () => {
                                         )}
                                     />
                                 </View>}
-                            <TouchableOpacity
-                                onPress={_handleSettings}
-                                style={styles.followBtn}>
-                                <FontAwesome6 name="gear" size={15} color="white"/>
-                                <Text style={{
-                                    color: 'white',
-                                    fontSize: 16,
-                                    marginLeft: 10,
-                                    fontWeight: 'bold'
-                                }}>Settings</Text>
-                            </TouchableOpacity>
+                            {selectOption !== MenuOption.Sports_Profiles && (
+                                <TouchableOpacity
+                                    onPress={_handleSettings}
+                                    style={styles.followBtn}>
+                                    <FontAwesome6 name="gear" size={15} color="white"/>
+                                    <Text style={{
+                                        color: 'white',
+                                        fontSize: 16,
+                                        marginLeft: 10,
+                                        fontWeight: 'bold'
+                                    }}>Settings</Text>
+                                </TouchableOpacity>
+                            )}
                         </View>
                     </ScrollView>
                 </View>

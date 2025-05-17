@@ -4,8 +4,13 @@ export interface TrainingLocation {
     address: string;
     latitude: number;
     longitude: number;
+    sport: {
+        id: string;
+        name: string;
+    };
+    active: boolean;
+    deleted: boolean;
     createdAt: string;
     updatedAt: string;
-    isActive: boolean;
     createdBy: string;
 }
