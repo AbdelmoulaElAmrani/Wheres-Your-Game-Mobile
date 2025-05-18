@@ -348,7 +348,7 @@ export const ProfileV2 = () => {
                                         )}
                                     />
                                 </View>}
-                            <TouchableOpacity
+                            {selectOption !== MenuOption.Childrens &&<TouchableOpacity
                                 onPress={_handleSettings}
                                 style={styles.followBtn}>
                                 <FontAwesome6 name="gear" size={15} color="white"/>
@@ -358,7 +358,7 @@ export const ProfileV2 = () => {
                                     marginLeft: 10,
                                     fontWeight: 'bold'
                                 }}>Settings</Text>
-                            </TouchableOpacity>
+                            </TouchableOpacity>}
                         </View>
                     </ScrollView>
                 </View>

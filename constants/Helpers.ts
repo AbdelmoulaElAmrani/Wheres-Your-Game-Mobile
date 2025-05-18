@@ -148,10 +148,14 @@ export class Helpers {
         return phoneRegex.test(phoneNumber);
     };
 
-
     static validEmail(email: string): boolean {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     }
+
+    static profileArraysEqual = (a: any[] = [], b: any[] = []): boolean => {
+        if (a.length !== b.length) return false;
+        return a.every((val, index) => val.id === b[index]?.id);
+    };
 
 }

@@ -121,6 +121,7 @@ const SportMap = () => {
             <MapView
                 initialRegion={region}
                 showsUserLocation={true}
+                focusable={true}
                 onPress={Keyboard.dismiss}
                 provider={PROVIDER_GOOGLE}
                 style={StyleSheet.absoluteFill}/>

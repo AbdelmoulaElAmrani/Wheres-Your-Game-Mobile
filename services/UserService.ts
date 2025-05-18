@@ -54,12 +54,12 @@ export class UserService {
         }
     }
 
-    static async SearchUsersByFullName(searchName: string, type: UserType | null = null) {
+    static async SearchUsersByFullName(searchName: string, type: UserType | null = null, isParenting: boolean = false) {
         try {
             let userTpe = 'ALL';
             if (type != null)
                 userTpe = UserType[type];
-            var res = await Requests.get(`user/search?fullName=${searchName}&type=${userTpe}`);
+            var res = await Requests.get(`user/search?fullName=${searchName}&type=${userTpe}&isParenting=${isParenting}`);
             if (res?.status === 200 && res?.data) {
                 return res?.data as UserSearchResponse [];
             }

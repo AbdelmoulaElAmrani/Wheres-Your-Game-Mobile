@@ -140,7 +140,7 @@ const SportInterested = () => {
                         placeholder="Search Sports"
                         style={styles.search}
                         textColor='black'
-                        onChangeText={(value) => setQuery(value.toLowerCase())}
+                        onChangeText={setQuery}
                         value={query}
                         placeholderTextColor='#9BA0AB'
                         error={false}
@@ -154,7 +154,7 @@ const SportInterested = () => {
                         style={{flex: 1}}
                         scrollEnabled={true}>
                         <View style={styles.sportContainer}>
-                            {sports?.filter(x => x.name.toLowerCase().includes(query)).map(sport => {
+                            {sports?.filter(x => x.name.toLowerCase().includes(query.toLowerCase())).map(sport => {
                                 const isSelected = isSportSelected(sport.id);
                                 return (<Chip
                                     key={sport.id}

@@ -54,25 +54,33 @@ const Home = () => {
         userId: '',
         coaches: []
     });
-    const isFocused = useNavigation().isFocused();
 
+    const isFocused = useNavigation().isFocused();
+    const isValidUser = (user: any) => user && user.id;
 
     useFocusEffect(
         useCallback(() => {
-            if (userData == undefined || userData.id == undefined) {
+            if (!isValidUser(userData)) {
                 dispatch(getUserProfile() as any);
+                return;
             }
             const fetchData = async () => {
                 try {
-                    if (userData?.id) {
-                        if (userSport.length == 0) {
-                            setIsLoading(true);
-                            dispatch(getUserSports(userData.id) as any);
-                        }
-                        if (!selectedProfile.teams || selectedProfile.teams.length === 0)  {
-                            setIsLoading(true);
-                            await _getMyTeams(userData.id);
-                        }
+                    let shouldLoad = false;
+                    const shouldFetchUserSports =
+                        Array.isArray(userSport) && userSport.length === 0 &&
+                        Array.isArray(selectedProfile?.sports) && selectedProfile.sports.length === 0;
+
+                    if (shouldFetchUserSports) {
+                        shouldLoad = true;
+                        dispatch(getUserSports(userData.id) as any);
+                    }
+                    if (!selectedProfile.teams || selectedProfile.teams.length === 0)  {
+                        shouldLoad = true;
+                        await _getMyTeams(userData.id);
+                    }
+                    if (shouldLoad) {
+                        setIsLoading(true);
                     }
                 } catch (e) {
                     console.error(e);
@@ -80,35 +88,86 @@ const Home = () => {
                     setIsLoading(false);
                 }
             }
-
             fetchData();
             checkForNotification();
             const intervalId = setInterval(checkForNotification, REFRESH_NOTIFICATION_TIME);
-
             return () => {
                 clearInterval(intervalId);
                 setPlayers([]);
                 setSelectedTeam(undefined);
             };
-        }, [userData])
+        }, [userData?.id])
     );
 
-    useFocusEffect(useCallback(() => {
-        if ((selectedProfileId == userData.id || selectedProfileId == '')) {
-            setSelectedProfile(prevState => ({...prevState, sports: userSport}));
-        }
-    }, [userSport]))
+    useFocusEffect(
+        useCallback(() => {
+            const currentId = selectedProfileId || userData?.id;
+
+            const fetchProfileData = async () => {
+                try {
+                    setIsLoading(true);
+
+                    let sports = [];
+                    if (currentId === userData?.id) {
+                        sports = userSport;
+                    } else {
+                        const result = await SportService.getUserSport(currentId);
+                        if (result) {
+                            sports = result;
+                        }
+                    }
+
+                    const teams = await TeamService.getUserTeams(currentId);
+                    if (
+                        selectedProfile.userId !== currentId ||
+                        !Helpers.profileArraysEqual(selectedProfile.sports, sports) ||
+                        !Helpers.profileArraysEqual(selectedProfile.teams, teams)
+                    ) {
+                        setSelectedProfile({
+                            userId: currentId,
+                            sports,
+                            teams,
+                            coaches: [], // or compare and update if needed
+                        });
+                    }
+
+                    setSelectedTeam(undefined);
+                    setPlayers([]);
+                } catch (e) {
+                    console.error('Focus effect profile load error:', e);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            fetchProfileData();
+        }, [selectedProfileId, userData?.id, userSport]))
 
     const isFirstRender = useRef(true);
 
     useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                if (selectedProfileId === userData.id || selectedProfileId === '') {
-                    setSelectedProfile((prevState) => ({...prevState, sports: userSport}));
-                    if (!isOrganization())
+                const isSelf = selectedProfileId === userData?.id || selectedProfileId === '';
+
+                if (isSelf) {
+                    setSelectedProfile((prev) => {
+                        const areEqual =
+                            prev.sports?.length === userSport.length &&
+                            prev.sports.every((s, i) => s.id === userSport[i]?.id);
+
+                        if (areEqual) return prev;
+                        return { ...prev, sports: userSport };
+                    });
+
+                    if (!isOrganization()) {
                         await _getMyTeams(userData.id);
+                    }
                 } else {
                     await _getUserSport(selectedProfileId);
                     await _getMyTeams(selectedProfileId);
@@ -119,10 +178,7 @@ const Home = () => {
                 setIsLoading(false);
             }
         };
-        if (isFirstRender.current) {
-            isFirstRender.current = false;
-            return;
-        }
+
         fetchData();
     }, [selectedProfileId])
 
@@ -140,11 +196,11 @@ const Home = () => {
     const _getUserSport = async (userId: string) => {
         try {
             if (userId == userData.id) {
-                setSelectedProfile(prevState => ({...prevState, sport: userSport}));
+                setSelectedProfile(prevState => ({...prevState, sports: userSport}));
             } else {
-                const result = SportService.getUserSport(selectedProfileId);
+                const result = await SportService.getUserSport(selectedProfileId);
                 if (result != undefined) {
-                    setSelectedProfile(prevState => ({...prevState, sport: result}));
+                    setSelectedProfile(prevState => ({...prevState, sports: result}));
                 }
             }
         } catch (e) {
@@ -285,7 +341,6 @@ const Home = () => {
     const isOrganization = (): boolean => userData.role == UserType[UserType.ORGANIZATION];
 
     const isPlayersVisible = (): boolean =>
-        //(isCoach() || UserType[UserType.PLAYER] == userData.role) && selectedTeam !== undefined;
         selectedTeam !== undefined;
 
 
@@ -407,10 +462,7 @@ const Home = () => {
      ));*/
 
     const _handleOpenInviteChild = () => {
-        _router.push({
-            pathname: '/(user)/(search)/SearchUser',
-            params: {searchType: UserType.DEFAULT},
-        });
+        _onSearch(UserType.PARENT);
     }
 
     return (
@@ -436,7 +488,7 @@ const Home = () => {
                                 <Feather name="search" size={30} color="white"/>
                             </TouchableOpacity>
                         </View>
-                        <View style={{marginLeft: 20}}>
+                        <View style={{marginLeft: 25}}>
                             <ReactNative.Image style={styles.logoContainer}
                                                source={require('../../assets/images/homeLogo.png')}/>
 
@@ -480,9 +532,10 @@ const Home = () => {
                                 <RNPickerSelect
                                     placeholder={{
                                         label: 'Me',
-                                        value: null,
+                                        value: '',
                                         color: '#9EA0A4',
                                     }}
+                                    value={selectedProfileId}
                                     items={userData?.children?.map(child => ({
                                         label: child.fullName,
                                         value: child.id,
@@ -490,23 +543,23 @@ const Home = () => {
                                         color: '#9EA0A4',
                                     })) || []}
                                     onValueChange={(value, index) => {
-                                        if (value === null) {
-                                            setTempSelectedProfileId('');
-                                        } else {
+                                        if (Platform.OS === 'ios') {
                                             setTempSelectedProfileId(value);
-                                        }
-                                        if (Platform.OS != 'ios') {
-                                            setSelectedProfileId(value === null ? '' : value);
+                                        } else {
+                                            setSelectedProfileId(value);
                                         }
                                     }}
                                     onDonePress={() => {
-                                        setSelectedProfileId(tempSelectedProfileId);
+                                        if (Platform.OS === 'ios') {
+                                            setSelectedProfileId(tempSelectedProfileId);
+                                        }
                                     }}
                                     onClose={() => {
-                                        setTempSelectedProfileId(selectedProfileId);
+                                        if (Platform.OS === 'ios') {
+                                            setTempSelectedProfileId(selectedProfileId);
+                                        }
                                     }}
                                     style={pickerSelectStyles}
-                                    //value={tempSelectedProfileId}
                                     Icon={() => (
                                         <Ionicons
                                             name="chevron-down"
@@ -550,7 +603,7 @@ const Home = () => {
                             <View style={styles.menuContainer}>
                                 <View style={styles.menuTitleContainer}>
                                     <Text style={styles.menuTitle}>Your Sports <Text
-                                        style={styles.count}>{userSport?.length}</Text></Text>
+                                        style={styles.count}>{selectedProfile?.sports?.length || 0}</Text></Text>
                                 </View>
                                 <FlatList
                                     data={selectedProfile?.sports}
@@ -566,7 +619,7 @@ const Home = () => {
                                 <View style={styles.menuTitleContainer}>
                                     <View style={{flexDirection: 'row'}}>
                                         <Text style={styles.menuTitle}>Your Coaches <Text
-                                            style={styles.count}>{selectedProfile.teams?.length}</Text></Text>
+                                            style={styles.count}>{selectedProfile?.coaches?.length || 0}</Text></Text>
                                     </View>
                                 </View>
                                 <FlatList
