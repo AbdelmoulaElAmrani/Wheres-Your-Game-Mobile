@@ -22,6 +22,8 @@ import {NOTIFICATION_REFRESH_TIMER} from "@/appConfig";
 import {SportService} from "@/services/SportService";
 import OverlaySpinner from "@/components/OverlaySpinner";
 import {OrganizationService} from "@/services/OrganizationService";
+import isEqual from 'lodash/isEqual';
+
 
 const REFRESH_NOTIFICATION_TIME = NOTIFICATION_REFRESH_TIMER * 1000;
 
@@ -162,6 +164,7 @@ const Home = () => {
                             prev.sports.every((s, i) => s.id === userSport[i]?.id);
 
                         if (areEqual) return prev;
+                        if (isEqual(prev.sports, userSport)) return prev;
                         return { ...prev, sports: userSport };
                     });
 
@@ -180,7 +183,7 @@ const Home = () => {
         };
 
         fetchData();
-    }, [selectedProfileId])
+    }, [selectedProfileId]);
 
     const checkForNotification = async () => {
         try {
@@ -535,7 +538,7 @@ const Home = () => {
                                         value: '',
                                         color: '#9EA0A4',
                                     }}
-                                    value={selectedProfileId}
+                                    value={Platform.OS === 'ios' ? tempSelectedProfileId : selectedProfileId}
                                     items={userData?.children?.map(child => ({
                                         label: child.fullName,
                                         value: child.id,
@@ -544,20 +547,19 @@ const Home = () => {
                                     })) || []}
                                     onValueChange={(value, index) => {
                                         if (Platform.OS === 'ios') {
-                                            setTempSelectedProfileId(value);
+                                            setTempSelectedProfileId(value); // store in temp
                                         } else {
-                                            setSelectedProfileId(value);
+                                            setSelectedProfileId(value); // update directly for Android
                                         }
                                     }}
                                     onDonePress={() => {
                                         if (Platform.OS === 'ios') {
                                             setSelectedProfileId(tempSelectedProfileId);
+                                            setTempSelectedProfileId(tempSelectedProfileId);
                                         }
                                     }}
                                     onClose={() => {
-                                        if (Platform.OS === 'ios') {
-                                            setTempSelectedProfileId(selectedProfileId);
-                                        }
+                                        setTempSelectedProfileId(selectedProfileId);
                                     }}
                                     style={pickerSelectStyles}
                                     Icon={() => (
