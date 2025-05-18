@@ -63,7 +63,7 @@ const Notifications = () => {
                 acceptResponse = await ChildrenService.acceptParentRequest(requestId);
             } else if (type === NotificationType.FRIEND_REQUEST) {
                 acceptResponse = await FriendRequestService.acceptFriendRequest(requestId);
-            } else if (type === NotificationType.ORGANIZATION_REQUEST){
+            } else if (type === NotificationType.ORGANIZATION_REQUEST) {
                 acceptResponse = await OrganizationService.acceptOrganizationRequest(requestId);
             }
             if (acceptResponse) {
@@ -93,7 +93,7 @@ const Notifications = () => {
                 declineResponse = await ChildrenService.rejectParentRequest(requestId);
             } else if (type === NotificationType.FRIEND_REQUEST) {
                 declineResponse = await FriendRequestService.declineFriendRequest(requestId);
-            }else if (type === NotificationType.ORGANIZATION_REQUEST){
+            } else if (type === NotificationType.ORGANIZATION_REQUEST) {
                 declineResponse = await OrganizationService.declineOrganizationRequest(requestId);
             }
             if (declineResponse) {
@@ -116,15 +116,20 @@ const Notifications = () => {
 
     }, []);
 
+    const requestTypes: NotificationType[] = [
+        NotificationType.FRIEND_REQUEST,
+        NotificationType.PARENTING_REQUEST,
+        NotificationType.ORGANIZATION_REQUEST
+    ];
 
-    const _renderNotifications = memo(({ item }: { item: NotificationResponse }) => {
-        const isRequest = item.type === NotificationType.FRIEND_REQUEST || item.type === NotificationType.PARENTING_REQUEST || item.type === NotificationType.ORGANIZATION_REQUEST;
+    const _renderNotifications = memo(({item}: { item: NotificationResponse }) => {
+        const isRequest = requestTypes.includes(item.type);
         return (
-            <TouchableOpacity onPress={() => _onOpenNotification(item)} style={styles.notification}>
+            <TouchableOpacity disabled={isRequest} onPress={() => _onOpenNotification(item)} style={styles.notification}>
                 <View style={styles.notificationContent}>
                     <View style={styles.avatarContainer}>
                         {item.imageUrl ? (
-                            <Avatar.Image size={45} source={{ uri: item.imageUrl }} />
+                            <Avatar.Image size={45} source={{uri: item.imageUrl}}/>
                         ) : (
                             <Avatar.Text
                                 size={45}
@@ -134,18 +139,18 @@ const Notifications = () => {
                     </View>
                     <View style={styles.notificationTextContainer}>
                         <View style={styles.notificationHeader}>
-                            <View style={{ width: isRequest ? '70%' : '100%' }}>
+                            <View style={{width: isRequest ? '70%' : '100%'}}>
                                 <Text
                                     ellipsizeMode={"tail"}
                                     style={styles.notificationContentText}>{item.content}</Text>
                             </View>
                             {isRequest && (
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '30%' }}>
+                                <View style={{flexDirection: 'row', justifyContent: 'space-around', width: '30%'}}>
                                     <TouchableOpacity onPress={() => _handleAcceptRequest(item.requestId, item.type)}>
-                                        <FontAwesome name="check" size={26} style={styles.acceptIcon} />
+                                        <FontAwesome name="check" size={26} style={styles.acceptIcon}/>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => _handleDeclineRequest(item.requestId, item.type)}>
-                                        <FontAwesome name="times" size={26} style={styles.declineIcon} />
+                                        <FontAwesome name="times" size={26} style={styles.declineIcon}/>
                                     </TouchableOpacity>
                                 </View>)}
                         </View>
@@ -160,23 +165,23 @@ const Notifications = () => {
     return (
         <ImageBackground style={styles.backgroundImage} source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView>
-                <CustomNavigationHeader text="Notification" goBackFunction={_handleGoBack} showBackArrow />
+                <CustomNavigationHeader text="Notification" goBackFunction={_handleGoBack} showBackArrow/>
                 <View style={styles.container}>
                     {loading ? (
                         // <ActivityIndicator animating color={MD2Colors.blueA700} size={50} />
-                        <OverlaySpinner visible={loading} />
+                        <OverlaySpinner visible={loading}/>
                     ) : (
                         <View style={styles.flashListContainer}>
                             <FlashList
                                 data={notifications}
-                                renderItem={({ item }) => <_renderNotifications item={item} />}
+                                renderItem={({item}) => <_renderNotifications item={item}/>}
                                 keyExtractor={item => item.id}
                                 estimatedItemSize={10}
                                 contentContainerStyle={styles.flashListContent}
                                 ListFooterComponent={
                                     <View style={styles.endFlashListContainer}>
                                         <View style={styles.endFlashList}>
-                                            <AntDesign name="checkcircle" size={20} color="#2757CB" />
+                                            <AntDesign name="checkcircle" size={20} color="#2757CB"/>
                                             <Text style={styles.endText}>End</Text>
                                         </View>
                                     </View>
