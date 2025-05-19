@@ -62,128 +62,71 @@ const Home = () => {
 
     useFocusEffect(
         useCallback(() => {
-            if (!isValidUser(userData)) {
-                dispatch(getUserProfile() as any);
-                return;
-            }
-            const fetchData = async () => {
-                try {
-                    let shouldLoad = false;
-                    const shouldFetchUserSports =
-                        Array.isArray(userSport) && userSport.length === 0 &&
-                        Array.isArray(selectedProfile?.sports) && selectedProfile.sports.length === 0;
+            let isActive = true;
+            const id = selectedProfileId || userData?.id;
 
-                    if (shouldFetchUserSports) {
-                        shouldLoad = true;
-                        dispatch(getUserSports(userData.id) as any);
-                    }
-                    if (!selectedProfile.teams || selectedProfile.teams.length === 0)  {
-                        shouldLoad = true;
-                        await _getMyTeams(userData.id);
-                    }
-                    if (shouldLoad) {
-                        setIsLoading(true);
-                    }
-                } catch (e) {
-                    console.error(e);
-                } finally {
-                    setIsLoading(false);
+            const load = async () => {
+                if (!isValidUser(userData)) {
+                    dispatch(getUserProfile() as any);
+                    return;
                 }
-            }
-            fetchData();
-            checkForNotification();
+
+                try {
+                    setIsLoading(true);
+
+                    // Conditionally load user sports
+                    let sports = selectedProfile.sports;
+                    if (
+                        selectedProfile.userId !== id ||
+                        !selectedProfile.sports?.length ||
+                        (id === userData?.id && userSport.length !== selectedProfile.sports.length)
+                    ) {
+                        sports = id === userData?.id ? userSport : await SportService.getUserSport(id);
+                    }
+
+                    // Conditionally load teams
+                    let teams = selectedProfile.teams;
+                    if (!teams?.length || selectedProfile.userId !== id) {
+                        teams = await TeamService.getUserTeams(id);
+                    }
+
+                    // Only update profile if changed
+                    const hasChanged =
+                        selectedProfile.userId !== id ||
+                        !Helpers.profileArraysEqual(selectedProfile.sports, sports) ||
+                        !Helpers.profileArraysEqual(selectedProfile.teams, teams);
+
+                    if (hasChanged) {
+                        setSelectedProfile({
+                            userId: id,
+                            sports,
+                            teams,
+                            coaches: [], // Add coach logic as needed
+                        });
+                        setSelectedTeam(undefined);
+                        setPlayers([]);
+                    }
+
+                    await checkForNotification();
+                } catch (e) {
+                    console.error('useFocusEffect error:', e);
+                } finally {
+                    if (isActive) setIsLoading(false);
+                }
+            };
+
+            load();
+
             const intervalId = setInterval(checkForNotification, REFRESH_NOTIFICATION_TIME);
+
             return () => {
+                isActive = false;
                 clearInterval(intervalId);
                 setPlayers([]);
                 setSelectedTeam(undefined);
             };
-        }, [userData?.id])
+        }, [selectedProfileId, userData?.id, userSport])
     );
-
-    useFocusEffect(
-        useCallback(() => {
-            const currentId = selectedProfileId || userData?.id;
-
-            const fetchProfileData = async () => {
-                try {
-                    setIsLoading(true);
-
-                    let sports = [];
-                    if (currentId === userData?.id) {
-                        sports = userSport;
-                    } else {
-                        const result = await SportService.getUserSport(currentId);
-                        if (result) {
-                            sports = result;
-                        }
-                    }
-
-                    const teams = await TeamService.getUserTeams(currentId);
-                    if (
-                        selectedProfile.userId !== currentId ||
-                        !Helpers.profileArraysEqual(selectedProfile.sports, sports) ||
-                        !Helpers.profileArraysEqual(selectedProfile.teams, teams)
-                    ) {
-                        setSelectedProfile({
-                            userId: currentId,
-                            sports,
-                            teams,
-                            coaches: [], // or compare and update if needed
-                        });
-                    }
-
-                    setSelectedTeam(undefined);
-                    setPlayers([]);
-                } catch (e) {
-                    console.error('Focus effect profile load error:', e);
-                } finally {
-                    setIsLoading(false);
-                }
-            };
-
-            fetchProfileData();
-        }, [selectedProfileId, userData?.id, userSport]))
-
-    const isFirstRender = useRef(true);
-
-    useEffect(() => {
-        if (isFirstRender.current) {
-            isFirstRender.current = false;
-            return;
-        }
-        const fetchData = async () => {
-            try {
-                setIsLoading(true);
-                const isSelf = selectedProfileId === userData?.id || selectedProfileId === '';
-
-                if (isSelf) {
-                    setSelectedProfile((prev) => {
-                        const areEqual =
-                            prev.sports?.length === userSport.length &&
-                            prev.sports.every((s, i) => s.id === userSport[i]?.id);
-
-                        if (areEqual) return prev;
-                        if (isEqual(prev.sports, userSport)) return prev;
-                        return { ...prev, sports: userSport };
-                    });
-
-                    if (!isOrganization()) {
-                        await _getMyTeams(userData.id);
-                    }
-                } else {
-                    await _getUserSport(selectedProfileId);
-                    await _getMyTeams(selectedProfileId);
-                }
-            } catch (e) {
-                console.error('Error fetching data:', e); // Log the error for debugging
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [selectedProfileId]);
 
     const checkForNotification = async () => {
         try {
@@ -196,20 +139,6 @@ const Home = () => {
         }
     }
 
-    const _getUserSport = async (userId: string) => {
-        try {
-            if (userId == userData.id) {
-                setSelectedProfile(prevState => ({...prevState, sports: userSport}));
-            } else {
-                const result = await SportService.getUserSport(selectedProfileId);
-                if (result != undefined) {
-                    setSelectedProfile(prevState => ({...prevState, sports: result}));
-                }
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    }
 
     const _getMyTeams = async (userId: string, sportId?:string) => {
         try {
