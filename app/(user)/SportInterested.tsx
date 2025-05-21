@@ -93,6 +93,7 @@ const SportInterested = () => {
             const userId = user?.id;
             const response = await SportService.registerUserToSport([...selectedSports.values()], userId);
             if (paramData?.data) {
+                await dispatch(getUserSports(userId) as any);
                 router.replace('/(tabs)');
             } else {
                 router.replace('/Welcome');

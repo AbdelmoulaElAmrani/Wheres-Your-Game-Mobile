@@ -61,30 +61,37 @@ const Home = () => {
 
     useFocusEffect(
         useCallback(() => {
+            _resetSelectedSport();
             let isActive = true;
             const id = selectedProfileId || userData?.id;
 
             const load = async () => {
                 if (!isValidUser(userData)) {
-                    dispatch(getUserProfile() as any);
+                    await dispatch(getUserProfile() as any);
                     return;
                 }
 
                 try {
                     setIsLoading(true);
 
-                    // Conditionally load user sports
+                    if (id === userData?.id && userSport?.length <= 0) {
+                        await dispatch(getUserSports(userData.id) as any);
+                        return;
+                    }
+
                     let sports = selectedProfile.sports;
-                    if (
-                        selectedProfile.userId !== id ||
-                        !selectedProfile.sports?.length ||
-                        (id === userData?.id && userSport.length !== selectedProfile.sports.length)
-                    ) {
-                        sports = id === userData?.id ? userSport : await SportService.getUserSport(id);
+                    let teams = selectedProfile.teams;
+
+                    if (id === userData?.id) {
+                        sports = userSport || [];
+                    } else {
+                        // Fetch sports for other users only if we don't have them
+                        if (selectedProfile.userId !== id || !selectedProfile.sports?.length) {
+                            sports = await SportService.getUserSport(id);
+                        }
                     }
 
                     // Conditionally load teams
-                    let teams = selectedProfile.teams;
                     if (!teams?.length || selectedProfile.userId !== id) {
                         teams = await TeamService.getUserTeams(id);
                     }
@@ -100,7 +107,7 @@ const Home = () => {
                             userId: id,
                             sports,
                             teams,
-                            coaches: [], // Add coach logic as needed
+                            coaches: [],
                         });
                         setSelectedTeam(undefined);
                         setPlayers([]);
@@ -113,7 +120,6 @@ const Home = () => {
                     if (isActive) setIsLoading(false);
                 }
             };
-
             load();
 
             const intervalId = setInterval(checkForNotification, REFRESH_NOTIFICATION_TIME);
@@ -124,7 +130,7 @@ const Home = () => {
                 setPlayers([]);
                 setSelectedTeam(undefined);
             };
-        }, [selectedProfileId, userData?.id, userSport])
+        }, [selectedProfileId, userData?.id, userSport?.length])
     );
 
     const checkForNotification = async () => {
@@ -204,18 +210,20 @@ const Home = () => {
         router.navigate('/(team)/TeamForm');
     }
 
+    const _resetSelectedSport = () => {
+        setSelectedSport(undefined);
+
+        setSelectedCoach(undefined);
+        setSelectedProfile(prev => ({...prev, coaches: [], teams: []}));
+
+        setSelectedTeam(undefined);
+
+        setPlayers([]);
+    }
     const _onSelectSport = async (id: any) => {
         if (isOrganization()) {
             if (selectedSport == id) {
-                setSelectedSport(undefined);
-
-                setSelectedCoach(undefined);
-                setSelectedProfile(prev => ({...prev, coaches: [], teams: []}));
-
-                setSelectedTeam(undefined);
-
-                setPlayers([]);
-
+                _resetSelectedSport();
             } else {
                 setSelectedSport(id);
                 const data = await OrganizationService.getAllCoachesOfThisSport(userData.id, id);
@@ -224,13 +232,17 @@ const Home = () => {
         }
     }
 
+    const _resetSelectedCoach = () => {
+        setSelectedCoach(undefined)
+        setSelectedTeam(undefined);
+        setSelectedProfile(prev => ({...prev, teams: []}));
+        setPlayers([]);
+    }
+
     const _onSelectCoach = async (coach: UserResponse) => {
         if (!isOrganization()) return;
         if (selectedCoach?.id == coach.id) {
-            setSelectedCoach(undefined)
-            setSelectedTeam(undefined);
-            setSelectedProfile(prev => ({...prev, teams: []}));
-            setPlayers([]);
+            _resetSelectedCoach();
         } else {
             try {
                 setSelectedCoach(coach);
