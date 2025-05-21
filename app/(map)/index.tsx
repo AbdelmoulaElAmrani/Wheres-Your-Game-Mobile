@@ -1,4 +1,4 @@
-import {Alert, Keyboard, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, Image, Linking} from "react-native";
+import {Alert, Keyboard, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, Image, Linking, Clipboard} from "react-native";
 import MapView, {PROVIDER_GOOGLE, Circle, Marker, Callout} from "react-native-maps";
 import {StatusBar} from "expo-status-bar";
 import React, {useEffect, useRef, useState} from "react";
@@ -262,7 +262,13 @@ const SportMap = () => {
                                 <Callout tooltip>
                                     <View style={styles.calloutContainer}>
                                         <Text style={styles.calloutTitle}>{location.name}</Text>
-                                        <Text style={styles.calloutText}>{location.address}</Text>
+                                        <TouchableOpacity 
+                                            onPress={() => {
+                                                Clipboard.setString(location.address);
+                                                Alert.alert('Success', 'Address copied to clipboard');
+                                            }}>
+                                            <Text style={styles.calloutText}>{location.address}</Text>
+                                        </TouchableOpacity>
                                         <View style={styles.calloutButtons}>
                                             <TouchableOpacity 
                                                 style={styles.calloutButton}
@@ -567,8 +573,9 @@ const styles = StyleSheet.create({
     },
     calloutText: {
         fontSize: 14,
-        color: '#666',
-        marginBottom: 12
+        color: '#2757CB',
+        textDecorationLine: 'underline',
+        marginBottom: 12,
     },
     calloutButtons: {
         flexDirection: 'row',

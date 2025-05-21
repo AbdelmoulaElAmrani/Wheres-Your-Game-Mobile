@@ -329,8 +329,8 @@ export const ProfileV2 = () => {
                                                     <Text style={styles.manageButtonText}>Manage Locations</Text>
                                                 </TouchableOpacity>
                                             </View>
-                                            <View style={styles.locationsList}>
-                                                {/* This will be populated with actual locations data */}
+                                            {/* <View style={styles.locationsList}>
+                                                This will be populated with actual locations data
                                                 {(userSport[0]?.trainingLocations && userSport[0].trainingLocations.length > 0) ? (
                                                     <Text style={styles.noLocationsText}>
                                                         You currently have {userSport[0].trainingLocations.length} location{userSport[0].trainingLocations.length > 1 ? 's' : ''}.
@@ -342,7 +342,7 @@ export const ProfileV2 = () => {
                                                 ) : (
                                                     <Text style={styles.noLocationsText}>No training locations added yet</Text>
                                                 )}
-                                            </View>
+                                            </View> */}
                                         </View>
                                     )}
                                 </View>

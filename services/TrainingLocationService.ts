@@ -8,7 +8,7 @@ export class TrainingLocationService {
         try {
             console.log('Fetching training locations...');
             const res = await Requests.get('training-locations/user');
-            console.log('Raw API Response:', JSON.stringify(res, null, 2));
+            // console.log('Raw API Response:', JSON.stringify(res, null, 2));
             
             if (!res || res.status !== 200 || !res.data) {
                 console.error('Invalid response:', res);
