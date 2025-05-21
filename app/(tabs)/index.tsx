@@ -67,8 +67,12 @@ const Home = () => {
 
             const load = async () => {
                 if (!isValidUser(userData)) {
-                    dispatch(getUserProfile() as any);
+                    await dispatch(getUserProfile() as any);
                     return;
+                }
+
+                if (isValidUser(userData) && userSport?.length <= 0) {
+                    await dispatch(getUserSports(userData.id) as any);
                 }
 
                 try {

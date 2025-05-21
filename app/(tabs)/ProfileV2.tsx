@@ -315,7 +315,7 @@ export const ProfileV2 = () => {
                                 </View>
                             </>}
                             {selectOption === MenuOption.Childrens &&
-                                <View style={{width: '100%'}}>
+                                <View style={{width: '100%', flex: 1}}>
                                     <FlatList
                                         data={currentUser?.children}
                                         numColumns={3}
@@ -323,9 +323,9 @@ export const ProfileV2 = () => {
                                         scrollEnabled={false}
                                         contentContainerStyle={{
                                             justifyContent: 'space-around',
-                                            paddingHorizontal: 10, // Adjust to control horizontal spacing
                                         }}
                                         columnWrapperStyle={{
+                                            marginTop: 5,
                                             justifyContent: 'space-around', // Space between items in a row
                                         }}
                                         renderItem={({item}) => (
