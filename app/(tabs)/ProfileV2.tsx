@@ -310,23 +310,16 @@ export const ProfileV2 = () => {
                             </>}
                             {selectOption === MenuOption.Sports_Profiles && <>
                                 <View style={styles.sportsProfileContainer}>
-                                    <View style={styles.sportsList}>
-                                        {userSport?.map((sport, index) => (
-                                            <View key={index} style={styles.sportItem}>
-                                                <Text style={styles.sportName}>{sport.sportName}</Text>
-                                                <Text style={styles.sportLevel}>Level: {sport.sportLevel}</Text>
-                                            </View>
-                                        ))}
-                                    </View>
-                                    
-                                    {(currentUser?.role === UserType[UserType.COACH] || currentUser?.role === UserType[UserType.ORGANIZATION]) && (
-                                        <View style={styles.trainingLocationsContainer}>
+                                {(currentUser?.role === UserType[UserType.COACH] || currentUser?.role === UserType[UserType.ORGANIZATION]) && (
+                                       
+                                       
+                                       <View >
                                             <View style={styles.sectionHeader}>
-                                                <Text style={styles.sectionTitle}>Training Locations</Text>
+                                                <Text style={styles.sectionTitle}> </Text>
                                                 <TouchableOpacity 
                                                     style={styles.manageButton}
                                                     onPress={() => router.push('/(user)/ManageTrainingLocations')}>
-                                                    <Text style={styles.manageButtonText}>Manage Locations</Text>
+                                                    <Text style={styles.manageButtonText}>Manage Training Locations</Text>
                                                 </TouchableOpacity>
                                             </View>
                                             {/* <View style={styles.locationsList}>
@@ -345,6 +338,18 @@ export const ProfileV2 = () => {
                                             </View> */}
                                         </View>
                                     )}
+                                    <View style={styles.sportsList}>
+                                    
+                                        {userSport?.map((sport, index) => (
+                                            
+                                            <View key={index} style={styles.sportItem}>
+                                                <Text style={styles.sportName}>{sport.sportName}</Text>
+                                                <Text style={styles.sportLevel}>Level: {sport.sportLevel}</Text>
+                                            </View>
+                                        ))}
+                                    </View>
+                                    
+                                  
                                 </View>
                             </>}
                             {selectOption === MenuOption.Childrens &&

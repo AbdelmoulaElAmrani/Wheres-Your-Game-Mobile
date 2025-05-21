@@ -2,32 +2,53 @@ import Requests from "./Requests";
 import { TrainingLocation } from '../models/TrainingLocation';
 import { API_URI } from '@/appConfig';
 import { AxiosError } from 'axios';
+import { SportService } from './SportService';
+import Sport from '@/models/Sport';
+import { AuthService } from './AuthService';
+import { store } from '@/redux/ReduxConfig';
 
 export class TrainingLocationService {
     static async getTrainingLocations(): Promise<TrainingLocation[] | undefined> {
         try {
-            console.log('Fetching training locations...');
             const res = await Requests.get('training-locations/user');
-            // console.log('Raw API Response:', JSON.stringify(res, null, 2));
             
             if (!res || res.status !== 200 || !res.data) {
-                console.error('Invalid response:', res);
                 return [];
             }
 
             // Ensure we have an array of locations
             const locationsData = Array.isArray(res.data) ? res.data : [res.data];
-            console.log('Raw locations data:', JSON.stringify(locationsData, null, 2));
+
+            // Get user's sports for name lookup
+            let sportsMap = new Map<string, string>();
+            try {
+                const currentUser = store.getState().user.userData;
+                if (currentUser?.id) {
+                    const userSports = await SportService.getUserSport(currentUser.id);
+                    if (userSports && userSports.length > 0) {
+                        sportsMap = new Map(
+                            userSports
+                                .filter((sport: any) => sport.sportId && sport.sportName)
+                                .map((sport: any) => [sport.sportId, sport.sportName])
+                        );
+                    }
+                }
+            } catch (sportError) {
+                // Silently handle error
+            }
 
             // Transform the response to match our TrainingLocation interface
             const locations: TrainingLocation[] = locationsData.map((loc: any) => {
-                console.log('Processing location:', JSON.stringify(loc, null, 2));
-                
-                // Handle sport data which might be nested or flat
                 const sportId = loc.sport?.id || loc.sportId;
-                const sportName = loc.sport?.name || loc.sportName;
+                let sportName = 'Unknown Sport';
                 
-                const transformedLocation = {
+                if (loc.sport?.name) {
+                    sportName = loc.sport.name;
+                } else if (sportId && sportsMap.has(sportId)) {
+                    sportName = sportsMap.get(sportId) || 'Unknown Sport';
+                }
+                
+                return {
                     id: loc.id || '',
                     name: loc.name || '',
                     address: loc.address || '',
@@ -35,25 +56,20 @@ export class TrainingLocationService {
                     longitude: typeof loc.longitude === 'number' ? loc.longitude : parseFloat(loc.longitude) || 0,
                     sport: {
                         id: sportId || '',
-                        name: sportName || ''
+                        name: sportName
                     },
-                    active: loc.active === true,
+                    active: loc.isActive === true || loc.active === true,
                     deleted: loc.deleted === true,
                     createdAt: loc.createdAt || '',
                     updatedAt: loc.updatedAt || '',
                     createdBy: loc.createdBy || ''
                 };
-                
-                console.log('Transformed location:', JSON.stringify(transformedLocation, null, 2));
-                return transformedLocation;
             });
 
-            console.log('Final transformed locations:', JSON.stringify(locations, null, 2));
             return locations;
         } catch (error) {
-            console.error('Error in getTrainingLocations:', error);
             if (error instanceof AxiosError) {
-                console.error('Error details:', error.response?.data);
+                // Silently handle error
             }
             return [];
         }
@@ -193,6 +209,73 @@ export class TrainingLocationService {
         } catch (error) {
             console.error('Error in deleteTrainingLocation:', error);
             throw error;
+        }
+    }
+
+    static async getTrainingLocationsMap(): Promise<TrainingLocation[] | undefined> {
+        try {
+            const res = await Requests.get('training-locations');
+            
+            if (!res || res.status !== 200 || !res.data) {
+                return [];
+            }
+
+            // Ensure we have an array of locations
+            const locationsData = Array.isArray(res.data) ? res.data : [res.data];
+
+            // Get user's sports for name lookup
+            let sportsMap = new Map<string, string>();
+            try {
+                const currentUser = store.getState().user.userData;
+                if (currentUser?.id) {
+                    const userSports = await SportService.getUserSport(currentUser.id);
+                    if (userSports && userSports.length > 0) {
+                        sportsMap = new Map(
+                            userSports
+                                .filter((sport: any) => sport.sportId && sport.sportName)
+                                .map((sport: any) => [sport.sportId, sport.sportName])
+                        );
+                    }
+                }
+            } catch (sportError) {
+                // Silently handle error
+            }
+
+            // Transform the response to match our TrainingLocation interface
+            const locations: TrainingLocation[] = locationsData.map((loc: any) => {
+                const sportId = loc.sport?.id || loc.sportId;
+                let sportName = 'Unknown Sport';
+                
+                if (loc.sport?.name) {
+                    sportName = loc.sport.name;
+                } else if (sportId && sportsMap.has(sportId)) {
+                    sportName = sportsMap.get(sportId) || 'Unknown Sport';
+                }
+                
+                return {
+                    id: loc.id || '',
+                    name: loc.name || '',
+                    address: loc.address || '',
+                    latitude: typeof loc.latitude === 'number' ? loc.latitude : parseFloat(loc.latitude) || 0,
+                    longitude: typeof loc.longitude === 'number' ? loc.longitude : parseFloat(loc.longitude) || 0,
+                    sport: {
+                        id: sportId || '',
+                        name: sportName
+                    },
+                    active: loc.isActive === true || loc.active === true,
+                    deleted: loc.deleted === true,
+                    createdAt: loc.createdAt || '',
+                    updatedAt: loc.updatedAt || '',
+                    createdBy: loc.createdBy || ''
+                };
+            });
+
+            return locations;
+        } catch (error) {
+            if (error instanceof AxiosError) {
+                // Silently handle error
+            }
+            return [];
         }
     }
 }

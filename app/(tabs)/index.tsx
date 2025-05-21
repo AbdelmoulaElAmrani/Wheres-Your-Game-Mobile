@@ -431,14 +431,14 @@ const Home = () => {
                 )}
                 <SafeAreaView style={{height: hp(100)}}>
                     <View style={styles.headerContainer}>
-                        <View>
+                        <View style={styles.headerLeft}>
                             <TouchableOpacity onPress={_handleOnOpenSearch}>
                                 <Feather name="search" size={30} color="white"/>
                             </TouchableOpacity>
                         </View>
                         <View style={{marginLeft: 20}}>
                             <ReactNative.Image style={styles.logoContainer}
-                                               source={require('../../assets/images/homeLogo.png')}/>
+                                               source={require('../../assets/images/logoBall.png')}/>
 
                             {userData.role == UserType[UserType.PARENT] && <TouchableOpacity
                                 onPress={_handleOpenInviteChild}
@@ -460,8 +460,19 @@ const Home = () => {
                             </TouchableOpacity>
                         </View>
                     </View>
+                    {userData.role == UserType[UserType.PARENT] && (
+                        <View style={{alignItems: 'center', marginTop: 5}}>
+                            <TouchableOpacity
+                                onPress={_handleOpenInviteChild}
+                                style={{borderColor: 'white', borderWidth: 0.5, borderRadius: 5}}>
+                                <Text style={{color: 'white', textAlign: 'center', fontSize: 16, paddingVertical: 5, paddingHorizontal: 15}}>
+                                    Invite Child
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
                     <View style={{
-                        marginTop: 35,
+                        marginTop: 10,
                         marginHorizontal: 20,
                         flexDirection: 'row',
                         justifyContent: 'space-between'
@@ -470,7 +481,7 @@ const Home = () => {
                             color: 'white',
                             fontWeight: 'bold',
                             fontSize: 18
-                        }}>Hi {`${Helpers.capitalize(userData?.firstName)}`} </Text>
+                        }}>Welcome Back, {`${Helpers.capitalize(userData?.firstName)}`} </Text>
                         {userData.role == UserType[UserType.PARENT] &&
                             <View style={{
                                 borderWidth: 1,
@@ -664,15 +675,33 @@ const Home = () => {
 
 
 const styles = StyleSheet.create({
-
     headerContainer: {
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: "space-between",
         paddingHorizontal: 20,
+        paddingVertical: 10,
+        height: 110,
+        position: 'relative',
     },
     logoContainer: {
+        position: 'absolute',
+        left: '50%',
+        top: '50%',
+        transform: [{ translateX: -100 }, { translateY: -45 }],
+        height: 90,
+        width: 200,
+        resizeMode: 'contain',
+    },
+    headerLeft: {
+        flexDirection: 'row',
         alignItems: 'center',
+        zIndex: 1,
+    },
+    headerRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        zIndex: 1,
     },
     mainContainer: {
         flex: 1,
@@ -682,122 +711,157 @@ const styles = StyleSheet.create({
         paddingTop: 30,
         padding: 20,
         marginTop: 20,
-        width: wp(100)
+        width: wp(100),
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 5,
     },
     sideHiderContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        gap: 15,
     },
     tag: {
         backgroundColor: 'white',
-        borderColor: 'grey',
+        borderColor: '#E0E0E0',
         borderWidth: 1,
-        borderRadius: 10,
-        paddingHorizontal: 10,
-        paddingVertical: 10,
-        marginRight: 5
+        borderRadius: 12,
+        paddingHorizontal: 15,
+        paddingVertical: 12,
+        marginRight: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
     },
     tagText: {
         fontSize: 14,
         fontWeight: '600',
+        color: '#333',
     },
-
     selectedTag: {
-        backgroundColor: '#0041e8',
+        backgroundColor: '#2757CB',
+        borderColor: '#2757CB',
     },
     menuTitleContainer: {
         flexDirection: 'row',
         alignItems: "center",
         justifyContent: "space-between",
-        marginVertical: 15
+        marginVertical: 20,
+        paddingHorizontal: 5,
     },
     menuTitle: {
-        fontWeight: '900',
-        fontSize: 18
+        fontWeight: '800',
+        fontSize: 20,
+        color: '#1A1A1A',
     },
     count: {
-        fontWeight: "bold",
+        fontWeight: "600",
         fontSize: 18,
-        color: 'grey'
+        color: '#666',
+        marginLeft: 5,
     },
     btnText: {
-        color: '#4361EE',
-        fontSize: 18
+        color: '#2757CB',
+        fontSize: 16,
+        fontWeight: '600',
     },
     btnContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: '#F8F9FA',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+        gap: 5,
     },
     menuContainer: {
-        marginTop: 10,
+        marginTop: 15,
+        marginBottom: 25,
     },
     card: {
         backgroundColor: 'white',
         justifyContent: "center",
         alignItems: "center",
-        padding: 10,
-        borderRadius: 10,
+        padding: 15,
+        borderRadius: 16,
         shadowColor: '#000',
-        shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-        elevation: 3,
-        margin: 6
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 4,
+        margin: 8,
+        width: 120,
+        height: 160,
     },
     cardImage: {
-        height: 65,
-        width: 85,
+        height: 70,
+        width: 90,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        backgroundColor: '#F8F9FA',
+        borderRadius: 12,
+        marginBottom: 10,
     },
     circle: {
         borderWidth: 1,
         borderColor: '#E9EDF9',
         marginHorizontal: 8,
-        height: 60,
-        width: 60,
-        borderRadius: 40,
+        height: 70,
+        width: 70,
+        borderRadius: 35,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        backgroundColor: '#F8F9FA',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
     },
     iconImage: {
-        height: '70%',
-        width: '70%',
-        //resizeMode: 'cover',
+        height: '65%',
+        width: '65%',
+        resizeMode: 'contain',
     },
     categoryContainer: {
-        backgroundColor: 'rgba(82,80,80,0.22)',
+        backgroundColor: '#F8F9FA',
         width: 160,
         height: 90,
-        borderRadius: 10,
+        borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
         margin: 10,
         shadowColor: '#000',
-        shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-        elevation: 3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
     }
 });
 const pickerSelectStyles = StyleSheet.create({
     inputIOS: {
         color: 'white',
-        fontWeight: 'bold',
+        fontWeight: '600',
         fontSize: 16,
         width: 140,
-        paddingHorizontal: 10,
-        paddingVertical: 6,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
         justifyContent: 'center',
         alignItems: 'center',
     },
     inputAndroid: {
         color: 'white',
-        fontWeight: 'bold',
+        fontWeight: '600',
         fontSize: 16,
         justifyContent: 'center',
         alignItems: 'center',
         width: 170,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
     },
 });
 

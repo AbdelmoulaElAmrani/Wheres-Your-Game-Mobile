@@ -98,7 +98,11 @@ export const UserProfile = () => {
                 {loading && (
                     <OverlaySpinner visible={loading}/>
                 )}
-                <CustomNavigationHeader text={'Player'} goBackFunction={_handleGoBack} showBackArrow/>
+                <CustomNavigationHeader 
+                    text={person?.role || 'Profile'} 
+                    goBackFunction={_handleGoBack} 
+                    showBackArrow
+                />
 
                 <View style={styles.mainContainer}>
                     <ScrollView showsVerticalScrollIndicator={false}
@@ -266,12 +270,25 @@ export const UserProfile = () => {
                                 </>
                             }
                             {
-                                selectOption == MenuOption.Sports_Profiles && <>
-                                    <View style={{justifyContent: 'center', width: '100%', height: '100%'}}>
-                                        <Text style={{textAlign: 'center', fontWeight: 'bold', fontSize: 16}}>Coming Soon
-                                            ...</Text>
+                                selectOption == MenuOption.Sports_Profiles && (
+                                    <View style={styles.sportsProfileContainer}>
+                                        {person?.userSports && person.userSports.length > 0 ? (
+                                            person.userSports.map((sport, index) => (
+                                                <View key={index} style={styles.sportCard}>
+                                                    <Text style={styles.sportName}>{sport.sportName}</Text>
+                                                    {sport.skillLevel && (
+                                                        <Text style={styles.skillLevel}>Skill Level: {sport.skillLevel}</Text>
+                                                    )}
+                                                    {sport.position && (
+                                                        <Text style={styles.position}>Position: {sport.position}</Text>
+                                                    )}
+                                                </View>
+                                            ))
+                                        ) : (
+                                            <Text style={styles.noSportsText}>No sports profiles available</Text>
+                                        )}
                                     </View>
-                                </>
+                                )
                             }
                             <TouchableOpacity
                                 onPress={_handleFollow}
@@ -395,7 +412,43 @@ const styles = StyleSheet.create({
         shadowRadius: 5,
         elevation: 5,
         borderColor: 'grey',
-    }
+    },
+    sportsProfileContainer: {
+        width: '100%',
+        padding: 16,
+    },
+    sportCard: {
+        backgroundColor: 'white',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    sportName: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#2757CB',
+        marginBottom: 8,
+    },
+    skillLevel: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 4,
+    },
+    position: {
+        fontSize: 14,
+        color: '#666',
+    },
+    noSportsText: {
+        fontSize: 16,
+        color: '#666',
+        textAlign: 'center',
+        marginTop: 20,
+    },
 });
 
 export default UserProfile;

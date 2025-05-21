@@ -115,7 +115,19 @@ const ManageTrainingLocations = () => {
             return;
         }
 
-        console.log('Current newLocation state:', JSON.stringify(newLocation, null, 2));
+        // Check for duplicate location (same address and sport)
+        const isDuplicate = locations.some(loc => 
+            loc.address === newLocation.address && 
+            loc.sport.id === newLocation.sport.id
+        );
+
+        if (isDuplicate) {
+            Alert.alert(
+                'Cannot Add Location',
+                'A location with this address and sport already exists.'
+            );
+            return;
+        }
         
         try {
             setIsLoading(true);
@@ -308,6 +320,27 @@ const ManageTrainingLocations = () => {
         );
     };
 
+    const handleDuplicateLocation = (location: TrainingLocation) => {
+        setEditingLocation(null);
+        setNewLocation({
+            name: `${location.name} (Copy)`,
+            address: location.address,
+            latitude: location.latitude,
+            longitude: location.longitude,
+            sport: { id: '', name: '' } // Reset sport to force selection
+        });
+        setSelectedResult({
+            formatted_address: location.address,
+            geometry: {
+                location: {
+                    lat: location.latitude,
+                    lng: location.longitude
+                }
+            }
+        });
+        setModalVisible(true);
+    };
+
     return (
         <ImageBackground
             style={{ flex: 1 }}
@@ -350,13 +383,20 @@ const ManageTrainingLocations = () => {
                         </View>
                     ) : (
                         <View style={styles.locationsList}>
+                            
                             {locations.map((location, index) => (
                                 <View key={index} style={styles.locationItem}>
                                     <View style={styles.locationInfo}>
                                         <Text style={styles.locationName}>{location.name}</Text>
+                                        <Text style={styles.locationSport}>{location.sport.name}</Text>
                                         <Text style={styles.locationAddress}>{location.address}</Text>
                                     </View>
                                     <View style={styles.locationActions}>
+                                        <TouchableOpacity 
+                                            style={styles.duplicateButton}
+                                            onPress={() => handleDuplicateLocation(location)}>
+                                            <Ionicons name="copy-outline" size={20} color="#2757CB" />
+                                        </TouchableOpacity>
                                         <TouchableOpacity 
                                             style={styles.editButton}
                                             onPress={() => handleEditLocation(location)}>
@@ -485,7 +525,7 @@ const ManageTrainingLocations = () => {
                                 {isVerifying ? (
                                     <ActivityIndicator size="small" color="white" />
                                 ) : (
-                                    <Text style={styles.modalAddButtonText}>Search</Text>
+                                    <Text style={styles.modalAddButtonText}>Verify Address</Text>
                                 )}
                             </TouchableOpacity>
                             {searchResults.length > 0 && (
@@ -529,16 +569,24 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        paddingVertical: 10,
-        backgroundColor: 'rgba(39, 87, 203, 0.9)',
+        paddingVertical: 15,
+        backgroundColor: 'rgba(39, 87, 203, 0.95)',
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255, 255, 255, 0.1)',
     },
     headerTitle: {
         color: 'white',
         fontSize: 20,
         fontWeight: 'bold',
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        textAlign: 'center',
+        zIndex: -1,
     },
     backButton: {
-        padding: 5,
+        padding: 8,
+        zIndex: 1,
     },
     deleteAllButton: {
         padding: 5,
@@ -573,44 +621,67 @@ const styles = StyleSheet.create({
         marginLeft: 8,
     },
     locationsList: {
-        gap: 10,
+        gap: 12,
+        paddingHorizontal: 5,
     },
     locationItem: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        padding: 15,
-        borderRadius: 10,
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        padding: 16,
+        borderRadius: 12,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
+        borderLeftWidth: 4,
+        borderLeftColor: '#2757CB',
     },
     locationInfo: {
         flex: 1,
+        marginRight: 10,
     },
     locationName: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333',
+        fontSize: 17,
+        fontWeight: '600',
+        color: '#1a1a1a',
+        marginBottom: 4,
+    },
+    locationSport: {
+        fontSize: 15,
+        color: '#2757CB',
+        fontWeight: '500',
+        marginBottom: 4,
     },
     locationAddress: {
         fontSize: 14,
         color: '#666',
-        marginTop: 4,
+        marginTop: 2,
     },
     locationActions: {
         flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: '#f8f9fa',
+        padding: 4,
+        borderRadius: 8,
+        gap: 4,
+    },
+    duplicateButton: {
+        padding: 8,
+        borderRadius: 6,
+        backgroundColor: '#E8F0FE',
     },
     editButton: {
         padding: 8,
+        borderRadius: 6,
+        backgroundColor: '#E8F0FE',
     },
     deleteButton: {
         padding: 8,
-        marginLeft: 8,
+        borderRadius: 6,
+        backgroundColor: '#FFE5E5',
     },
     floatingAddButton: {
         position: 'absolute',
@@ -641,87 +712,111 @@ const styles = StyleSheet.create({
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
         justifyContent: 'center',
         alignItems: 'center',
     },
     modalContent: {
         backgroundColor: 'white',
-        borderRadius: 15,
-        padding: 20,
-        width: '90%',
+        borderRadius: 20,
+        padding: 24,
+        width: '92%',
         maxWidth: 400,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 5,
     },
     modalHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: 24,
+        paddingBottom: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
     },
     modalTitle: {
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#1a1a1a',
     },
     inputContainer: {
-        marginBottom: 15,
+        marginBottom: 20,
     },
     inputLabel: {
-        fontSize: 14,
-        fontWeight: '500',
+        fontSize: 15,
+        fontWeight: '600',
         color: '#333',
-        marginBottom: 8,
+        marginBottom: 10,
     },
     input: {
         borderWidth: 1,
         borderColor: '#ddd',
-        borderRadius: 8,
-        padding: 12,
+        borderRadius: 12,
+        padding: 14,
         fontSize: 16,
         backgroundColor: '#F8F9FA',
+        color: '#333',
     },
     searchButton: {
-        backgroundColor: '#888',
-        marginBottom: 10,
+        backgroundColor: '#2757CB',
+        marginBottom: 16,
+        borderRadius: 12,
+        padding: 14,
     },
     resultsList: {
-        maxHeight: 120,
-        marginBottom: 10,
+        maxHeight: 150,
+        marginBottom: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#eee',
     },
     resultItem: {
-        padding: 10,
+        padding: 14,
         borderBottomWidth: 1,
-        borderColor: '#eee',
-        backgroundColor: '#f9f9f9',
+        borderBottomColor: '#eee',
+        backgroundColor: '#fff',
     },
     selectedResultItem: {
-        backgroundColor: '#cce5ff',
+        backgroundColor: '#E8F0FE',
+        borderLeftWidth: 3,
+        borderLeftColor: '#2757CB',
     },
     resultText: {
         fontSize: 15,
         color: '#333',
+        lineHeight: 20,
     },
     modalAddButton: {
         backgroundColor: '#2757CB',
-        padding: 15,
-        borderRadius: 8,
+        padding: 16,
+        borderRadius: 12,
         alignItems: 'center',
-        marginTop: 10,
+        marginTop: 16,
+        shadowColor: '#2757CB',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 3,
     },
     modalAddButtonText: {
         color: 'white',
-        fontSize: 16,
-        fontWeight: '500',
+        fontSize: 17,
+        fontWeight: '600',
     },
     disabledButton: {
-        opacity: 0.7,
+        opacity: 0.6,
+        backgroundColor: '#999',
     },
     accordion: {
-        borderRadius: 10,
-        marginBottom: 15,
+        borderRadius: 12,
+        marginBottom: 16,
         backgroundColor: '#F8F9FA',
         borderWidth: 1,
         borderColor: '#ddd',
+        overflow: 'hidden',
     },
     accordionSelected: {
         backgroundColor: '#E8F0FE',
@@ -731,24 +826,28 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         color: '#666',
         fontSize: 16,
+        paddingVertical: 4,
     },
     accordionTitleSelected: {
         color: '#2757CB',
-        fontWeight: 'bold',
+        fontWeight: '600',
     },
     sportItem: {
-        marginBottom: 12,
-        paddingVertical: 8,
+        marginBottom: 8,
+        paddingVertical: 10,
+        paddingHorizontal: 4,
+        borderRadius: 8,
     },
     sportItemText: {
         fontSize: 16,
         color: '#333',
+        paddingLeft: 8,
     },
     selectedSport: {
         backgroundColor: '#E8F0FE',
     },
     selectedSportText: {
-        fontWeight: 'bold',
+        fontWeight: '600',
         color: '#2757CB',
     },
 });
