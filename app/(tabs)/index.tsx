@@ -174,6 +174,7 @@ const Home = () => {
         }
     }
 
+
     const _handleOnOpenSearch = () => {
         router.navigate('/(user)/(search)/SearchGlobal');
     }
@@ -390,6 +391,15 @@ const Home = () => {
         </TouchableOpacity>
     ));
 
+    /* const _renderCategory = memo(({item}: { item: any }) => (
+         <TouchableOpacity
+             disabled={true}
+             style={styles.categoryContainer}
+             onPress={() => _onSelectCategory(item)}>
+             <Text style={{fontSize: 14, fontWeight: 'bold', textAlign: 'center', color: 'white'}}>{item}</Text>
+         </TouchableOpacity>
+     ));*/
+
     const _handleOpenInviteChild = () => {
         _onSearch(UserType.PARENT);
     }
@@ -464,7 +474,7 @@ const Home = () => {
                                         value: '',
                                         color: '#9EA0A4',
                                     }}
-                                    value={selectedProfileId}
+                                    value={Platform.OS === 'ios' ? tempSelectedProfileId : selectedProfileId}
                                     items={userData?.children?.map(child => ({
                                         label: child.fullName,
                                         value: child.id,
@@ -473,20 +483,19 @@ const Home = () => {
                                     })) || []}
                                     onValueChange={(value, index) => {
                                         if (Platform.OS === 'ios') {
-                                            setTempSelectedProfileId(value);
+                                            setTempSelectedProfileId(value); // store in temp
                                         } else {
-                                            setSelectedProfileId(value);
+                                            setSelectedProfileId(value); // update directly for Android
                                         }
                                     }}
                                     onDonePress={() => {
                                         if (Platform.OS === 'ios') {
                                             setSelectedProfileId(tempSelectedProfileId);
+                                            setTempSelectedProfileId(tempSelectedProfileId);
                                         }
                                     }}
                                     onClose={() => {
-                                        if (Platform.OS === 'ios') {
-                                            setTempSelectedProfileId(selectedProfileId);
-                                        }
+                                        setTempSelectedProfileId(selectedProfileId);
                                     }}
                                     style={pickerSelectStyles}
                                     Icon={() => (
@@ -646,6 +655,7 @@ const Home = () => {
 
 
 const styles = StyleSheet.create({
+
     headerContainer: {
         alignItems: 'center',
         flexDirection: 'row',
@@ -682,6 +692,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
     },
+
     selectedTag: {
         backgroundColor: '#0041e8',
     },
@@ -743,6 +754,7 @@ const styles = StyleSheet.create({
     iconImage: {
         height: '70%',
         width: '70%',
+        //resizeMode: 'cover',
     },
     categoryContainer: {
         backgroundColor: 'rgba(82,80,80,0.22)',
