@@ -149,8 +149,7 @@ const SportMap = () => {
         try {
             setIsLoadingLocations(true);
             const locations = await TrainingLocationService.getTrainingLocationsMap();
-            console.log('Received locations from service:', JSON.stringify(locations, null, 2));
-            
+
             if (locations) {
                 // Filter locations based on selected sports and radius
                 const filteredLocations = locations.filter(location => {
@@ -171,8 +170,6 @@ const SportMap = () => {
                     // Check if within radius (in miles)
                     return distance <= filter.radius;
                 });
-                
-                console.log('Filtered locations:', JSON.stringify(filteredLocations, null, 2));
                 setTrainingLocations(filteredLocations);
             }
         } catch (error) {
@@ -225,11 +222,11 @@ const SportMap = () => {
             <StatusBar style={"dark"}/>
             <View style={styles.headerContainer}>
                 <TouchableOpacity onPress={_onGoBack}>
-                    <Ionicons name="chevron-back" size={35} color="black"/>
+                    <Ionicons name="chevron-back" size={35} color="white"/>
                 </TouchableOpacity>
                 <Text style={styles.headerText}>Map View</Text>
                 <TouchableOpacity onPress={_openModal}>
-                    <Ionicons name="filter-sharp" size={35} color="black"/>
+                    <Ionicons name="filter-sharp" size={35} color="white"/>
                 </TouchableOpacity>
             </View>
 
@@ -481,19 +478,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingVertical: 10,
-        backgroundColor: 'white',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E5E5',
         zIndex: 1,
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
+        backgroundColor: '#2757CB'
     },
     headerText: {
         fontSize: 20,
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        color: 'white'
     },
     modalStyle: {
         margin: 0,

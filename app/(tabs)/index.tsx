@@ -144,7 +144,7 @@ const Home = () => {
         }
     }
 
-    const _getMyTeams = async (userId: string, sportId?:string) => {
+    const _getMyTeams = async (userId: string, sportId?: string) => {
         try {
             const organizationId = isOrganization() ? userData.id : undefined;
             const result = await TeamService.getUserTeams(userId, sportId, organizationId);
@@ -427,16 +427,12 @@ const Home = () => {
                                 <Feather name="search" size={30} color="white"/>
                             </TouchableOpacity>
                         </View>
-                        <View style={{marginLeft: 25}}>
-                            <ReactNative.Image style={styles.logoContainer}
-                                               source={require('../../assets/images/logoBall.png')}/>
-
-                            {userData.role == UserType[UserType.PARENT] && <TouchableOpacity
-                                onPress={_handleOpenInviteChild}
-                                style={{borderColor: 'white', borderWidth: 0.5, marginTop: 1, borderRadius: 5}}>
-                                <Text style={{color: 'white', textAlign: 'center', fontSize: 16, paddingVertical: 5}}>Invite
-                                    Child</Text>
-                            </TouchableOpacity>}
+                        <View/>
+                        <View>
+                            <View style={styles.cropContainer}>
+                                <Image contentFit="cover" style={styles.logoContainer}
+                                       source={require('../../assets/images/logoBall.png')}/>
+                            </View>
                         </View>
                         <View style={styles.sideHiderContainer}>
                             <TouchableOpacity
@@ -452,11 +448,17 @@ const Home = () => {
                         </View>
                     </View>
                     {userData.role == UserType[UserType.PARENT] && (
-                        <View style={{alignItems: 'center', marginTop: 5}}>
+                        <View style={{alignItems: 'center', marginTop: -15, marginBottom: 10}}>
                             <TouchableOpacity
                                 onPress={_handleOpenInviteChild}
                                 style={{borderColor: 'white', borderWidth: 0.5, borderRadius: 5}}>
-                                <Text style={{color: 'white', textAlign: 'center', fontSize: 16, paddingVertical: 5, paddingHorizontal: 15}}>
+                                <Text style={{
+                                    color: 'white',
+                                    textAlign: 'center',
+                                    fontSize: 16,
+                                    paddingVertical: 5,
+                                    paddingHorizontal: 15
+                                }}>
                                     Invite Child
                                 </Text>
                             </TouchableOpacity>
@@ -466,7 +468,8 @@ const Home = () => {
                         marginTop: 10,
                         marginHorizontal: 20,
                         flexDirection: 'row',
-                        justifyContent: 'space-between'
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
                     }}>
                         <Text style={{
                             color: 'white',
@@ -676,23 +679,25 @@ const styles = StyleSheet.create({
         position: 'relative',
     },
     logoContainer: {
+        width: 130,
+        height: 130,
         position: 'absolute',
-        left: '50%',
-        top: '50%',
-        transform: [{ translateX: -100 }, { translateY: -45 }],
-        height: 90,
-        width: 200,
-        resizeMode: 'contain',
+        top: -28,
+        left: -10,
+    },
+    cropContainer: {
+        width: 95,
+        height: 75,
+        overflow: 'hidden',
+        position: 'relative',
     },
     headerLeft: {
         flexDirection: 'row',
         alignItems: 'center',
-        zIndex: 1,
     },
     headerRight: {
         flexDirection: 'row',
         alignItems: 'center',
-        zIndex: 1,
     },
     mainContainer: {
         flex: 1,
@@ -704,7 +709,7 @@ const styles = StyleSheet.create({
         marginTop: 20,
         width: wp(100),
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: -3 },
+        shadowOffset: {width: 0, height: -3},
         shadowOpacity: 0.1,
         shadowRadius: 10,
         elevation: 5,
@@ -723,7 +728,7 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         marginRight: 8,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.05,
         shadowRadius: 4,
         elevation: 2,
@@ -780,7 +785,7 @@ const styles = StyleSheet.create({
         padding: 15,
         borderRadius: 16,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: {width: 0, height: 4},
         shadowOpacity: 0.08,
         shadowRadius: 8,
         elevation: 4,
@@ -808,7 +813,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#F8F9FA',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.05,
         shadowRadius: 4,
         elevation: 2,
@@ -827,7 +832,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         margin: 10,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.05,
         shadowRadius: 4,
         elevation: 2,
@@ -838,22 +843,20 @@ const pickerSelectStyles = StyleSheet.create({
     inputIOS: {
         color: 'white',
         fontWeight: '600',
-        fontSize: 16,
+        fontSize: 14,
         width: 140,
         paddingHorizontal: 12,
-        paddingVertical: 8,
         justifyContent: 'center',
         alignItems: 'center',
     },
     inputAndroid: {
         color: 'white',
         fontWeight: '600',
-        fontSize: 16,
+        fontSize: 14,
         justifyContent: 'center',
         alignItems: 'center',
-        width: 170,
+        width: 160,
         paddingHorizontal: 12,
-        paddingVertical: 8,
     },
 });
 
