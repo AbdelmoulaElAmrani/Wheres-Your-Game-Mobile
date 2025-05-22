@@ -356,9 +356,9 @@ const UserStepForm = () => {
                     try {
                         const result = await AuthService.verifyOTP(otpNumber.trim());
                         const storedAuth = await LocalStorageService.getItem<boolean>("otp");
-                        if (!storedAuth) {
-                            Alert.alert('the verification code is not correct');
-                        } else {
+                        if (storedAuth) {
+                        //     Alert.alert('the verification code is not correct');
+                        // } else {
                             Keyboard.dismiss();
                             setOtpCodeNotEmpty(true);
                             setOtpValid(true);

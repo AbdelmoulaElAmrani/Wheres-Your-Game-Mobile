@@ -6,7 +6,7 @@ import {getUserProfile} from "@/redux/UserSlice";
 import {ImageBackground} from "expo-image";
 import {heightPercentageToDP as hp, widthPercentageToDP} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
-import {Alert, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Alert, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View, Platform} from "react-native";
 import {Avatar, Divider, Modal, TextInput} from "react-native-paper";
 import {FontAwesome6} from "@expo/vector-icons";
 import * as Linking from "expo-linking";
@@ -308,10 +308,48 @@ export const ProfileV2 = () => {
                                     </TouchableOpacity>
                                 </View>
                             </>}
-                            {selectOption == MenuOption.Sports_Profiles && <>
-                                <View style={{justifyContent: 'center', width: '100%', height: '100%'}}>
-                                    <Text style={{textAlign: 'center', fontWeight: 'bold', fontSize: 16}}>Coming Soon
-                                        ...</Text>
+                            {selectOption === MenuOption.Sports_Profiles && <>
+                                <View style={styles.sportsProfileContainer}>
+                                {(currentUser?.role === UserType[UserType.COACH] || currentUser?.role === UserType[UserType.ORGANIZATION]) && (
+                                       
+                                       
+                                       <View >
+                                            <View style={styles.sectionHeader}>
+                                                <Text style={styles.sectionTitle}> </Text>
+                                                <TouchableOpacity 
+                                                    style={styles.manageButton}
+                                                    onPress={() => router.push('/(user)/ManageTrainingLocations')}>
+                                                    <Text style={styles.manageButtonText}>Manage Training Locations</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                            {/* <View style={styles.locationsList}>
+                                                This will be populated with actual locations data
+                                                {(userSport[0]?.trainingLocations && userSport[0].trainingLocations.length > 0) ? (
+                                                    <Text style={styles.noLocationsText}>
+                                                        You currently have {userSport[0].trainingLocations.length} location{userSport[0].trainingLocations.length > 1 ? 's' : ''}.
+                                                    </Text>
+                                                ) : (currentUser?.trainingLocations && currentUser.trainingLocations.length > 0) ? (
+                                                    <Text style={styles.noLocationsText}>
+                                                        You currently have {currentUser.trainingLocations.length} location{currentUser.trainingLocations.length > 1 ? 's' : ''}.
+                                                    </Text>
+                                                ) : (
+                                                    <Text style={styles.noLocationsText}>No training locations added yet</Text>
+                                                )}
+                                            </View> */}
+                                        </View>
+                                    )}
+                                    <View style={styles.sportsList}>
+                                    
+                                        {userSport?.map((sport, index) => (
+                                            
+                                            <View key={index} style={styles.sportItem}>
+                                                <Text style={styles.sportName}>{sport.sportName}</Text>
+                                                <Text style={styles.sportLevel}>Level: {sport.sportLevel}</Text>
+                                            </View>
+                                        ))}
+                                    </View>
+                                    
+                                  
                                 </View>
                             </>}
                             {selectOption === MenuOption.Childrens &&
@@ -489,139 +527,220 @@ const styles = StyleSheet.create({
         width: '100%',
         borderTopRightRadius: 20,
         borderTopLeftRadius: 20,
-        alignItems: 'center'
-    }
-    ,
+        alignItems: 'center',
+        paddingBottom: Platform.OS === 'ios' ? 20 : 0, // Add padding for iOS
+    },
     profileImageContainer: {
         backgroundColor: 'white',
-        height: 300,
+        height: Platform.OS === 'ios' ? 320 : 300, // Slightly taller on iOS
         width: '90%',
         marginTop: hp(2),
-        borderRadius: 15,
-        shadowColor: 'grey',
-        shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.5,
-        shadowRadius: 5,
-        elevation: 5,
+        borderRadius: 20,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 8,
+        overflow: 'hidden', // Ensure content doesn't overflow rounded corners
     },
     imageContainer: {
         height: '70%',
         width: '100%',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        backgroundColor: '#f8f9fa', // Light background for image area
     },
     infoContainer: {
         alignItems: 'center',
-        marginTop: 15
+        marginTop: 15,
+        paddingHorizontal: 10,
     },
     bioContainer: {
         backgroundColor: 'white',
-        height: 80,
+        minHeight: 80,
         width: '90%',
         marginTop: hp(2),
-        borderRadius: 15,
-        shadowColor: 'grey',
-        shadowOffset: {
-            width: 0, height: 2
-        },
-        shadowOpacity: 0.5,
-        shadowRadius: 5,
-        elevation: 5,
-        padding: 10
+        borderRadius: 20,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 8,
+        padding: 15,
     },
     selectedText: {
-        color: 'blue',
-        fontWeight: 'bold',
+        color: '#2757CB',
+        fontWeight: '600',
     },
     selectionText: {
-        fontWeight: 'bold',
+        fontWeight: '600',
         fontSize: 16,
-        marginBottom: 5
+        marginBottom: 5,
+        color: '#666',
     },
     underline: {
-        height: 2,
-        backgroundColor: 'blue',
+        height: 3,
+        backgroundColor: '#2757CB',
         marginTop: 5,
+        borderRadius: 2,
     },
     infoMiniCard: {
-        borderWidth: 0.5,
-        padding: 12,
+        borderWidth: 0,
+        padding: 15,
         backgroundColor: 'white',
         alignItems: 'center',
-        borderRadius: 10,
-        shadowColor: 'grey',
-        shadowOffset: {
-            width: 0, height: 2
-        },
-        shadowOpacity: 0.2,
-        shadowRadius: 5,
-        elevation: 5,
-        borderColor: 'grey',
+        borderRadius: 15,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 6,
         width: widthPercentageToDP('28%'),
         maxWidth: 110,
     },
     infoTitle: {
         fontSize: 14,
-        fontWeight: 'bold'
+        fontWeight: '600',
+        color: '#666',
+        marginBottom: 4,
     },
     infoText: {
-        fontWeight: 'bold',
-        color: 'blue',
-        fontSize: 12,
-        marginTop: 5
+        fontWeight: '600',
+        color: '#2757CB',
+        fontSize: 13,
     },
     followBtn: {
-        backgroundColor: 'blue',
+        backgroundColor: '#2757CB',
         justifyContent: 'center',
         alignSelf: 'center',
         marginTop: 20,
         width: 150,
-        padding: 10,
-        borderRadius: 15,
+        padding: 12,
+        borderRadius: 25,
         alignItems: 'center',
-        flexDirection: 'row'
+        flexDirection: 'row',
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 8,
     },
     iconCard: {
         backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 3,
-        shadowColor: 'grey',
-        shadowOffset: {
-            width: 0, height: 2
-        },
-        shadowOpacity: 0.5,
-        shadowRadius: 5,
-        elevation: 5,
-        borderColor: 'grey',
+        borderRadius: 15,
+        padding: 12,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 6,
+        borderWidth: 0,
     },
     postModalContainer: {
         backgroundColor: 'white',
-        borderRadius: 20,
-        paddingHorizontal: 5,
+        borderRadius: 25,
+        paddingHorizontal: 20,
         width: '95%',
         height: '100%',
         alignItems: 'center',
         alignSelf: 'center',
         justifyContent: 'flex-start',
         marginTop: 10,
-        marginBottom: '30%'
+        marginBottom: Platform.OS === 'ios' ? '30%' : '20%',
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 8,
     },
     inputStyle: {
         backgroundColor: 'white',
-        height: 45,
+        height: 55,
         fontSize: 16,
         marginTop: 5,
         color: 'black',
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        borderBottomRightRadius: 20,
-        borderBottomLeftRadius: 20,
-        borderColor: '#D3D3D3',
+        borderRadius: 15,
+        borderColor: '#E0E0E0',
         borderWidth: 1,
         width: '100%',
-        paddingLeft: 10,
-        paddingRight: 10,
-        marginBottom: 10
+        paddingLeft: 15,
+        paddingRight: 15,
+        marginBottom: 10,
+    },
+    sportsProfileContainer: {
+        width: '100%',
+        padding: 15,
+    },
+    sportsList: {
+        marginBottom: 20,
+    },
+    sportItem: {
+        backgroundColor: 'white',
+        padding: 15,
+        borderRadius: 15,
+        marginBottom: 10,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 6,
+    },
+    sportName: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#333',
+    },
+    sportLevel: {
+        fontSize: 14,
+        color: '#666',
+        marginTop: 5,
+    },
+    trainingLocationsContainer: {
+        backgroundColor: 'white',
+        borderRadius: 15,
+        padding: 15,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 6,
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#333',
+    },
+    manageButton: {
+        backgroundColor: '#2757CB',
+        paddingHorizontal: 15,
+        paddingVertical: 8,
+        borderRadius: 20,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 2},
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 4,
+    },
+    manageButtonText: {
+        color: 'white',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    locationsList: {
+        minHeight: 100,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    noLocationsText: {
+        color: '#666',
+        fontSize: 14,
+        fontStyle: 'italic',
     },
 });
 

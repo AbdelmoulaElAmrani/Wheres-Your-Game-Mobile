@@ -386,7 +386,7 @@ const Calendar = () => {
 
     const getTitle = (): string => {
         if (isCoach())
-            return 'All Events';
+            return `All Events for ${selectedDate.format('YYYY-MM-DD')}`;
         else {
             const today = moment().startOf('day');
             const tomorrow = moment().add(1, 'days').startOf('day');

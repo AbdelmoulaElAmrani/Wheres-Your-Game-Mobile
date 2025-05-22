@@ -141,7 +141,6 @@ const _countries = [
 
 
 const EditProfile = () => {
-
     const dispatch = useDispatch();
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
@@ -176,7 +175,7 @@ const EditProfile = () => {
         role: "",
         zipCode: "",
         id: "",
-        dateOfBirth: new Date(),
+        dateOfBirth: userData?.dateOfBirth || undefined,
         isCertified: false,
         positionCoached: "",
         yearsOfExperience: 0
@@ -205,11 +204,14 @@ const EditProfile = () => {
             }
         }
         fetchSport();
+        // Debug log after dispatch
+        console.log('Dispatched getUserProfile, userData:', userData);
     }, []);
 
     useEffect(() => {
         if (user?.id == '' || user?.id == undefined || user?.id != userData?.id) {
             setUser(userData);
+            console.log('Set user from userData:', userData);
         } else {
             dispatch(getUserSports(userData.id) as any);
         }
@@ -434,7 +436,7 @@ const EditProfile = () => {
                                 mode="single"
                                 visible={open}
                                 onDismiss={onDismissSingle}
-                                date={editUser.dateOfBirth ? new Date(editUser.dateOfBirth) : new Date()}
+                                date={editUser.dateOfBirth ? new Date(editUser.dateOfBirth) : undefined}
                                 onConfirm={onConfirmSingle}
                                 saveLabel="Select Date"
                                 label="Select birth date"
@@ -453,7 +455,7 @@ const EditProfile = () => {
                                 cursorColor='black'
                                 placeholderTextColor={'grey'}
                                 left={<TextInput.Icon color={'#D3D3D3'} icon='calendar' size={30}/>}
-                                value={new Date(editUser.dateOfBirth).toLocaleDateString()}
+                                value={editUser.dateOfBirth ? new Date(editUser.dateOfBirth).toLocaleDateString() : ''}
                                 onFocus={() => setOpen(true)}
                                 underlineColor={"transparent"}
 
@@ -498,7 +500,7 @@ const EditProfile = () => {
                                 {userData?.role == UserType[UserType.ORGANIZATION] && <View style={{marginTop: 20}}>
                                     <Text style={{textAlign: 'center', fontWeight: 'bold'}}>Note:</Text>
                                     <Text style={{textAlign: 'center', fontWeight: 'bold'}}>If you are signing up on
-                                        behalf of an organization, please ensure you provide the organization’s primary
+                                        behalf of an organization, please ensure you provide the organization's primary
                                         point of contact. This is required to verify and manage organizational
                                         access.</Text>
                                 </View>}
@@ -881,7 +883,7 @@ const EditProfile = () => {
                                     items={_countries}
                                     placeholder={{label: 'Select country', value: null}}
                                     onValueChange={(value) => setEditUser({...editUser, country: value})}
-                                    value={editUser?.country || null}
+                                    value={editUser?.country || 'United States'}
                                 />
                                 <Text style={styles.textLabel}>State/Region</Text>
                                 <TextInput
@@ -917,13 +919,21 @@ const EditProfile = () => {
     }
 
     const OrganizationSport = () => {
-        const [estimatedCost, setEstimatedCost] = useState<number>(0);
+        const [estimatedCost, setEstimatedCost] = useState<string>('');
         const [selectedSport, setSelectedSport] = useState<any>();
         const [selectedSports, setSelectedSports] = useState<any>(userSport);
         const [selectedTypeOfGame, setSelectedTypeOfGame] = useState<Array<string>>([]);
         const [seasonDuration, setSeasonDuration] = useState<any>();
         const [location, setLocation] = useState<string>();
         const [sportsList, setSportsList] = useState<any>([]);
+
+        const costRanges = [
+            { label: '0 to 50', value: '0-50' },
+            { label: '50 to 100', value: '50-100' },
+            { label: '100 to 150', value: '100-150' },
+            { label: '150 to 200', value: '150-200' },
+            { label: '200+', value: '200+' }
+        ];
 
         useEffect(() => {
             const filteredSportsList = sports
@@ -951,7 +961,7 @@ const EditProfile = () => {
             const newEntry: UserInterestedSport = {
                 typeOfGame: selectedTypeOfGame,
                 seasonDuration: seasonDuration,
-                estimatedCost: estimatedCost,
+                estimatedCost: Number(estimatedCost.split('-')[0] || estimatedCost.replace('+', '')), // Convert range to number
                 sportName: selectedSport.name,
                 sportLevel: SportLevel.Advance,
                 createAt: new Date(),
@@ -966,7 +976,7 @@ const EditProfile = () => {
             setSelectedSport(undefined);
             setSelectedTypeOfGame([]);
             setSeasonDuration(undefined);
-            setEstimatedCost(0);
+            setEstimatedCost('');
             setLocation(undefined);
             return newEntry;
         };
@@ -1019,21 +1029,12 @@ const EditProfile = () => {
                                     value={selectedSport?.value}
                                 />
                                 <Text style={styles.textLabel}>Estimated Cost</Text>
-                                <TextInput
-                                    style={[styles.inputInfoStyle, {
-                                        height: 40,
-                                        borderTopLeftRadius: 20,
-                                        borderTopRightRadius: 20,
-                                        borderBottomRightRadius: 20,
-                                        borderBottomLeftRadius: 20
-                                    }]}
-                                    placeholder={'Estimated Cost'}
-                                    cursorColor='black'
-                                    placeholderTextColor={'grey'}
-                                    value={estimatedCost?.toString()}
-                                    keyboardType={"decimal-pad"}
-                                    onChangeText={(value) => setEstimatedCost(Number(value))}
-                                    underlineColor={"transparent"}
+                                <RNPickerSelect
+                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
+                                    items={costRanges}
+                                    placeholder={{label: 'Select cost range', value: null}}
+                                    onValueChange={(value) => setEstimatedCost(value)}
+                                    value={estimatedCost}
                                 />
                                 <Text style={styles.textLabel}>Type of Game</Text>
                                 <MultiSelect

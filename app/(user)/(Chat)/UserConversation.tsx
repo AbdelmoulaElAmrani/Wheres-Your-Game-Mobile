@@ -34,6 +34,7 @@ const UserConversation = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [enabledSend, setEnabledSend] = useState<boolean>(true);
     const [childId, setChildId] = useState<string | undefined>(undefined);
+    const [sendingMessage, setSendingMessage] = useState<boolean>(false);
 
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
@@ -91,24 +92,39 @@ const UserConversation = () => {
     };
 
     const onSendMessage = async () => {
+        if (!newMessage.trim() || !receiver || sendingMessage) return;
+        
         const timestamp = moment.tz(moment.tz.guess()).format();
+        setSendingMessage(true);
         setEnabledSend(false);
+        
         try {
-            if (newMessage.trim() && receiver) {
-                const message: Message = {
-                    senderId: childId ? childId : currentUser.id,
-                    receiverId: receiver.id,
-                    message: newMessage,
-                    timestamp: timestamp,
-                };
-                const response = await ChatService.sendMessage(message, childId);
-                setNewMessage('');
-                setMessages(old => [response, ...old]);
-            }
+            const message: Message = {
+                senderId: childId ? childId : currentUser.id,
+                receiverId: receiver.id,
+                message: newMessage,
+                timestamp: timestamp,
+            };
+            
+            // Optimistically add message to UI
+            const tempMessage = { ...message, id: 'temp-' + Date.now() };
+            setMessages(old => [tempMessage, ...old]);
+            setNewMessage('');
+            
+            // Send message to server
+            const response = await ChatService.sendMessage(message, childId);
+            
+            // Replace temporary message with server response
+            setMessages(old => old.map(msg => 
+                msg.id === tempMessage.id ? response : msg
+            ));
         } catch (error) {
             console.error('Error sending message:', error);
-            Alert.alert('Error', 'Failed to send message');
+            // Remove failed message from UI
+            setMessages(old => old.filter(msg => !msg.id.startsWith('temp-')));
+            Alert.alert('Error', 'Failed to send message. Please try again.');
         } finally {
+            setSendingMessage(false);
             setEnabledSend(true);
         }
     }
@@ -228,9 +244,18 @@ const UserConversation = () => {
                                     value={newMessage}
                                     onChangeText={setNewMessage}
                                 />
-                                <TouchableOpacity style={styles.sendButton} disabled={!enabledSend}
-                                                  onPress={onSendMessage}>
-                                    <Ionicons name="send" size={24} color="white"/>
+                                <TouchableOpacity 
+                                    style={[
+                                        styles.sendButton,
+                                        (!enabledSend || sendingMessage) && styles.sendButtonDisabled
+                                    ]} 
+                                    disabled={!enabledSend || sendingMessage}
+                                    onPress={onSendMessage}>
+                                    {sendingMessage ? (
+                                        <ActivityIndicator size="small" color="white" />
+                                    ) : (
+                                        <Ionicons name="send" size={24} color="white"/>
+                                    )}
                                 </TouchableOpacity>
                             </>) : (
                                 <Text style={{fontSize: 16, textAlign: 'center', padding: 10, color: 'white'}}>You
@@ -302,6 +327,9 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         padding: 10,
         marginLeft: 10,
+    },
+    sendButtonDisabled: {
+        opacity: 0.5,
     },
 });
 

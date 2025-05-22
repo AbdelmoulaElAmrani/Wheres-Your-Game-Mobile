@@ -72,6 +72,23 @@ const SearchUser = () => {
         }
     }, [params?.searchType]);
 
+    // Add empty search on mount
+    useEffect(() => {
+        const performEmptySearch = async () => {
+            if (searchType) {
+                setLoading(true);
+                const data = await UserService.SearchUsersByFullName('', searchType);
+                if (data) {
+                    setPeople(data);
+                } else {
+                    setPeople([]);
+                }
+                setLoading(false);
+            }
+        };
+        performEmptySearch();
+    }, [searchType]);
+
     const _handleGoBack = () => {
         if (router.canGoBack())
             router.back();
