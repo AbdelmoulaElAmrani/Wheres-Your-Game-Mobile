@@ -14,10 +14,12 @@ import * as Location from 'expo-location';
 import {getSports} from "@/redux/SportSlice";
 import { TrainingLocationService } from "@/services/TrainingLocationService";
 import { TrainingLocation } from "@/models/TrainingLocation";
+import { TextInput } from "react-native";
 
 enum Filters {
     SPORT,
-    RADIUS
+    RADIUS,
+    CITY
 }
 
 interface RadioBoxFilter {
@@ -28,6 +30,7 @@ interface RadioBoxFilter {
 interface FilterState {
     sports: RadioBoxFilter[];
     radius: number;
+    city: string;
 }
 
 const radiusOptions = [
@@ -37,6 +40,8 @@ const radiusOptions = [
     { id: '20', value: '20 miles' },
     { id: '50', value: '50 miles' }
 ] as RadioBoxFilter[];
+
+const GOOGLE_PLACES_API_KEY = "AIzaSyDlFo6upaajnGewXn4DX4-naBhsWPcn8VE";
 
 const SportMap = () => {
     const [modalVisible, setModalVisible] = useState<boolean>(false);
@@ -50,7 +55,8 @@ const SportMap = () => {
     const [expandedFilter, setExpandedFilter] = useState<Filters | undefined>(Filters.SPORT);
     const [filter, setFilter] = useState<FilterState>({
         sports: [],
-        radius: 5 // Default 5km radius
+        radius: 5,
+        city: ''
     });
     const [region, setRegion] = useState<any>(null);
     const mapRef = useRef<MapView>(null);
@@ -59,6 +65,8 @@ const SportMap = () => {
     const [isLoadingLocations, setIsLoadingLocations] = useState<boolean>(false);
     const [isListVisible, setIsListVisible] = useState<boolean>(false);
     const [selectedLocation, setSelectedLocation] = useState<TrainingLocation | null>(null);
+    const [searchQuery, setSearchQuery] = useState<string>('');
+    const [suggestedCities, setSuggestedCities] = useState<string[]>([]);
 
     useEffect(() => {
         (async () => {
@@ -142,17 +150,75 @@ const SportMap = () => {
         }
     }
 
-    // Function to load training locations
+    const handleCitySearch = async (query: string) => {
+        setSearchQuery(query);
+        setFilter(prev => ({ ...prev, city: query }));
+        
+        if (query.length > 2) {
+            try {
+                const response = await fetch(
+                    `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&types=(cities)&components=country:us&key=${GOOGLE_PLACES_API_KEY}`
+                );
+                const data = await response.json();
+                if (data.predictions && data.predictions.length > 0) {
+                    setSuggestedCities(data.predictions.map((prediction: any) => prediction.description));
+                }
+            } catch (error) {
+                console.error('Error fetching city suggestions:', error);
+            }
+        } else {
+            setSuggestedCities([]);
+        }
+    };
+
+    const handleCitySelect = async (city: string) => {
+        setFilter(prev => ({ ...prev, city }));
+        setSearchQuery(city);
+        setSuggestedCities([]);
+        
+        try {
+            const response = await fetch(
+                `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(city)}&key=${GOOGLE_PLACES_API_KEY}`
+            );
+            const data = await response.json();
+            
+            if (data.results && data.results.length > 0) {
+                const { lat, lng } = data.results[0].geometry.location;
+                const newRegion = {
+                    latitude: lat,
+                    longitude: lng,
+                    latitudeDelta: 0.1,
+                    longitudeDelta: 0.1
+                };
+                setRegion(newRegion);
+                mapRef.current?.animateToRegion(newRegion, 1000);
+                
+                // Reload locations after moving the map
+                await loadTrainingLocations();
+            } else {
+                Alert.alert('Error', 'City not found');
+            }
+        } catch (error) {
+            console.error('Error geocoding city:', error);
+            Alert.alert('Error', 'Could not find the city location');
+        }
+    };
+
+    // Update the city search input to handle submission
+    const handleCitySubmit = async () => {
+        if (searchQuery.trim()) {
+            await handleCitySelect(searchQuery);
+        }
+    };
+
     const loadTrainingLocations = async () => {
         if (!userLocation) return;
         
         try {
             setIsLoadingLocations(true);
             const locations = await TrainingLocationService.getTrainingLocationsMap();
-            console.log('Received locations from service:', JSON.stringify(locations, null, 2));
             
             if (locations) {
-                // Filter locations based on selected sports and radius
                 const filteredLocations = locations.filter(location => {
                     // Check if location's sport is in selected sports
                     const sportMatch = filter.sports.length === 0 || 
@@ -169,10 +235,15 @@ const SportMap = () => {
                     );
                     
                     // Check if within radius (in miles)
-                    return distance <= filter.radius;
+                    const radiusMatch = distance <= filter.radius;
+                    
+                    // Check if city matches (if city filter is set)
+                    const cityMatch = !filter.city || 
+                        location.address.toLowerCase().includes(filter.city.toLowerCase());
+                    
+                    return radiusMatch && cityMatch;
                 });
                 
-                console.log('Filtered locations:', JSON.stringify(filteredLocations, null, 2));
                 setTrainingLocations(filteredLocations);
             }
         } catch (error) {
@@ -183,7 +254,6 @@ const SportMap = () => {
         }
     };
 
-    // Function to calculate distance between two points using Haversine formula
     const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
         const R = 3958.8; // Earth's radius in miles
         const φ1 = lat1 * Math.PI/180;
@@ -199,7 +269,6 @@ const SportMap = () => {
         return R * c; // Distance in miles
     };
 
-    // Load locations when filters change
     useEffect(() => {
         loadTrainingLocations();
     }, [filter, userLocation]);
@@ -407,6 +476,41 @@ const SportMap = () => {
                         showsVerticalScrollIndicator={false}
                         style={styles.modalScrollView}>
                         <List.Section>
+                            <List.Accordion 
+                                titleStyle={{
+                                    fontWeight: 'bold',
+                                    color: expandedFilter == Filters.CITY ? 'white' : 'black'
+                                }}
+                                style={[styles.dropDownContainer, {backgroundColor: expandedFilter == Filters.CITY ? '#2757CB' : '#F8F9FA'}]}
+                                expanded={expandedFilter == Filters.CITY}
+                                onPress={() => _handleSelectedFilter(Filters.CITY)}
+                                title="City">
+                                <View style={styles.filterContent}>
+                                    <View style={styles.citySearchContainer}>
+                                        <TextInput
+                                            style={styles.citySearchInput}
+                                            placeholder="Search for a city..."
+                                            value={searchQuery}
+                                            onChangeText={handleCitySearch}
+                                            onSubmitEditing={handleCitySubmit}
+                                            returnKeyType="search"
+                                        />
+                                        {suggestedCities.length > 0 && (
+                                            <View style={styles.citySuggestions}>
+                                                {suggestedCities.map((city, index) => (
+                                                    <TouchableOpacity
+                                                        key={index}
+                                                        style={styles.citySuggestionItem}
+                                                        onPress={() => handleCitySelect(city)}>
+                                                        <Text style={styles.citySuggestionText}>{city}</Text>
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </View>
+                                        )}
+                                    </View>
+                                </View>
+                            </List.Accordion>
+
                             <List.Accordion 
                                 titleStyle={{
                                     fontWeight: 'bold',
@@ -758,6 +862,43 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         marginLeft: 8,
+    },
+    citySearchContainer: {
+        position: 'relative',
+        zIndex: 1,
+    },
+    citySearchInput: {
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
+        borderRadius: 8,
+        padding: 12,
+        fontSize: 16,
+        backgroundColor: 'white',
+    },
+    citySuggestions: {
+        position: 'absolute',
+        top: '100%',
+        left: 0,
+        right: 0,
+        backgroundColor: 'white',
+        borderRadius: 8,
+        marginTop: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+        maxHeight: 200,
+        zIndex: 2,
+    },
+    citySuggestionItem: {
+        padding: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E0E0E0',
+    },
+    citySuggestionText: {
+        fontSize: 16,
+        color: '#333',
     },
 });
 export default SportMap;

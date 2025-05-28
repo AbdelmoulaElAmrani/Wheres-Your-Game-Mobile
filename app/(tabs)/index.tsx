@@ -436,16 +436,9 @@ const Home = () => {
                                 <Feather name="search" size={30} color="white"/>
                             </TouchableOpacity>
                         </View>
-                        <View style={{marginLeft: 20}}>
+                        <View style={styles.headerCenter}>
                             <ReactNative.Image style={styles.logoContainer}
                                                source={require('../../assets/images/logoBall.png')}/>
-
-                            {userData.role == UserType[UserType.PARENT] && <TouchableOpacity
-                                onPress={_handleOpenInviteChild}
-                                style={{borderColor: 'white', borderWidth: 0.5, marginTop: 1, borderRadius: 5}}>
-                                <Text style={{color: 'white', textAlign: 'center', fontSize: 16, paddingVertical: 5}}>Invite
-                                    Child</Text>
-                            </TouchableOpacity>}
                         </View>
                         <View style={styles.sideHiderContainer}>
                             <TouchableOpacity
@@ -460,75 +453,18 @@ const Home = () => {
                             </TouchableOpacity>
                         </View>
                     </View>
-                    {userData.role == UserType[UserType.PARENT] && (
-                        <View style={{alignItems: 'center', marginTop: 5}}>
-                            <TouchableOpacity
-                                onPress={_handleOpenInviteChild}
-                                style={{borderColor: 'white', borderWidth: 0.5, borderRadius: 5}}>
-                                <Text style={{color: 'white', textAlign: 'center', fontSize: 16, paddingVertical: 5, paddingHorizontal: 15}}>
-                                    Invite Child
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
                     <View style={{
-                        marginTop: 10,
+                        marginTop: 5,
                         marginHorizontal: 20,
                         flexDirection: 'row',
-                        justifyContent: 'space-between'
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
                     }}>
                         <Text style={{
                             color: 'white',
                             fontWeight: 'bold',
                             fontSize: 18
                         }}>Welcome Back, {`${Helpers.capitalize(userData?.firstName)}`} </Text>
-                        {userData.role == UserType[UserType.PARENT] &&
-                            <View style={{
-                                borderWidth: 1,
-                                borderColor: 'white',
-                                borderRadius: 4,
-                            }}>
-                                <RNPickerSelect
-                                    placeholder={{
-                                        label: 'Me',
-                                        value: null,
-                                        color: '#9EA0A4',
-                                    }}
-                                    items={userData?.children?.map(child => ({
-                                        label: child.fullName,
-                                        value: child.id,
-                                        id: child.id,
-                                        color: '#9EA0A4',
-                                    })) || []}
-                                    onValueChange={(value, index) => {
-                                        if (value === null) {
-                                            setTempSelectedProfileId('');
-                                        } else {
-                                            setTempSelectedProfileId(value);
-                                        }
-                                        if (Platform.OS != 'ios') {
-                                            setSelectedProfileId(value === null ? '' : value);
-                                        }
-                                    }}
-                                    onDonePress={() => {
-                                        setSelectedProfileId(tempSelectedProfileId);
-                                    }}
-                                    onClose={() => {
-                                        setTempSelectedProfileId(selectedProfileId);
-                                    }}
-                                    style={pickerSelectStyles}
-                                    //value={tempSelectedProfileId}
-                                    Icon={() => (
-                                        <Ionicons
-                                            name="chevron-down"
-                                            size={24}
-                                            color="white"
-                                            style={{position: 'absolute', top: '50%', marginTop: 5, right: 10}}
-                                        />
-                                    )}
-                                />
-                            </View>
-                        }
                     </View>
                     <View style={styles.mainContainer}>
                         <View style={{marginBottom: 10, flexDirection: 'row', justifyContent: 'center'}}>
@@ -537,6 +473,13 @@ const Home = () => {
                                 style={styles.tag}>
                                 <Text style={styles.tagText}>Add Coach</Text>
                             </TouchableOpacity>
+                            {userData.role == UserType[UserType.PARENT] && (
+                                <TouchableOpacity
+                                    onPress={_handleOpenInviteChild}
+                                    style={[styles.tag, styles.inviteChildButton]}>
+                                    <Text style={[styles.tagText, styles.inviteChildText]}>Invite Child</Text>
+                                </TouchableOpacity>
+                            )}
                             {isOrganization() && <TouchableOpacity
                                 onPress={_onOpenAdRequest}
                                 style={[styles.tag, {paddingHorizontal: 40}]}>
@@ -558,6 +501,51 @@ const Home = () => {
                         <ScrollView
                             style={{flex: 1}}
                             showsVerticalScrollIndicator={true}>
+                            {userData.role == UserType[UserType.PARENT] && (
+                                <View style={styles.dropdownContainer}>
+                                    <Text style={styles.dropdownLabel}>Select Profile:</Text>
+                                    <View style={styles.dropdownWrapper}>
+                                        <RNPickerSelect
+                                            placeholder={{
+                                                label: 'Me',
+                                                value: null,
+                                                color: '#9EA0A4',
+                                            }}
+                                            items={userData?.children?.map(child => ({
+                                                label: child.fullName,
+                                                value: child.id,
+                                                id: child.id,
+                                                color: '#9EA0A4',
+                                            })) || []}
+                                            onValueChange={(value, index) => {
+                                                if (value === null) {
+                                                    setTempSelectedProfileId('');
+                                                } else {
+                                                    setTempSelectedProfileId(value);
+                                                }
+                                                if (Platform.OS != 'ios') {
+                                                    setSelectedProfileId(value === null ? '' : value);
+                                                }
+                                            }}
+                                            onDonePress={() => {
+                                                setSelectedProfileId(tempSelectedProfileId);
+                                            }}
+                                            onClose={() => {
+                                                setTempSelectedProfileId(selectedProfileId);
+                                            }}
+                                            style={pickerSelectStyles}
+                                            // Icon={() => (
+                                            //     <Ionicons
+                                            //         name="chevron-down"
+                                            //         size={20}
+                                            //         color="#666"
+                                            //         style={{position: 'absolute', top: '50%', marginTop: -2, right: 8}}
+                                            //     />
+                                            // )}
+                                        />
+                                    </View>
+                                </View>
+                            )}
                             <View style={styles.menuContainer}>
                                 <View style={styles.menuTitleContainer}>
                                     <Text style={styles.menuTitle}>Your Sports <Text
@@ -684,24 +672,27 @@ const styles = StyleSheet.create({
         height: 110,
         position: 'relative',
     },
-    logoContainer: {
-        position: 'absolute',
-        left: '50%',
-        top: '50%',
-        transform: [{ translateX: -100 }, { translateY: -45 }],
-        height: 90,
-        width: 200,
-        resizeMode: 'contain',
-    },
     headerLeft: {
         flexDirection: 'row',
         alignItems: 'center',
         zIndex: 1,
+        width: 60,
     },
-    headerRight: {
+    headerCenter: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    sideHiderContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        zIndex: 1,
+        gap: 8,
+        width: 60,
+    },
+    logoContainer: {
+        height: 110,
+        width: 240,
+        resizeMode: 'contain',
     },
     mainContainer: {
         flex: 1,
@@ -717,11 +708,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 10,
         elevation: 5,
-    },
-    sideHiderContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 15,
     },
     tag: {
         backgroundColor: 'white',
@@ -840,28 +826,57 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 4,
         elevation: 2,
-    }
+    },
+    inviteChildButton: {
+        backgroundColor: '#2757CB',
+        borderColor: '#2757CB',
+    },
+    inviteChildText: {
+        color: 'white',
+    },
+    dropdownContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 20,
+        paddingHorizontal: 5,
+    },
+    dropdownLabel: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#1A1A1A',
+        marginRight: 10,
+    },
+    dropdownWrapper: {
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
+        borderRadius: 8,
+        backgroundColor: 'white',
+        flex: 1,
+    },
 });
 const pickerSelectStyles = StyleSheet.create({
     inputIOS: {
-        color: 'white',
+        color: '#1A1A1A',
         fontWeight: '600',
         fontSize: 16,
-        width: 140,
         paddingHorizontal: 12,
         paddingVertical: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
+        paddingRight: 30,
     },
     inputAndroid: {
-        color: 'white',
+        color: '#1A1A1A',
         fontWeight: '600',
         fontSize: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: 170,
         paddingHorizontal: 12,
         paddingVertical: 8,
+        paddingRight: 30,
+    },
+    placeholder: {
+        color: '#9EA0A4',
+    },
+    iconContainer: {
+        top: 8,
+        right: 8,
     },
 });
 
