@@ -365,7 +365,8 @@ const SportMap = () => {
                     {isListVisible && (
                         <View style={styles.listContainer}>
                             <ScrollView style={styles.listScrollView}>
-                                {trainingLocations.map((location) => (
+                                {trainingLocations?.length > 0 ?
+                                    (trainingLocations.map((location) => (
                                     <TouchableOpacity 
                                         key={location.id}
                                         style={[
@@ -447,7 +448,11 @@ const SportMap = () => {
                                             />
                                         </TouchableOpacity>
                                     </TouchableOpacity>
-                                ))}
+                                ))) :( <Text style={{
+                                        color: 'black',
+                                        fontSize: 16,
+                                        fontWeight: 'bold'
+                                    }}>No locations found</Text>)}
                             </ScrollView>
                             <View style={styles.listGradientOverlay}></View>
                         </View>

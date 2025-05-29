@@ -444,7 +444,7 @@ const Home = () => {
                             </TouchableOpacity>
                         </View>
                     </View>
-                    {userData.role == UserType[UserType.PARENT] && (
+                    {/*{userData.role == UserType[UserType.PARENT] && (
                         <View style={{alignItems: 'center', marginTop: -15, marginBottom: 10}}>
                             <TouchableOpacity
                                 onPress={_handleOpenInviteChild}
@@ -460,8 +460,7 @@ const Home = () => {
                                 </Text>
                             </TouchableOpacity>
                         </View>
-                    )}
-                  
+                    )}*/}
                     <View style={{
                         marginTop: 5,
                         marginHorizontal: 20,
@@ -474,7 +473,7 @@ const Home = () => {
                             fontWeight: 'bold',
                             fontSize: 18
                         }}>Welcome Back, {`${Helpers.capitalize(userData?.firstName)}`} </Text>
-                        {userData.role == UserType[UserType.PARENT] &&
+                        {/*{userData.role == UserType[UserType.PARENT] &&
                             <View style={{
                                 borderWidth: 1,
                                 borderColor: 'white',
@@ -520,7 +519,7 @@ const Home = () => {
                                     )}
                                 />
                             </View>
-                        }
+                        }*/}
                     </View>
                     <View style={styles.mainContainer}>
                         <View style={{marginBottom: 10, flexDirection: 'row', justifyContent: 'center'}}>
@@ -562,6 +561,7 @@ const Home = () => {
                                     <Text style={styles.dropdownLabel}>Select Profile:</Text>
                                     <View style={styles.dropdownWrapper}>
                                         <RNPickerSelect
+                                            useNativeAndroidPickerStyle={false}
                                             placeholder={{
                                                 label: 'Me',
                                                 value: null,
@@ -590,14 +590,14 @@ const Home = () => {
                                                 setTempSelectedProfileId(selectedProfileId);
                                             }}
                                             style={pickerSelectStyles}
-                                            // Icon={() => (
-                                            //     <Ionicons
-                                            //         name="chevron-down"
-                                            //         size={20}
-                                            //         color="#666"
-                                            //         style={{position: 'absolute', top: '50%', marginTop: -2, right: 8}}
-                                            //     />
-                                            // )}
+                                            Icon={() => (
+                                                <Ionicons
+                                                    name="chevron-down"
+                                                    size={20}
+                                                    color="#666"
+                                                    style={{position: 'absolute', top: '50%', marginTop: 5, right: 10}}
+                                                />
+                                            )}
                                         />
                                     </View>
                                 </View>
@@ -792,7 +792,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: "center",
         justifyContent: "space-between",
-        marginVertical: 20,
+        marginVertical: 10,
         paddingHorizontal: 5,
     },
     menuTitle: {
@@ -821,8 +821,8 @@ const styles = StyleSheet.create({
         gap: 5,
     },
     menuContainer: {
-        marginTop: 15,
-        marginBottom: 25,
+        marginTop: 5,
+        marginBottom: 20,
     },
     card: {
         backgroundColor: 'white',
@@ -893,12 +893,12 @@ const styles = StyleSheet.create({
     dropdownContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 20,
+        marginVertical: 10,
         paddingHorizontal: 5,
     },
     dropdownLabel: {
         fontSize: 16,
-        fontWeight: '600',
+        fontWeight: 'bold',
         color: '#1A1A1A',
         marginRight: 10,
     },
