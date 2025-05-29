@@ -30,14 +30,12 @@ const SearchGlobal = () => {
             router.back();
     }
 
-
     const _onSearchSubmit = useCallback(async () => {
         if (searchName.trim() === '') {
             setSearchResult({players: [], teams: []});
             return;
         }
         setLoading(true);
-        //TODO:: Call the new api that will return data as Player[] and Teams: []
         const data = await TeamService.globalSearchTeamPlayers(searchName.trim());
         if (data)
             setSearchResult(data);
@@ -50,9 +48,6 @@ const SearchGlobal = () => {
     const handleSelect = (option: searchOption) => {
         setSelectedOption(option);
     };
-
-    //const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0];
-
 
     return (
         <ImageBackground

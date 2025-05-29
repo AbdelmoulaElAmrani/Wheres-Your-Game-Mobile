@@ -353,7 +353,7 @@ export const ProfileV2 = () => {
                                 </View>
                             </>}
                             {selectOption === MenuOption.Childrens &&
-                                <View style={{width: '100%'}}>
+                                <View style={{width: '100%', flex: 1}}>
                                     <FlatList
                                         data={currentUser?.children}
                                         numColumns={3}
@@ -361,9 +361,9 @@ export const ProfileV2 = () => {
                                         scrollEnabled={false}
                                         contentContainerStyle={{
                                             justifyContent: 'space-around',
-                                            paddingHorizontal: 10, // Adjust to control horizontal spacing
                                         }}
                                         columnWrapperStyle={{
+                                            marginTop: 5,
                                             justifyContent: 'space-around', // Space between items in a row
                                         }}
                                         renderItem={({item}) => (
@@ -386,19 +386,17 @@ export const ProfileV2 = () => {
                                         )}
                                     />
                                 </View>}
-                            {selectOption !== MenuOption.Sports_Profiles && (
-                                <TouchableOpacity
-                                    onPress={_handleSettings}
-                                    style={styles.followBtn}>
-                                    <FontAwesome6 name="gear" size={15} color="white"/>
-                                    <Text style={{
-                                        color: 'white',
-                                        fontSize: 16,
-                                        marginLeft: 10,
-                                        fontWeight: 'bold'
-                                    }}>Settings</Text>
-                                </TouchableOpacity>
-                            )}
+                            {selectOption !== MenuOption.Childrens &&<TouchableOpacity
+                                onPress={_handleSettings}
+                                style={styles.followBtn}>
+                                <FontAwesome6 name="gear" size={15} color="white"/>
+                                <Text style={{
+                                    color: 'white',
+                                    fontSize: 16,
+                                    marginLeft: 10,
+                                    fontWeight: 'bold'
+                                }}>Settings</Text>
+                            </TouchableOpacity>}
                         </View>
                     </ScrollView>
                 </View>

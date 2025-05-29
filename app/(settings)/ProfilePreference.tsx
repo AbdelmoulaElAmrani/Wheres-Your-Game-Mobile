@@ -117,16 +117,14 @@ const ProfilePreference = () => {
                                 <Text style={styles.textLabel}>Bio</Text>
                                 <TextInput
                                     style={styles.textArea}
-                                    placeholder="Enter your bio here..."
+                                    placeholder="Type your bio here..."
                                     placeholderTextColor="gray"
-                                    multiline={true}
+                                    multiline
                                     numberOfLines={3}
-                                    onChangeText={(text) => {
-                                        // Prevent manual line breaks
-                                        const formattedText = text.replace(/\n/g, ' '); // Replace new lines with spaces
-                                        setFormData((prev: any) => ({...prev, bio: formattedText}));
-                                    }}
                                     value={formData.bio}
+                                    onChangeText={(text) => {
+                                        setFormData((prev: any) => ({...prev, bio: text}));
+                                    }}
                                     textAlignVertical={'top'}
                                     returnKeyType="done"
                                     blurOnSubmit={true}
@@ -163,7 +161,8 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 5,
         borderBottomLeftRadius: 5,
         borderColor: '#D3D3D3',
-        borderWidth: 1
+        borderWidth: 1,
+        paddingLeft: 10
     },
     textLabel: {
         fontWeight: 'bold',
@@ -174,19 +173,15 @@ const styles = StyleSheet.create({
         padding: 10
     },
     textArea: {
-        backgroundColor: 'white',
-        height: 150,
-        padding: 10,
+        height: hp(20),
         borderColor: '#ccc',
         borderWidth: 1,
-        borderRadius: 5,
-        marginTop: 10,
-        ...(Platform.OS === "android"
-            ? { textAlignVertical: "top" }
-            : { paddingTop: 15 }),
+        borderRadius: 12,
+        padding: 10,
         fontSize: 16,
-        lineHeight: 24,
-        overflow: 'hidden'
+        backgroundColor: '#F9F9F9',
+        marginTop: 10,
+        textAlignVertical: 'top'
     },
 });
 

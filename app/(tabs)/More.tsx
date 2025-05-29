@@ -16,12 +16,11 @@ import {removePushToken} from "@/services/pushNotificationService";
 const More = () => {
     const dispatch = useDispatch();
     const currentUser: any = useSelector((state: any) => state.user.userData);
-    console.log('More tab currentUser:', currentUser);
     const _router = useRouter();
 
     const _handleLogout = async () => {
         try {
-            const token = await LocalStorageService.getItem('expoPushToken');
+            const token = await LocalStorageService.getItem<string>('expoPushToken');
             if (token) {
                 await removePushToken(token);
                 await LocalStorageService.removeItem('expoPushToken')

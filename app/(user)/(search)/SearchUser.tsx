@@ -63,7 +63,8 @@ const SearchUser = () => {
             const userTypeValue = UserType[param];
             // @ts-ignore
             const isDefault = param == UserType.DEFAULT;
-            setParenting(isDefault);
+            const isParent = userTypeValue === UserType.PARENT;
+            setParenting(isParent);
 
             setSearchType(isDefault ? UserType.PLAYER : userTypeValue);
         } else {
@@ -117,7 +118,7 @@ const SearchUser = () => {
         let data: UserSearchResponse[] | undefined;
         setLoading(true);
         if (isParenting) {
-            data = await UserService.SearchUsersByFullName(searchName, searchType);
+            data = await UserService.SearchUsersByFullName(searchName, UserType.PLAYER, isParenting);
         } else {
             data = await UserService.SearchUsersByFullName(searchName, searchType);
         }
@@ -140,8 +141,6 @@ const SearchUser = () => {
         }
     }
     const _onSendInvitationToCoachFromOrganization = async (coachId: string) => {
-        //TODO:: call the back end
-        console.log('inviting coach', coachId);
         const res : boolean = await OrganizationService.sendCoachInviteRequest(coachId);
         if (!res) {
             Alert.alert('Error', 'Failed to send the invitation request. Please try again.');
@@ -534,7 +533,7 @@ const styles = StyleSheet.create({
     },
     inputStyle: {
         backgroundColor: 'white',
-        height: 50,
+        height: 63,
         fontSize: 16,
         marginTop: 10,
         color: 'black',
