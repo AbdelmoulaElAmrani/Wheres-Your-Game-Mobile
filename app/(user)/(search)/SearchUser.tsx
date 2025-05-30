@@ -197,10 +197,8 @@ const SearchUser = () => {
     }
 
     const _renderUserItem = ({item}: { item: UserSearchResponse }) => {
-        console.log('search type => ', item);
         const canSendRequest = (((searchType == UserType.COACH && currentUser.role == UserType[UserType.ORGANIZATION]) && (!item.yourCoach && !item.coachPending))
         || (isParenting && !item.parent && !item.parentPending) || (!isParenting && !(searchType == UserType.COACH && currentUser.role == UserType[UserType.ORGANIZATION]) && !item.friend))
-        console.log(canSendRequest);
         return (
             <View style={styles.userItem}>
                 <View style={{flexDirection: 'row', alignItems: 'center'}}>

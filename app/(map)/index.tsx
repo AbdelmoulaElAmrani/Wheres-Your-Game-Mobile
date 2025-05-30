@@ -1,4 +1,17 @@
-import {Alert, Keyboard, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, Image, Linking, Clipboard} from "react-native";
+import {
+    Alert,
+    Keyboard,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    ActivityIndicator,
+    Image,
+    Linking,
+    Clipboard,
+    Platform
+} from "react-native";
 import MapView, {PROVIDER_GOOGLE, Circle, Marker, Callout} from "react-native-maps";
 import {StatusBar} from "expo-status-bar";
 import React, {useEffect, useRef, useState} from "react";
@@ -15,6 +28,7 @@ import {getSports} from "@/redux/SportSlice";
 import { TrainingLocationService } from "@/services/TrainingLocationService";
 import { TrainingLocation } from "@/models/TrainingLocation";
 import { TextInput } from "react-native";
+import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
 
 enum Filters {
     SPORT,
@@ -460,7 +474,8 @@ const SportMap = () => {
                 </View>
             )}
 
-            <Modal 
+            <Modal
+                avoidKeyboard={true}
                 backdropOpacity={0.5} 
                 onDismiss={_hideModal} 
                 isVisible={modalVisible}
@@ -477,7 +492,10 @@ const SportMap = () => {
                             <AntDesign name="close" size={24} color="black"/>
                         </TouchableOpacity>
                     </View>
-                    <ScrollView
+                    <KeyboardAwareScrollView
+                        enableOnAndroid={true}
+                        keyboardShouldPersistTaps="handled"
+                        extraScrollHeight={Platform.OS === 'ios' ? 100 : 0}
                         showsVerticalScrollIndicator={false}
                         style={styles.modalScrollView}>
                         <List.Section>
@@ -570,7 +588,7 @@ const SportMap = () => {
                                 </View>
                             </List.Accordion>
                         </List.Section>
-                    </ScrollView>
+                    </KeyboardAwareScrollView>
 
                     <TouchableOpacity 
                         style={styles.applyButton}
