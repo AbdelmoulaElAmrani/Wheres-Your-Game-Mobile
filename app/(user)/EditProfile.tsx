@@ -205,13 +205,11 @@ const EditProfile = () => {
         }
         fetchSport();
         // Debug log after dispatch
-        console.log('Dispatched getUserProfile, userData:', userData);
     }, []);
 
     useEffect(() => {
         if (user?.id == '' || user?.id == undefined || user?.id != userData?.id) {
             setUser(userData);
-            console.log('Set user from userData:', userData);
         } else {
             dispatch(getUserSports(userData.id) as any);
         }
@@ -1283,11 +1281,12 @@ const styles = StyleSheet.create({
         shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
-        elevation: 5
+        elevation: 5,
     },
     iconStyle: {
         width: 20,
-        height: 20
+        height: 20,
+        marginRight: 10
     },
     selectedStyle: {
         borderRadius: 15,
