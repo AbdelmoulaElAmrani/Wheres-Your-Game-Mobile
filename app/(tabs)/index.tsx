@@ -150,6 +150,7 @@ const Home = () => {
             const result = await TeamService.getUserTeams(userId, sportId, organizationId);
             setSelectedProfile(prev => ({...prev, teams: result}));
         } catch (e) {
+            setSelectedProfile(prev => ({...prev, teams: []}));
             console.error('_getMyTeams', e);
         } finally {
             setSelectedTeam(undefined);
@@ -200,6 +201,7 @@ const Home = () => {
     }
 
     const _onOpenAdRequest = () => {
+        // @ts-ignore
         router.navigate('/(organization)');
     }
 
@@ -213,7 +215,6 @@ const Home = () => {
 
     const _resetSelectedSport = () => {
         setSelectedSport(undefined);
-
         setSelectedCoach(undefined);
         setSelectedProfile(prev => ({...prev, coaches: [], teams: []}));
 
@@ -229,6 +230,7 @@ const Home = () => {
                 setSelectedSport(id);
                 const data = await OrganizationService.getAllCoachesOfThisSport(userData.id, id);
                 setSelectedProfile(prev => ({...prev, coaches: data}));
+                _resetSelectedCoach();
             }
         }
     }
@@ -250,6 +252,7 @@ const Home = () => {
                 await _getMyTeams(coach.id, selectedSport);
             } catch (e) {
                 console.error(e);
+            } finally {
             }
         }
     }

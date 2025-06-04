@@ -318,6 +318,7 @@ export const ProfileV2 = () => {
                                                 <Text style={styles.sectionTitle}> </Text>
                                                 <TouchableOpacity 
                                                     style={styles.manageButton}
+                                                    //@ts-ignore
                                                     onPress={() => router.push('/(user)/ManageTrainingLocations')}>
                                                     <Text style={styles.manageButtonText}>Manage Training Locations</Text>
                                                 </TouchableOpacity>
@@ -339,17 +340,13 @@ export const ProfileV2 = () => {
                                         </View>
                                     )}
                                     <View style={styles.sportsList}>
-                                    
                                         {userSport?.map((sport, index) => (
-                                            
                                             <View key={index} style={styles.sportItem}>
                                                 <Text style={styles.sportName}>{sport.sportName}</Text>
                                                 <Text style={styles.sportLevel}>Level: {sport.sportLevel}</Text>
                                             </View>
                                         ))}
                                     </View>
-                                    
-                                  
                                 </View>
                             </>}
                             {selectOption === MenuOption.Childrens &&
@@ -386,7 +383,8 @@ export const ProfileV2 = () => {
                                         )}
                                     />
                                 </View>}
-                            {selectOption !== MenuOption.Childrens &&<TouchableOpacity
+                            {selectOption !== MenuOption.Childrens && selectOption !== MenuOption.Sports_Profiles &&
+                                <TouchableOpacity
                                 onPress={_handleSettings}
                                 style={styles.followBtn}>
                                 <FontAwesome6 name="gear" size={15} color="white"/>
