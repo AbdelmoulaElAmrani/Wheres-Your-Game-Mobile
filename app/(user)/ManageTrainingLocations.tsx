@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Modal, TextInput, Keyboard, FlatList} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Modal, TextInput, Keyboard, FlatList, KeyboardAvoidingView, Platform} from 'react-native';
 import {Stack, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import { TrainingLocationService } from '@/services/TrainingLocationService';
@@ -427,14 +427,19 @@ const ManageTrainingLocations = () => {
                     animationType="slide"
                     transparent={true}
                     onRequestClose={handleCloseModal}>
-                    <TouchableOpacity 
-                        style={styles.modalOverlay}
-                        activeOpacity={1}
-                        onPress={() => {
-                            Keyboard.dismiss();
-                            handleCloseModal();
-                        }}>
-                        <View style={styles.modalContent}>
+                    <View style={styles.modalOverlay}>
+                        <TouchableOpacity
+                            style={{flex: 1}}
+                            activeOpacity={1}
+                            onPress={() => {
+                                Keyboard.dismiss();
+                                handleCloseModal();
+                            }}
+                        />
+                        <KeyboardAvoidingView
+                            behavior={Platform.OS === "ios" ? "padding" : "height"}
+                            style={styles.modalContent}
+                        >
                             <View style={styles.modalHeader}>
                                 <Text style={styles.modalTitle}>
                                     {editingLocation ? 'Edit Location' : 'Add New Location'}
@@ -552,8 +557,8 @@ const ManageTrainingLocations = () => {
                                     {editingLocation ? 'Save Changes' : 'Add Location'}
                                 </Text>
                             </TouchableOpacity>
-                        </View>
-                    </TouchableOpacity>
+                        </KeyboardAvoidingView>
+                    </View>
                 </Modal>
             </SafeAreaView>
         </ImageBackground>

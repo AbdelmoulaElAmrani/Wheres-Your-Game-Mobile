@@ -8,6 +8,7 @@ export interface TrainingLocation {
         id: string;
         name: string;
     };
+    sportName?: string;
     active: boolean;
     deleted: boolean;
     createdAt: string;
