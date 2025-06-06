@@ -1,16 +1,13 @@
-import axios, {AxiosError, AxiosResponse} from 'axios';
+import axios, {AxiosError, AxiosRequestHeaders, AxiosResponse} from 'axios';
 import {AuthService} from './AuthService';
 import {router} from 'expo-router';
 import {logout} from "@/redux/UserSlice";
 import {API_URI, AXIOS_TIMEOUT} from "@/appConfig";
 import TokenManager from "@/services/TokenManager";
-
-
 let store: any;
 export const injectStoreIntoAxios = (_store: any) => {
     store = _store;
 }
-
 const axiosInstance = axios.create({
     baseURL: API_URI,
     headers: {
@@ -21,21 +18,25 @@ const axiosInstance = axios.create({
 // Request Interceptor
 axiosInstance.interceptors.request.use(
     async (config) => {
-        let accessToken: string | null = '';
-        if (config.url?.includes('refreshtoken')) {
-            accessToken = await TokenManager.getRefreshToken();
-        } else {
-            accessToken = await TokenManager.getAccessToken();
+        const isRefreshToken = config.url?.includes('refreshtoken');
+        const isStorageRequest = config.url?.includes('storage');
+        const accessToken: string | null = isRefreshToken
+            ? await TokenManager.getRefreshToken()
+            : await TokenManager.getAccessToken();
+
+        if (!config.headers) {
+            config.headers = {} as AxiosRequestHeaders;
         }
+
         if (accessToken) {
-            config.headers.Authorizations = `Bearer ${accessToken}`;
-            config.headers = {...config.headers, Authorizations: `Bearer ${accessToken}`} as any;
+            (config.headers as AxiosRequestHeaders)['Authorizations'] = `Bearer ${accessToken}`;
         }
-        if (config.url?.includes('storage')) {
-            config.headers['Content-Type'] = 'multipart/form-data';
+
+        if (isStorageRequest) {
+            (config.headers as AxiosRequestHeaders)['Content-Type'] = 'multipart/form-data';
         } else {
-            config.headers.Accept = 'application/json';
-            config.headers["Content-Type"] = 'application/json';
+            (config.headers as AxiosRequestHeaders)['Accept'] = 'application/json';
+            (config.headers as AxiosRequestHeaders)['Content-Type'] = 'application/json';
         }
         return config
     },
@@ -43,30 +44,29 @@ axiosInstance.interceptors.request.use(
         return Promise.reject(error);
     }
 );
-
 // Response Interceptor
 axiosInstance.interceptors.response.use(
     (response: AxiosResponse) => response,
     async (error: AxiosError) => {
         const originalRequest = error.config;
         // @ts-ignore
-        if (error.response.status === 401 && !originalRequest['_retry']) {
+        if (error.response.status === 401 && originalRequest && !originalRequest._retry) {
             // @ts-ignore
-            originalRequest['_retry'] = true;
+            (originalRequest as any)._retry = true;
             try {
                 const newAccessToken = await AuthService.refreshToken();
                 if (newAccessToken) {
-                    if (error.config && error.config.headers) {
-                        error.config.headers['Authorizations'] = `Bearer ${newAccessToken}`;
-                        return axiosInstance.request(error.config);
+                    if (originalRequest.headers?.set) {
+                        originalRequest.headers.set('Authorizations', `Bearer ${newAccessToken}`);
+                    } else if (originalRequest.headers) {
+                        (originalRequest.headers as any)['Authorizations'] = `Bearer ${newAccessToken}`;
                     }
+                    return axiosInstance(originalRequest);
                 }
-            } catch (err) {
-            }
-        } else {
-            if (error?.response?.status !== 500 && error?.response?.status !== 408 && error?.response?.status !== 502) {
+            } catch (refreshError) {
                 store.dispatch(logout({}));
-                router.replace("/Login");
+                router.replace('/Login');
+                return Promise.reject(refreshError);
             }
         }
     }
@@ -74,52 +74,40 @@ axiosInstance.interceptors.response.use(
 
 
 const handleErrors = async (err: AxiosError) => {
-    if (err && err.response && err.response.status === 401) {
+    if (err.response?.status === 401) {
+        console.warn('Unauthorized (401) — logging out user.');
         store.dispatch(logout({}));
-        router.replace("/Login");
+        router.replace('/Login');
+    } else {
+        console.error('Axios error:', err);
     }
     return err;
 };
 
 
+const request = async <T = any>(
+    method: 'get' | 'post' | 'put' | 'delete',
+    url: string,
+    body?: any
+): Promise<AxiosResponse<T>> => {
+    try {
+        const response = await axiosInstance.request<T>({
+            method,
+            url,
+            ...(body && { data: body }),
+        });
+        return response;
+    } catch (error: any) {
+        await  handleErrors(error);
+        throw error;
+    }
+};
+
 const Requests = {
-
-    get: async (url: string): Promise<any> => {
-        try {
-            const response = await axiosInstance.get(url);
-            return response;
-        } catch (error: any) {
-            return handleErrors(error);
-        }
-    },
-
-    post: async (url: string, body: any): Promise<any> => {
-        try {
-            const response = await axiosInstance.post(url, body);
-            return response;
-        } catch (error: any) {
-            return handleErrors(error);
-        }
-    },
-
-    put: async (url: string, body: any): Promise<any> => {
-        try {
-            const response = await axiosInstance.put(url, body);
-            return response
-        } catch (error: any) {
-            return handleErrors(error);
-        }
-    },
-
-    delete: async (url: string): Promise<any> => {
-        try {
-            const response = await axiosInstance.delete(url);
-            return response;
-        } catch (error: any) {
-            return handleErrors(error);
-        }
-    },
+    get: <T = any>(url: string) => request<T>('get', url),
+    post: <T = any>(url: string, body: any) => request<T>('post', url, body),
+    put: <T = any>(url: string, body: any) => request<T>('put', url, body),
+    delete: <T = any>(url: string) => request<T>('delete', url),
 };
 
 export default Requests;
-

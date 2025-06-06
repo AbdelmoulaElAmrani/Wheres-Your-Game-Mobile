@@ -12,7 +12,7 @@ export class NotificationService {
         }
     }
 
-    static async markNotificationAsRead(requestId: string) {
-        await Requests.post(`notification/markAsRead/${requestId}`, {});
+    static async markNotificationAsRead(notificationId: string) {
+        await Requests.post(`notification/markAsRead/${notificationId}`, {});
     }
 }

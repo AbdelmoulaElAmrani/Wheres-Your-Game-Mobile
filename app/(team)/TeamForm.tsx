@@ -197,6 +197,8 @@ function TeamForm() {
                 <View style={styles.cardContainer}>
                     <KeyboardAwareScrollView
                         contentContainerStyle={{paddingBottom: 90}}
+                        extraHeight={hp(10)}
+                        enableOnAndroid={true}
                         style={{flex: 1}}>
                         <View style={styles.formContainer}>
                             <Text style={styles.title}>{isAddTeam ? 'Create Team' : 'Edit Team'}</Text>
@@ -220,6 +222,7 @@ function TeamForm() {
                                                    editable={false}/>
                                     ) : (
                                         <RNPickerSelect
+                                            useNativeAndroidPickerStyle={false}
                                             style={{
                                                 inputIOS: [styles.inputStyle, {paddingLeft: 15}],
                                                 inputAndroid: [styles.inputStyle, {paddingLeft: 15}]

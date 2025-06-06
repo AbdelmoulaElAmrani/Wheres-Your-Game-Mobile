@@ -117,7 +117,9 @@ const EditCoachProfile = () => {
         return (
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <>
-                    <KeyboardAwareScrollView style={{flex: 1}}
+                    <KeyboardAwareScrollView
+                        enableOnAndroid={true}
+                        style={{flex: 1}}
                                              contentContainerStyle={{flexGrow: 1}}
                                              keyboardShouldPersistTaps="handled">
 

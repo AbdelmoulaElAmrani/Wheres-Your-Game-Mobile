@@ -474,12 +474,6 @@ const ManageTrainingLocations = () => {
                                         ]}>
                                         {userSports && userSports.map((sport: UserSportResponse) => {
                                             const isSelected = newLocation.sport.id === sport.sportId;
-                                            console.log('Sport item:', {
-                                                sportId: sport.sportId,
-                                                sportName: sport.sportName,
-                                                isSelected,
-                                                currentSportId: newLocation.sport.id
-                                            });
                                             return (
                                                 <List.Item
                                                     key={sport.id}

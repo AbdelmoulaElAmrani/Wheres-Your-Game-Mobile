@@ -318,6 +318,7 @@ export const ProfileV2 = () => {
                                                 <Text style={styles.sectionTitle}> </Text>
                                                 <TouchableOpacity 
                                                     style={styles.manageButton}
+                                                    //@ts-ignore
                                                     onPress={() => router.push('/(user)/ManageTrainingLocations')}>
                                                     <Text style={styles.manageButtonText}>Manage Training Locations</Text>
                                                 </TouchableOpacity>
@@ -325,21 +326,17 @@ export const ProfileV2 = () => {
                                     </View>
                                     )}
                                     <View style={styles.sportsList}>
-                                    
                                         {userSport?.map((sport, index) => (
-                                            
                                             <View key={index} style={styles.sportItem}>
                                                 <Text style={styles.sportName}>{sport.sportName}</Text>
                                                 <Text style={styles.sportLevel}>Level: {sport.sportLevel}</Text>
                                             </View>
                                         ))}
                                     </View>
-                                    
-                                  
                                 </View>
                             </>}
                             {selectOption === MenuOption.Childrens &&
-                                <View style={{width: '100%'}}>
+                                <View style={{width: '100%', flex: 1}}>
                                     <FlatList
                                         data={currentUser?.children}
                                         numColumns={3}
@@ -347,9 +344,9 @@ export const ProfileV2 = () => {
                                         scrollEnabled={false}
                                         contentContainerStyle={{
                                             justifyContent: 'space-around',
-                                            paddingHorizontal: 10, // Adjust to control horizontal spacing
                                         }}
                                         columnWrapperStyle={{
+                                            marginTop: 5,
                                             justifyContent: 'space-around', // Space between items in a row
                                         }}
                                         renderItem={({item}) => (
