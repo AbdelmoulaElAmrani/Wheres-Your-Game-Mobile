@@ -323,21 +323,7 @@ export const ProfileV2 = () => {
                                                     <Text style={styles.manageButtonText}>Manage Training Locations</Text>
                                                 </TouchableOpacity>
                                             </View>
-                                            {/* <View style={styles.locationsList}>
-                                                This will be populated with actual locations data
-                                                {(userSport[0]?.trainingLocations && userSport[0].trainingLocations.length > 0) ? (
-                                                    <Text style={styles.noLocationsText}>
-                                                        You currently have {userSport[0].trainingLocations.length} location{userSport[0].trainingLocations.length > 1 ? 's' : ''}.
-                                                    </Text>
-                                                ) : (currentUser?.trainingLocations && currentUser.trainingLocations.length > 0) ? (
-                                                    <Text style={styles.noLocationsText}>
-                                                        You currently have {currentUser.trainingLocations.length} location{currentUser.trainingLocations.length > 1 ? 's' : ''}.
-                                                    </Text>
-                                                ) : (
-                                                    <Text style={styles.noLocationsText}>No training locations added yet</Text>
-                                                )}
-                                            </View> */}
-                                        </View>
+                                    </View>
                                     )}
                                     <View style={styles.sportsList}>
                                         {userSport?.map((sport, index) => (
@@ -383,18 +369,33 @@ export const ProfileV2 = () => {
                                         )}
                                     />
                                 </View>}
-                            {selectOption !== MenuOption.Childrens && selectOption !== MenuOption.Sports_Profiles &&
+                            {selectOption === MenuOption.Videos ? (
                                 <TouchableOpacity
-                                onPress={_handleSettings}
-                                style={styles.followBtn}>
-                                <FontAwesome6 name="gear" size={15} color="white"/>
-                                <Text style={{
-                                    color: 'white',
-                                    fontSize: 16,
-                                    marginLeft: 10,
-                                    fontWeight: 'bold'
-                                }}>Settings</Text>
-                            </TouchableOpacity>}
+                                    onPress={_showSocialMediaCard}
+                                    style={styles.followBtn}>
+                                    <FontAwesome6 name="link" size={15} color="white"/>
+                                    <Text style={{
+                                        color: 'white',
+                                        fontSize: 16,
+                                        marginLeft: 10,
+                                        fontWeight: 'bold'
+                                    }}>Edit Links</Text>
+                                </TouchableOpacity>
+                            ) : (
+                                selectOption === MenuOption.Overview && (
+                                    <TouchableOpacity
+                                        onPress={_handleSettings}
+                                        style={styles.followBtn}>
+                                        <FontAwesome6 name="gear" size={15} color="white"/>
+                                        <Text style={{
+                                            color: 'white',
+                                            fontSize: 16,
+                                            marginLeft: 10,
+                                            fontWeight: 'bold'
+                                        }}>Settings</Text>
+                                    </TouchableOpacity>
+                                )
+                            )}
                         </View>
                     </ScrollView>
                 </View>

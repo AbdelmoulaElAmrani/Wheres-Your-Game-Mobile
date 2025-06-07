@@ -437,7 +437,7 @@ const Home = () => {
                         <View style={styles.sideHiderContainer}>
                             <TouchableOpacity
                                 onPress={_onOpenNotification}
-                                style={{marginRight: 20}}>
+                                style={{marginRight: 5}}>
                                 <Fontisto name={newNotif ? "bell-alt" : "bell"} size={30}
                                           color={newNotif ? "red" : "white"}/>
                             </TouchableOpacity>
@@ -548,10 +548,10 @@ const Home = () => {
                                 style={styles.tag}>
                                 <Text style={styles.tagText}>Add Player</Text>
                             </TouchableOpacity>}
-                            {isCoach() && <TouchableOpacity
+                            {/* {isCoach() && <TouchableOpacity
                                 onPress={_onAddTeam} style={styles.tag}>
                                 <Text style={styles.tagText}>Add Team</Text>
-                            </TouchableOpacity>}
+                            </TouchableOpacity>} */}
                             <TouchableOpacity onPress={_onOpenMap} style={styles.tag}>
                                 <Text style={styles.tagText}>Map View</Text>
                             </TouchableOpacity>
