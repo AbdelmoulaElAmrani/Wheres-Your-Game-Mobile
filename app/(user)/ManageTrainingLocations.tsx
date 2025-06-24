@@ -11,6 +11,7 @@ import { List } from 'react-native-paper';
 import { getUserSports } from '@/redux/UserSlice';
 import { UserSportResponse } from '@/models/responseObjects/UserSportResponse';
 import Requests from '@/services/Requests';
+import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
 
 const GOOGLE_PLACES_API_KEY = "AIzaSyDlFo6upaajnGewXn4DX4-naBhsWPcn8VE";
 
@@ -35,6 +36,13 @@ const ManageTrainingLocations = () => {
     const [selectedResult, setSelectedResult] = useState<any | null>(null);
     const [editingLocation, setEditingLocation] = useState<TrainingLocation | null>(null);
     const [expandedSport, setExpandedSport] = useState(false);
+    const [showStyledAlert, setShowStyledAlert] = useState(false);
+    const [alertConfig, setAlertConfig] = useState({
+        title: '',
+        message: '',
+        onConfirm: () => {},
+        onCancel: () => {}
+    });
     const user = useSelector((state: any) => state.user.userData);
     const userSports = useSelector((state: any) => state.user.userSport);
 
@@ -89,6 +97,11 @@ const ManageTrainingLocations = () => {
             const data = await response.json();
             if (data.results && data.results.length > 0) {
                 setSearchResults(data.results);
+                
+                // If there's only one result, automatically select it
+                if (data.results.length === 1) {
+                    handleSelectResult(data.results[0]);
+                }
             } else {
                 Alert.alert('No results', 'No address found. Please try again.');
             }
@@ -111,7 +124,17 @@ const ManageTrainingLocations = () => {
 
     const handleAddLocation = async () => {
         if (!newLocation.name || !selectedResult || !newLocation.sport.id) {
-            Alert.alert('Error', 'Please fill in all fields and select an address and sport');
+            if (Platform.OS === 'android') {
+                setAlertConfig({
+                    title: 'Error',
+                    message: 'Please fill in all fields and select an address and sport',
+                    onConfirm: () => setShowStyledAlert(false),
+                    onCancel: () => setShowStyledAlert(false)
+                });
+                setShowStyledAlert(true);
+            } else {
+                Alert.alert('Error', 'Please fill in all fields and select an address and sport');
+            }
             return;
         }
 
@@ -122,10 +145,20 @@ const ManageTrainingLocations = () => {
         );
 
         if (isDuplicate) {
-            Alert.alert(
-                'Cannot Add Location',
-                'A location with this address and sport already exists.'
-            );
+            if (Platform.OS === 'android') {
+                setAlertConfig({
+                    title: 'Cannot Add Location',
+                    message: 'A location with this address and sport already exists.',
+                    onConfirm: () => setShowStyledAlert(false),
+                    onCancel: () => setShowStyledAlert(false)
+                });
+                setShowStyledAlert(true);
+            } else {
+                Alert.alert(
+                    'Cannot Add Location',
+                    'A location with this address and sport already exists.'
+                );
+            }
             return;
         }
         
@@ -154,48 +187,120 @@ const ManageTrainingLocations = () => {
                 });
                 setSelectedResult(null);
                 setSearchResults([]);
-                Alert.alert('Success', 'Location added successfully');
+                if (Platform.OS === 'android') {
+                    setAlertConfig({
+                        title: 'Success',
+                        message: 'Location added successfully',
+                        onConfirm: () => setShowStyledAlert(false),
+                        onCancel: () => setShowStyledAlert(false)
+                    });
+                    setShowStyledAlert(true);
+                } else {
+                    Alert.alert('Success', 'Location added successfully');
+                }
             } else {
-                Alert.alert('Error', 'No location returned from API');
+                if (Platform.OS === 'android') {
+                    setAlertConfig({
+                        title: 'Error',
+                        message: 'No location returned from API',
+                        onConfirm: () => setShowStyledAlert(false),
+                        onCancel: () => setShowStyledAlert(false)
+                    });
+                    setShowStyledAlert(true);
+                } else {
+                    Alert.alert('Error', 'No location returned from API');
+                }
             }
         } catch (error) {
             console.error('Error adding location:', error);
-            Alert.alert('Error', 'Failed to add location');
+            if (Platform.OS === 'android') {
+                setAlertConfig({
+                    title: 'Error',
+                    message: 'Failed to add location',
+                    onConfirm: () => setShowStyledAlert(false),
+                    onCancel: () => setShowStyledAlert(false)
+                });
+                setShowStyledAlert(true);
+            } else {
+                Alert.alert('Error', 'Failed to add location');
+            }
         } finally {
             setIsLoading(false);
         }
     };
 
     const handleDeleteLocation = async (id: string) => {
-        Alert.alert(
-            "Delete Location",
-            "Are you sure you want to delete this location?",
-            [
-                {
-                    text: "Cancel",
-                    style: "cancel"
+        if (Platform.OS === 'android') {
+            // Custom styled alert for Android
+            setAlertConfig({
+                title: 'Delete Location',
+                message: 'Are you sure you want to delete this location?',
+                onConfirm: async () => {
+                    try {
+                        setIsLoading(true);
+                        const success = await TrainingLocationService.deleteTrainingLocation(id);
+                        if (success) {
+                            setLocations(locations.filter(loc => loc.id !== id));
+                            setShowStyledAlert(false);
+                            // Show success alert
+                            setAlertConfig({
+                                title: 'Success',
+                                message: 'Location deleted successfully',
+                                onConfirm: () => setShowStyledAlert(false),
+                                onCancel: () => setShowStyledAlert(false)
+                            });
+                            setShowStyledAlert(true);
+                        }
+                    } catch (error) {
+                        console.error('Error deleting location:', error);
+                        setShowStyledAlert(false);
+                        // Show error alert
+                        setAlertConfig({
+                            title: 'Error',
+                            message: 'Failed to delete location',
+                            onConfirm: () => setShowStyledAlert(false),
+                            onCancel: () => setShowStyledAlert(false)
+                        });
+                        setShowStyledAlert(true);
+                    } finally {
+                        setIsLoading(false);
+                    }
                 },
-                {
-                    text: "Delete",
-                    style: "destructive",
-                    onPress: async () => {
-                        try {
-                            setIsLoading(true);
-                            const success = await TrainingLocationService.deleteTrainingLocation(id);
-                            if (success) {
-                                setLocations(locations.filter(loc => loc.id !== id));
-                                Alert.alert('Success', 'Location deleted successfully');
+                onCancel: () => setShowStyledAlert(false)
+            });
+            setShowStyledAlert(true);
+        } else {
+            // Native Alert for iOS
+            Alert.alert(
+                "Delete Location",
+                "Are you sure you want to delete this location?",
+                [
+                    {
+                        text: "Cancel",
+                        style: "cancel"
+                    },
+                    {
+                        text: "Delete",
+                        style: "destructive",
+                        onPress: async () => {
+                            try {
+                                setIsLoading(true);
+                                const success = await TrainingLocationService.deleteTrainingLocation(id);
+                                if (success) {
+                                    setLocations(locations.filter(loc => loc.id !== id));
+                                    Alert.alert('Success', 'Location deleted successfully');
+                                }
+                            } catch (error) {
+                                console.error('Error deleting location:', error);
+                                Alert.alert('Error', 'Failed to delete location');
+                            } finally {
+                                setIsLoading(false);
                             }
-                        } catch (error) {
-                            console.error('Error deleting location:', error);
-                            Alert.alert('Error', 'Failed to delete location');
-                        } finally {
-                            setIsLoading(false);
                         }
                     }
-                }
-            ]
-        );
+                ]
+            );
+        }
     };
 
     const handleEditLocation = (location: TrainingLocation) => {
@@ -241,7 +346,17 @@ const ManageTrainingLocations = () => {
 
     const handleSaveEdit = async () => {
         if (!selectedResult || !editingLocation || !newLocation.sport.id) {
-            Alert.alert('Error', 'Please select a valid address and sport');
+            if (Platform.OS === 'android') {
+                setAlertConfig({
+                    title: 'Error',
+                    message: 'Please select a valid address and sport',
+                    onConfirm: () => setShowStyledAlert(false),
+                    onCancel: () => setShowStyledAlert(false)
+                });
+                setShowStyledAlert(true);
+            } else {
+                Alert.alert('Error', 'Please select a valid address and sport');
+            }
             return;
         }
 
@@ -276,48 +391,115 @@ const ManageTrainingLocations = () => {
                 setSelectedResult(null);
                 setSearchResults([]);
                 setEditingLocation(null);
-                Alert.alert('Success', 'Location updated successfully');
+                if (Platform.OS === 'android') {
+                    setAlertConfig({
+                        title: 'Success',
+                        message: 'Location updated successfully',
+                        onConfirm: () => setShowStyledAlert(false),
+                        onCancel: () => setShowStyledAlert(false)
+                    });
+                    setShowStyledAlert(true);
+                } else {
+                    Alert.alert('Success', 'Location updated successfully');
+                }
             }
         } catch (error) {
             console.error('Error updating location:', error);
-            Alert.alert('Error', 'Failed to update location');
+            if (Platform.OS === 'android') {
+                setAlertConfig({
+                    title: 'Error',
+                    message: 'Failed to update location',
+                    onConfirm: () => setShowStyledAlert(false),
+                    onCancel: () => setShowStyledAlert(false)
+                });
+                setShowStyledAlert(true);
+            } else {
+                Alert.alert('Error', 'Failed to update location');
+            }
         } finally {
             setIsLoading(false);
         }
     };
 
     const handleDeleteAllLocations = async () => {
-        Alert.alert(
-            "Delete All Locations",
-            "Are you sure you want to delete all locations? This action cannot be undone.",
-            [
-                {
-                    text: "Cancel",
-                    style: "cancel"
+        if (Platform.OS === 'android') {
+            setAlertConfig({
+                title: 'Delete All Locations',
+                message: 'Are you sure you want to delete all locations? This action cannot be undone.',
+                onConfirm: async () => {
+                    try {
+                        setIsLoading(true);
+                        const res = await Requests.delete('training-locations/all');
+                        if (res?.status === 200) {
+                            setLocations([]);
+                            setShowStyledAlert(false);
+                            setAlertConfig({
+                                title: 'Success',
+                                message: 'All locations have been deleted',
+                                onConfirm: () => setShowStyledAlert(false),
+                                onCancel: () => setShowStyledAlert(false)
+                            });
+                            setShowStyledAlert(true);
+                        } else {
+                            setShowStyledAlert(false);
+                            setAlertConfig({
+                                title: 'Error',
+                                message: 'Failed to delete all locations',
+                                onConfirm: () => setShowStyledAlert(false),
+                                onCancel: () => setShowStyledAlert(false)
+                            });
+                            setShowStyledAlert(true);
+                        }
+                    } catch (error) {
+                        console.error('Error deleting all locations:', error);
+                        setShowStyledAlert(false);
+                        setAlertConfig({
+                            title: 'Error',
+                            message: 'Failed to delete all locations',
+                            onConfirm: () => setShowStyledAlert(false),
+                            onCancel: () => setShowStyledAlert(false)
+                        });
+                        setShowStyledAlert(true);
+                    } finally {
+                        setIsLoading(false);
+                    }
                 },
-                {
-                    text: "Delete All",
-                    style: "destructive",
-                    onPress: async () => {
-                        try {
-                            setIsLoading(true);
-                            const res = await Requests.delete('training-locations/all');
-                            if (res?.status === 200) {
-                                setLocations([]);
-                                Alert.alert('Success', 'All locations have been deleted');
-                            } else {
+                onCancel: () => setShowStyledAlert(false)
+            });
+            setShowStyledAlert(true);
+        } else {
+            Alert.alert(
+                "Delete All Locations",
+                "Are you sure you want to delete all locations? This action cannot be undone.",
+                [
+                    {
+                        text: "Cancel",
+                        style: "cancel"
+                    },
+                    {
+                        text: "Delete All",
+                        style: "destructive",
+                        onPress: async () => {
+                            try {
+                                setIsLoading(true);
+                                const res = await Requests.delete('training-locations/all');
+                                if (res?.status === 200) {
+                                    setLocations([]);
+                                    Alert.alert('Success', 'All locations have been deleted');
+                                } else {
+                                    Alert.alert('Error', 'Failed to delete all locations');
+                                }
+                            } catch (error) {
+                                console.error('Error deleting all locations:', error);
                                 Alert.alert('Error', 'Failed to delete all locations');
+                            } finally {
+                                setIsLoading(false);
                             }
-                        } catch (error) {
-                            console.error('Error deleting all locations:', error);
-                            Alert.alert('Error', 'Failed to delete all locations');
-                        } finally {
-                            setIsLoading(false);
                         }
                     }
-                }
-            ]
-        );
+                ]
+            );
+        }
     };
 
     const handleDuplicateLocation = (location: TrainingLocation) => {
@@ -439,6 +621,7 @@ const ManageTrainingLocations = () => {
                         <KeyboardAvoidingView
                             behavior={Platform.OS === "ios" ? "padding" : "height"}
                             style={styles.modalContent}
+                            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
                         >
                             <View style={styles.modalHeader}>
                                 <Text style={styles.modalTitle}>
@@ -448,100 +631,139 @@ const ManageTrainingLocations = () => {
                                     <Ionicons name="close" size={24} color="#666" />
                                 </TouchableOpacity>
                             </View>
-                            <View style={styles.inputContainer}>
-                                <Text style={styles.inputLabel}>Location Name</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Enter location name"
-                                    value={newLocation.name}
-                                    onChangeText={(text) => setNewLocation({...newLocation, name: text})}
-                                />
-                            </View>
-                            <View style={styles.inputContainer}>
-                                <Text style={styles.inputLabel}>Sport</Text>
-                                <List.Section>
-                                    <List.Accordion
-                                        title={newLocation.sport.id ? newLocation.sport.name : "Select a sport"}
-                                        expanded={expandedSport}
-                                        onPress={() => setExpandedSport(!expandedSport)}
-                                        style={[
-                                            styles.accordion,
-                                            newLocation.sport.id ? styles.accordionSelected : null
-                                        ]}
-                                        titleStyle={[
-                                            styles.accordionTitle,
-                                            newLocation.sport.id ? styles.accordionTitleSelected : null
-                                        ]}>
-                                        {userSports && userSports.map((sport: UserSportResponse) => {
-                                            const isSelected = newLocation.sport.id === sport.sportId;
-                                            return (
-                                                <List.Item
-                                                    key={sport.id}
-                                                    title={sport.sportName}
-                                                    onPress={() => {
-                                                        console.log('Selected sport:', sport);
-                                                        setNewLocation(prev => ({
-                                                            ...prev,
-                                                            sport: {
-                                                                id: sport.sportId,
-                                                                name: sport.sportName
-                                                            }
-                                                        }));
-                                                        setExpandedSport(false);
-                                                    }}
-                                                    style={[
-                                                        styles.sportItem,
-                                                        isSelected && styles.selectedSport
-                                                    ]}
-                                                    titleStyle={[
-                                                        styles.sportItemText,
-                                                        isSelected && styles.selectedSportText
-                                                    ]}
-                                                />
-                                            );
-                                        })}
-                                    </List.Accordion>
-                                </List.Section>
-                            </View>
-                            <View style={styles.inputContainer}>
-                                <Text style={styles.inputLabel}>Address</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Enter address"
-                                    value={newLocation.address}
-                                    onChangeText={(text) => {
-                                        setNewLocation({...newLocation, address: text});
-                                        setSelectedResult(null);
-                                        setSearchResults([]);
-                                    }}
-                                />
-                            </View>
-                            <TouchableOpacity
-                                style={[styles.modalAddButton, styles.searchButton, isVerifying && styles.disabledButton]}
-                                onPress={handleSearchAddress}
-                                disabled={isVerifying}
+                            <ScrollView 
+                                style={styles.modalScrollView}
+                                showsVerticalScrollIndicator={false}
+                                contentContainerStyle={styles.modalScrollContent}
                             >
-                                {isVerifying ? (
-                                    <ActivityIndicator size="small" color="white" />
-                                ) : (
-                                    <Text style={styles.modalAddButtonText}>Verify Address</Text>
+                                <View style={styles.inputContainer}>
+                                    <Text style={styles.inputLabel}>Location Name</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="Enter location name"
+                                        value={newLocation.name}
+                                        onChangeText={(text) => setNewLocation({...newLocation, name: text})}
+                                    />
+                                </View>
+                                <View style={styles.inputContainer}>
+                                    <Text style={styles.inputLabel}>Sport</Text>
+                                    <List.Section>
+                                        <List.Accordion
+                                            title={newLocation.sport.id ? newLocation.sport.name : "Select a sport"}
+                                            expanded={expandedSport}
+                                            onPress={() => setExpandedSport(!expandedSport)}
+                                            style={[
+                                                styles.accordion,
+                                                newLocation.sport.id ? styles.accordionSelected : null
+                                            ]}
+                                            titleStyle={[
+                                                styles.accordionTitle,
+                                                newLocation.sport.id ? styles.accordionTitleSelected : null
+                                            ]}>
+                                            {userSports && userSports.map((sport: UserSportResponse) => {
+                                                const isSelected = newLocation.sport.id === sport.sportId;
+                                                return (
+                                                    <List.Item
+                                                        key={sport.id}
+                                                        title={sport.sportName}
+                                                        onPress={() => {
+                                                            console.log('Selected sport:', sport);
+                                                            setNewLocation(prev => ({
+                                                                ...prev,
+                                                                sport: {
+                                                                    id: sport.sportId,
+                                                                    name: sport.sportName
+                                                                }
+                                                            }));
+                                                            setExpandedSport(false);
+                                                        }}
+                                                        style={[
+                                                            styles.sportItem,
+                                                            isSelected && styles.selectedSport
+                                                        ]}
+                                                        titleStyle={[
+                                                            styles.sportItemText,
+                                                            isSelected && styles.selectedSportText
+                                                        ]}
+                                                    />
+                                                );
+                                            })}
+                                        </List.Accordion>
+                                    </List.Section>
+                                </View>
+                                {!selectedResult && (
+                                    <View style={styles.inputContainer}>
+                                        <Text style={styles.inputLabel}>Address</Text>
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="Enter address"
+                                            value={newLocation.address}
+                                            onChangeText={(text) => {
+                                                setNewLocation({...newLocation, address: text});
+                                                setSelectedResult(null);
+                                                setSearchResults([]);
+                                            }}
+                                        />
+                                    </View>
                                 )}
-                            </TouchableOpacity>
-                            {searchResults.length > 0 && (
-                                <FlatList
-                                    data={searchResults}
-                                    keyExtractor={(item) => item.place_id}
-                                    renderItem={({ item }) => (
+                                {!selectedResult && (
+                                    <TouchableOpacity
+                                        style={[styles.modalAddButton, styles.searchButton, isVerifying && styles.disabledButton]}
+                                        onPress={handleSearchAddress}
+                                        disabled={isVerifying}
+                                    >
+                                        {isVerifying ? (
+                                            <ActivityIndicator size="small" color="white" />
+                                        ) : (
+                                            <Text style={styles.modalAddButtonText}>Verify Address</Text>
+                                        )}
+                                    </TouchableOpacity>
+                                )}
+                                {selectedResult && (
+                                    <View style={styles.selectedAddressContainer}>
+                                        <Text style={styles.selectedAddressLabel}>Selected Address:</Text>
+                                        <Text style={styles.selectedAddressText}>{selectedResult.formatted_address}</Text>
                                         <TouchableOpacity
-                                            style={[styles.resultItem, selectedResult?.place_id === item.place_id && styles.selectedResultItem]}
-                                            onPress={() => handleSelectResult(item)}
+                                            style={styles.changeAddressButton}
+                                            onPress={() => {
+                                                setSelectedResult(null);
+                                                setSearchResults([]);
+                                            }}
                                         >
-                                            <Text style={styles.resultText}>{item.formatted_address}</Text>
+                                            <Text style={styles.changeAddressButtonText}>Change Address</Text>
                                         </TouchableOpacity>
-                                    )}
-                                    style={styles.resultsList}
-                                />
-                            )}
+                                    </View>
+                                )}
+                                {searchResults.length > 1 && !selectedResult && (
+                                    <View style={styles.multipleResultsContainer}>
+                                        <Text style={styles.multipleResultsLabel}>Select an address from the following list:</Text>
+                                        <View style={styles.resultsList}>
+                                            {searchResults.map((item) => (
+                                                <TouchableOpacity
+                                                    key={item.place_id}
+                                                    style={[styles.resultItem, selectedResult?.place_id === item.place_id && styles.selectedResultItem]}
+                                                    onPress={() => handleSelectResult(item)}
+                                                >
+                                                    <Text style={styles.resultText}>{item.formatted_address}</Text>
+                                                </TouchableOpacity>
+                                            ))}
+                                        </View>
+                                    </View>
+                                )}
+                                {searchResults.length > 0 && selectedResult && (
+                                    <View style={styles.resultsList}>
+                                        {searchResults.map((item) => (
+                                            <TouchableOpacity
+                                                key={item.place_id}
+                                                style={[styles.resultItem, selectedResult?.place_id === item.place_id && styles.selectedResultItem]}
+                                                onPress={() => handleSelectResult(item)}
+                                            >
+                                                <Text style={styles.resultText}>{item.formatted_address}</Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+                                )}
+                            </ScrollView>
                             <TouchableOpacity 
                                 style={[styles.modalAddButton, (!selectedResult || !newLocation.sport.id || isVerifying) && styles.disabledButton]}
                                 onPress={editingLocation ? handleSaveEdit : handleAddLocation}
@@ -555,7 +777,73 @@ const ManageTrainingLocations = () => {
                     </View>
                 </Modal>
             </SafeAreaView>
+            
+            {/* Custom Styled Alert for Android */}
+            <StyledAlert
+                visible={showStyledAlert}
+                config={alertConfig}
+                onClose={() => setShowStyledAlert(false)}
+            />
         </ImageBackground>
+    );
+};
+
+// Custom Styled Alert Component for Android
+const StyledAlert = ({ visible, config, onClose }: {
+    visible: boolean;
+    config: {
+        title: string;
+        message: string;
+        onConfirm: () => void;
+        onCancel: () => void;
+    };
+    onClose: () => void;
+}) => {
+    if (!visible) return null;
+
+    return (
+        <Modal
+            transparent
+            visible={visible}
+            animationType="fade"
+            onRequestClose={onClose}
+        >
+            <View style={styles.alertOverlay}>
+                <View style={styles.alertContainer}>
+                    <View style={styles.alertContent}>
+                        <Text style={styles.alertTitle}>{config.title}</Text>
+                        <Text style={styles.alertMessage}>{config.message}</Text>
+                        
+                        <View style={[
+                            styles.alertButtonContainer,
+                            config.title !== 'Delete Location' && styles.alertSingleButtonContainer
+                        ]}>
+                            {config.title === 'Delete Location' && (
+                                <TouchableOpacity
+                                    style={[styles.alertButton, styles.alertCancelButton]}
+                                    onPress={config.onCancel}
+                                >
+                                    <Text style={styles.alertCancelButtonText}>Cancel</Text>
+                                </TouchableOpacity>
+                            )}
+                            
+                            <TouchableOpacity
+                                style={[
+                                    styles.alertButton, 
+                                    styles.alertConfirmButton,
+                                    config.title !== 'Delete Location' && styles.alertSingleButton
+                                ]}
+                                onPress={config.onConfirm}
+                            >
+                                <Text style={styles.alertConfirmButtonText}>
+                                    {config.title === 'Delete Location' ? 'Delete' : 'OK'}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </View>
+        </Modal>
     );
 };
 
@@ -593,6 +881,7 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
         padding: 15,
+        marginBottom: hp(8),
     },
     emptyState: {
         flex: 1,
@@ -621,7 +910,7 @@ const styles = StyleSheet.create({
     },
     locationsList: {
         gap: 12,
-        paddingHorizontal: 5,
+        paddingBottom: 100,
     },
     locationItem: {
         flexDirection: 'row',
@@ -712,8 +1001,9 @@ const styles = StyleSheet.create({
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.6)',
-        justifyContent: 'center',
+        justifyContent: Platform.OS === 'ios' ? 'flex-end' : 'center',
         alignItems: 'center',
+        paddingBottom: Platform.OS === 'ios' ? 80 : 0,
     },
     modalContent: {
         backgroundColor: 'white',
@@ -721,6 +1011,7 @@ const styles = StyleSheet.create({
         padding: 24,
         width: '92%',
         maxWidth: 400,
+        maxHeight: Platform.OS === 'ios' ? '85%' : '80%',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
@@ -793,7 +1084,8 @@ const styles = StyleSheet.create({
         padding: 16,
         borderRadius: 12,
         alignItems: 'center',
-        marginTop: 16,
+        marginTop: 20,
+        marginBottom: Platform.OS === 'ios' ? 20 : 0,
         shadowColor: '#2757CB',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
@@ -848,6 +1140,134 @@ const styles = StyleSheet.create({
     selectedSportText: {
         fontWeight: '600',
         color: '#2757CB',
+    },
+    selectedAddressContainer: {
+        backgroundColor: '#E8F0FE',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: '#2757CB',
+    },
+    selectedAddressLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#2757CB',
+        marginBottom: 4,
+    },
+    selectedAddressText: {
+        fontSize: 14,
+        color: '#333',
+        marginBottom: 8,
+        lineHeight: 18,
+    },
+    changeAddressButton: {
+        alignSelf: 'flex-start',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 6,
+        backgroundColor: '#2757CB',
+    },
+    changeAddressButtonText: {
+        fontSize: 14,
+        color: 'white',
+        fontWeight: '500',
+    },
+    multipleResultsContainer: {
+        marginBottom: 16,
+    },
+    multipleResultsLabel: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 4,
+    },
+    modalScrollView: {
+        maxHeight: 400,
+    },
+    modalScrollContent: {
+        paddingBottom: 20,
+    },
+    alertOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+    },
+    alertContainer: {
+        backgroundColor: 'white',
+        borderRadius: 24,
+        padding: 28,
+        width: '100%',
+        maxWidth: 380,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.25,
+        shadowRadius: 16,
+        elevation: 10,
+    },
+    alertContent: {
+        alignItems: 'center',
+    },
+    alertTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
+        marginBottom: 16,
+        textAlign: 'center',
+    },
+    alertMessage: {
+        fontSize: 16,
+        color: '#666',
+        marginBottom: 28,
+        textAlign: 'center',
+        lineHeight: 22,
+    },
+    alertButtonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+        gap: 12,
+    },
+    alertButton: {
+        flex: 1,
+        paddingVertical: 14,
+        paddingHorizontal: 20,
+        borderRadius: 12,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    alertCancelButton: {
+        backgroundColor: '#f8f9fa',
+        borderWidth: 1,
+        borderColor: '#e9ecef',
+    },
+    alertCancelButtonText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#6c757d',
+    },
+    alertConfirmButton: {
+        backgroundColor: '#2757CB',
+    },
+    alertConfirmButtonText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: 'white',
+    },
+    alertSingleButton: {
+        backgroundColor: '#2757CB',
+        maxWidth: 200,
+        alignSelf: 'center',
+    },
+    alertSingleButtonContainer: {
+        justifyContent: 'center',
     },
 });
 

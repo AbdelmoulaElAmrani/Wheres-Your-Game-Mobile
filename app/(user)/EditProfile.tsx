@@ -7,7 +7,9 @@ import {
     StyleSheet,
     TouchableOpacity,
     TouchableWithoutFeedback,
-    View
+    View,
+    Platform,
+    Modal
 } from "react-native"
 import {ImageBackground} from "expo-image";
 import {Avatar, Text, TextInput} from "react-native-paper";
@@ -149,6 +151,15 @@ const EditProfile = () => {
 
     const [sports, setSports] = useState<Sport[]>([]);
     const [selectedSports, setSelectedSports] = useState<UserInterestedSport[]>([]);
+
+    // Styled Alert State
+    const [showStyledAlert, setShowStyledAlert] = useState(false);
+    const [alertConfig, setAlertConfig] = useState({
+        title: '',
+        message: '',
+        onConfirm: () => {},
+        onCancel: () => {}
+    });
 
     const [user, setUser] = useState<UserResponse>({
         blockedByPrincipal: false, blockedByTheUser: false,
@@ -344,7 +355,17 @@ const EditProfile = () => {
             const errors = _verifyUserInfo(editUser);
 
             if (errors.length > 0) {
-                Alert.alert(errors.join('\n'));
+                if (Platform.OS === 'android') {
+                    setAlertConfig({
+                        title: 'Validation Error',
+                        message: errors.join('\n'),
+                        onConfirm: () => setShowStyledAlert(false),
+                        onCancel: () => setShowStyledAlert(false)
+                    });
+                    setShowStyledAlert(true);
+                } else {
+                    Alert.alert(errors.join('\n'));
+                }
                 return;
             }
 
@@ -401,7 +422,7 @@ const EditProfile = () => {
                                 left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
                                 value={editUser.firstName}
                                 onChangeText={(text) => setEditUser({...editUser, firstName: text})}
-                                underlineColor={"transparent"}
+                                underlineStyle={{height: 0}}
                             />
                             <Text style={styles.textLabel}>Last Name</Text>
                             <TextInput
@@ -412,8 +433,7 @@ const EditProfile = () => {
                                 left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
                                 value={editUser.lastName}
                                 onChangeText={(text) => setEditUser({...editUser, lastName: text})}
-                                underlineColor={"transparent"}
-
+                                underlineStyle={{height: 0}}
                             />
 
                             <Text style={styles.textLabel}>Email</Text>
@@ -426,8 +446,8 @@ const EditProfile = () => {
                                 left={<TextInput.Icon color={'#D3D3D3'} icon='email-outline' size={30}/>}
                                 value={editUser.email}
                                 onChangeText={(text) => setEditUser({...editUser, email: text})}
-                                underlineColor={"transparent"}
                                 disabled={true}
+                                underlineStyle={{height: 0}}
                             />
                             <Text style={styles.textLabel}>Date of Birth</Text>
                             <DatePickerModal
@@ -455,8 +475,7 @@ const EditProfile = () => {
                                 left={<TextInput.Icon color={'#D3D3D3'} icon='calendar' size={30}/>}
                                 value={editUser.dateOfBirth ? new Date(editUser.dateOfBirth).toLocaleDateString() : ''}
                                 onFocus={() => setOpen(true)}
-                                underlineColor={"transparent"}
-
+                                underlineStyle={{height: 0}}
                             />
                             <Text style={styles.textLabel}>Phone number</Text>
                             <View style={styles.mgTop}>
@@ -469,8 +488,7 @@ const EditProfile = () => {
                                     left={<TextInput.Icon color={'#D3D3D3'} icon='phone' size={30}/>}
                                     value={editUser.countryCode + editUser.phoneNumber}
                                     onFocus={() => setOpen(true)}
-                                    underlineColor={"transparent"}
-
+                                    underlineStyle={{height: 0}}
                                 />
                                 <Text style={styles.textLabel}>Address</Text>
                                 <TextInput
@@ -481,7 +499,7 @@ const EditProfile = () => {
                                     left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30}/>}
                                     value={editUser.address}
                                     onChangeText={(text) => setEditUser({...editUser, address: text})}
-                                    underlineColor={"transparent"}
+                                    underlineStyle={{height: 0}}
                                 />
 
                                 <Text style={styles.textLabel}>Zip Code</Text>
@@ -493,7 +511,7 @@ const EditProfile = () => {
                                     left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30}/>}
                                     value={editUser.zipCode}
                                     onChangeText={(text) => setEditUser({...editUser, zipCode: text})}
-                                    underlineColor={"transparent"}
+                                    underlineStyle={{height: 0}}
                                 />
                                 {userData?.role == UserType[UserType.ORGANIZATION] && <View style={{marginTop: 20}}>
                                     <Text style={{textAlign: 'center', fontWeight: 'bold'}}>Note:</Text>
@@ -609,11 +627,31 @@ const EditProfile = () => {
             }));
             if (userSport.length === 0) {
                 if (!selectedSport) {
-                    Alert.alert('Please select a sport');
+                    if (Platform.OS === 'android') {
+                        setAlertConfig({
+                            title: 'Error',
+                            message: 'Please select a sport',
+                            onConfirm: () => setShowStyledAlert(false),
+                            onCancel: () => setShowStyledAlert(false)
+                        });
+                        setShowStyledAlert(true);
+                    } else {
+                        Alert.alert('Please select a sport');
+                    }
                     return;
                 }
                 if (sportLevel === 0) {
-                    Alert.alert('Please Skill Level');
+                    if (Platform.OS === 'android') {
+                        setAlertConfig({
+                            title: 'Error',
+                            message: 'Please select Skill Level',
+                            onConfirm: () => setShowStyledAlert(false),
+                            onCancel: () => setShowStyledAlert(false)
+                        });
+                        setShowStyledAlert(true);
+                    } else {
+                        Alert.alert('Please Skill Level');
+                    }
                     return;
                 }
 
@@ -668,7 +706,7 @@ const EditProfile = () => {
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
                                     left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
-                                    underlineColor={"transparent"}
+                                    underlineStyle={{height: 0}}
                                     value={positionCoach}
                                     onChangeText={(text) => setPositionCoach(text)}
                                 />
@@ -716,7 +754,7 @@ const EditProfile = () => {
                                     placeholderTextColor={'grey'}
                                     value={editUser.bio}
                                     onChangeText={(text) => setEditUser({...editUser, bio: text})}
-                                    underlineColor={"transparent"}
+                                    underlineStyle={{height: 0}}
                                     multiline={true}
                                     numberOfLines={4}
                                 />
@@ -758,7 +796,17 @@ const EditProfile = () => {
 
             if (userSport.length === 0) {
                 if (selectedSportLevel.length === 0) {
-                    Alert.alert('Please Skill Level');
+                    if (Platform.OS === 'android') {
+                        setAlertConfig({
+                            title: 'Error',
+                            message: 'Please select Skill Level',
+                            onConfirm: () => setShowStyledAlert(false),
+                            onCancel: () => setShowStyledAlert(false)
+                        });
+                        setShowStyledAlert(true);
+                    } else {
+                        Alert.alert('Please Skill Level');
+                    }
                     return;
                 }
 
@@ -806,7 +854,7 @@ const EditProfile = () => {
                                     placeholder={'Organization Name'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
-                                    underlineColor={"transparent"}
+                                    underlineStyle={{height: 0}}
                                     value={organizationName}
                                     onChangeText={(text) => setOrganizationName(text)}
                                 />
@@ -817,7 +865,7 @@ const EditProfile = () => {
                                     disabled={true}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
-                                    underlineColor={"transparent"}
+                                    underlineStyle={{height: 0}}
                                     value={`${userData?.firstName} ${userData?.lastName}`}
                                 />
                                 <Text style={styles.textLabel}>Age group</Text>
@@ -871,7 +919,7 @@ const EditProfile = () => {
                                     placeholderTextColor={'grey'}
                                     value={editUser.bio}
                                     onChangeText={(text) => setEditUser({...editUser, bio: text})}
-                                    underlineColor={"transparent"}
+                                    underlineStyle={{height: 0}}
                                     multiline={true}
                                     numberOfLines={4}
                                 />
@@ -889,7 +937,7 @@ const EditProfile = () => {
                                     placeholder={'State/Region'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
-                                    underlineColor={"transparent"}
+                                    underlineStyle={{height: 0}}
                                     value={editUser.stateRegion}
                                     onChangeText={(text) => setEditUser({...editUser, stateRegion: text})}
                                 />
@@ -899,7 +947,7 @@ const EditProfile = () => {
                                     placeholder={'City'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
-                                    underlineColor={"transparent"}
+                                    underlineStyle={{height: 0}}
                                     value={editUser.city}
                                     onChangeText={(text) => setEditUser({...editUser, city: text})}
                                 />

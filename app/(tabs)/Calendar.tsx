@@ -77,9 +77,7 @@ const Calendar = () => {
         {title: 'Official', isChecked: false},
         {title: 'Compettition', isChecked: false},
         {title: 'Meet', isChecked: false},
-        {title: 'Match', isChecked: false},
-        {title: 'All', isChecked: false}
-
+        {title: 'Match', isChecked: false}
     ]);
     const isFocus = useNavigation().isFocused();
 
@@ -202,18 +200,18 @@ const Calendar = () => {
         return ranges;
     };
 
-    const _verifyEvent = () => {
+    const _verifyEvent = (step?: number) => {
         const errorMessages = [];
-        if (!event.name.trim() || event.name.length < 3) {
+        if (step === 1 && (!event.name.trim() || event.name.length < 3)) {
             errorMessages.push('Event name is required and must be at least 3 characters');
         }
-        if (!event.ageGroup) {
+        if (step === 1 && !event.ageGroup) {
             errorMessages.push('Age group is required');
         }
-        if (selectedSportLevel.length === 0) {
+        if (step === 3 && selectedSportLevel.length === 0) {
             errorMessages.push('Level of play is required');
         }
-        if (options.filter(option => option.isChecked).length === 0) {
+        if (step === 2 && options.filter(option => option.isChecked).length === 0) {
             errorMessages.push('Event type is required');
         }
         if (errorMessages.length > 0) {
@@ -268,7 +266,13 @@ const Calendar = () => {
     }
 
     const _handleAddEventContinue = async () => {
+        const defaultStep = currentModalStep
         setCurrentModalStep(old => Math.min(3, old + 1));
+        if (_verifyEvent(currentModalStep) === false) {
+            setCurrentModalStep(defaultStep);
+            return;
+        }
+        
         if (currentModalStep === 3) {
             if (editMode) {
                 var updatedEvent = await _editEvent();
@@ -308,16 +312,7 @@ const Calendar = () => {
     const _handlePress = (index: number) => {
         setOptions(prevOptions => {
             const updatedOptions = [...prevOptions];
-            const selectedOption = updatedOptions[index].title;
-
-            if (selectedOption === 'All') {
-                const isChecked = !updatedOptions[index].isChecked;
-                updatedOptions.forEach(option => {
-                    option.isChecked = isChecked;
-                });
-            } else {
-                updatedOptions[index].isChecked = !updatedOptions[index].isChecked;
-            }
+            updatedOptions[index].isChecked = !updatedOptions[index].isChecked;
             return updatedOptions;
         });
     };
@@ -505,7 +500,7 @@ const Calendar = () => {
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
                                     left={<TextInput.Icon color={'#D3D3D3'} icon='clock' size={30}/>}
-                                    value={time.hours + ':' + time.minutes}
+                                    value={moment({ hour: time.hours, minute: time.minutes }).format('hh:mm A')}
                                     onFocus={() => setTimeOpen(true)}
                                     underlineColor={"transparent"}
                                 />
@@ -598,9 +593,13 @@ const Calendar = () => {
                         )}
                     </View>
 
-                    {currentModalStep === 1 && (<View style={styles.bottomCardContainer}>
-                        <CustomButton text="continue" onPress={_handleAddEventContinue}/>
-                    </View>)}
+                    {currentModalStep === 1 && (
+                        <View style={styles.bottomRowContainer}>
+                        <CustomButton text="Cancel" onPress={_handleCancelEventCreation} style={styles.backButton}
+                                          textStyle={styles.buttonText}/>      
+                        <CustomButton text="Continue"style={styles.continueButton} onPress={_handleAddEventContinue}/>
+                        </View>
+                    )}
 
                     {currentModalStep !== 1 && currentModalStep !== 3 && (
                         <View style={styles.bottomRowContainer}>
@@ -613,7 +612,7 @@ const Calendar = () => {
 
                     {currentModalStep === 3 && (
                         <View style={styles.bottomRowContainer}>
-                            <CustomButton text="Cancel" onPress={_handleCancelEventCreation} style={styles.backButton}
+                            <CustomButton text="Back" onPress={_handleAddEventBack} style={styles.backButton}
                                           textStyle={styles.buttonText}/>
                             <CustomButton text="Save" onPress={_handleAddEventContinue} style={styles.continueButton}/>
                         </View>
@@ -701,10 +700,6 @@ const styles = StyleSheet.create({
             paddingRight: 10,
             marginBottom: 10,
 
-        },
-        bottomCardContainer: {
-            width: '100%',
-            alignItems: 'center',
         },
         bottomRowContainer: {
             position: 'absolute',

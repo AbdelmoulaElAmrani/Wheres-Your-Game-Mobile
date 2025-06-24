@@ -49,9 +49,8 @@ axiosInstance.interceptors.response.use(
     (response: AxiosResponse) => response,
     async (error: AxiosError) => {
         const originalRequest = error.config;
-        // @ts-ignore
-        if (error.response.status === 401 && originalRequest && !originalRequest._retry) {
-            // @ts-ignore
+        // Check if error.response exists before accessing its properties
+        if (error.response?.status === 401 && originalRequest && !(originalRequest as any)._retry) {
             (originalRequest as any)._retry = true;
             try {
                 const newAccessToken = await AuthService.refreshToken();
@@ -69,6 +68,8 @@ axiosInstance.interceptors.response.use(
                 return Promise.reject(refreshError);
             }
         }
+        // Return the error to be handled by the calling code
+        return Promise.reject(error);
     }
 );
 
@@ -79,7 +80,7 @@ const handleErrors = async (err: AxiosError) => {
         store.dispatch(logout({}));
         router.replace('/Login');
     } else {
-        console.error('Axios error:', err);
+        console.error('Axios error:', err.message || err);
     }
     return err;
 };
