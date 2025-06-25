@@ -1,4 +1,4 @@
-import {Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, Platform, Modal as RNModal} from "react-native";
 import {StatusBar} from "expo-status-bar";
 import {
     heightPercentageToDP,
@@ -81,6 +81,13 @@ const Calendar = () => {
     ]);
     const isFocus = useNavigation().isFocused();
 
+    const [showStyledAlert, setShowStyledAlert] = useState(false);
+    const [alertConfig, setAlertConfig] = useState({
+        title: '',
+        message: '',
+        onConfirm: () => {},
+        onCancel: () => {}
+    });
 
     useFocusEffect(useCallback(() => {
         if (user?.id) {
@@ -104,11 +111,9 @@ const Calendar = () => {
     const getCoachEvents = async () => {
         try {
             setIsLoaded(true);
-            if (events.length == 0) {
-                const data = await EventService.getEvents(user.id, today.format('YYYY-MM-DDT00:00:00'), 0, 100);
-                if (data?.content) {
-                    setEvents(data.content);
-                }
+            const data = await EventService.getEvents(user.id, selectedDate.format('YYYY-MM-DDT00:00:00'), 0, 100, '');
+            if (data?.content) {
+                setEvents(data.content);
             }
         } catch (e) {
             console.log(e);
@@ -139,6 +144,7 @@ const Calendar = () => {
     }
 
     function _onEditEvent(item: any): void {
+        console.log('onEditEvent', item);
         setEditMode(true);
         setEvent({
             name: item?.name,
@@ -150,15 +156,41 @@ const Calendar = () => {
             description: item?.description
         });
 
-        /*if (item.date) {
-            setEventDate(new Date(item?.date));
-        }*/
+        // Extract level from description
+        const levelOptions = ['Beginner', 'Intermediate', 'Advance'];
+        let levels: string[] = [];
+        let types: string[] = [];
+        if (item?.description) {
+            // Split description by comma only and filter out empty strings
+            const descParts = item.description.split(',').filter((part: string) => part.trim() !== '');
+            for (const level of levelOptions) {
+                if (descParts.some((part: string) => part.trim().toLowerCase() === level.toLowerCase())) {
+                    levels.push(level);
+                }
+            }
 
-        if (item.time) {
-            const [hours, minutes] = item.time.split(':');
-            setTime({hours: parseInt(hours, 10), minutes: parseInt(minutes, 10)});
+            for (const option of options) {
+                if (descParts.some((part: string) => part.trim().toLowerCase() === option.title.toLowerCase())) {
+                    types.push(option.title);
+                }
+            }
         }
-        showModal();
+        console.log('item.description:', item.description);
+        console.log('descParts:', item.description.split(',').filter((part: string) => part.trim() !== ''));
+        console.log('extracted levels:', levels);
+        console.log('extracted types:', types);
+        console.log('time:', item.eventDate);
+        setSelectedSportLevel(levels);
+        setOptions(options.map(option => ({...option, isChecked: types.includes(option.title)})));
+
+        if (item.eventDate) {
+            // Parse the ISO datetime string to extract time
+            const eventMoment = moment(item.eventDate);
+            setTime({hours: eventMoment.hours(), minutes: eventMoment.minutes()});
+        }
+        console.log('time:', time);
+        // showModal();
+        setIsModalVisible(true);
     }
 
     const showModal = () => {
@@ -186,7 +218,7 @@ const Calendar = () => {
         (params: any) => {
             setTimeOpen(false);
             setTime({hours: params.hours, minutes: params.minutes});
-            setEvent({...event, time: params.hours + ':' + params.minutes});
+            setEvent((prev: any) => ({...prev, time: params.hours + ':' + params.minutes}));
         },
         [setTimeOpen]
     );
@@ -215,23 +247,40 @@ const Calendar = () => {
             errorMessages.push('Event type is required');
         }
         if (errorMessages.length > 0) {
-            Alert.alert('Error', errorMessages.join('\n'));
+            if (Platform.OS === 'android') {
+                setAlertConfig({
+                    title: 'Error',
+                    message: errorMessages.join('\n'),
+                    onConfirm: () => setShowStyledAlert(false),
+                    onCancel: () => setShowStyledAlert(false)
+                });
+                setShowStyledAlert(true);
+            } else {
+                Alert.alert('Error', errorMessages.join('\n'));
+            }
             return false;
         }
-
     }
 
 
     const _createEvent = async () => {
         if (_verifyEvent() === false) return;
         try {
+            // Combine date and time
+            let eventDateTime = moment(event.date);
+            if (event.time) {
+                const [hours, minutes] = event.time.split(':');
+                eventDateTime = eventDateTime.hours(parseInt(hours)).minutes(parseInt(minutes));
+            }
+            
             var createdEvent = await EventService.createEvent({
                 name: event.name,
-                description: selectedSportLevel.join(', ') + ' ' + event.ageGroup + ' ' + options.filter(option => option.isChecked).map(option => option.title).join(', '), //TODO:: Add description after validation
+                description: selectedSportLevel.join(',') + ',' + event.ageGroup + ',' + options.filter(option => option.isChecked).map(option => option.title).join(','), //TODO:: Add description after validation
                 ownerId: user.id,
                 zipCode: '', // TODO:: Add zip code after validation
-                eventDate: moment(event.date).format('YYYY-MM-DDTHH:mm:ss')
+                eventDate: eventDateTime.format('YYYY-MM-DDTHH:mm:ss')
             } as SportEventRequest);
+            console.log('createdEvent------------------', createdEvent);
 
             if (createdEvent) {
                 setEvents([...events, createdEvent]);
@@ -249,13 +298,20 @@ const Calendar = () => {
 
     const _editEvent = async () => {
         try {
+            // Combine date and time
+            let eventDateTime = moment(event.date);
+            if (event.time) {
+                const [hours, minutes] = event.time.split(':');
+                eventDateTime = eventDateTime.hours(parseInt(hours)).minutes(parseInt(minutes));
+            }
+            
             var updatedEvent = await EventService.editeEvent({
                 id: event.id,
                 name: event.name,
                 description: event?.description,
                 zipCode: event?.zipCode,
                 ownerId: user.id,
-                eventDate: moment(event.date).format('YYYY-MM-DDTHH:mm:ss')
+                eventDate: eventDateTime.format('YYYY-MM-DDTHH:mm:ss')
             });
 
             return updatedEvent;
@@ -276,7 +332,7 @@ const Calendar = () => {
         if (currentModalStep === 3) {
             if (editMode) {
                 var updatedEvent = await _editEvent();
-
+                if(updatedEvent) {
                 setEvents(oldEvents => {
                     const updatedIndex = oldEvents.findIndex(event => event.id === updatedEvent.id);
                     if (updatedIndex !== -1) {
@@ -284,9 +340,10 @@ const Calendar = () => {
                         updatedEvents[updatedIndex] = updatedEvent;
                         return updatedEvents;
                     } else {
-                        return oldEvents;
-                    }
-                });
+                            return oldEvents;
+                        }
+                    });
+                }
             } else {
                 // TODO:: Create
                 await _createEvent();
@@ -294,6 +351,7 @@ const Calendar = () => {
             _handleCancelEventCreation();
         }
     }
+
     const _handleAddEventBack = () => {
         setCurrentModalStep(old => Math.max(1, old - 1));
     }
@@ -301,6 +359,7 @@ const Calendar = () => {
     const _handleCancelEventCreation = () => {
         hideModal();
         setSelectedSportLevel([]);
+        setOptions(options.map(option => ({...option, isChecked: false})));
         setCurrentModalStep(1);
         setEvent({name: '', date: new Date(), time: '', type: [], level: [], ageGroup: '', id: ''});
         setOpen(false);
@@ -474,16 +533,20 @@ const Calendar = () => {
                                     onChange={(p) => {
                                         if (p && p.date) setEvent({...event, date: p.date})
                                     }}/>
-                                <TextInput
-                                    style={styles.inputStyle}
-                                    placeholder={'Date of Event'}
-                                    cursorColor='black'
-                                    placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='calendar' size={30}/>}
-                                    value={event?.date.toDateString()}
-                                    onFocus={() => setOpen(true)}
-                                    underlineColor={"transparent"}
-                                />
+                                <View style={styles.inputContainer}>
+                                    <View style={styles.iconContainer}>
+                                        <AntDesign name="calendar" size={20} color="#D3D3D3"/>
+                                    </View>
+                                    <TextInput
+                                        style={styles.inputStyleWithoutIcon}
+                                        placeholder={'Date of Event'}
+                                        cursorColor='black'
+                                        placeholderTextColor={'grey'}
+                                        value={event?.date.toDateString()}
+                                        onFocus={() => setOpen(true)}
+                                        underlineColor={"transparent"}
+                                    />
+                                </View>
                                 <TimePickerModal
                                     visible={timeOpen}
                                     onDismiss={onDismissTime}
@@ -494,28 +557,36 @@ const Calendar = () => {
                                     minutes={time.minutes}
                                     animationType="slide"
                                 />
-                                <TextInput
-                                    style={styles.inputStyle}
-                                    placeholder={'Time of Event'}
-                                    cursorColor='black'
-                                    placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='clock' size={30}/>}
-                                    value={moment({ hour: time.hours, minute: time.minutes }).format('hh:mm A')}
-                                    onFocus={() => setTimeOpen(true)}
-                                    underlineColor={"transparent"}
-                                />
+                                <View style={styles.inputContainer}>
+                                    <View style={styles.iconContainer}>
+                                        <AntDesign name="clockcircle" size={20} color="#D3D3D3"/>
+                                    </View>
+                                    <TextInput
+                                        style={styles.inputStyleWithoutIcon}
+                                        placeholder={'Time of Event'}
+                                        cursorColor='black'
+                                        placeholderTextColor={'grey'}
+                                        value={moment({ hour: time.hours, minute: time.minutes }).format('hh:mm A')}
+                                        onFocus={() => setTimeOpen(true)}
+                                        underlineColor={"transparent"}
+                                    />
+                                </View>
 
                                 <Text style={[styles.textLabel, {marginTop: 20}]}>Event Name</Text>
-                                <TextInput
-                                    style={styles.inputStyle}
-                                    placeholder={'Event Name'}
-                                    cursorColor='black'
-                                    placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='star' size={30}/>}
-                                    underlineColor={"transparent"}
-                                    value={event.name}
-                                    onChangeText={(text) => setEvent({...event, name: text})}
-                                />
+                                <View style={styles.inputContainer}>
+                                    <View style={styles.iconContainer}>
+                                        <AntDesign name="star" size={20} color="#D3D3D3"/>
+                                    </View>
+                                    <TextInput
+                                        style={styles.inputStyleWithoutIcon}
+                                        placeholder={'Event Name'}
+                                        cursorColor='black'
+                                        placeholderTextColor={'grey'}
+                                        underlineColor={"transparent"}
+                                        value={event.name}
+                                        onChangeText={(text) => setEvent({...event, name: text})}
+                                    />
+                                </View>
                                 <Text style={[styles.textLabel, {marginTop: 20}]}>Age Group</Text>
                                 <RNPickerSelect
                                     items={generateAgeRanges(6, 18)}
@@ -619,9 +690,75 @@ const Calendar = () => {
                     )}
                 </Modal>
             </SafeAreaView>
+            
+            {/* Custom Styled Alert for Android */}
+            <StyledAlert
+                visible={showStyledAlert}
+                config={alertConfig}
+                onClose={() => setShowStyledAlert(false)}
+            />
         </ImageBackground>
     </>
 }
+
+// Custom Styled Alert Component for Android
+const StyledAlert = ({ visible, config, onClose }: {
+    visible: boolean;
+    config: {
+        title: string;
+        message: string;
+        onConfirm: () => void;
+        onCancel: () => void;
+    };
+    onClose: () => void;
+}) => {
+    if (!visible) return null;
+
+    return (
+        <RNModal
+            transparent
+            visible={visible}
+            animationType="fade"
+            onRequestClose={onClose}
+        >
+            <View style={styles.alertOverlay}>
+                <View style={styles.alertContainer}>
+                    <View style={styles.alertContent}>
+                        <Text style={styles.alertTitle}>{config.title}</Text>
+                        <Text style={styles.alertMessage}>{config.message}</Text>
+                        
+                        <View style={[
+                            styles.alertButtonContainer,
+                            config.title !== 'Delete Location' && styles.alertSingleButtonContainer
+                        ]}>
+                            {config.title === 'Delete Location' && (
+                                <TouchableOpacity
+                                    style={[styles.alertButton, styles.alertCancelButton]}
+                                    onPress={config.onCancel}
+                                >
+                                    <Text style={styles.alertCancelButtonText}>Cancel</Text>
+                                </TouchableOpacity>
+                            )}
+                            
+                            <TouchableOpacity
+                                style={[
+                                    styles.alertButton, 
+                                    styles.alertConfirmButton,
+                                    config.title !== 'Delete Location' && styles.alertSingleButton
+                                ]}
+                                onPress={config.onConfirm}
+                            >
+                                <Text style={styles.alertConfirmButtonText}>
+                                    {config.title === 'Delete Location' ? 'Delete' : 'OK'}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </View>
+        </RNModal>
+    );
+};
 
 const styles = StyleSheet.create({
         mainContainer: {
@@ -739,7 +876,92 @@ const styles = StyleSheet.create({
         text: {
             fontSize: 16,
             marginLeft: 15,
-        }
+        },
+        inputContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: '#D3D3D3',
+            borderRadius: 20,
+            padding: 10,
+            marginBottom: 10,
+        },
+        iconContainer: {
+            marginRight: 10,
+        },
+        inputStyleWithoutIcon: {
+            flex: 1,
+            backgroundColor: 'white',
+            height: 45,
+            fontSize: 16,
+            color: 'black',
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            borderBottomRightRadius: 20,
+            borderBottomLeftRadius: 20,
+            padding: 0,
+        },
+        alertOverlay: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        },
+        alertContainer: {
+            backgroundColor: 'white',
+            padding: 20,
+            borderRadius: 10,
+            width: '80%',
+            maxHeight: '80%',
+            justifyContent: 'center',
+        },
+        alertContent: {
+            alignItems: 'center',
+        },
+        alertTitle: {
+            fontSize: 18,
+            fontWeight: 'bold',
+            marginBottom: 10,
+            textAlign: 'center',
+        },
+        alertMessage: {
+            fontSize: 16,
+            marginBottom: 20,
+            textAlign: 'center',
+        },
+        alertButtonContainer: {
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+        },
+        alertSingleButtonContainer: {
+            width: '45%',
+        },
+        alertButton: {
+            flex: 1,
+            padding: 10,
+            borderRadius: 5,
+            backgroundColor: '#2757CB',
+            alignItems: 'center',
+        },
+        alertSingleButton: {
+            width: '100%',
+        },
+        alertCancelButton: {
+            backgroundColor: '#FF3B30',
+        },
+        alertConfirmButton: {
+            backgroundColor: '#2757CB',
+        },
+        alertCancelButtonText: {
+            fontSize: 16,
+            fontWeight: 'bold',
+            color: 'white',
+        },
+        alertConfirmButtonText: {
+            fontSize: 16,
+            fontWeight: 'bold',
+            color: 'white',
+        },
     }
 );
 export default Calendar;
