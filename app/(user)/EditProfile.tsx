@@ -515,10 +515,7 @@ const EditProfile = () => {
                                 />
                                 {userData?.role == UserType[UserType.ORGANIZATION] && <View style={{marginTop: 20}}>
                                     <Text style={{textAlign: 'center', fontWeight: 'bold'}}>Note:</Text>
-                                    <Text style={{textAlign: 'center', fontWeight: 'bold'}}>If you are signing up on
-                                        behalf of an organization, please ensure you provide the organization's primary
-                                        point of contact. This is required to verify and manage organizational
-                                        access.</Text>
+                                    <Text style={{textAlign: 'center', fontWeight: 'bold'}}>If you're signing up for an organization, your info will be used as the admin. If you're not the admin, sign up as a coach and ask the admin to connect you to the organization.</Text>
                                 </View>}
                                 <View style={styles.buttonContainer}>
                                     <CustomButton
