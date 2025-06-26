@@ -534,8 +534,8 @@ const Home = () => {
                             {userData.role == UserType[UserType.PARENT] && (
                                 <TouchableOpacity
                                     onPress={_handleOpenInviteChild}
-                                    style={[styles.tag, styles.inviteChildButton]}>
-                                    <Text style={[styles.tagText, styles.inviteChildText]}>Invite Child</Text>
+                                    style={styles.tag}>
+                                    <Text style={styles.tagText}>Invite Child</Text>
                                 </TouchableOpacity>
                             )}
                             {isOrganization() && <TouchableOpacity
@@ -886,13 +886,6 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 2,
     },
-    inviteChildButton: {
-        backgroundColor: '#2757CB',
-        borderColor: '#2757CB',
-    },
-    inviteChildText: {
-        color: 'white',
-    },
     dropdownContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -908,8 +901,8 @@ const styles = StyleSheet.create({
     dropdownWrapper: {
         borderWidth: 1,
         borderColor: '#E0E0E0',
-        borderRadius: 8,
-        backgroundColor: 'white',
+        borderRadius: 20,
+        // backgroundColor: 'white',
         flex: 1,
     },
 });
