@@ -29,6 +29,7 @@ import {DatePickerModal, enGB, registerTranslation, tr} from 'react-native-paper
 import Sport from "@/models/Sport";
 import RNPickerSelect from 'react-native-picker-select';
 import {SportService} from "@/services/SportService";
+import {UserService} from "@/services/UserService";
 import SportLevel, {convertStringToEnumValue} from "@/models/SportLevel";
 import {UserInterestedSport} from "@/models/UserInterestedSport";
 import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
@@ -236,26 +237,76 @@ const EditProfile = () => {
         }
     }, [userData]);
 
-    const _handleUpdateUser = async (selectedGender: GenderOrNull = null) => {
+    const _handleUpdateUser = async (selectedGender: GenderOrNull = null, bio: string = "", coachFields?: {
+        yearsOfExperience?: number;
+        positionCoached?: string;
+        skillLevel?: any[];
+        isCertified?: boolean;
+        preferenceSport?: string;
+    }) => {
         try {
             let updatedUser = {...user};
             if (selectedGender !== null) {
                 updatedUser = {...updatedUser, gender: selectedGender};
             }
+            if (bio !== undefined) {
+                updatedUser = {...updatedUser, bio: bio};
+            }
+            if (coachFields) {
+                if (coachFields.yearsOfExperience !== undefined) {
+                    updatedUser = {...updatedUser, yearsOfExperience: coachFields.yearsOfExperience};
+                }
+                if (coachFields.positionCoached !== undefined) {
+                    updatedUser = {...updatedUser, positionCoached: coachFields.positionCoached};
+                }
+                if (coachFields.skillLevel !== undefined) {
+                    updatedUser = {...updatedUser, skillLevel: coachFields.skillLevel};
+                }
+                if (coachFields.isCertified !== undefined) {
+                    updatedUser = {...updatedUser, isCertified: coachFields.isCertified};
+                }
+                if (coachFields.preferenceSport !== undefined) {
+                    updatedUser = {...updatedUser, preferenceSport: coachFields.preferenceSport};
+                }
+            }
             const userRequest = updatedUser as UserRequest;
-            dispatch(updateUserProfile(userRequest) as any);// this will update the global state on redux store
-            //await UserService.updateUser(userRequest) if the app crashes on the update user use this but you lose the global state update on redux store
+       
+            try {
+                const result = await dispatch(updateUserProfile(userRequest) as any);
+                
+                if (result.error) {
+                    const directResult = await UserService.updateUser(userRequest);
+                    if (directResult) {
+                        setUser(directResult);
+                    }
+                }
+            } catch (reduxError) {
+                try {
+                    const directResult = await UserService.updateUser(userRequest);
+                    if (directResult) {
+                        setUser(directResult);
+                    }
+                } catch (apiError) {
+                    console.error("Direct API call error:", apiError);
+                }
+            }
         } catch (error) {
             console.error('Failed to update user:', error);
         }
     };
 
-    const _handleContinue = async (selectedGender: GenderOrNull = null) => {
+    const _handleContinue = async (selectedGender: GenderOrNull = null, bio: string = "", coachFields?: {
+        yearsOfExperience?: number;
+        positionCoached?: string;
+        skillLevel?: any[];
+        isCertified?: boolean;
+        preferenceSport?: string;
+    }) => {
         if (userData?.role == UserType[UserType.COACH]) {
             setCurrentStep(oldValue => Math.min(3, oldValue + 1));
             if (currentStep >= 3) {
                 try {
-                    await _handleUpdateUser(selectedGender);
+                    await _handleUpdateUser(selectedGender, bio, coachFields);
                     if (selectedSports.length > 0 && userSport.length === 0) {
                         const response = await SportService.registerUserToSport(selectedSports, userData.id);
                     }
@@ -277,7 +328,7 @@ const EditProfile = () => {
             setCurrentStep(oldValue => Math.min(2, oldValue + 1));
             if (currentStep >= 2) {
                 try {
-                    await _handleUpdateUser(selectedGender);
+                    await _handleUpdateUser(selectedGender, bio, coachFields);
                     let flag = false;
                     if (paramData?.data) {
                         flag = true;
@@ -369,7 +420,7 @@ const EditProfile = () => {
                 return;
             }
             setUser(oldValue => ({...editUser}));
-            await _handleContinue();
+            await _handleContinue(null, editUser.bio || '');
         }
 
         const _verifyUserInfo = (user: UserResponse): string[] => {
@@ -607,23 +658,58 @@ const EditProfile = () => {
 
     const CoachSportInfoEdit = () => {
 
-        const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
-        const [positionCoach, setPositionCoach] = useState<string>(user.positionCoached);
-        const [sportLevel, setSportLevel] = useState<SportLevel>(SportLevel.Beginner);
-        const [yearsOfExperience, setYearsOfExperience] = useState<number>(user.yearsOfExperience);
-        const [isCertified, setIsCertified] = useState<boolean>(user.isCertified);
+        const [selectedSport, setSelectedSport] = useState<Sport | null>(() => {
+            // Initialize with existing user sport data if available
+            if (userSport.length > 0) {
+                return sports.find(sport => sport.id === userSport[0]?.sportId) || null;
+            }
+            return null;
+        });
+        const [positionCoach, setPositionCoach] = useState<string>(user.positionCoached ?? '');
+        const [sportLevel, setSportLevel] = useState<SportLevel>(() => {
+            // Initialize with existing user skill level if available
+            if (user.skillLevel && user.skillLevel.length > 0) {
+                const skillLevelString = user.skillLevel[0];
+                const convertedLevel = convertStringToEnumValue(SportLevel, skillLevelString);
+                return convertedLevel || SportLevel.Beginner;
+            }
+            // Fallback to userSport data if available
+            if (userSport.length > 0) {
+                return userSport[0]?.sportLevel || SportLevel.Beginner;
+            }
+            return SportLevel.Beginner;
+        });
+        const [yearsOfExperience, setYearsOfExperience] = useState<number>(user.yearsOfExperience ?? 0);
+        const [isCertified, setIsCertified] = useState<boolean>(user.isCertified ?? false);
 
         const [editUser, setEditUser] = useState<UserResponse>({...user});
 
+        // Update sportLevel when user data changes
+        useEffect(() => {
+            if (user.skillLevel && user.skillLevel.length > 0) {
+                const skillLevelString = user.skillLevel[0];
+                const convertedLevel = convertStringToEnumValue(SportLevel, skillLevelString);
+                if (convertedLevel) {
+                    setSportLevel(convertedLevel);
+                }
+            }
+        }, [user.skillLevel]);
+
         const _handleCoachSportInfoEdit = async () => {
-            if (!selectedSport) {
+            // Check if user has existing sport data or has selected a new sport
+            const hasExistingSport = userSport.length > 0;
+            const hasSelectedSport = selectedSport !== null;
+            
+            if (!hasExistingSport && !hasSelectedSport) {
                 showErrorAlert('Please select a sport', closeAlert);
                 return;
             }
+            
             if (!sportLevel) {
                 showErrorAlert('Please select skill level', closeAlert);
                 return;
             }
+             
             setUser(({
                 ...editUser,
                 bio: editUser.bio,
@@ -631,21 +717,30 @@ const EditProfile = () => {
                 yearsOfExperience: yearsOfExperience,
                 isCertified: isCertified
             }));
+             
             if (userSport.length === 0) {
                 const convertedSportLevel = convertStringToEnumValue(SportLevel, sportLevel);
                 if (convertedSportLevel === null) return;
                 
                 setSelectedSports([...selectedSports,
                     {
-                        sportId: selectedSport.id,
+                        sportId: selectedSport!.id,
                         sportLevel: convertedSportLevel,
                         createAt: new Date(),
-                        sportName: selectedSport.name
+                        sportName: selectedSport!.name
                     }]);
             }
+            
             if (selectedSports.length === 0 && userSport.length === 0)
                 return;
-            await _handleContinue();
+       
+            await _handleContinue(null, editUser.bio || '', {
+                yearsOfExperience: yearsOfExperience,
+                positionCoached: positionCoach,
+                skillLevel: [sportLevel.toString()],
+                isCertified: isCertified ?? false,
+                preferenceSport: selectedSport?.name || ''
+            });
         }
 
         const _generateSportLevelItems = (): { label: string; value: string; key: string }[] => {
@@ -671,7 +766,7 @@ const EditProfile = () => {
                                         items={sports.map(sport => ({ label: sport.name, value: sport.id, key: sport.id }))}
                                         placeholder={{ label: 'Select sport', value: null }}
                                         onValueChange={(value) => setSelectedSport(sports.find(sport => sport.id === value) || null)}
-                                        value={userSport[0]?.sportId || selectedSport?.id || null}
+                                        value={selectedSport?.id || null}
                                         useNativeAndroidPickerStyle={false}
                                         Icon={() => (
                                             <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
@@ -696,7 +791,7 @@ const EditProfile = () => {
                                         items={_generateSportLevelItems()}
                                         placeholder={{ label: 'Select skill level', value: null }}
                                         onValueChange={(value) => setSportLevel(value as SportLevel)}
-                                        value={userSport[0]?.sportLevel || sportLevel || null}
+                                        value={sportLevel?.toString() || null}
                                         useNativeAndroidPickerStyle={false}
                                         Icon={() => (
                                             <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
@@ -814,7 +909,7 @@ const EditProfile = () => {
             //     return;
 
 
-            await _handleContinue();
+            await _handleContinue(null, editUser.bio || '');
         }
 
         const _generateSportLevelItems = (): { label: string; value: string; key: string }[] => {

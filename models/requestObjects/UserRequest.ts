@@ -16,4 +16,5 @@ export interface UserRequest {
     country?: string;
     stateRegion?: string;
     city?: string;
+    preferenceSport?: string;
 }
