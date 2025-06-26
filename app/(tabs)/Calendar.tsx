@@ -1,4 +1,4 @@
-import {Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, Platform, Modal as RNModal} from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Modal as RNModal} from "react-native";
 import {StatusBar} from "expo-status-bar";
 import {
     heightPercentageToDP,
@@ -26,6 +26,9 @@ import {EventService} from "@/services/EventService";
 import {SportEvent} from "@/models/SportEvent";
 import {SportEventRequest} from "@/models/requestObjects/SportEventRequest";
 import {useFocusEffect, useNavigation} from "expo-router";
+import StyledAlert from "@/components/StyledAlert";
+import { useAlert } from "@/utils/useAlert";
+import { UserSportResponse } from "@/models/responseObjects/UserSportResponse";
 
 
 interface CheckboxProps {
@@ -37,7 +40,7 @@ interface CheckboxProps {
 
 const Calendar = () => {
     const user = useSelector((state: any) => state.user.userData) as UserResponse;
-    //const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
+    const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
     const today = moment();
     const [selectedDate, setSelectedDate] = useState<moment.Moment>(today);
     const minDate = today.clone().add(12, 'months').toDate();
@@ -81,13 +84,7 @@ const Calendar = () => {
     ]);
     const isFocus = useNavigation().isFocused();
 
-    const [showStyledAlert, setShowStyledAlert] = useState(false);
-    const [alertConfig, setAlertConfig] = useState({
-        title: '',
-        message: '',
-        onConfirm: () => {},
-        onCancel: () => {}
-    });
+    const { showErrorAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
 
     useFocusEffect(useCallback(() => {
         if (user?.id) {
@@ -144,7 +141,6 @@ const Calendar = () => {
     }
 
     function _onEditEvent(item: any): void {
-        console.log('onEditEvent', item);
         setEditMode(true);
         setEvent({
             name: item?.name,
@@ -175,11 +171,6 @@ const Calendar = () => {
                 }
             }
         }
-        console.log('item.description:', item.description);
-        console.log('descParts:', item.description.split(',').filter((part: string) => part.trim() !== ''));
-        console.log('extracted levels:', levels);
-        console.log('extracted types:', types);
-        console.log('time:', item.eventDate);
         setSelectedSportLevel(levels);
         setOptions(options.map(option => ({...option, isChecked: types.includes(option.title)})));
 
@@ -188,7 +179,6 @@ const Calendar = () => {
             const eventMoment = moment(item.eventDate);
             setTime({hours: eventMoment.hours(), minutes: eventMoment.minutes()});
         }
-        console.log('time:', time);
         // showModal();
         setIsModalVisible(true);
     }
@@ -247,17 +237,7 @@ const Calendar = () => {
             errorMessages.push('Event type is required');
         }
         if (errorMessages.length > 0) {
-            if (Platform.OS === 'android') {
-                setAlertConfig({
-                    title: 'Error',
-                    message: errorMessages.join('\n'),
-                    onConfirm: () => setShowStyledAlert(false),
-                    onCancel: () => setShowStyledAlert(false)
-                });
-                setShowStyledAlert(true);
-            } else {
-                Alert.alert('Error', errorMessages.join('\n'));
-            }
+            showErrorAlert(errorMessages.join('\n'), closeAlert);
             return false;
         }
     }
@@ -280,7 +260,6 @@ const Calendar = () => {
                 zipCode: '', // TODO:: Add zip code after validation
                 eventDate: eventDateTime.format('YYYY-MM-DDTHH:mm:ss')
             } as SportEventRequest);
-            console.log('createdEvent------------------', createdEvent);
 
             if (createdEvent) {
                 setEvents([...events, createdEvent]);
@@ -410,26 +389,28 @@ const Calendar = () => {
     };
 
     const _renderEvent = memo(({item}: { item: SportEvent }) => {
-
+        const sport = userSport.find(sport => sport.sportId === item.sportId);
         return (
             <TouchableOpacity
                 onPress={() => _onClickEvent(item)}
                 disabled={isCoach()}
                 style={styles.eventContainer}>
-                <View style={{flex: 0.25}}>
+                <View style={{flex: 0.25, justifyContent: 'center', alignItems: 'center'}}>
                     <Image
-                        contentFit={"fill"}
-                        style={{height: '100%', width: '100%', borderRadius: 10}}
-                        source={require('../../assets/images/noimg.jpg')}/>
+                        source={{uri: sport?.iconUrl}}
+                        style={{width: 40, height: 40}}
+                        placeholder={require('../../assets/images/sport/sport.png')}
+                    />
                 </View>
-                <View style={{flex: 0.75, paddingHorizontal: 10}}>
+                <View style={{flex:1, paddingHorizontal: 10}}>
                     <View style={{flexDirection: 'row', justifyContent: 'space-between', flex: 0.7}}>
                         <Text style={{fontWeight: 'bold', fontSize: 16}}>{item.name}</Text>
                         {isCoach() &&
                             <Octicons onPress={() => _onEditEvent(item)} name="pencil" size={24} color="grey"/>}
                     </View>
-                    <Text style={{color: 'grey', flex: 0.3}}>
-                        {isCoach() ? moment(item.eventDate).format('YYYY-MM-DD hh:mm A') : `17 Km | ${moment(item.eventDate).format("hh:mm A")}`}
+                    <Text style={{color: 'grey', flex: 0.3}} numberOfLines={1} ellipsizeMode="tail">
+                        {isCoach() ? moment(item.eventDate).format('YYYY-MM-DD hh:mm A') : 
+                          `${sport ? sport.sportName : 'Unknown Sport'} | ${moment(item.eventDate).format('YYYY-MM-DD hh:mm A')}`}
                     </Text>
                 </View>
             </TouchableOpacity>
@@ -695,70 +676,11 @@ const Calendar = () => {
             <StyledAlert
                 visible={showStyledAlert}
                 config={alertConfig}
-                onClose={() => setShowStyledAlert(false)}
+                onClose={closeAlert}
             />
         </ImageBackground>
     </>
 }
-
-// Custom Styled Alert Component for Android
-const StyledAlert = ({ visible, config, onClose }: {
-    visible: boolean;
-    config: {
-        title: string;
-        message: string;
-        onConfirm: () => void;
-        onCancel: () => void;
-    };
-    onClose: () => void;
-}) => {
-    if (!visible) return null;
-
-    return (
-        <RNModal
-            transparent
-            visible={visible}
-            animationType="fade"
-            onRequestClose={onClose}
-        >
-            <View style={styles.alertOverlay}>
-                <View style={styles.alertContainer}>
-                    <View style={styles.alertContent}>
-                        <Text style={styles.alertTitle}>{config.title}</Text>
-                        <Text style={styles.alertMessage}>{config.message}</Text>
-                        
-                        <View style={[
-                            styles.alertButtonContainer,
-                            config.title !== 'Delete Location' && styles.alertSingleButtonContainer
-                        ]}>
-                            {config.title === 'Delete Location' && (
-                                <TouchableOpacity
-                                    style={[styles.alertButton, styles.alertCancelButton]}
-                                    onPress={config.onCancel}
-                                >
-                                    <Text style={styles.alertCancelButtonText}>Cancel</Text>
-                                </TouchableOpacity>
-                            )}
-                            
-                            <TouchableOpacity
-                                style={[
-                                    styles.alertButton, 
-                                    styles.alertConfirmButton,
-                                    config.title !== 'Delete Location' && styles.alertSingleButton
-                                ]}
-                                onPress={config.onConfirm}
-                            >
-                                <Text style={styles.alertConfirmButtonText}>
-                                    {config.title === 'Delete Location' ? 'Delete' : 'OK'}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </View>
-        </RNModal>
-    );
-};
 
 const styles = StyleSheet.create({
         mainContainer: {
@@ -900,67 +822,6 @@ const styles = StyleSheet.create({
             borderBottomRightRadius: 20,
             borderBottomLeftRadius: 20,
             padding: 0,
-        },
-        alertOverlay: {
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        },
-        alertContainer: {
-            backgroundColor: 'white',
-            padding: 20,
-            borderRadius: 10,
-            width: '80%',
-            maxHeight: '80%',
-            justifyContent: 'center',
-        },
-        alertContent: {
-            alignItems: 'center',
-        },
-        alertTitle: {
-            fontSize: 18,
-            fontWeight: 'bold',
-            marginBottom: 10,
-            textAlign: 'center',
-        },
-        alertMessage: {
-            fontSize: 16,
-            marginBottom: 20,
-            textAlign: 'center',
-        },
-        alertButtonContainer: {
-            flexDirection: 'row',
-            justifyContent: 'space-around',
-        },
-        alertSingleButtonContainer: {
-            width: '45%',
-        },
-        alertButton: {
-            flex: 1,
-            padding: 10,
-            borderRadius: 5,
-            backgroundColor: '#2757CB',
-            alignItems: 'center',
-        },
-        alertSingleButton: {
-            width: '100%',
-        },
-        alertCancelButton: {
-            backgroundColor: '#FF3B30',
-        },
-        alertConfirmButton: {
-            backgroundColor: '#2757CB',
-        },
-        alertCancelButtonText: {
-            fontSize: 16,
-            fontWeight: 'bold',
-            color: 'white',
-        },
-        alertConfirmButtonText: {
-            fontSize: 16,
-            fontWeight: 'bold',
-            color: 'white',
         },
     }
 );

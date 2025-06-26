@@ -3,7 +3,10 @@ import {
     ImageBackground,
     View,
     StyleSheet,
-    Alert
+    Alert,
+    ScrollView,
+    TouchableOpacity,
+    Platform
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import CustomNavigationHeader from '@/components/CustomNavigationHeader';
@@ -28,6 +31,8 @@ import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {DatePickerModal, enGB, registerTranslation, TimePickerModal} from 'react-native-paper-dates';
 import OverlaySpinner from '@/components/OverlaySpinner';
 import {OrganizationService} from "@/services/OrganizationService";
+import { useAlert } from "@/utils/useAlert";
+import StyledAlert from "@/components/StyledAlert";
 
 
 function TeamForm() {
@@ -43,6 +48,7 @@ function TeamForm() {
     const [team, setTeam] = useState<any>();
     const [manipulatedImageUri, setManipulatedImageUri] = useState<any>(null);
     const [openDatePicker, setOpenDatePicker] = useState(false);
+    const { showErrorAlert, showSuccessAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
     registerTranslation('en', enGB);
 
 
@@ -51,6 +57,8 @@ function TeamForm() {
 
 
     useEffect(() => {
+        // console.log('Logged-in user:', userData.preferenceSport);
+        // console.log('Available sports for user:', availableSport);
         if (!availableSport || availableSport.length === 0) {
             const fetchSports = async () => {
                 await dispatch(getSports() as any);
@@ -109,7 +117,7 @@ function TeamForm() {
             errors.push('Sport is required');
 
         if (errors.length > 0) {
-            Alert.alert('Error', errors.join('\n'));
+            showErrorAlert(errors.join('\n'), closeAlert);
             return;
         }
 
@@ -136,16 +144,16 @@ function TeamForm() {
                     }
                 }
                 setCreating(false);
-
+                showSuccessAlert('Team created successfully!', closeAlert);
                 router.replace('/(tabs)');
             } else {
                 setCreating(false);
-                Alert.alert('Error', 'Failed to create team');
+                showErrorAlert('Failed to create team', closeAlert);
             }
         } catch (e) {
             setCreating(false);
-            console.error(e);
-            Alert.alert('Error', 'Something went wrong ' + e);
+            console.error('Error creating team:', e);
+            showErrorAlert('Something went wrong ' + e, closeAlert);
         }
     };
 
@@ -186,6 +194,10 @@ function TeamForm() {
         [setOpenDatePicker]
     );
 
+    // Filter availableSport to only show the user's preferred sport
+    const filteredSports = availableSport.filter(
+        (sport) => sport.name === userData.preferenceSport || sport.id === userData.preferenceSport
+    );
 
     return (
         <ImageBackground
@@ -221,24 +233,35 @@ function TeamForm() {
                                                    cursorColor={'black'} placeholderTextColor={'grey'}
                                                    editable={false}/>
                                     ) : (
-                                        <RNPickerSelect
-                                            useNativeAndroidPickerStyle={false}
-                                            style={{
-                                                inputIOS: [styles.inputStyle, {paddingLeft: 15}],
-                                                inputAndroid: [styles.inputStyle, {paddingLeft: 15}]
-                                            }}
-                                            items={organizations.map((org: UserResponse) => ({
-                                                label: org.organizationName?.trim() ? org.organizationName : `${org.firstName} ${org.lastName}`,
-                                                value: org.id,
-                                                key: org.id,
-                                                color: '#000'
-                                            }))}
-                                            placeholder={{label: 'Select Organization', value: null}}
-                                            onValueChange={(value) =>
-                                                setSelectedOrganizationId(value)
-                                            }
-                                            value={selectedOrganizationId}
-                                        />
+                                        <View style={styles.inputStyle}>
+                                            <RNPickerSelect
+                                                useNativeAndroidPickerStyle={false}
+                                                style={{
+                                                    inputIOS: {paddingLeft: 15, color: 'black'},
+                                                    inputAndroid: {paddingLeft: 15, color: 'black', height: 45},
+                                                    placeholder: {color: 'grey'}
+                                                }}
+                                                items={organizations.map((org: UserResponse) => ({
+                                                    label: org.organizationName?.trim() ? org.organizationName : `${org.firstName} ${org.lastName}`,
+                                                    value: org.id,
+                                                    key: org.id,
+                                                    color: '#000'
+                                                }))}
+                                                placeholder={{label: 'Select Organization', value: null}}
+                                                onValueChange={(value) =>
+                                                    setSelectedOrganizationId(value)
+                                                }
+                                                value={selectedOrganizationId}
+                                                Icon={() => (
+                                                    <AntDesign
+                                                        name="down"
+                                                        size={20}
+                                                        color="grey"
+                                                        style={{ position: 'absolute', right: 10, top: 12 }}
+                                                    />
+                                                )}
+                                            />
+                                        </View>
                                     )}
                                 <Text style={styles.textLabel}>Sport type</Text>
                                 {(loading || !availableSport || availableSport.length === 0)
@@ -247,23 +270,35 @@ function TeamForm() {
                                                    cursorColor={'black'} placeholderTextColor={'grey'}
                                                    editable={false}/>
                                     ) : (
-                                        <RNPickerSelect
-                                            style={{
-                                                inputIOS: [styles.inputStyle, {paddingLeft: 15}],
-                                                inputAndroid: [styles.inputStyle, {paddingLeft: 15}]
-                                            }}
-                                            items={availableSport.map((sport: Sport) => ({
-                                                label: sport.name,
-                                                value: sport.id,
-                                                key: sport.id,
-                                                color: '#000'
-                                            }))}
-                                            placeholder={{label: 'Select sport', value: null}}
-                                            onValueChange={(value) =>
-                                                setSelectedSportId(value)
-                                            }
-                                            value={selectedSportId}
-                                        />
+                                        <View style={styles.inputStyle}>
+                                            <RNPickerSelect
+                                                useNativeAndroidPickerStyle={false}
+                                                style={{
+                                                    inputIOS: {paddingLeft: 15, color: 'black'},
+                                                    inputAndroid: {paddingLeft: 15, color: 'black', height: 45},
+                                                    placeholder: {color: 'grey'}
+                                                }}
+                                                items={filteredSports.map((sport: Sport) => ({
+                                                    label: sport.name,
+                                                    value: sport.id,
+                                                    key: sport.id,
+                                                    color: '#000'
+                                                }))}
+                                                placeholder={{label: 'Select sport', value: null}}
+                                                onValueChange={(value) =>
+                                                    setSelectedSportId(value)
+                                                }
+                                                value={selectedSportId}
+                                                Icon={() => (
+                                                    <AntDesign
+                                                        name="down"
+                                                        size={20}
+                                                        color="grey"
+                                                        style={{ position: 'absolute', right: 10, top: 12 }}
+                                                    />
+                                                )}
+                                            />
+                                        </View>
                                     )}
                                 <Text style={styles.textLabel}>Image</Text>
                                 <TextInput
@@ -348,7 +383,7 @@ function TeamForm() {
                                     value={team?.league}
                                     onChangeText={(text) => setTeam({...team, league: text})}
                                 />
-                                <Text style={styles.textLabel}>Players</Text>
+                                {/* <Text style={styles.textLabel}>Players</Text>
                                 <MultiSelect
                                     style={styles.inputStyle}
                                     placeholderStyle={styles.placeholderStyle}
@@ -369,7 +404,7 @@ function TeamForm() {
                                         if (item.length < 15)
                                             setSelectedPlayers(item);
                                         else
-                                            Alert.alert("The maximum number of players allowed is 15. You have reached this limit.");
+                                            showErrorAlert("The maximum number of players allowed is 15. You have reached this limit.", closeAlert);
                                     }}
                                     iconStyle={styles.iconStyle}
                                     renderLeftIcon={() => (
@@ -383,14 +418,19 @@ function TeamForm() {
                                     renderItem={renderPlayerItem}
                                     selectedStyle={styles.selectedStyle}
                                     activeColor='#4564f5'
-                                />
-                                <View style={{marginTop: 90}}>
+                                /> */}
+                                <View style={{marginTop: 20}}>
                                     <CustomButton text='Create' onPress={_onCreateTeam}/>
                                 </View>
                             </View>
                         </View>
                     </KeyboardAwareScrollView>
                 </View>
+                <StyledAlert
+                    visible={showStyledAlert}
+                    config={alertConfig}
+                    onClose={closeAlert}
+                />
             </SafeAreaView>
         </ImageBackground>
     );
@@ -411,8 +451,10 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderRadius: 40,
         paddingHorizontal: 20,
-        marginTop: hp('22%'),
-        flex: 1
+        marginTop: hp('15%'),
+        flex: 1,
+        paddingBottom: 10,
+        paddingTop: 10
     },
     title: {
         fontSize: 19,

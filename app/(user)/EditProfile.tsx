@@ -37,6 +37,8 @@ import {manipulateAsync, SaveFormat} from "expo-image-manipulator";
 import {StorageService} from "@/services/StorageService";
 import UserType from "@/models/UserType";
 import {MultiSelect} from "react-native-element-dropdown";
+import { useAlert } from "@/utils/useAlert";
+import StyledAlert from "@/components/StyledAlert";
 
 
 const _AgeGroup = [
@@ -146,20 +148,12 @@ const EditProfile = () => {
     const dispatch = useDispatch();
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
+    const { showErrorAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
 
     const _router = useRouter();
 
     const [sports, setSports] = useState<Sport[]>([]);
     const [selectedSports, setSelectedSports] = useState<UserInterestedSport[]>([]);
-
-    // Styled Alert State
-    const [showStyledAlert, setShowStyledAlert] = useState(false);
-    const [alertConfig, setAlertConfig] = useState({
-        title: '',
-        message: '',
-        onConfirm: () => {},
-        onCancel: () => {}
-    });
 
     const [user, setUser] = useState<UserResponse>({
         blockedByPrincipal: false, blockedByTheUser: false,
@@ -353,22 +347,11 @@ const EditProfile = () => {
 
         const _handleContinueUserInfo = async () => {
             const errors = _verifyUserInfo(editUser);
-
             if (errors.length > 0) {
-                if (Platform.OS === 'android') {
-                    setAlertConfig({
-                        title: 'Validation Error',
-                        message: errors.join('\n'),
-                        onConfirm: () => setShowStyledAlert(false),
-                        onCancel: () => setShowStyledAlert(false)
-                    });
-                    setShowStyledAlert(true);
-                } else {
-                    Alert.alert(errors.join('\n'));
-                }
+                showErrorAlert(errors.join('\n'), closeAlert);
+                setUser(oldValue => ({...editUser}));
                 return;
             }
-
             setUser(oldValue => ({...editUser}));
             await _handleContinue();
         }
@@ -532,17 +515,20 @@ const EditProfile = () => {
     }
 
     const UserGenderEdit = (() => {
-        const [selectedGender, setSelectedGender] = useState(user?.gender || Gender.DEFAULT);
+        const [selectedGender, setSelectedGender] = useState(user?.gender === Gender.MALE || user?.gender === Gender.FEMALE ? user.gender : Gender.DEFAULT);
 
         useEffect(() => {
-            setSelectedGender(user?.gender);
+            setSelectedGender(user?.gender === Gender.MALE || user?.gender === Gender.FEMALE ? user.gender : Gender.DEFAULT);
         }, [user.gender, user]);
 
         const _handleContinueGenderEdit = async () => {
+            if (selectedGender !== Gender.MALE && selectedGender !== Gender.FEMALE) {
+                showErrorAlert('Please select your gender to continue.', closeAlert);
+                return;
+            }
             setUser((prevEditUser) => ({...prevEditUser, gender: selectedGender}));
             await _handleContinue(selectedGender);
         };
-
 
         const isMaleSelected = useMemo(() => selectedGender === Gender.MALE, [selectedGender]);
         const isFemaleSelected = useMemo(() => selectedGender === Gender.FEMALE, [selectedGender]);
@@ -593,11 +579,10 @@ const EditProfile = () => {
                         textStyle={[styles.buttonText, {fontSize: 15, fontWeight: 'bold'}]}
                     />
                     <CustomButton
-                        disabled={selectedGender === Gender.DEFAULT}
                         text="Save & Continue"
                         onPress={_handleContinueGenderEdit}
                         textStyle={{fontSize: 15, fontWeight: 'bold'}}
-                        style={[styles.continueButton, {width: wp('42%'), marginRight: wp('5%')}]}
+                        style={[styles.continueButton, {width: wp('42%'), marginRight: wp('5%')}]} 
                     />
                 </View>
             </View>
@@ -615,6 +600,14 @@ const EditProfile = () => {
         const [editUser, setEditUser] = useState<UserResponse>({...user});
 
         const _handleCoachSportInfoEdit = async () => {
+            if (!selectedSport) {
+                showErrorAlert('Please select a sport', closeAlert);
+                return;
+            }
+            if (!sportLevel) {
+                showErrorAlert('Please select skill level', closeAlert);
+                return;
+            }
             setUser(({
                 ...editUser,
                 bio: editUser.bio,
@@ -623,38 +616,9 @@ const EditProfile = () => {
                 isCertified: isCertified
             }));
             if (userSport.length === 0) {
-                if (!selectedSport) {
-                    if (Platform.OS === 'android') {
-                        setAlertConfig({
-                            title: 'Error',
-                            message: 'Please select a sport',
-                            onConfirm: () => setShowStyledAlert(false),
-                            onCancel: () => setShowStyledAlert(false)
-                        });
-                        setShowStyledAlert(true);
-                    } else {
-                        Alert.alert('Please select a sport');
-                    }
-                    return;
-                }
-                if (sportLevel === 0) {
-                    if (Platform.OS === 'android') {
-                        setAlertConfig({
-                            title: 'Error',
-                            message: 'Please select Skill Level',
-                            onConfirm: () => setShowStyledAlert(false),
-                            onCancel: () => setShowStyledAlert(false)
-                        });
-                        setShowStyledAlert(true);
-                    } else {
-                        Alert.alert('Please Skill Level');
-                    }
-                    return;
-                }
-
                 const convertedSportLevel = convertStringToEnumValue(SportLevel, sportLevel);
-                if (convertedSportLevel === null)
-                    return;
+                if (convertedSportLevel === null) return;
+                
                 setSelectedSports([...selectedSports,
                     {
                         sportId: selectedSport.id,
@@ -779,6 +743,10 @@ const EditProfile = () => {
         const [editUser, setEditUser] = useState<UserResponse>({...user});
 
         const _handleOrganizationInfoEdit = async () => {
+            if (selectedSportLevel.length === 0) {
+                showErrorAlert('Please select skill level', closeAlert);
+                return;
+            }
             setUser(({
                 ...editUser,
                 bio: editUser.bio,
@@ -792,21 +760,6 @@ const EditProfile = () => {
 
 
             if (userSport.length === 0) {
-                if (selectedSportLevel.length === 0) {
-                    if (Platform.OS === 'android') {
-                        setAlertConfig({
-                            title: 'Error',
-                            message: 'Please select Skill Level',
-                            onConfirm: () => setShowStyledAlert(false),
-                            onCancel: () => setShowStyledAlert(false)
-                        });
-                        setShowStyledAlert(true);
-                    } else {
-                        Alert.alert('Please Skill Level');
-                    }
-                    return;
-                }
-
                 const convertedSportLevel = convertStringToEnumValue(SportLevel, selectedSportLevel[0]);
 
                 if (convertedSportLevel === null)
@@ -994,8 +947,8 @@ const EditProfile = () => {
 
 
         const _handleAddAnotherSport = (): UserInterestedSport | null | undefined => {
-            if (!selectedSport && userSport.length === 0) {
-                Alert.alert('No sport selected', 'Please select a sport', [{text: 'OK'}], {cancelable: false});
+            if (!selectedSport) {
+                showErrorAlert('Please select a sport', closeAlert);
                 return null;
             } else if (userSport.length > 0 && !selectedSport) {
                 return null;
@@ -1149,6 +1102,11 @@ const EditProfile = () => {
                     {currentStep === 3 && userData?.role != UserType[UserType.ORGANIZATION] && <CoachSportInfoEdit/>}
                     {currentStep === 3 && userData?.role == UserType[UserType.ORGANIZATION] && <OrganizationSport/>}
                 </View>
+                <StyledAlert
+                    visible={showStyledAlert}
+                    config={alertConfig}
+                    onClose={closeAlert}
+                />
             </SafeAreaView>
         </ImageBackground>
     )
@@ -1156,15 +1114,14 @@ const EditProfile = () => {
 
 const styles = StyleSheet.create({
     cardContainer: {
-        height: '90%',
+        height: hp('70%'),
         width: '100%',
         backgroundColor: 'white',
-        borderTopEndRadius: 40,
-        borderTopStartRadius: 40,
+        borderRadius: 40,
         paddingHorizontal: 20,
-        paddingTop: 20,
-        paddingBottom: 55,
-        marginTop: 55,
+        paddingTop: 10,
+        paddingBottom: 10,
+        marginTop: hp(10),
     },
     formContainer: {
         alignSelf: "center",

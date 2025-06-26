@@ -17,6 +17,8 @@ import {useDispatch} from "react-redux";
 import {TextInput} from "react-native-paper";
 import {Helpers} from "@/constants/Helpers";
 import {AuthService} from "@/services/AuthService";
+import {useAlert} from "@/utils/useAlert";
+import StyledAlert from "@/components/StyledAlert";
 
 
 const AccountSettings = () => {
@@ -27,6 +29,7 @@ const AccountSettings = () => {
         newPassword: '',
         confirmPassword: ''
     });
+    const { showErrorAlert, showSuccessAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
 
     const _handleHelp = () => {
         const email = "wheresyourgame5@gmail.com";
@@ -41,27 +44,27 @@ const AccountSettings = () => {
 
     const _handleChangePassword = async () => {
         if (passwordData.currentPassword.trim() === '') {
-            alert('Current Password is required');
+            showErrorAlert('Current Password is required', closeAlert);
             return;
         }
 
         if (passwordData.newPassword.trim() === '') {
-            alert('New Password is required');
+            showErrorAlert('New Password is required', closeAlert);
             return;
         }
 
         if (passwordData.confirmPassword.trim() === '') {
-            alert('Confirm Password is required');
+            showErrorAlert('Confirm Password is required', closeAlert);
             return;
         }
 
         if (passwordData.newPassword !== passwordData.confirmPassword) {
-            alert("New passwords do not match.");
+            showErrorAlert("New passwords do not match.", closeAlert);
             return;
         }
 
         if (!Helpers._isPasswordValid(passwordData.newPassword)) {
-            alert('New password must be at least 8 characters long and include at least one uppercase letter.');
+            showErrorAlert('New password must be at least 8 characters long and include at least one uppercase letter.', closeAlert);
             return;
         }
 
@@ -69,14 +72,14 @@ const AccountSettings = () => {
             const response = await AuthService.changePassword(passwordData);
 
             if (response) {
-                alert('Password changed successfully');
+                showSuccessAlert('Password changed successfully', closeAlert);
                 setPasswordData({currentPassword: '', newPassword: '', confirmPassword: ''});
                 setPwdOpen(false);
             } else {
-                alert('Failed to change password');
+                showErrorAlert('Failed to change password', closeAlert);
             }
         } catch (error) {
-            alert('An error occurred while changing the password');
+            showErrorAlert('An error occurred while changing the password', closeAlert);
             console.error(error);
         }
     };
@@ -112,6 +115,7 @@ const AccountSettings = () => {
                                     onChangeText={(text) => {
                                         setPasswordData(prev => ({...prev, currentPassword: text}));
                                     }}
+                                    underlineStyle={{height: 0}}
                                 />
 
                                 <Text style={styles.textLabel}>New Password</Text>
@@ -123,6 +127,7 @@ const AccountSettings = () => {
                                     onChangeText={(text) => {
                                         setPasswordData(prev => ({...prev, newPassword: text}));
                                     }}
+                                    underlineStyle={{height: 0}}
                                 />
 
                                 <Text style={styles.textLabel}>Confirm New Password</Text>
@@ -134,6 +139,7 @@ const AccountSettings = () => {
                                     onChangeText={(text) => {
                                         setPasswordData(prev => ({...prev, confirmPassword: text}));
                                     }}
+                                    underlineStyle={{height: 0}}
                                 />
 
                                 <Button
@@ -148,6 +154,11 @@ const AccountSettings = () => {
                         </View>
                     </ScrollView>
                 </View>
+                <StyledAlert
+                    visible={showStyledAlert}
+                    config={alertConfig}
+                    onClose={closeAlert}
+                />
             </SafeAreaView>
         </ImageBackground>
     );

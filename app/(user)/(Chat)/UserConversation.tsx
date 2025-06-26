@@ -1,3 +1,10 @@
+import React, {
+    useEffect,
+    useRef,
+    useState,
+    useCallback,
+    useMemo
+} from "react";
 import {
     FlatList,
     KeyboardAvoidingView,
@@ -6,12 +13,14 @@ import {
     Text,
     TouchableOpacity,
     TextInput,
-    View, Alert, ActivityIndicator
+    View,
+    Alert,
+    ActivityIndicator,
+    ScrollView
 } from "react-native";
 import {ImageBackground} from "expo-image";
 import {SafeAreaView, useSafeAreaInsets} from "react-native-safe-area-context";
 import {router, useFocusEffect, useLocalSearchParams} from "expo-router";
-import {useCallback, useState} from "react";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {Ionicons} from "@expo/vector-icons";
 import {useSelector} from "react-redux";
@@ -22,6 +31,8 @@ import {ChatService} from "@/services/ChatService";
 import {CHAT_REFRESH_TIMER} from "@/appConfig";
 import CustomChatNavigationHeader from "@/components/CustomChatNavigationHeader";
 import {BlockService} from "@/services/BlockService";
+import { useAlert } from "@/utils/useAlert";
+import StyledAlert from "@/components/StyledAlert";
 
 const MAX_REFRESH_TIME: number = CHAT_REFRESH_TIMER * 1000;
 
@@ -41,6 +52,7 @@ const UserConversation = () => {
 
     const paramData = useLocalSearchParams<any>();
     const insets = useSafeAreaInsets();
+    const { showErrorAlert, showConfirmationAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
 
 
     useFocusEffect(useCallback(() => {
@@ -120,9 +132,9 @@ const UserConversation = () => {
             ));
         } catch (error) {
             console.error('Error sending message:', error);
+            showErrorAlert('Failed to send message. Please try again.', closeAlert);
             // Remove failed message from UI
-            setMessages(old => old.filter(msg => !msg.id.startsWith('temp-')));
-            Alert.alert('Error', 'Failed to send message. Please try again.');
+            setMessages(old => old.filter(msg => msg.id && !msg.id.startsWith('temp-')));
         } finally {
             setSendingMessage(false);
             setEnabledSend(true);
@@ -204,6 +216,23 @@ const UserConversation = () => {
         );
     }
 
+    const handleDeleteMessage = (messageId: string) => {
+        showConfirmationAlert(
+            'Delete Message',
+            'Are you sure you want to delete this message?',
+            async () => {
+                try {
+                    // ... delete message logic ...
+                } catch (error) {
+                    console.error('Error deleting message:', error);
+                    showErrorAlert('Failed to delete message.', closeAlert);
+                }
+            },
+            closeAlert,
+            'Delete',
+            'Cancel'
+        );
+    };
 
     return (
         <ImageBackground
@@ -263,6 +292,11 @@ const UserConversation = () => {
                                     user</Text>)
                         }
                     </View>
+                    <StyledAlert
+                        visible={showStyledAlert}
+                        config={alertConfig}
+                        onClose={closeAlert}
+                    />
                 </SafeAreaView>
                 <View style={{
                     backgroundColor: 'white',

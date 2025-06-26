@@ -25,6 +25,8 @@ import {UserSportResponse} from "@/models/responseObjects/UserSportResponse";
 import {getUserSports} from "@/redux/UserSlice";
 import Spinner from "@/components/Spinner";
 import OverlaySpinner from "@/components/OverlaySpinner";
+import {useAlert} from "@/utils/useAlert";
+import StyledAlert from "@/components/StyledAlert";
 
 const SportInterested = () => {
 
@@ -36,6 +38,7 @@ const SportInterested = () => {
     const dispatch = useDispatch();
     const [loading, setLoading] = useState<boolean>(false);
     const paramData = useLocalSearchParams<any>();
+    const {showErrorAlert, showStyledAlert, alertConfig, closeAlert} = useAlert();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -68,14 +71,21 @@ const SportInterested = () => {
 
     const _onNext = async () => {
         if (currentStep === 1 && selectedSports.size === 0) {
-            alert("Please select at least one sport to continue.");
+            showErrorAlert("Please select at least one sport to continue.", closeAlert);
             return;
+        } else if (currentStep === 1) {
+            _handleContinue();
         } else {
-            if (currentStep === 1) {
-                _handleContinue();
-            } else {
-                await handleSubmit();
+            // Check if all selected sports have a sport level selected
+            const sportsWithoutLevel = [...selectedSports.values()].filter(sport => !sport.sportLevel);
+            
+            if (sportsWithoutLevel.length > 0) {
+                const sportNames = sportsWithoutLevel.map(sport => sport.sportName).join(', ');
+                showErrorAlert(`Please select a skill level for: ${sportNames}`, closeAlert);
+                return;
             }
+            
+            await handleSubmit();
         }
     }
     const _handleGoBack = () => {
@@ -282,6 +292,11 @@ const SportInterested = () => {
                     {/*</KeyboardAwareScrollView>*/}
                 </View>
             </SafeAreaView>
+            <StyledAlert
+                visible={showStyledAlert}
+                config={alertConfig}
+                onClose={closeAlert}
+            />
         </ImageBackground>
     );
 }

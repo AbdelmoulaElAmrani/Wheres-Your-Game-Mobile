@@ -6,7 +6,6 @@ import {
     View,
     TouchableWithoutFeedback,
     Keyboard,
-    Alert,
     Image, ImageBackground
 } from "react-native";
 import React, {useEffect, useRef, useState} from "react";
@@ -23,6 +22,8 @@ import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {Helpers} from "@/constants/Helpers";
 import {AuthService} from "@/services/AuthService";
 import LocalStorageService from "@/services/LocalStorageService";
+import {useAlert} from "@/utils/useAlert";
+import StyledAlert from "@/components/StyledAlert";
 //import {User} from "@react-native-google-signin/google-signin";
 
 
@@ -43,6 +44,7 @@ const Register = () => {
     });
     const phoneInput = useRef<PhoneInput>(null);
     const [showPasswordInput, setShowPasswordInput] = useState<boolean>(true);
+    const {showErrorAlert, showStyledAlert, alertConfig, closeAlert} = useAlert();
 
     useEffect(() => {
         dispatch(logout({}) as any);
@@ -78,24 +80,20 @@ const Register = () => {
             dispatch(updateUserRegisterData(userData))
             router.navigate("/TermsPolicies");
         } else {
-            Alert.alert(errors.join('\n'));
+            showErrorAlert(errors.join('\n'), closeAlert);
         }
     }
 
     const _verifyRequiredData = async (userData: RegisterRequest): Promise<string[]> => {
         const errors: string[] = [];
 
+        // Basic validations first
         if (userData.email.trim() === '') {
             errors.push('Email is required');
         } else if (!Helpers._isEmailValid(userData.email)) {
             errors.push('Invalid email format');
         }
-        try {
-            const result = await AuthService.verifyEmail(userData.email.trim());
-            if (result || result == undefined) errors.push('The Email already taken');
-        } catch (e) {
-            console.error(e);
-        }
+
         if (showPasswordInput) {
             if (userData.password.trim() === '') {
                 errors.push('Password is required');
@@ -103,6 +101,7 @@ const Register = () => {
                 errors.push('Password must be at least 6 characters long and include at least one uppercase letter.');
             }
         }
+
         if (userData.firstName.trim() === '') {
             errors.push('First name is required');
         }
@@ -116,6 +115,20 @@ const Register = () => {
         } else if (phoneInput.current?.isValidNumber(userData.phoneNumber) === false) {
             errors.push('Invalid phone number');
         }
+
+        // Only make API call if all basic validations pass
+        if (errors.length === 0 && userData.email.trim() !== '') {
+            try {
+                const result = await AuthService.verifyEmail(userData.email.trim());
+                if (result || result == undefined) {
+                    errors.push('The Email already taken');
+                }
+            } catch (e) {
+                console.error('Error verifying email:', e);
+                errors.push('Error verifying email. Please try again.');
+            }
+        }
+
         return errors;
     }
 
@@ -225,6 +238,11 @@ const Register = () => {
                     </View>
                 </View>
             </TouchableWithoutFeedback>
+            <StyledAlert
+                visible={showStyledAlert}
+                config={alertConfig}
+                onClose={closeAlert}
+            />
         </SafeAreaView>
     </ImageBackground>);
 }
@@ -294,7 +312,8 @@ const styles = StyleSheet.create({
         resizeMode: 'contain',
     },
     nextBottom: {
-        alignItems: 'center'
+        alignItems: 'center',
+        marginBottom: 10
     },
     selectedFlagContainer: {
         backgroundColor: 'white',

@@ -1,4 +1,4 @@
-import {Alert, Keyboard, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View} from "react-native";
+import {Alert, Keyboard, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View, Platform} from "react-native";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {ImageBackground} from "expo-image";
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -12,12 +12,16 @@ import Modal from "react-native-modal";
 import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
 import LocalStorageService from "@/services/LocalStorageService";
 import {IResetTokenObj} from "@/models/IUserInfo";
+import {useAlert} from "@/utils/useAlert";
+import StyledAlert from "@/components/StyledAlert";
 
 const FPReset = () => {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [modalVisible, setModalVisible] = useState(false);
     const [resetToken, setResetToken] = useState<IResetTokenObj | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const {showErrorAlert, showSuccessAlert, showStyledAlert, alertConfig, closeAlert} = useAlert();
 
     const hasNumberOrSymbol = /[0-9!@#$%^&*]/.test(newPassword);
     const hasLowercase = /[a-z]/.test(newPassword);
@@ -51,25 +55,30 @@ const FPReset = () => {
     const _handleOnResetPassword = async () => {
         if (resetToken == null) return;
         if (!caseRequirement || !hasMinLength || !hasNumberOrSymbol) {
-            Alert.alert("Error", "Password does not satisfy the requirements.");
+            showErrorAlert('Password does not satisfy the requirements.', closeAlert);
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            Alert.alert("Error", "Passwords do not match.");
+            showErrorAlert('Passwords do not match.', closeAlert);
             return;
         }
 
         try {
+            setIsLoading(true);
             const response = await AuthService.resetPasswordFG({id: resetToken.id, resetToken: resetToken.resetToken, newPassword: newPassword});
             if (response) {
                 await LocalStorageService.removeItem("resetToken");
                 setModalVisible(true);
+                showSuccessAlert('Password reset successfully!', closeAlert);
             } else {
-                Alert.alert("Error", "Failed to reset password.");
+                showErrorAlert('Failed to reset password.', closeAlert);
             }
         } catch (err) {
-            Alert.alert("Error", "An error occurred during password reset.");
+            console.error('Error resetting password:', err);
+            showErrorAlert('An error occurred during password reset.', closeAlert);
+        } finally {
+            setIsLoading(false);
         }
     };
     const _handleGotoHomePage = () => {
@@ -195,6 +204,11 @@ const FPReset = () => {
                             <CustomButton text={'Go to homepage'} onPress={_handleGotoHomePage}/>
                         </View>
                     </Modal>
+                    <StyledAlert
+                        visible={showStyledAlert}
+                        config={alertConfig}
+                        onClose={closeAlert}
+                    />
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
         </ImageBackground>

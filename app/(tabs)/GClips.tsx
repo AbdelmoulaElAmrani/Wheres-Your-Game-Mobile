@@ -18,6 +18,8 @@ import {getUserProfile} from "@/redux/UserSlice";
 import LinkPreviewComponent from "@/components/LinkPreviewComponent";
 import {Helpers} from "@/constants/Helpers";
 import {useFocusEffect, useNavigation} from "expo-router";
+import { useAlert } from "@/utils/useAlert";
+import StyledAlert from "@/components/StyledAlert";
 
 
 const validDomains = {
@@ -48,6 +50,7 @@ const GClips = () => {
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const {socialMediaLinks} = useSelector((state: any) => state.user.userData) as UserResponse;
+    const { showErrorAlert, showSuccessAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
 
 
     const dispatch = useDispatch();
@@ -174,11 +177,7 @@ const GClips = () => {
         }
         var createdPost = await PostService.createPost({title: postTitle, link: postLink});
         if (!createdPost) {
-            Alert.alert(
-                'Error',
-                'An error occurred while creating the post. Please try again later.',
-                [{text: 'OK'}]
-            );
+            showErrorAlert('An error occurred while creating the post. Please try again later.', closeAlert);
             return;
         }
 
@@ -211,11 +210,7 @@ const GClips = () => {
 
         if (!isValidLink) {
             // Show an error alert if the link is invalid
-            Alert.alert(
-                'Invalid Link',
-                'Please enter a valid link from Facebook, Instagram, YouTube, or TikTok.',
-                [{text: 'OK'}]
-            );
+            showErrorAlert('Please enter a valid link from Facebook, Instagram, YouTube, or TikTok.', closeAlert);
             return;
         }
 
@@ -561,6 +556,12 @@ const GClips = () => {
                     </View>
 
                 </Modal>
+                {/* Add StyledAlert for Android */}
+                <StyledAlert
+                    visible={showStyledAlert}
+                    config={alertConfig}
+                    onClose={closeAlert}
+                />
             </SafeAreaView>
         </ImageBackground>
     )

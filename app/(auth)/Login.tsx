@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     Keyboard,
     StyleSheet,
@@ -172,7 +172,11 @@ const Login = () => {
                                         placeholder={'Email'}
                                         cursorColor='black'
                                         placeholderTextColor={'grey'}
-                                        left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
+                                        left={
+                                            <View style={styles.iconContainer}>
+                                                <AntDesign name="user" size={20} color="#D3D3D3" />
+                                            </View>
+                                        }
                                         value={email}
                                         onChangeText={setEmail}
                                         underlineColor={"transparent"}
@@ -185,7 +189,11 @@ const Login = () => {
                                         placeholder={'Password'}
                                         placeholderTextColor={'grey'}
                                         secureTextEntry={true}
-                                        left={<TextInput.Icon color={'#D3D3D3'} icon='lock-outline' size={30}/>}
+                                        left={
+                                            <View style={styles.iconContainer}>
+                                                <AntDesign name="lock" size={20} color="#D3D3D3" />
+                                            </View>
+                                        }
                                         value={password}
                                         onChangeText={setPassword}
                                         underlineColor={"transparent"}
@@ -340,6 +348,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         marginTop: hp(10)
+    },
+    iconContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 10,
     },
 });
 

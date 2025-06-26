@@ -1,7 +1,7 @@
 import {ImageBackground} from "expo-image";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
-import {Alert, Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
+import {Alert, Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform} from "react-native";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React, {useState} from "react";
 import {useSelector} from "react-redux";
@@ -11,39 +11,35 @@ import {router} from "expo-router";
 import CustomButton from "@/components/CustomButton";
 import {AdvertisementService} from "@/services/AdvertisementService";
 import {Ionicons} from "@expo/vector-icons";
+import { useAlert } from "@/utils/useAlert";
+import StyledAlert from "@/components/StyledAlert";
 
 const AdvertisementRequest = () => {
     const [message, setMessage] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
+    const { showErrorAlert, showSuccessAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
 
     const handleSubmit = async () => {
         Keyboard.dismiss();
         if (message.trim().length === 0) {
-            Alert.alert('Required', 'Please describe your advertising needs.');
+            showErrorAlert('Please describe your advertising needs.', closeAlert);
             return;
         }
         setLoading(true);
-        const isOk = await AdvertisementService.submitAdvertisementRequest({message: message});
-        setLoading(false);
-        if (isOk) {
-            Alert.alert(
-                "Success!",
-                "Your advertising request has been submitted. Our team will review it and contact you soon.",
-                [
-                    {
-                        text: "OK",
-                        onPress: () => {
-                            setMessage('');
-                            if (router.canGoBack()) {
-                                router.back();
-                            }
-                        }
-                    }
-                ],
-                { cancelable: false }
-            );
-        } else {
-            Alert.alert("Error", "Failed to send your request. Please try again later.");
+        try {
+            const response = await AdvertisementService.submitAdvertisementRequest({message: message.trim()});
+            if (response) {
+                showSuccessAlert('Your advertising request has been submitted successfully!', closeAlert);
+                setMessage('');
+                if (router.canGoBack()) {
+                    router.back();
+                }
+            }
+        } catch (error) {
+            console.error('Error submitting advertisement request:', error);
+            showErrorAlert('Failed to send your request. Please try again later.', closeAlert);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -116,6 +112,11 @@ const AdvertisementRequest = () => {
                         </View>
                     </KeyboardAwareScrollView>
                 </View>
+                <StyledAlert
+                    visible={showStyledAlert}
+                    config={alertConfig}
+                    onClose={closeAlert}
+                />
             </SafeAreaView>
         </ImageBackground>
     );

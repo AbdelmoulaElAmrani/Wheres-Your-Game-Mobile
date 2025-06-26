@@ -29,6 +29,8 @@ import { TrainingLocationService } from "@/services/TrainingLocationService";
 import { TrainingLocation } from "@/models/TrainingLocation";
 import { TextInput } from "react-native";
 import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
+import { useAlert } from "@/utils/useAlert";
+import StyledAlert from "@/components/StyledAlert";
 
 enum Filters {
     SPORT,
@@ -84,6 +86,7 @@ const SportMap = () => {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [suggestedCities, setSuggestedCities] = useState<string[]>([]);
     const [cityCoords, setCityCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+    const { showErrorAlert, showSuccessAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
 
     useEffect(() => {
         (async () => {
@@ -112,17 +115,11 @@ const SportMap = () => {
                     mapRef.current?.animateToRegion(newRegion, 1000);
                 } else {
                     setHasLocationPermission(false);
-                    Alert.alert(
-                        'Location Permission',
-                        'Please enable location services to see nearby events and training locations.',
-                        [{ text: 'OK' }]
-                    );
+                    showErrorAlert('Please enable location services to see nearby events and training locations.', closeAlert);
                 }
             } catch (error) {
-                console.error('Error getting location:', error);
+                console.error('Error requesting location permission:', error);
                 setHasLocationPermission(false);
-            } finally {
-                setIsLoading(false);
             }
             
             if (availableSports.length == 0) {
@@ -206,11 +203,14 @@ const SportMap = () => {
             );
             const data = await response.json();
             if (data.results && data.results.length > 0) {
-                const { lat, lng } = data.results[0].geometry.location;
-                setCityCoords({ latitude: lat, longitude: lng });
+                const location = data.results[0];
+                setCityCoords({
+                    latitude: location.geometry.location.lat,
+                    longitude: location.geometry.location.lng
+                });
                 const newRegion = {
-                    latitude: lat,
-                    longitude: lng,
+                    latitude: location.geometry.location.lat,
+                    longitude: location.geometry.location.lng,
                     latitudeDelta: 0.1,
                     longitudeDelta: 0.1
                 };
@@ -218,11 +218,11 @@ const SportMap = () => {
                 mapRef.current?.animateToRegion(newRegion, 1000);
                 await loadTrainingLocations();
             } else {
-                Alert.alert('Error', 'City not found');
+                showErrorAlert('City not found', closeAlert);
             }
         } catch (error) {
             console.error('Error geocoding city:', error);
-            Alert.alert('Error', 'Could not find the city location');
+            showErrorAlert('Could not find the city location', closeAlert);
         }
     };
 
@@ -265,7 +265,7 @@ const SportMap = () => {
             }
         } catch (error) {
             console.error('Error loading training locations:', error);
-            Alert.alert('Error', 'Failed to load training locations');
+            showErrorAlert('Failed to load training locations', closeAlert);
         } finally {
             setIsLoadingLocations(false);
         }
@@ -434,7 +434,7 @@ const SportMap = () => {
                                                             style={styles.listActionButton}
                                                             onPress={() => {
                                                                 Clipboard.setString(location.address);
-                                                                Alert.alert('Success', 'Address copied to clipboard');
+                                                                showSuccessAlert('Address copied to clipboard', closeAlert);
                                                             }}>
                                                             <Ionicons name="copy-outline" size={20} color="#2757CB" />
                                                             <Text style={styles.listActionButtonText}>Copy Address</Text>
@@ -469,7 +469,7 @@ const SportMap = () => {
                                                                     if (supported) {
                                                                         Linking.openURL(url);
                                                                     } else {
-                                                                        Alert.alert('Error', 'Could not open maps application');
+                                                                        showErrorAlert('Could not open maps application', closeAlert);
                                                                     }
                                                                 });
                                                             }}>
@@ -648,6 +648,13 @@ const SportMap = () => {
                     )}
                 </View>
             </Modal>
+
+            {/* Add StyledAlert for Android */}
+            <StyledAlert
+                visible={showStyledAlert}
+                config={alertConfig}
+                onClose={closeAlert}
+            />
         </SafeAreaView>
     );
 }

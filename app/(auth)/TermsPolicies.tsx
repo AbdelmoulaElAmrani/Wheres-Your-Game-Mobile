@@ -1,11 +1,13 @@
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
-import {Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, Platform} from "react-native";
 import {ImageBackground} from "expo-image";
 import {SafeAreaView} from "react-native-safe-area-context";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import Checkbox from 'expo-checkbox';
 import {useState} from "react";
 import {router} from "expo-router";
+import { useAlert } from "@/utils/useAlert";
+import StyledAlert from "@/components/StyledAlert";
 
 
 interface TermsPolicy {
@@ -20,6 +22,8 @@ const TermsPolicies = () => {
         privacy: false
     })
 
+    const { showErrorAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
+
     const _verifyUserInput = (): boolean => {
         return userAgreements.terms && userAgreements.privacy;
     }
@@ -28,7 +32,7 @@ const TermsPolicies = () => {
         if (_verifyUserInput())
             router.navigate('/UserStepForm');
         else
-            Alert.alert('You need to accept the term and policy');
+            showErrorAlert('You need to accept the term and policy', closeAlert);
     }
 
     const _handleDecline = () => {
@@ -260,6 +264,11 @@ const TermsPolicies = () => {
                         </View>
                     </View>
                 </View>
+                <StyledAlert
+                    visible={showStyledAlert}
+                    config={alertConfig}
+                    onClose={closeAlert}
+                />
             </SafeAreaView>
         </ImageBackground>
     );

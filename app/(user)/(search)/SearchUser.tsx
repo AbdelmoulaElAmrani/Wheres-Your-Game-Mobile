@@ -29,6 +29,8 @@ import {InvitationService} from "@/services/InvitationService";
 import OverlaySpinner from "@/components/OverlaySpinner";
 import * as SMS from 'expo-sms';
 import {OrganizationService} from "@/services/OrganizationService";
+import { useAlert } from "@/utils/useAlert";
+import StyledAlert from "@/components/StyledAlert";
 
 
 interface InviteObject {
@@ -56,6 +58,7 @@ const SearchUser = () => {
     const [people, setPeople] = useState<UserSearchResponse[]>([]);
     const phoneInput = useRef<PhoneInput>(null);
     const phoneInputConfirm = useRef<PhoneInput>(null);
+    const { showErrorAlert, showSuccessAlert, showConfirmationAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
 
     useEffect(() => {
         const param = params?.searchType as keyof typeof UserType | undefined;
@@ -143,14 +146,10 @@ const SearchUser = () => {
     const _onSendInvitationToCoachFromOrganization = async (coachId: string) => {
         const res : boolean = await OrganizationService.sendCoachInviteRequest(coachId);
         if (!res) {
-            Alert.alert('Error', 'Failed to send the invitation request. Please try again.');
+            showErrorAlert('Failed to send the invitation request. Please try again.', closeAlert);
             return;
         }
-        Alert.alert(
-            'Invitation Sent',
-            'Your invitation request has been sent successfully to the coach.',
-            [{text: 'OK', onPress: () => console.log('Alert closed')}]
-        );
+        showSuccessAlert('Your invitation request has been sent successfully to the coach.', closeAlert);
         setPeople((oldPeople) =>
             oldPeople.map((person) =>
                 person.id === coachId ? { ...person, coachPending: true } : person
@@ -174,14 +173,10 @@ const SearchUser = () => {
         try {
             const res = await ChildrenService.sendParentRequest(receiverId);
             if (!res) {
-                Alert.alert('Error', 'Failed to send parenting request. Please try again.');
+                showErrorAlert('Failed to send parenting request. Please try again.', closeAlert);
                 return;
             }
-            Alert.alert(
-                'Invitation Sent',
-                'Your parenting request has been sent successfully.',
-                [{text: 'OK', onPress: () => console.log('Alert closed')}]
-            );
+            showSuccessAlert('Your parenting request has been sent successfully.', closeAlert);
             setPeople(oldPeople => {
                 return oldPeople.map(person => {
                     if (person.id === receiverId) {
@@ -192,7 +187,7 @@ const SearchUser = () => {
             });
         } catch (error) {
             console.error('Error sending parenting request:', error);
-            Alert.alert('Error', 'Failed to send parenting request. Please try again.');
+            showErrorAlert('Failed to send parenting request. Please try again.', closeAlert);
         }
     }
 
@@ -243,38 +238,19 @@ const SearchUser = () => {
             const message = await InvitationService.sendInvitation(inviteObject);
 
             if (message === undefined) {
-                Alert.alert(
-                    "Error",
-                    "Something went wrong. Unable to send the invitation.",
-                    [
-                        {
-                            text: "OK",
-                            onPress: () => _hideModal() // Disable the invite button
-                        }
-                    ]
-                );
+                showErrorAlert('Something went wrong. Unable to send the invitation.', closeAlert);
+                _hideModal();
             } else {
                 setErrorMessage(""); // Clear any existing errors
-                Alert.alert(
-                    "Invitation Sent",
-                    message,
-                    [
-                        {
-                            text: "OK",
-                            onPress: () => {
-                                _hideModal();
-                                _sendSmsInvitation(inviteObject.countryCode + inviteObject.phoneNumber);
-                            }
-                        }
-                    ]
-                );
+                showSuccessAlert(message, closeAlert);
+                _hideModal();
+                _sendSmsInvitation(inviteObject.countryCode + inviteObject.phoneNumber);
             }
         } catch (error) {
             console.error("Error sending invitation:", error);
             setErrorMessage("An unexpected error occurred. Please try again later.");
             setEnableInvite(false);
         }
-
     }
     const handleInputChange = (field: keyof InviteObject, value: string): void => {
         const updatedInviteObject = {...inviteObject, [field]: value};
@@ -469,6 +445,12 @@ const SearchUser = () => {
                         </View>
                     </TouchableWithoutFeedback>
                 </Modal>
+
+                <StyledAlert
+                    visible={showStyledAlert}
+                    config={alertConfig}
+                    onClose={closeAlert}
+                />
             </SafeAreaView>
         </ImageBackground>
     );

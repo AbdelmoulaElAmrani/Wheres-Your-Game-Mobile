@@ -1,12 +1,12 @@
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
-import {
+import React, {
     StyleSheet,
     Text,
     View,
     TouchableOpacity,
     TouchableWithoutFeedback,
     Keyboard,
-    Alert, ScrollView
+    Alert, ScrollView, Platform
 } from "react-native";
 import {ImageBackground} from "expo-image";
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -34,6 +34,8 @@ import CoachIconV2 from "@/assets/images/svg/CoachIconV2";
 import BusinessIconV2 from "@/assets/images/svg/BusinessIconV2";
 import Spinner from "@/components/Spinner";
 import OverlaySpinner from "@/components/OverlaySpinner";
+import { useAlert } from "@/utils/useAlert";
+import StyledAlert from "@/components/StyledAlert";
 
 
 const UserStepForm = () => {
@@ -59,6 +61,7 @@ const UserStepForm = () => {
         }];
 
     const buttonText = ['Continue', 'Verify'];
+    const { showErrorAlert, showSuccessAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
 
 
     const _showModal = () => {
@@ -78,7 +81,7 @@ const UserStepForm = () => {
                 return true;
             } catch (e) {
                 console.error(e);
-                Alert.alert('Error', 'Something went wrong');
+                showErrorAlert('Something went wrong', closeAlert);
                 return false;
             }
         }
@@ -104,7 +107,7 @@ const UserStepForm = () => {
     const _verifyUserSelectedHisRule = () => {
         try {
             const res = userData.role !== UserType.DEFAULT;
-            if (!res) Alert.alert("You need to select a type");
+            if (!res) showErrorAlert('You need to select a type', closeAlert);
             return res;
         } catch (e) {
             console.error(e);
@@ -480,6 +483,11 @@ const UserStepForm = () => {
                         </>
                     </TouchableWithoutFeedback>
                 </Modal>
+                <StyledAlert
+                    visible={showStyledAlert}
+                    config={alertConfig}
+                    onClose={closeAlert}
+                />
             </SafeAreaView>
         </ImageBackground>
     );

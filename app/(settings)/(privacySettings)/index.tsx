@@ -1,7 +1,7 @@
 import {ImageBackground} from "expo-image";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
-import {Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View} from "react-native";
+import {Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View, Platform} from "react-native";
 import {AntDesign} from "@expo/vector-icons";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React, {useEffect, useState} from "react";
@@ -10,6 +10,8 @@ import {getUserProfile, logout} from "@/redux/UserSlice";
 import {router} from "expo-router";
 import {useDispatch, useSelector} from "react-redux";
 import {UserService} from "@/services/UserService";
+import {useAlert} from "@/utils/useAlert";
+import StyledAlert from "@/components/StyledAlert";
 
 
 const PrivacySettings = () => {
@@ -17,6 +19,8 @@ const PrivacySettings = () => {
     const currentUser = useSelector((state: any) => state.user.userData.visible) as boolean;
     const [isPrivacyAcOp, setPrivacyAcOp] = useState<boolean>(false);
     const [isPrivacyEnabled, setPrivacyEnabled] = useState<boolean>(!currentUser);
+    const [isLoading, setIsLoading] = useState(false);
+    const {showErrorAlert, showSuccessAlert, showConfirmationAlert, showStyledAlert, alertConfig, closeAlert} = useAlert();
 
     const _handleLogout = () => {
         dispatch(logout({}));
@@ -36,35 +40,32 @@ const PrivacySettings = () => {
         dispatch(getUserProfile() as any);
     }, []);
 
-    const _handleDeleteAccount = async () => {
-        Alert.alert(
-            'Confirmation',
-            'Are you sure you want to delete your account?',
-            [
-                {
-                    text: 'Cancel',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Delete',
-                    onPress: async () => {
-                        try {
-                            const result = await UserService.deleteUserProfile();
-                            if (result) {
-                                _handleLogout();
-                            } else {
-                                Alert.alert('Error', 'Unable to delete your account. Please try again later.');
-                            }
-                        } catch (e) {
-                            Alert.alert('Error', 'An error occurred while deleting your account.');
-                        }
-                    },
-                    style: 'destructive',
-                },
-            ],
-            {cancelable: false}
+    const handleDeleteAccount = async () => {
+        showConfirmationAlert(
+            'Delete Account',
+            'Are you sure you want to delete your account? This action cannot be undone.',
+            async () => {
+                try {
+                    setIsLoading(true);
+                    const result = await UserService.deleteUserProfile();
+                    if (result) {
+                        showSuccessAlert('Account deleted successfully', closeAlert);
+                        _handleLogout();
+                    } else {
+                        showErrorAlert('Unable to delete your account. Please try again later.', closeAlert);
+                    }
+                } catch (error) {
+                    console.error('Error deleting account:', error);
+                    showErrorAlert('An error occurred while deleting your account.', closeAlert);
+                } finally {
+                    setIsLoading(false);
+                }
+            },
+            closeAlert,
+            'Delete',
+            'Cancel'
         );
-    }
+    };
 
 
     const _openAccountSettings = () => {
@@ -114,13 +115,18 @@ const PrivacySettings = () => {
                                     your videos.</Text>
                             </View>}
                             <TouchableOpacity style={[styles.settingOption, {backgroundColor: 'white'}]}
-                                              onPress={_handleDeleteAccount}>
+                                              onPress={handleDeleteAccount}>
                                 <Text style={[styles.settingOptionText, {color: 'red'}]}>Delete Account</Text>
                                 <Ionicons name="warning-outline" size={24} color="red"/>
                             </TouchableOpacity>
                         </View>
                     </ScrollView>
                 </View>
+                <StyledAlert
+                    visible={showStyledAlert}
+                    config={alertConfig}
+                    onClose={closeAlert}
+                />
             </SafeAreaView>
         </ImageBackground>
     );

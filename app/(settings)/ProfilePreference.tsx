@@ -1,7 +1,7 @@
 import { ImageBackground } from "expo-image";
 import {heightPercentageToDP as hp} from "react-native-responsive-screen";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {Alert, Platform, ScrollView, StyleSheet, Text, View} from "react-native";
+import {Alert, Platform, ScrollView, StyleSheet, Text, View, TouchableOpacity} from "react-native";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React, { useEffect, useState } from "react";
 import { TextInput } from "react-native-paper";
@@ -13,11 +13,14 @@ import { UserService } from "@/services/UserService";
 import { router } from "expo-router";
 import { UserResponse } from "@/models/responseObjects/UserResponse";
 import { getUserProfile } from "@/redux/UserSlice";
+import { useAlert } from "@/utils/useAlert";
+import StyledAlert from "@/components/StyledAlert";
 
 const ProfilePreference = () => {
 
     const availableSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
     const currentUser = useSelector((state: any) => state.user.userData) as UserResponse;
+    const { showErrorAlert, showSuccessAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
 
     const [formData, setFormData] = useState<any>({
         preferenceSport: '',
@@ -25,6 +28,7 @@ const ProfilePreference = () => {
         skillLevel: '',
         bio: '',
     });
+    const [isLoading, setIsLoading] = useState(false);
 
     const dispatch = useDispatch();
 
@@ -45,20 +49,18 @@ const ProfilePreference = () => {
 
     const _handleSave = async () => {
         try {
+            setIsLoading(true);
             const response = await UserService.updateProfilePreference(formData);
             if (response) {
-                Alert.alert("Success", "Modification saved successfully!", [
-                    {
-                        text: "OK",
-                        onPress: () => router.back()
-                    }
-                ]
-                );
+                showSuccessAlert('Modification saved successfully!', closeAlert);
             } else {
-                Alert.alert("Error", "Something went wrong. Please try again.");
+                showErrorAlert('Something went wrong. Please try again.', closeAlert);
             }
         } catch (error) {
-            Alert.alert("Error", "An error occurred while saving modifications.");
+            console.error('Error saving modifications:', error);
+            showErrorAlert('An error occurred while saving modifications.', closeAlert);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -134,6 +136,11 @@ const ProfilePreference = () => {
                         </View>
                     </ScrollView>
                 </View>
+                <StyledAlert
+                    visible={showStyledAlert}
+                    config={alertConfig}
+                    onClose={closeAlert}
+                />
             </SafeAreaView>
         </ImageBackground>
     );

@@ -1,5 +1,5 @@
-import {useEffect, useState} from "react";
-import {Text, View, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Alert} from "react-native";
+import React, {useEffect, useState} from "react";
+import {Text, View, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Alert, Platform} from "react-native";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {Avatar} from 'react-native-paper';
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -15,12 +15,16 @@ import UserType from "@/models/UserType";
 import {UserService} from "@/services/UserService";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {AuthService} from "@/services/AuthService";
+import { useAlert } from "@/utils/useAlert";
+import StyledAlert from "@/components/StyledAlert";
+
 const Profile = () => {
     const dispatch = useDispatch()
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const loading = useSelector((state: any) => state.user.loading) as boolean;
     const [refreshing, setRefreshing] = useState<boolean>(false);
     const _router = useRouter();
+    const { showErrorAlert, showConfirmationAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
 
     useEffect(() => {
         (async () => {
@@ -41,35 +45,29 @@ const Profile = () => {
         router.replace('/Login');
     }
 
-    const _handleDeleteAccount = async () => {
-        Alert.alert(
-            'Confirmation',
-            'Are you sure you want to delete your account?',
-            [
-                {
-                    text: 'Cancel',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Delete',
-                    onPress: async () => {
-                        try {
-                            const result = await UserService.deleteUserProfile();
-                            if (result) {
-                                _handleLogout();
-                            } else {
-                                Alert.alert('Error', 'Unable to delete your account. Please try again later.');
-                            }
-                        } catch (e) {
-                            Alert.alert('Error', 'An error occurred while deleting your account.');
-                        }
-                    },
-                    style: 'destructive',
-                },
-            ],
-            {cancelable: false}
+    const handleDeleteAccount = () => {
+        showConfirmationAlert(
+            'Delete Account',
+            'Are you sure you want to delete your account? This action cannot be undone.',
+            async () => {
+                try {
+                    const result = await UserService.deleteUserProfile();
+                    if (result) {
+                        dispatch(logout({}));
+                        router.replace('/Login');
+                    } else {
+                        showErrorAlert('Unable to delete your account. Please try again later.', closeAlert);
+                    }
+                } catch (error) {
+                    console.error('Error deleting account:', error);
+                    showErrorAlert('An error occurred while deleting your account.', closeAlert);
+                }
+            },
+            closeAlert,
+            'Delete',
+            'Cancel'
         );
-    }
+    };
 
     const _refreshProfile = () => {
         setRefreshing(true)
@@ -200,7 +198,7 @@ const Profile = () => {
                             </TouchableOpacity>
 
                             <TouchableOpacity style={[styles.settingOption, {backgroundColor: 'white'}]}
-                                              onPress={_handleDeleteAccount}>
+                                              onPress={handleDeleteAccount}>
                                 <Text style={[styles.settingOptionText, {color: 'red'}]}>Delete Account</Text>
                                 <Ionicons name="warning-outline" size={24} color="red" />
                             </TouchableOpacity>
@@ -208,6 +206,11 @@ const Profile = () => {
                         </View>
                     </ScrollView>
                 </View>
+                <StyledAlert
+                    visible={showStyledAlert}
+                    config={alertConfig}
+                    onClose={closeAlert}
+                />
             </SafeAreaView>
         </ImageBackground>
     );

@@ -47,7 +47,10 @@ export default function RootLayout() {
     }, [error]);
 
     useEffect(() => {
-        LogBox.ignoreLogs(['Require cycle:']);
+        LogBox.ignoreLogs([
+            'Require cycle:',
+            'Push notifications require a physical device to work properly'
+        ]);
 
         if (loaded) {
             SplashScreen.hideAsync();
