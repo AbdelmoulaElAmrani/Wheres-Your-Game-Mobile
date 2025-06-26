@@ -39,7 +39,23 @@ import UserType from "@/models/UserType";
 import {MultiSelect} from "react-native-element-dropdown";
 import { useAlert } from "@/utils/useAlert";
 import StyledAlert from "@/components/StyledAlert";
+import { AntDesign } from '@expo/vector-icons';
 
+
+const pickerSelectStyle = {
+    inputIOS: { 
+        color: 'black',
+        paddingVertical: 12,
+        textAlignVertical: 'center' as const
+    }, 
+    inputAndroid: { 
+        color: 'black', 
+        height: 45 
+    }, 
+    placeholder: { 
+        color: 'grey' 
+    } 
+};
 
 const _AgeGroup = [
     {label: '1', value: '1'},
@@ -649,17 +665,19 @@ const EditProfile = () => {
                                 Info</Text>
                             <View style={styles.mgTop}>
                                 <Text style={styles.textLabel}>Your Sport</Text>
-                                <RNPickerSelect
-                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
-                                    items={sports.map(sport => ({
-                                        label: sport.name,
-                                        value: sport.id,
-                                        key: sport.id
-                                    }))}
-                                    placeholder={{label: 'Select sport', value: null}}
-                                    onValueChange={(value) => setSelectedSport(sports.find(sport => sport.id === value) || null)}
-                                    value={userSport[0]?.sportId || selectedSport?.id || null}
-                                />
+                                <View style={styles.inputStyle}>
+                                    <RNPickerSelect
+                                        style={pickerSelectStyle}
+                                        items={sports.map(sport => ({ label: sport.name, value: sport.id, key: sport.id }))}
+                                        placeholder={{ label: 'Select sport', value: null }}
+                                        onValueChange={(value) => setSelectedSport(sports.find(sport => sport.id === value) || null)}
+                                        value={userSport[0]?.sportId || selectedSport?.id || null}
+                                        useNativeAndroidPickerStyle={false}
+                                        Icon={() => (
+                                            <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
+                                        )}
+                                    />
+                                </View>
                                 <Text style={styles.textLabel}>Position Coach</Text>
                                 <TextInput
                                     style={[styles.inputStyle, {paddingLeft: 0}]}
@@ -672,39 +690,57 @@ const EditProfile = () => {
                                     onChangeText={(text) => setPositionCoach(text)}
                                 />
                                 <Text style={styles.textLabel}>Skill Level</Text>
-                                <RNPickerSelect
-                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
-                                    items={_generateSportLevelItems()}
-                                    placeholder={{label: 'Select skill level', value: null}}
-                                    onValueChange={(value) => setSportLevel(value as SportLevel)}
-                                    value={userSport[0]?.sportLevel || sportLevel || null}
-                                />
+                                <View style={styles.inputStyle}>
+                                    <RNPickerSelect
+                                        style={pickerSelectStyle}
+                                        items={_generateSportLevelItems()}
+                                        placeholder={{ label: 'Select skill level', value: null }}
+                                        onValueChange={(value) => setSportLevel(value as SportLevel)}
+                                        value={userSport[0]?.sportLevel || sportLevel || null}
+                                        useNativeAndroidPickerStyle={false}
+                                        Icon={() => (
+                                            <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
+                                        )}
+                                    />
+                                </View>
 
                                 <Text style={styles.textLabel}>Years of Experience</Text>
-                                <RNPickerSelect
-                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
-                                    items={Array.from({length: 40}, (_, i) => i).map(i => ({
-                                        label: i.toString(),
-                                        value: i,
-                                        key: i
-                                    }))}
-                                    placeholder={{label: 'Select years of experience', value: null}}
-                                    onValueChange={(value) => setYearsOfExperience(value as number)}
-                                    value={yearsOfExperience || null}
-                                />
+                                <View style={styles.inputStyle}>
+                                    <RNPickerSelect
+                                        style={pickerSelectStyle}
+                                        items={Array.from({length: 40}, (_, i) => i).map(i => ({
+                                            label: i.toString(),
+                                            value: i,
+                                            key: i
+                                        }))}
+                                        placeholder={{ label: 'Select years of experience', value: null }}
+                                        onValueChange={(value) => setYearsOfExperience(value as number)}
+                                        value={yearsOfExperience || null}
+                                        useNativeAndroidPickerStyle={false}
+                                        Icon={() => (
+                                            <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
+                                        )}
+                                    />
+                                </View>
 
                                 <Text style={styles.textLabel}>Certification</Text>
-                                <RNPickerSelect
-                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
-                                    items={[{label: 'Yes', value: true, key: 'Yes'}, {
-                                        label: 'No',
-                                        value: false,
-                                        key: 'No'
-                                    }]}
-                                    placeholder={{label: 'Select certification', value: null}}
-                                    onValueChange={(value) => setIsCertified(value as boolean)}
-                                    value={isCertified}
-                                />
+                                <View style={styles.inputStyle}>
+                                    <RNPickerSelect
+                                        style={pickerSelectStyle}
+                                        items={[{label: 'Yes', value: true, key: 'Yes'}, {
+                                            label: 'No',
+                                            value: false,
+                                            key: 'No'
+                                        }]}
+                                        placeholder={{ label: 'Select certification', value: null }}
+                                        onValueChange={(value) => setIsCertified(value as boolean)}
+                                        value={isCertified}
+                                        useNativeAndroidPickerStyle={false}
+                                        Icon={() => (
+                                            <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
+                                        )}
+                                    />
+                                </View>
 
 
                                 <Text style={styles.textLabel}>Tell us about yourself</Text>
@@ -874,13 +910,19 @@ const EditProfile = () => {
                                     numberOfLines={4}
                                 />
                                 <Text style={styles.textLabel}>Country</Text>
-                                <RNPickerSelect
-                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
-                                    items={_countries}
-                                    placeholder={{label: 'Select country', value: null}}
-                                    onValueChange={(value) => setEditUser({...editUser, country: value})}
-                                    value={editUser?.country || 'United States'}
-                                />
+                                <View style={styles.inputStyle}>
+                                    <RNPickerSelect
+                                        style={pickerSelectStyle}
+                                        items={_countries}
+                                        placeholder={{ label: 'Select country', value: null }}
+                                        onValueChange={(value) => setEditUser({...editUser, country: value})}
+                                        value={editUser?.country || 'United States'}
+                                        useNativeAndroidPickerStyle={false}
+                                        Icon={() => (
+                                            <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
+                                        )}
+                                    />
+                                </View>
                                 <Text style={styles.textLabel}>State/Region</Text>
                                 <TextInput
                                     style={[styles.inputStyle, {paddingLeft: 0}]}
@@ -1015,23 +1057,35 @@ const EditProfile = () => {
                                 Info</Text>
                             <View style={styles.mgTop}>
                                 <Text style={styles.textLabel}>Sport</Text>
-                                <RNPickerSelect
-                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
-                                    items={sportsList}
-                                    placeholder={{label: 'Select sport', value: null}}
-                                    onValueChange={(value) =>
-                                        setSelectedSport(sports.find(sport => sport.id === value) || null)
-                                    }
-                                    value={selectedSport?.value}
-                                />
+                                <View style={styles.inputStyle}>
+                                    <RNPickerSelect
+                                        style={pickerSelectStyle}
+                                        items={sportsList}
+                                        placeholder={{ label: 'Select sport', value: null }}
+                                        onValueChange={(value) =>
+                                            setSelectedSport(sports.find(sport => sport.id === value) || null)
+                                        }
+                                        value={selectedSport?.value}
+                                        useNativeAndroidPickerStyle={false}
+                                        Icon={() => (
+                                            <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
+                                        )}
+                                    />
+                                </View>
                                 <Text style={styles.textLabel}>Estimated Cost</Text>
-                                <RNPickerSelect
-                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
-                                    items={costRanges}
-                                    placeholder={{label: 'Select cost range', value: null}}
-                                    onValueChange={(value) => setEstimatedCost(value)}
-                                    value={estimatedCost}
-                                />
+                                <View style={styles.inputStyle}>
+                                    <RNPickerSelect
+                                        style={pickerSelectStyle}
+                                        items={costRanges}
+                                        placeholder={{ label: 'Select cost range', value: null }}
+                                        onValueChange={(value) => setEstimatedCost(value)}
+                                        value={estimatedCost}
+                                        useNativeAndroidPickerStyle={false}
+                                        Icon={() => (
+                                            <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
+                                        )}
+                                    />
+                                </View>
                                 <Text style={styles.textLabel}>Type of Game</Text>
                                 <MultiSelect
                                     style={styles.inputStyle}
@@ -1053,21 +1107,33 @@ const EditProfile = () => {
                                     visibleSelectedItem={false}
                                 />
                                 <Text style={styles.textLabel}>Season Duration</Text>
-                                <RNPickerSelect
-                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
-                                    items={_seasonDuration}
-                                    placeholder={{label: 'Season Duration', value: null}}
-                                    onValueChange={(value) => setSeasonDuration(value)}
-                                    value={seasonDuration || null}
-                                />
+                                <View style={styles.inputStyle}>
+                                    <RNPickerSelect
+                                        style={pickerSelectStyle}
+                                        items={_seasonDuration}
+                                        placeholder={{ label: 'Season Duration', value: null }}
+                                        onValueChange={(value) => setSeasonDuration(value)}
+                                        value={seasonDuration || null}
+                                        useNativeAndroidPickerStyle={false}
+                                        Icon={() => (
+                                            <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
+                                        )}
+                                    />
+                                </View>
                                 <Text style={styles.textLabel}>Location(s) of Game</Text>
-                                <RNPickerSelect
-                                    style={{inputIOS: styles.inputStyle, inputAndroid: styles.inputStyle}}
-                                    items={_locationOfGame}
-                                    placeholder={{label: 'Location(s) of Game', value: null}}
-                                    onValueChange={(value) => setLocation(value)}
-                                    value={location || null}
-                                />
+                                <View style={styles.inputStyle}>
+                                    <RNPickerSelect
+                                        style={pickerSelectStyle}
+                                        items={_locationOfGame}
+                                        placeholder={{ label: 'Location(s) of Game', value: null }}
+                                        onValueChange={(value) => setLocation(value)}
+                                        value={location || null}
+                                        useNativeAndroidPickerStyle={false}
+                                        Icon={() => (
+                                            <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
+                                        )}
+                                    />
+                                </View>
 
                                 <View style={{marginTop: 20}}>
                                     <CustomButton
