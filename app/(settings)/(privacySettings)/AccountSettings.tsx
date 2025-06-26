@@ -142,8 +142,14 @@ const AccountSettings = () => {
                                     underlineStyle={{height: 0}}
                                 />
 
-                                <Button
-                                    title="Change Password" onPress={_handleChangePassword}/>
+                                <TouchableOpacity
+                                    style={styles.changePasswordButton}
+                                    onPress={_handleChangePassword}
+                                >
+                                    <Text style={styles.changePasswordButtonText}>
+                                        Change Password
+                                    </Text>
+                                </TouchableOpacity>
                             </View>}
                             <TouchableOpacity
                                 onPress={_handleHelp}
@@ -236,6 +242,19 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "500",
         marginTop: 10
+    },
+    changePasswordButton: {
+        backgroundColor: '#2757CB',
+        padding: 10,
+        borderRadius: 20,
+        marginTop: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    changePasswordButtonText: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: 'white',
     },
 });
 
