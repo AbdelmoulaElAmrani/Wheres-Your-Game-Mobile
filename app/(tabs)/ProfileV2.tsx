@@ -668,7 +668,8 @@ const styles = StyleSheet.create({
     },
     sportsProfileContainer: {
         width: '100%',
-        padding: 15,
+        padding: 20,
+        marginBottom: 10,
     },
     sportsList: {
         marginBottom: 20,
