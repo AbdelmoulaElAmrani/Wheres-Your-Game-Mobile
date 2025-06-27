@@ -107,9 +107,6 @@ const AdvertisementRequest = () => {
                             <Ionicons name="information-circle-outline" size={24} color="#2757CB" />
                             <Text style={styles.infoText}>Our team will review your request and contact you within 2 business days to discuss advertising options and pricing.</Text>
                         </View>
-                        <View style={styles.infoContainer}>
-                            <Ionicons name="information-circle-outline" size={24} color="#2757CB" />
-                        </View>
                     </KeyboardAwareScrollView>
                 </View>
                 <StyledAlert
@@ -125,7 +122,7 @@ const AdvertisementRequest = () => {
 const styles = StyleSheet.create({
     cardContainer: {
         width: '100%',
-        height: '100%',
+        height: '85%',
         justifyContent: 'center',
         backgroundColor: 'white',
         borderTopEndRadius: 40,
