@@ -29,8 +29,8 @@ import { TrainingLocationService } from "@/services/TrainingLocationService";
 import { TrainingLocation } from "@/models/TrainingLocation";
 import { TextInput } from "react-native";
 import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
-import { useAlert } from "@/utils/useAlert";
-import StyledAlert from "@/components/StyledAlert";
+import { EventService } from '@/services/EventService';
+import { SportEvent } from '@/models/SportEvent';
 
 enum Filters {
     SPORT,
@@ -86,7 +86,9 @@ const SportMap = () => {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [suggestedCities, setSuggestedCities] = useState<string[]>([]);
     const [cityCoords, setCityCoords] = useState<{ latitude: number; longitude: number } | null>(null);
-    const { showErrorAlert, showSuccessAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
+    const [events, setEvents] = useState<SportEvent[]>([]);
+    const [eventsOnTop, setEventsOnTop] = useState(true);
+    const [selectedEvent, setSelectedEvent] = useState<SportEvent | null>(null);
 
     useEffect(() => {
         (async () => {
@@ -115,11 +117,17 @@ const SportMap = () => {
                     mapRef.current?.animateToRegion(newRegion, 1000);
                 } else {
                     setHasLocationPermission(false);
-                    showErrorAlert('Please enable location services to see nearby events and training locations.', closeAlert);
+                    Alert.alert(
+                        'Location Permission',
+                        'Please enable location services to see nearby events and training locations.',
+                        [{ text: 'OK' }]
+                    );
                 }
             } catch (error) {
-                console.error('Error requesting location permission:', error);
+                console.error('Error getting location:', error);
                 setHasLocationPermission(false);
+            } finally {
+                setIsLoading(false);
             }
             
             if (availableSports.length == 0) {
@@ -203,14 +211,11 @@ const SportMap = () => {
             );
             const data = await response.json();
             if (data.results && data.results.length > 0) {
-                const location = data.results[0];
-                setCityCoords({
-                    latitude: location.geometry.location.lat,
-                    longitude: location.geometry.location.lng
-                });
+                const { lat, lng } = data.results[0].geometry.location;
+                setCityCoords({ latitude: lat, longitude: lng });
                 const newRegion = {
-                    latitude: location.geometry.location.lat,
-                    longitude: location.geometry.location.lng,
+                    latitude: lat,
+                    longitude: lng,
                     latitudeDelta: 0.1,
                     longitudeDelta: 0.1
                 };
@@ -218,11 +223,11 @@ const SportMap = () => {
                 mapRef.current?.animateToRegion(newRegion, 1000);
                 await loadTrainingLocations();
             } else {
-                showErrorAlert('City not found', closeAlert);
+                Alert.alert('Error', 'City not found');
             }
         } catch (error) {
             console.error('Error geocoding city:', error);
-            showErrorAlert('Could not find the city location', closeAlert);
+            Alert.alert('Error', 'Could not find the city location');
         }
     };
 
@@ -265,7 +270,7 @@ const SportMap = () => {
             }
         } catch (error) {
             console.error('Error loading training locations:', error);
-            showErrorAlert('Failed to load training locations', closeAlert);
+            Alert.alert('Error', 'Failed to load training locations');
         } finally {
             setIsLoadingLocations(false);
         }
@@ -297,10 +302,23 @@ const SportMap = () => {
 
     const handleLocationSelect = (location: TrainingLocation) => {
         setSelectedLocation(location);
+        setSelectedEvent(null);
         setIsListVisible(true);
         mapRef.current?.animateToRegion({
             latitude: location.latitude ,
             longitude: location.longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01
+        }, 1000);
+    };
+
+    const handleEventSelect = (event: SportEvent) => {
+        setSelectedEvent(event);
+        setSelectedLocation(null);
+        setIsListVisible(true);
+        mapRef.current?.animateToRegion({
+            latitude: event.latitude as number,
+            longitude: event.longitude as number,
             latitudeDelta: 0.01,
             longitudeDelta: 0.01
         }, 1000);
@@ -320,6 +338,14 @@ const SportMap = () => {
         return found?.value || location.sportName || location.sport?.name || "Unknown Sport";
     };
 
+    useEffect(() => {
+        const loadEvents = async () => {
+            const allEvents = await EventService.getEventsForMap();
+            setEvents(allEvents || []);
+        };
+        loadEvents();
+    }, []);
+
     return (
         <SafeAreaView style={{flex: 1}}>
             <StatusBar style={"dark"}/>
@@ -336,7 +362,7 @@ const SportMap = () => {
             {isLoading ? (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#2757CB" />
-                    <Text style={styles.loadingText}>Getting your location...</Text>
+                    <Text style={styles.loadingText}>Loading your location...</Text>
                 </View>
             ) : (
                 <View style={{flex: 1, flexDirection: 'column'}}>
@@ -376,6 +402,21 @@ const SportMap = () => {
                                     />
                                 </Marker>
                             ))}
+                            {events.filter(event => typeof event.latitude === 'number' && typeof event.longitude === 'number').map(event => (
+                                <Marker
+                                    key={`event-${event.id}`}
+                                    coordinate={{
+                                        latitude: event.latitude as number,
+                                        longitude: event.longitude as number
+                                    }}
+                                    anchor={{ x: 0.5, y: 1.0 }}
+                                >
+                                    <Image
+                                        source={require('../../assets/images/event-pin.png')}
+                                        style={styles.markerImage}
+                                    />
+                                </Marker>
+                            ))}
                         </MapView>
                     </View>
 
@@ -403,98 +444,352 @@ const SportMap = () => {
                                     ? 'Loading...'
                                     : isListVisible
                                         ? 'Hide List'
-                                        : `Show List (${trainingLocations.length})`}
+                                        : `Show List `}
                         </Text>
                     </TouchableOpacity>
 
                     {/* Split List (Bottom Half) */}
-                    {isListVisible && trainingLocations.length > 0 && (
+                    {isListVisible && (trainingLocations.length > 0 || events.length > 0) && (
                         <View style={{flex: 1, backgroundColor: 'white', borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden'}}>
+                            {/* Sort Toggle */}
+                            <TouchableOpacity
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: 12,
+                                    borderBottomWidth: 1,
+                                    borderColor: '#eee'
+                                }}
+                                onPress={() => setEventsOnTop(e => !e)}
+                            >
+                                <Ionicons name={eventsOnTop ? 'arrow-down' : 'arrow-up'} size={18} color="#2757CB" style={{marginRight: 6}} />
+                                <Text style={{color: '#2757CB', fontWeight: 'bold'}}>
+                                    {eventsOnTop ? 'Events First' : 'Locations First'}
+                                </Text>
+                            </TouchableOpacity>
                             <ScrollView style={styles.listScrollView}>
-                                {trainingLocations.map((location) => {
-                                    // console.log('TrainingLocation:', location);
-                                    return (
-                                        <TouchableOpacity 
-                                            key={location.id}
-                                            style={[
-                                                styles.listItem,
-                                                selectedLocation?.id === location.id && styles.selectedListItem,
-                                                selectedLocation?.id === location.id && styles.lastListItem
-                                            ]}
-                                            onPress={() => handleLocationSelect(location)}>
-                                            <View style={styles.listItemContent}>
-                                                <Text style={styles.listItemTitle}>{location.name}</Text>
-                                                <Text style={styles.listItemAddress}>{location.address}</Text>
-                                                <Text style={styles.listItemSport}>
-                                                    Sport: {getSportName(location)}
-                                                </Text>
-                                                {selectedLocation?.id === location.id && (
-                                                    <View style={styles.listItemActions}>
-                                                        <TouchableOpacity 
-                                                            style={styles.listActionButton}
-                                                            onPress={() => {
-                                                                Clipboard.setString(location.address);
-                                                                showSuccessAlert('Address copied to clipboard', closeAlert);
-                                                            }}>
-                                                            <Ionicons name="copy-outline" size={20} color="#2757CB" />
-                                                            <Text style={styles.listActionButtonText}>Copy Address</Text>
+                                {/* Render items based on sort order */}
+                                {(() => {
+                                    const validEvents = events.filter(event => typeof event.latitude === 'number' && typeof event.longitude === 'number');
+                                    
+                                    if (eventsOnTop) {
+                                        // Show events first, then training locations
+                                        return (
+                                            <>
+                                                {/* Show Events First */}
+                                                {validEvents.map(event => (
+                                                    <TouchableOpacity
+                                                        key={`event-${event.id}`}
+                                                        style={[
+                                                            styles.listItem,
+                                                            selectedEvent?.id === event.id && styles.selectedListItem,
+                                                            selectedEvent?.id === event.id && styles.lastListItem
+                                                        ]}
+                                                        onPress={() => handleEventSelect(event)}>
+                                                        {/* Ribbon */}
+                                                        <View style={styles.ribbon}>
+                                                            <Ionicons name="calendar" size={24} color="white" />
+                                                        </View>
+                                                        <View style={styles.listItemContent}>
+                                                            <Text style={styles.listItemTitle}>{event.name}</Text>
+                                                            <Text style={styles.listItemSport}>Event Date: {new Date(event.eventDate).toLocaleString()}</Text>
+                                                            <Text style={styles.listItemAddress}>{event.address}</Text>
+                                                            <Text style={{color: '#CB6E17', fontSize: 12}}>Type: Event</Text>
+                                                            {selectedEvent?.id === event.id && (
+                                                                <View style={styles.listItemActions}>
+                                                                    <TouchableOpacity 
+                                                                        style={styles.listActionButton}
+                                                                        onPress={() => {
+                                                                            if (event.address) {
+                                                                                Clipboard.setString(event.address);
+                                                                                Alert.alert('Success', 'Address copied to clipboard');
+                                                                            } else {
+                                                                                Alert.alert('Error', 'No address available');
+                                                                            }
+                                                                        }}>
+                                                                        <Ionicons name="copy-outline" size={20} color="#2757CB" />
+                                                                        <Text style={styles.listActionButtonText}>Copy Address</Text>
+                                                                    </TouchableOpacity>
+                                                                    <TouchableOpacity 
+                                                                        style={styles.listActionButton}
+                                                                        onPress={() => {
+                                                                            const url = `https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`;
+                                                                            Linking.canOpenURL(url).then(supported => {
+                                                                                if (supported) {
+                                                                                    Linking.openURL(url);
+                                                                                } else {
+                                                                                    Alert.alert('Error', 'Could not open maps application');
+                                                                                }
+                                                                            });
+                                                                        }}>
+                                                                        <Ionicons name="navigate-outline" size={20} color="#2757CB" />
+                                                                        <Text style={styles.listActionButtonText}>Get Directions</Text>
+                                                                    </TouchableOpacity>
+                                                                </View>
+                                                            )}
+                                                        </View>
+                                                        <TouchableOpacity onPress={() => {
+                                                            if (selectedEvent?.id === event.id) {
+                                                                setSelectedEvent(null);
+                                                            } else {
+                                                                handleEventSelect(event);
+                                                            }
+                                                        }}>
+                                                            <Ionicons 
+                                                                name={selectedEvent?.id === event.id ? "chevron-down" : "chevron-forward"} 
+                                                                size={24} 
+                                                                color="#666" 
+                                                            />
                                                         </TouchableOpacity>
-                                                        <TouchableOpacity 
-                                                            style={styles.listActionButton}
-                                                            onPress={() => {
-                                                                router.push({
-                                                                    pathname: '/UserConversation',
-                                                                    params: {receptionId: location.createdBy},
-                                                                });
-                                                            }}>
-                                                            <Ionicons name="chatbubble-outline" size={20} color="#2757CB" />
-                                                            <Text style={styles.listActionButtonText}>Message</Text>
+                                                    </TouchableOpacity>
+                                                ))}
+                                                
+                                                {/* Show Training Locations Second */}
+                                                {trainingLocations.map((location) => (
+                                                    <TouchableOpacity 
+                                                        key={`location-${location.id}`}
+                                                        style={[
+                                                            styles.listItem,
+                                                            selectedLocation?.id === location.id && styles.selectedListItem,
+                                                            selectedLocation?.id === location.id && styles.lastListItem
+                                                        ]}
+                                                        onPress={() => handleLocationSelect(location)}>
+                                                        <View style={styles.listItemContent}>
+                                                            <Text style={styles.listItemTitle}>{location.name}</Text>
+                                                            <Text style={styles.listItemAddress}>{location.address}</Text>
+                                                            <Text style={styles.listItemSport}>
+                                                                Sport: {getSportName(location)}
+                                                            </Text>
+                                                            <Text style={{color: '#888', fontSize: 12}}>Type: Training Location</Text>
+                                                            {selectedLocation?.id === location.id && (
+                                                                <View style={styles.listItemActions}>
+                                                                    <TouchableOpacity 
+                                                                        style={styles.listActionButton}
+                                                                        onPress={() => {
+                                                                            Clipboard.setString(location.address);
+                                                                            Alert.alert('Success', 'Address copied to clipboard');
+                                                                        }}>
+                                                                        <Ionicons name="copy-outline" size={20} color="#2757CB" />
+                                                                        <Text style={styles.listActionButtonText}>Copy Address</Text>
+                                                                    </TouchableOpacity>
+                                                                    <TouchableOpacity 
+                                                                        style={styles.listActionButton}
+                                                                        onPress={() => {
+                                                                            router.push({
+                                                                                pathname: '/UserConversation',
+                                                                                params: {receptionId: location.createdBy},
+                                                                            });
+                                                                        }}>
+                                                                        <Ionicons name="chatbubble-outline" size={20} color="#2757CB" />
+                                                                        <Text style={styles.listActionButtonText}>Message</Text>
+                                                                    </TouchableOpacity>
+                                                                    <TouchableOpacity 
+                                                                        style={styles.listActionButton}
+                                                                        onPress={() => {
+                                                                            router.push({
+                                                                                pathname: '/(user)/UserProfile',
+                                                                                params: {userId: location.createdBy},
+                                                                            });
+                                                                        }}>
+                                                                        <Ionicons name="person-outline" size={20} color="#2757CB" />
+                                                                        <Text style={styles.listActionButtonText}>View Profile</Text>
+                                                                    </TouchableOpacity>
+                                                                    <TouchableOpacity 
+                                                                        style={styles.listActionButton}
+                                                                        onPress={() => {
+                                                                            const url = `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}`;
+                                                                            Linking.canOpenURL(url).then(supported => {
+                                                                                if (supported) {
+                                                                                    Linking.openURL(url);
+                                                                                } else {
+                                                                                    Alert.alert('Error', 'Could not open maps application');
+                                                                                }
+                                                                            });
+                                                                        }}>
+                                                                        <Ionicons name="navigate-outline" size={20} color="#2757CB" />
+                                                                        <Text style={styles.listActionButtonText}>Get Directions</Text>
+                                                                    </TouchableOpacity>
+                                                                </View>
+                                                            )}
+                                                        </View>
+                                                        <TouchableOpacity onPress={() => {
+                                                            if (selectedLocation?.id === location.id) {
+                                                                setSelectedLocation(null);
+                                                            } else {
+                                                                handleLocationSelect(location);
+                                                            }
+                                                        }}>
+                                                            <Ionicons 
+                                                                name={selectedLocation?.id === location.id ? "chevron-down" : "chevron-forward"} 
+                                                                size={24} 
+                                                                color="#666" 
+                                                            />
                                                         </TouchableOpacity>
-                                                        <TouchableOpacity 
-                                                            style={styles.listActionButton}
-                                                            onPress={() => {
-                                                                router.push({
-                                                                    pathname: '/(user)/UserProfile',
-                                                                    params: {userId: location.createdBy},
-                                                                });
-                                                            }}>
-                                                            <Ionicons name="person-outline" size={20} color="#2757CB" />
-                                                            <Text style={styles.listActionButtonText}>View Profile</Text>
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </>
+                                        );
+                                    } else {
+                                        // Show training locations first, then events
+                                        return (
+                                            <>
+                                                {/* Show Training Locations First */}
+                                                {trainingLocations.map((location) => (
+                                                    <TouchableOpacity 
+                                                        key={`location-${location.id}`}
+                                                        style={[
+                                                            styles.listItem,
+                                                            selectedLocation?.id === location.id && styles.selectedListItem,
+                                                            selectedLocation?.id === location.id && styles.lastListItem
+                                                        ]}
+                                                        onPress={() => handleLocationSelect(location)}>
+                                                        <View style={styles.listItemContent}>
+                                                            <Text style={styles.listItemTitle}>{location.name}</Text>
+                                                            <Text style={styles.listItemAddress}>{location.address}</Text>
+                                                            <Text style={styles.listItemSport}>
+                                                                Sport: {getSportName(location)}
+                                                            </Text>
+                                                            <Text style={{color: '#888', fontSize: 12}}>Type: Training Location</Text>
+                                                            {selectedLocation?.id === location.id && (
+                                                                <View style={styles.listItemActions}>
+                                                                    <TouchableOpacity 
+                                                                        style={styles.listActionButton}
+                                                                        onPress={() => {
+                                                                            Clipboard.setString(location.address);
+                                                                            Alert.alert('Success', 'Address copied to clipboard');
+                                                                        }}>
+                                                                        <Ionicons name="copy-outline" size={20} color="#2757CB" />
+                                                                        <Text style={styles.listActionButtonText}>Copy Address</Text>
+                                                                    </TouchableOpacity>
+                                                                    <TouchableOpacity 
+                                                                        style={styles.listActionButton}
+                                                                        onPress={() => {
+                                                                            router.push({
+                                                                                pathname: '/UserConversation',
+                                                                                params: {receptionId: location.createdBy},
+                                                                            });
+                                                                        }}>
+                                                                        <Ionicons name="chatbubble-outline" size={20} color="#2757CB" />
+                                                                        <Text style={styles.listActionButtonText}>Message</Text>
+                                                                    </TouchableOpacity>
+                                                                    <TouchableOpacity 
+                                                                        style={styles.listActionButton}
+                                                                        onPress={() => {
+                                                                            router.push({
+                                                                                pathname: '/(user)/UserProfile',
+                                                                                params: {userId: location.createdBy},
+                                                                            });
+                                                                        }}>
+                                                                        <Ionicons name="person-outline" size={20} color="#2757CB" />
+                                                                        <Text style={styles.listActionButtonText}>View Profile</Text>
+                                                                    </TouchableOpacity>
+                                                                    <TouchableOpacity 
+                                                                        style={styles.listActionButton}
+                                                                        onPress={() => {
+                                                                            const url = `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}`;
+                                                                            Linking.canOpenURL(url).then(supported => {
+                                                                                if (supported) {
+                                                                                    Linking.openURL(url);
+                                                                                } else {
+                                                                                    Alert.alert('Error', 'Could not open maps application');
+                                                                                }
+                                                                            });
+                                                                        }}>
+                                                                        <Ionicons name="navigate-outline" size={20} color="#2757CB" />
+                                                                        <Text style={styles.listActionButtonText}>Get Directions</Text>
+                                                                    </TouchableOpacity>
+                                                                </View>
+                                                            )}
+                                                        </View>
+                                                        <TouchableOpacity onPress={() => {
+                                                            if (selectedLocation?.id === location.id) {
+                                                                setSelectedLocation(null);
+                                                            } else {
+                                                                handleLocationSelect(location);
+                                                            }
+                                                        }}>
+                                                            <Ionicons 
+                                                                name={selectedLocation?.id === location.id ? "chevron-down" : "chevron-forward"} 
+                                                                size={24} 
+                                                                color="#666" 
+                                                            />
                                                         </TouchableOpacity>
-                                                        <TouchableOpacity 
-                                                            style={styles.listActionButton}
-                                                            onPress={() => {
-                                                                const url = `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}`;
-                                                                Linking.canOpenURL(url).then(supported => {
-                                                                    if (supported) {
-                                                                        Linking.openURL(url);
-                                                                    } else {
-                                                                        showErrorAlert('Could not open maps application', closeAlert);
-                                                                    }
-                                                                });
-                                                            }}>
-                                                            <Ionicons name="navigate-outline" size={20} color="#2757CB" />
-                                                            <Text style={styles.listActionButtonText}>Get Directions</Text>
+                                                    </TouchableOpacity>
+                                                ))}
+                                                
+                                                {/* Show Events Second */}
+                                                {validEvents.map(event => (
+                                                    <TouchableOpacity
+                                                        key={`event-${event.id}`}
+                                                        style={[
+                                                            styles.listItem,
+                                                            selectedEvent?.id === event.id && styles.selectedListItem,
+                                                            selectedEvent?.id === event.id && styles.lastListItem
+                                                        ]}
+                                                        onPress={() => handleEventSelect(event)}>
+                                                        {/* Ribbon */}
+                                                        <View style={styles.ribbon}>
+                                                            <Ionicons name="calendar" size={24} color="white" />
+                                                        </View>
+                                                        <View style={styles.listItemContent}>
+                                                            <Text style={styles.listItemTitle}>{event.name}</Text>
+                                                            <Text style={styles.listItemSport}>Event Date: {new Date(event.eventDate).toLocaleString()}</Text>
+                                                            <Text style={styles.listItemAddress}>{event.address}</Text>
+                                                            <Text style={{color: '#CB6E17', fontSize: 12}}>Type: Event</Text>
+                                                            {selectedEvent?.id === event.id && (
+                                                                <View style={styles.listItemActions}>
+                                                                    <TouchableOpacity 
+                                                                        style={styles.listActionButton}
+                                                                        onPress={() => {
+                                                                            if (event.address) {
+                                                                                Clipboard.setString(event.address);
+                                                                                Alert.alert('Success', 'Address copied to clipboard');
+                                                                            } else {
+                                                                                Alert.alert('Error', 'No address available');
+                                                                            }
+                                                                        }}>
+                                                                        <Ionicons name="copy-outline" size={20} color="#2757CB" />
+                                                                        <Text style={styles.listActionButtonText}>Copy Address</Text>
+                                                                    </TouchableOpacity>
+                                                                    <TouchableOpacity 
+                                                                        style={styles.listActionButton}
+                                                                        onPress={() => {
+                                                                            const url = `https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`;
+                                                                            Linking.canOpenURL(url).then(supported => {
+                                                                                if (supported) {
+                                                                                    Linking.openURL(url);
+                                                                                } else {
+                                                                                    Alert.alert('Error', 'Could not open maps application');
+                                                                                }
+                                                                            });
+                                                                        }}>
+                                                                        <Ionicons name="navigate-outline" size={20} color="#2757CB" />
+                                                                        <Text style={styles.listActionButtonText}>Get Directions</Text>
+                                                                    </TouchableOpacity>
+                                                                </View>
+                                                            )}
+                                                        </View>
+                                                        <TouchableOpacity onPress={() => {
+                                                            if (selectedEvent?.id === event.id) {
+                                                                setSelectedEvent(null);
+                                                            } else {
+                                                                handleEventSelect(event);
+                                                            }
+                                                        }}>
+                                                            <Ionicons 
+                                                                name={selectedEvent?.id === event.id ? "chevron-down" : "chevron-forward"} 
+                                                                size={24} 
+                                                                color="#666" 
+                                                            />
                                                         </TouchableOpacity>
-                                                    </View>
-                                                )}
-                                            </View>
-                                            <TouchableOpacity onPress={() => {
-                                                if (selectedLocation?.id === location.id) {
-                                                    setSelectedLocation(null);
-                                                } else {
-                                                    handleLocationSelect(location);
-                                                }
-                                            }}>
-                                                <Ionicons 
-                                                    name={selectedLocation?.id === location.id ? "chevron-down" : "chevron-forward"} 
-                                                    size={24} 
-                                                    color="#666" 
-                                                />
-                                            </TouchableOpacity>
-                                        </TouchableOpacity>
-                                    );
-                                })}
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </>
+                                        );
+                                    }
+                                })()}
+                                <View style={{ height: 80 }} />
                             </ScrollView>
                             <View style={styles.listGradientOverlay}></View>
                         </View>
@@ -648,13 +943,6 @@ const SportMap = () => {
                     )}
                 </View>
             </Modal>
-
-            {/* Add StyledAlert for Android */}
-            <StyledAlert
-                visible={showStyledAlert}
-                config={alertConfig}
-                onClose={closeAlert}
-            />
         </SafeAreaView>
     );
 }
@@ -772,7 +1060,7 @@ const styles = StyleSheet.create({
     markerImage: {
         width: 40,
         height: 40,
-        resizeMode: 'contain'
+        resizeMode: 'contain',
     },
     calloutContainer: {
         backgroundColor: 'white',
@@ -974,6 +1262,17 @@ const styles = StyleSheet.create({
     citySuggestionText: {
         fontSize: 16,
         color: '#333',
+    },
+    ribbon: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        backgroundColor: '#2757CB',
+        borderBottomLeftRadius: 12,
+        padding: 8,
+        zIndex: 2,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });
 export default SportMap;

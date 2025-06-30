@@ -18,6 +18,13 @@ const VideoComponent: React.FC<VideoComponentProps> = ({url}) => {
     };
 
     const getYouTubeVideoId = (url: string): string => {
+        // Handle YouTube Shorts URLs
+        const shortsMatch = url.match(/youtube\.com\/shorts\/([^#\&\?\/]+)/);
+        if (shortsMatch) {
+            return shortsMatch[1];
+        }
+        
+        // Handle regular YouTube URLs
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
         const match = url.match(regExp);
         return (match && match[2].length === 11) ? match[2] : '';

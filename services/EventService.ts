@@ -28,4 +28,15 @@ export class EventService {
         }
         return res?.data;
     }
+
+    public static getEventsForMap = async (zipCode?: string) => {
+        const url = zipCode && zipCode.length > 0
+            ? `event/map-upcoming?zipCode=${encodeURIComponent(zipCode)}`
+            : 'event/map-upcoming';
+        const res = await Requests.get(url);
+        if (res?.status !== 200) {
+            return undefined;
+        }
+        return res?.data;
+    }
 }

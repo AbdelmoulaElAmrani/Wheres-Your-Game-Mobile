@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {
     Keyboard,
     StyleSheet,
@@ -32,6 +32,8 @@ import LocalStorageService from '@/services/LocalStorageService';
 import {googleAndroidClientId, googleIosClientId, googleWebClientId} from "@/appConfig";
 import TokenManager from "@/services/TokenManager";
 import OverlaySpinner from '@/components/OverlaySpinner';
+import axios from 'axios';
+import { API_URI } from '@/appConfig';
 
 
 const Login = () => {
@@ -42,6 +44,7 @@ const Login = () => {
     const [errorMessages, setErrorMessages] = useState<string>('');
     const user = useSelector((state: any) => state.user.userData) as UserResponse;
     const [loading, setLoading] = useState<boolean>(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     /* const configureGoogleSignIn = () => {
          GoogleSignin.configure({
@@ -67,6 +70,32 @@ const Login = () => {
         fetchData();
         //configureGoogleSignIn();
     }, [user]);
+
+    useEffect(() => {
+        // Test backend connectivity
+        axios.get(`${API_URI}auth/health`)
+            .then(res => {
+                console.log('✅ Connected successfully to backend and database:', res.data);
+            })
+            .catch(err => {
+                console.log('❌ Could not connect to backend or database:', err.message);
+                console.log('🔍 Error details:', {
+                    message: err.message,
+                    code: err.code,
+                    status: err.response?.status,
+                    config: err.config
+                });
+            });
+            
+        // Also test with a simple ping
+        axios.get(`${API_URI}api/auth/test`, { timeout: 5000 })
+            .then(res => {
+                console.log('✅ Simple test successful:', res.data);
+            })
+            .catch(err => {
+                console.log('❌ Simple test failed:', err.message);
+            });
+    }, []);
 
     /*const _handleSignInWithGoogle = async () => {
         try {
@@ -98,6 +127,8 @@ const Login = () => {
     }*/
 
     const _handleLogin = async () => {
+        console.log('API_URI:', API_URI);
+        console.log('Login email:', email);
         if (_isLoginFormNotValid()) {
             setErrorMessages('Please enter email and password');
             setTimeout(() => {
@@ -172,11 +203,7 @@ const Login = () => {
                                         placeholder={'Email'}
                                         cursorColor='black'
                                         placeholderTextColor={'grey'}
-                                        left={
-                                            <View style={styles.iconContainer}>
-                                                <AntDesign name="user" size={20} color="#D3D3D3" />
-                                            </View>
-                                        }
+                                        left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
                                         value={email}
                                         onChangeText={setEmail}
                                         underlineColor={"transparent"}
@@ -188,11 +215,15 @@ const Login = () => {
                                         style={styles.inputStyle}
                                         placeholder={'Password'}
                                         placeholderTextColor={'grey'}
-                                        secureTextEntry={true}
-                                        left={
-                                            <View style={styles.iconContainer}>
-                                                <AntDesign name="lock" size={20} color="#D3D3D3" />
-                                            </View>
+                                        secureTextEntry={!showPassword}
+                                        left={<TextInput.Icon color={'#D3D3D3'} icon='lock-outline' size={30}/>}
+                                        right={
+                                            <TextInput.Icon
+                                                icon={showPassword ? 'eye-off' : 'eye'}
+                                                onPress={() => setShowPassword(!showPassword)}
+                                                color={'#D3D3D3'}
+                                                size={28}
+                                            />
                                         }
                                         value={password}
                                         onChangeText={setPassword}
@@ -348,11 +379,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         marginTop: hp(10)
-    },
-    iconContainer: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 10,
     },
 });
 

@@ -6,6 +6,11 @@ export interface SportEventRequest
     zipCode?: string;
     ownerId: string;
     eventDate: string;
-
+    address?: string;
+    latitude?: number;
+    longitude?: number;
+    ageGroups?: string[];
+    eventTypes?: string[];
+    levelsOfPlay?: string[];
 }
 

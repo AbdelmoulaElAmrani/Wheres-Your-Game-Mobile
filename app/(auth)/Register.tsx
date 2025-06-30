@@ -24,6 +24,7 @@ import {AuthService} from "@/services/AuthService";
 import LocalStorageService from "@/services/LocalStorageService";
 import {useAlert} from "@/utils/useAlert";
 import StyledAlert from "@/components/StyledAlert";
+import { Checkbox } from 'react-native-paper';
 //import {User} from "@react-native-google-signin/google-signin";
 
 
@@ -43,7 +44,7 @@ const Register = () => {
         role: UserType.DEFAULT,
     });
     const phoneInput = useRef<PhoneInput>(null);
-    const [showPasswordInput, setShowPasswordInput] = useState<boolean>(true);
+    const [showPassword, setShowPassword] = useState(false);
     const {showErrorAlert, showStyledAlert, alertConfig, closeAlert} = useAlert();
 
     useEffect(() => {
@@ -94,12 +95,10 @@ const Register = () => {
             errors.push('Invalid email format');
         }
 
-        if (showPasswordInput) {
-            if (userData.password.trim() === '') {
-                errors.push('Password is required');
-            } else if (!Helpers._isPasswordValid(userData.password)) {
-                errors.push('Password must be at least 6 characters long and include at least one uppercase letter.');
-            }
+        if (userData.password.trim() === '') {
+            errors.push('Password is required');
+        } else if (!Helpers._isPasswordValid(userData.password)) {
+            errors.push('Password must be at least 6 characters long and include at least one uppercase letter.');
         }
 
         if (userData.firstName.trim() === '') {
@@ -191,21 +190,29 @@ const Register = () => {
                                     }}
                                 />
                             </View>
-                            {showPasswordInput && (
-                                <View style={styles.mgTop}>
-                                    <Text style={styles.textLabel}>Password</Text>
-                                    <TextInput
-                                        style={styles.inputStyle}
-                                        placeholder={'Password'}
-                                        secureTextEntry={true}
-                                        placeholderTextColor={'grey'}
-                                        value={userData.password}
-                                        onChangeText={(value) => {
-                                            setUserData(oldValue => ({...oldValue, password: value}))
-                                        }}
-                                    />
-                                </View>
-                            )}
+                            <View style={styles.mgTop}>
+                                <Text style={styles.textLabel}>Password</Text>
+                                <TextInput
+                                    style={styles.inputStyle}
+                                    placeholder={'Password'}
+                                    placeholderTextColor={'grey'}
+                                    secureTextEntry={!showPassword}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='lock-outline' size={30}/>}
+                                    right={
+                                        <TextInput.Icon
+                                            icon={showPassword ? 'eye-off' : 'eye'}
+                                            onPress={() => setShowPassword(!showPassword)}
+                                            color={'#D3D3D3'}
+                                            size={28}
+                                        />
+                                    }
+                                    value={userData.password}
+                                    onChangeText={(value) => {
+                                        setUserData(oldValue => ({...oldValue, password: value}))
+                                    }}
+                                    underlineColor={"transparent"}
+                                />
+                            </View>
                             <View style={styles.mgTop}>
                                 <Text style={styles.textLabel}>Phone number</Text>
                                 <PhoneInput

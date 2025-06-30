@@ -6,7 +6,7 @@ import {
     widthPercentageToDP as wp
 } from "react-native-responsive-screen";
 import {SafeAreaView} from "react-native-safe-area-context";
-import React, {memo, useCallback, useState} from "react";
+import React, {memo, useCallback, useState, useEffect, useMemo} from "react";
 import {Image, ImageBackground} from "expo-image";
 import ReactNativeCalendarStrip from "react-native-calendar-strip";
 import moment from "moment";
@@ -30,6 +30,7 @@ import StyledAlert from "@/components/StyledAlert";
 import { useAlert } from "@/utils/useAlert";
 import { UserSportResponse } from "@/models/responseObjects/UserSportResponse";
 
+const GOOGLE_PLACES_API_KEY = "AIzaSyDlFo6upaajnGewXn4DX4-naBhsWPcn8VE";
 
 interface CheckboxProps {
     title: string;
@@ -62,11 +63,15 @@ const Calendar = () => {
         name: '',
         date: new Date(),
         time: '',
-        type: [],
-        level: [],
-        ageGroup: '',
+        eventTypes: [],
+        levelsOfPlay: [],
+        ageGroups: [], // Changed to empty array for checkboxes
+        ageAll: false,
         id: 0,
-        description: ''
+        description: '',
+        address: '',
+        latitude: 0,
+        longitude: 0
     });
     const [time, setTime] = useState<any>({hours: new Date().getHours(), minutes: new Date().getMinutes()});
     const [timeOpen, setTimeOpen] = useState(false);
@@ -81,6 +86,23 @@ const Calendar = () => {
         {title: 'Compettition', isChecked: false},
         {title: 'Meet', isChecked: false},
         {title: 'Match', isChecked: false}
+    ]);
+    const [ageGroupOptions, setAgeGroupOptions] = useState([
+        {title: 'All', isChecked: false},
+        {title: 'U-6', isChecked: false},
+        {title: 'U-7', isChecked: false},
+        {title: 'U-8', isChecked: false},
+        {title: 'U-9', isChecked: false},
+        {title: 'U-10', isChecked: false},
+        {title: 'U-11', isChecked: false},
+        {title: 'U-12', isChecked: false},
+        {title: 'U-13', isChecked: false},
+        {title: 'U-14', isChecked: false},
+        {title: 'U-15', isChecked: false},
+        {title: 'U-16', isChecked: false},
+        {title: 'U-17', isChecked: false},
+        {title: 'U-18', isChecked: false},
+        {title: 'Senior', isChecked: false}
     ]);
     const isFocus = useNavigation().isFocused();
 
@@ -143,43 +165,41 @@ const Calendar = () => {
     function _onEditEvent(item: any): void {
         setEditMode(true);
         setEvent({
+            ...event,
             name: item?.name,
-            ageGroup: item?.ageGroup,
-            level: item?.level,
+            eventTypes: item?.eventTypes || [],
             date: new Date(item?.eventDate),
             time: item?.time,
             id: item?.id,
-            description: item?.description
+            description: item?.description,
+            ageGroups: item?.ageGroups || [],
+            address: item?.address || '',
+            latitude: item?.latitude || 0,
+            longitude: item?.longitude || 0
         });
-
-        // Extract level from description
-        const levelOptions = ['Beginner', 'Intermediate', 'Advance'];
-        let levels: string[] = [];
-        let types: string[] = [];
-        if (item?.description) {
-            // Split description by comma only and filter out empty strings
-            const descParts = item.description.split(',').filter((part: string) => part.trim() !== '');
-            for (const level of levelOptions) {
-                if (descParts.some((part: string) => part.trim().toLowerCase() === level.toLowerCase())) {
-                    levels.push(level);
-                }
-            }
-
-            for (const option of options) {
-                if (descParts.some((part: string) => part.trim().toLowerCase() === option.title.toLowerCase())) {
-                    types.push(option.title);
-                }
-            }
-        }
-        setSelectedSportLevel(levels);
-        setOptions(options.map(option => ({...option, isChecked: types.includes(option.title)})));
-
+        setOptions(options.map(option => ({
+            ...option,
+            isChecked: item?.eventTypes ? item.eventTypes.includes(option.title) : false
+        })));
+        setAgeGroupOptions(ageGroupOptions.map(option => ({
+            ...option,
+            isChecked: item?.ageGroups ? item.ageGroups.includes(option.title) : false
+        })));
+        setSelectedSportLevel(item?.levelsOfPlay || []);
         if (item.eventDate) {
-            // Parse the ISO datetime string to extract time
             const eventMoment = moment(item.eventDate);
             setTime({hours: eventMoment.hours(), minutes: eventMoment.minutes()});
         }
-        // showModal();
+        // Set selected result if address exists
+        if (item?.address) {
+            setSelectedResult({
+                formatted_address: item.address,
+                place_id: 'existing'
+            });
+        } else {
+            setSelectedResult(null);
+        }
+        setSearchResults([]);
         setIsModalVisible(true);
     }
 
@@ -213,28 +233,19 @@ const Calendar = () => {
         [setTimeOpen]
     );
 
-    const generateAgeRanges = (start: number, end: number) => {
-        const ranges = [];
-        for (let age = start; age <= end; age++) {
-            ranges.push({label: `U-${age}`, value: `U-${age}`});
-        }
-        ranges.push({label: 'Senior', value: 'Senior'});
-        return ranges;
-    };
-
     const _verifyEvent = (step?: number) => {
         const errorMessages = [];
         if (step === 1 && (!event.name.trim() || event.name.length < 3)) {
             errorMessages.push('Event name is required and must be at least 3 characters');
         }
-        if (step === 1 && !event.ageGroup) {
-            errorMessages.push('Age group is required');
-        }
-        if (step === 3 && selectedSportLevel.length === 0) {
-            errorMessages.push('Level of play is required');
-        }
         if (step === 2 && options.filter(option => option.isChecked).length === 0) {
             errorMessages.push('Event type is required');
+        }
+        if (step === 3 && ageGroupOptions.filter(option => option.isChecked).length === 0) {
+            errorMessages.push('Age groups are required');
+        }
+        if (step === 4 && selectedSportLevel.length === 0) {
+            errorMessages.push('Level of play is required');
         }
         if (errorMessages.length > 0) {
             showErrorAlert(errorMessages.join('\n'), closeAlert);
@@ -252,22 +263,32 @@ const Calendar = () => {
                 const [hours, minutes] = event.time.split(':');
                 eventDateTime = eventDateTime.hours(parseInt(hours)).minutes(parseInt(minutes));
             }
-            
+            // Gather selected event types
+            const selectedEventTypes = event.eventTypes || [];
+            // Gather selected age groups from checkboxes
+            const ageGroups = event.ageGroups || [];
             var createdEvent = await EventService.createEvent({
                 name: event.name,
-                description: selectedSportLevel.join(',') + ',' + event.ageGroup + ',' + options.filter(option => option.isChecked).map(option => option.title).join(','), //TODO:: Add description after validation
+                description: event.description,
                 ownerId: user.id,
-                zipCode: '', // TODO:: Add zip code after validation
-                eventDate: eventDateTime.format('YYYY-MM-DDTHH:mm:ss')
+                zipCode: event.zipCode || '',
+                eventDate: eventDateTime.format('YYYY-MM-DDTHH:mm:ss'),
+                ageGroups: ageGroups,
+                eventTypes: selectedEventTypes,
+                levelsOfPlay: selectedSportLevel,
+                address: event.address,
+                latitude: event.latitude,
+                longitude: event.longitude
             } as SportEventRequest);
 
             if (createdEvent) {
                 setEvents([...events, createdEvent]);
-                //setSnackbarVisible(true);
-                // reset event state
                 setSelectedSportLevel([]);
-                setEvent({name: '', date: new Date(), time: '', type: [], level: [], ageGroup: ''});
+                setEvent({name: '', date: new Date(), time: '', type: [], level: [], ageGroups: [], eventTypes: [], ageAll: false, address: '', latitude: 0, longitude: 0});
                 setOptions(options.map(option => ({...option, isChecked: false})));
+                setAgeGroupOptions(ageGroupOptions.map(option => ({...option, isChecked: false})));
+                setSelectedResult(null);
+                setSearchResults([]);
             }
         } catch (error) {
             console.log(error);
@@ -277,24 +298,28 @@ const Calendar = () => {
 
     const _editEvent = async () => {
         try {
-            // Combine date and time
             let eventDateTime = moment(event.date);
             if (event.time) {
                 const [hours, minutes] = event.time.split(':');
                 eventDateTime = eventDateTime.hours(parseInt(hours)).minutes(parseInt(minutes));
             }
-            
+            const selectedEventTypes = event.eventTypes || [];
+            const ageGroups = event.ageGroups || [];
             var updatedEvent = await EventService.editeEvent({
                 id: event.id,
                 name: event.name,
-                description: event?.description,
-                zipCode: event?.zipCode,
+                description: event.description,
+                zipCode: event.zipCode,
                 ownerId: user.id,
-                eventDate: eventDateTime.format('YYYY-MM-DDTHH:mm:ss')
+                eventDate: eventDateTime.format('YYYY-MM-DDTHH:mm:ss'),
+                ageGroups: ageGroups,
+                eventTypes: selectedEventTypes,
+                levelsOfPlay: selectedSportLevel,
+                address: event.address,
+                latitude: event.latitude,
+                longitude: event.longitude
             });
-
             return updatedEvent;
-
         } catch (error) {
             console.log(error);
         }
@@ -302,13 +327,13 @@ const Calendar = () => {
 
     const _handleAddEventContinue = async () => {
         const defaultStep = currentModalStep
-        setCurrentModalStep(old => Math.min(3, old + 1));
+        setCurrentModalStep(old => Math.min(4, old + 1));
         if (_verifyEvent(currentModalStep) === false) {
             setCurrentModalStep(defaultStep);
             return;
         }
         
-        if (currentModalStep === 3) {
+        if (currentModalStep === 4) {
             if (editMode) {
                 var updatedEvent = await _editEvent();
                 if(updatedEvent) {
@@ -340,19 +365,50 @@ const Calendar = () => {
         setSelectedSportLevel([]);
         setOptions(options.map(option => ({...option, isChecked: false})));
         setCurrentModalStep(1);
-        setEvent({name: '', date: new Date(), time: '', type: [], level: [], ageGroup: '', id: ''});
+        setEvent({name: '', date: new Date(), time: '', type: [], level: [], ageGroups: [], eventTypes: [], ageAll: false, address: '', latitude: 0, longitude: 0});
         setOpen(false);
         //setEventDate(null);
         setTimeOpen(false);
         setEditMode(false);
+        setSelectedResult(null);
+        setSearchResults([]);
     }
 
     const _handlePress = (index: number) => {
-        setOptions(prevOptions => {
-            const updatedOptions = [...prevOptions];
-            updatedOptions[index].isChecked = !updatedOptions[index].isChecked;
-            return updatedOptions;
-        });
+        const newOptions = [...options];
+        newOptions[index].isChecked = !newOptions[index].isChecked;
+        setOptions(newOptions);
+        
+        const selectedEventTypes = newOptions.filter(option => option.isChecked).map(option => option.title);
+        setEvent((prev: any) => ({ ...prev, eventTypes: selectedEventTypes }));
+    };
+
+    const _handleAgeGroupPress = (index: number) => {
+        const newAgeGroupOptions = [...ageGroupOptions];
+        
+        if (newAgeGroupOptions[index].title === 'All') {
+            // Handle All
+            const isAllSelected = newAgeGroupOptions[index].isChecked;
+            newAgeGroupOptions.forEach((option, i) => {
+                if (i === 0) { // All checkbox
+                    newAgeGroupOptions[i].isChecked = !isAllSelected;
+                } else { // All other age groups
+                    newAgeGroupOptions[i].isChecked = !isAllSelected;
+                }
+            });
+        } else {
+            // Handle individual age group selection
+            newAgeGroupOptions[index].isChecked = !newAgeGroupOptions[index].isChecked;
+            
+            // Update All based on other selections
+            const otherSelections = newAgeGroupOptions.slice(1).filter(option => option.isChecked);
+            newAgeGroupOptions[0].isChecked = otherSelections.length === newAgeGroupOptions.length - 1;
+        }
+        
+        setAgeGroupOptions(newAgeGroupOptions);
+        
+        const selectedAgeGroups = newAgeGroupOptions.filter(option => option.isChecked && option.title !== 'All').map(option => option.title);
+        setEvent((prev: any) => ({ ...prev, ageGroups: selectedAgeGroups }));
     };
 
     const CustomCheckbox = ({title, isChecked, onPress}: CheckboxProps) => {
@@ -363,7 +419,7 @@ const Calendar = () => {
                     onValueChange={onPress}
                     color={isChecked ? '#2757CB' : 'black'}
                 />
-                <Text style={styles.text}>{title}</Text>
+                <Text style={[styles.text, {fontSize: 13}]}>{title}</Text>
             </View>
         );
     };
@@ -386,6 +442,46 @@ const Calendar = () => {
         } else {
             setSelectedSportLevel(newSelectedLevels);
         }
+    };
+
+    const handleSearchAddress = async () => {
+        if (!event.address) {
+            showErrorAlert('Please enter an address to search', closeAlert);
+            return;
+        }
+        setIsVerifying(true);
+        setSearchResults([]);
+        setSelectedResult(null);
+        try {
+            const response = await fetch(
+                `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(event.address)}&key=${GOOGLE_PLACES_API_KEY}`
+            );
+            const data = await response.json();
+            if (data.results && data.results.length > 0) {
+                setSearchResults(data.results);
+                
+                // If there's only one result, automatically select it
+                if (data.results.length === 1) {
+                    handleSelectResult(data.results[0]);
+                }
+            } else {
+                showErrorAlert('No address found. Please try again.', closeAlert);
+            }
+        } catch (error) {
+            showErrorAlert('Failed to search address', closeAlert);
+        } finally {
+            setIsVerifying(false);
+        }
+    };
+
+    const handleSelectResult = (result: any) => {
+        setSelectedResult(result);
+        setEvent({
+            ...event,
+            address: result.formatted_address,
+            latitude: result.geometry.location.lat,
+            longitude: result.geometry.location.lng
+        });
     };
 
     const _renderEvent = memo(({item}: { item: SportEvent }) => {
@@ -438,6 +534,10 @@ const Calendar = () => {
             }
         }
     }
+
+    const [isVerifying, setIsVerifying] = useState(false);
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [selectedResult, setSelectedResult] = useState<any | null>(null);
 
     return <>
         <StatusBar style="light"/>
@@ -568,16 +668,21 @@ const Calendar = () => {
                                         onChangeText={(text) => setEvent({...event, name: text})}
                                     />
                                 </View>
-                                <Text style={[styles.textLabel, {marginTop: 20}]}>Age Group</Text>
-                                <RNPickerSelect
-                                    items={generateAgeRanges(6, 18)}
-                                    onValueChange={(value) => setEvent({...event, ageGroup: value})}
-                                    style={{
-                                        inputAndroid: {...styles.inputStyle, color: 'grey'},
-                                        inputIOS: {...styles.inputStyle, color: 'grey'},
-                                        iconContainer: {top: 18, right: 12}
-                                    }}
-                                    Icon={() => <AntDesign name="down" size={20} color="grey"/>}/>
+                                <Text style={[styles.textLabel, {marginTop: 20}]}>Event Description</Text>
+                                <View style={styles.inputContainer}>
+                                    <View style={styles.iconContainer}>
+                                        <AntDesign name="star" size={20} color="#D3D3D3"/>
+                                    </View>
+                                    <TextInput
+                                        style={styles.inputStyleWithoutIcon}
+                                        placeholder={'Event Description'}
+                                        cursorColor='black'
+                                        placeholderTextColor={'grey'}
+                                        underlineColor={"transparent"}
+                                        value={event.description}
+                                        onChangeText={(text) => setEvent({...event, description: text})}
+                                    />
+                                </View>
                             </KeyboardAwareScrollView>
                         )}
 
@@ -591,20 +696,26 @@ const Calendar = () => {
                                             <View key={index} style={{
                                                 flexDirection: 'row',
                                                 justifyContent: 'space-between',
-                                                marginBottom: 40
+                                                marginBottom: 30,
+                                                paddingHorizontal: 10
                                             }}>
-                                                <CustomCheckbox
-                                                    title={options[index].title}
-                                                    isChecked={options[index].isChecked}
-                                                    onPress={() => _handlePress(index)}
-                                                />
-                                                {options[index + 1] ? (
+                                                <View style={{flex: 1, marginRight: 5}}>
                                                     <CustomCheckbox
-                                                        title={options[index + 1].title}
-                                                        isChecked={options[index + 1].isChecked}
-                                                        onPress={() => _handlePress(index + 1)}
+                                                        title={options[index].title}
+                                                        isChecked={options[index].isChecked}
+                                                        onPress={() => _handlePress(index)}
                                                     />
-                                                ) : ""}
+                                                </View>
+                                                {options[index + 1] ? (
+                                                    <View style={{flex: 1, marginHorizontal: 5}}>
+                                                        <CustomCheckbox
+                                                            title={options[index + 1].title}
+                                                            isChecked={options[index + 1].isChecked}
+                                                            onPress={() => _handlePress(index + 1)}
+                                                        />
+                                                    </View>
+                                                ) : <View style={{flex: 1}} />}
+                                                
                                             </View>
                                         )
                                     ))}
@@ -613,34 +724,152 @@ const Calendar = () => {
                         )}
 
                         {currentModalStep === 3 && (
-                            <ScrollView>
-                                <Text style={[styles.textLabel, {marginBottom: 20, textAlign: 'center', fontSize: 16}]}>Level
-                                    of Play</Text>
-                                <View style={{marginTop: hp(5), marginLeft: wp(10)}}>
-                                    {sportLevels.map((key: string, index) => (
-                                        index % 2 === 0 && (
+                            <ScrollView contentContainerStyle={{paddingHorizontal: 20}}>
+                                <Text style={[styles.textLabel, {marginBottom: 20, textAlign: 'center', fontSize: 16}]}>Age Group</Text>
+                                <View style={{marginTop: 30}}>
+                                    {ageGroupOptions.map((option, index) => (
+                                        index % 3 === 0 && (
                                             <View key={index} style={{
                                                 flexDirection: 'row',
-                                                marginBottom: 40,
+                                                justifyContent: 'space-between',
+                                                marginBottom: 30,
+                                                paddingHorizontal: 10
                                             }}>
-                                                <CustomCheckbox
-                                                    key={index}
-                                                    title={sportLevels[index]}
-                                                    isChecked={selectedSportLevel.includes(sportLevels[index])}
-                                                    onPress={() => _handleLevelPress(index)}
-                                                />
-                                                {sportLevels[index + 1] ? (
+                                                <View style={{flex: 1, marginRight: 5}}>
                                                     <CustomCheckbox
-                                                        key={index + 1}
-                                                        title={sportLevels[index + 1]}
-                                                        isChecked={selectedSportLevel.includes(sportLevels[index + 1])}
-                                                        onPress={() => _handleLevelPress(index + 1)}
+                                                        title={ageGroupOptions[index].title}
+                                                        isChecked={ageGroupOptions[index].isChecked}
+                                                        onPress={() => _handleAgeGroupPress(index)}
                                                     />
-                                                ) : ""}
+                                                </View>
+                                                {ageGroupOptions[index + 1] ? (
+                                                    <View style={{flex: 1, marginHorizontal: 5}}>
+                                                        <CustomCheckbox
+                                                            title={ageGroupOptions[index + 1].title}
+                                                            isChecked={ageGroupOptions[index + 1].isChecked}
+                                                            onPress={() => _handleAgeGroupPress(index + 1)}
+                                                        />
+                                                    </View>
+                                                ) : <View style={{flex: 1}} />}
+                                                {ageGroupOptions[index + 2] ? (
+                                                    <View style={{flex: 1, marginLeft: 5}}>
+                                                        <CustomCheckbox
+                                                            title={ageGroupOptions[index + 2].title}
+                                                            isChecked={ageGroupOptions[index + 2].isChecked}
+                                                            onPress={() => _handleAgeGroupPress(index + 2)}
+                                                        />
+                                                    </View>
+                                                ) : <View style={{flex: 1}} />}
                                             </View>
                                         )
                                     ))}
                                 </View>
+                                
+                               
+                            </ScrollView>
+                        )}
+                         {currentModalStep === 4 && (
+                            <ScrollView contentContainerStyle={{paddingHorizontal: 20}}>
+                                
+                                <Text style={[styles.textLabel, {marginTop: 20, marginBottom: 20, textAlign: 'center', fontSize: 16}]}>Level of Play</Text>
+                                <View style={{marginTop: 30}}>
+                                    {sportLevels.map((key: string, index) => (
+                                        index % 2 === 0 && (
+                                            <View key={index} style={{
+                                                flexDirection: 'row',
+                                                justifyContent: 'space-between',
+                                                marginBottom: 30,
+                                                paddingHorizontal: 10
+                                            }}>
+                                                <View style={{flex: 1, marginRight: 5}}>
+                                                    <CustomCheckbox
+                                                        key={index}
+                                                        title={sportLevels[index]}
+                                                        isChecked={selectedSportLevel.includes(sportLevels[index])}
+                                                        onPress={() => _handleLevelPress(index)}
+                                                    />
+                                                </View>
+                                                {sportLevels[index + 1] ? (
+                                                    <View style={{flex: 1, marginHorizontal: 5}}>
+                                                        <CustomCheckbox
+                                                            key={index + 1}
+                                                            title={sportLevels[index + 1]}
+                                                            isChecked={selectedSportLevel.includes(sportLevels[index + 1])}
+                                                            onPress={() => _handleLevelPress(index + 1)}
+                                                        />
+                                                    </View>
+                                                ) : <View style={{flex: 1}} />}
+                                            </View>
+                                        )
+                                    ))}
+                                </View>
+
+                                <Text style={[styles.textLabel, {marginTop: 20, marginBottom: 20, textAlign: 'center', fontSize: 16}]}>Event Location</Text>
+                                {!selectedResult && (
+                                    <View style={styles.inputContainer}>
+                                        <View style={styles.iconContainer}>
+                                            <AntDesign name="enviromento" size={20} color="#D3D3D3"/>
+                                        </View>
+                                        <TextInput
+                                            style={styles.inputStyleWithoutIcon}
+                                            placeholder="Enter event address"
+                                            cursorColor='black'
+                                            placeholderTextColor={'grey'}
+                                            underlineColor={"transparent"}
+                                            value={event.address}
+                                            onChangeText={(text) => {
+                                                setEvent({...event, address: text});
+                                                setSelectedResult(null);
+                                                setSearchResults([]);
+                                            }}
+                                        />
+                                    </View>
+                                )}
+                                {!selectedResult && (
+                                    <TouchableOpacity
+                                        style={[styles.modalAddButton, styles.searchButton, isVerifying && styles.disabledButton]}
+                                        onPress={handleSearchAddress}
+                                        disabled={isVerifying}
+                                    >
+                                        {isVerifying ? (
+                                            <ActivityIndicator size="small" color="white" />
+                                        ) : (
+                                            <Text style={styles.modalAddButtonText}>Verify Address</Text>
+                                        )}
+                                    </TouchableOpacity>
+                                )}
+                                {selectedResult && (
+                                    <View style={styles.selectedAddressContainer}>
+                                        {/* <Text style={styles.selectedAddressLabel}>Selected Address:</Text> */}
+                                        
+                                        {/* <Text style={styles.selectedAddressText}>{selectedResult.formatted_address}</Text> */}
+                                        <TouchableOpacity
+                                            style={styles.changeAddressButton}
+                                            onPress={() => {
+                                                setSelectedResult(null);
+                                                setSearchResults([]);
+                                            }}
+                                        >
+                                            <Text style={styles.changeAddressButtonText}>{selectedResult.formatted_address}</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+                                {searchResults.length > 1 && !selectedResult && (
+                                    <View style={styles.multipleResultsContainer}>
+                                        <Text style={styles.multipleResultsLabel}>Select an address from the following list:</Text>
+                                        <View style={styles.resultsList}>
+                                            {searchResults.map((item) => (
+                                                <TouchableOpacity
+                                                    key={item.place_id}
+                                                    style={[styles.resultItem, selectedResult?.place_id === item.place_id && styles.selectedResultItem]}
+                                                    onPress={() => handleSelectResult(item)}
+                                                >
+                                                    <Text style={styles.resultText}>{item.formatted_address}</Text>
+                                                </TouchableOpacity>
+                                            ))}
+                                        </View>
+                                    </View>
+                                )}
                             </ScrollView>
                         )}
                     </View>
@@ -653,7 +882,7 @@ const Calendar = () => {
                         </View>
                     )}
 
-                    {currentModalStep !== 1 && currentModalStep !== 3 && (
+                    {currentModalStep !== 1 && currentModalStep !== 4 && (
                         <View style={styles.bottomRowContainer}>
                             <CustomButton text="Back" onPress={_handleAddEventBack} style={styles.backButton}
                                           textStyle={styles.buttonText}/>
@@ -662,7 +891,7 @@ const Calendar = () => {
                         </View>
                     )}
 
-                    {currentModalStep === 3 && (
+                    {currentModalStep === 4 && (
                         <View style={styles.bottomRowContainer}>
                             <CustomButton text="Back" onPress={_handleAddEventBack} style={styles.backButton}
                                           textStyle={styles.buttonText}/>
@@ -793,11 +1022,11 @@ const styles = StyleSheet.create({
         checkboxContainer: {
             flexDirection: 'row',
             alignItems: 'center',
-            width: '50%'
+            width: '100%'
         },
         text: {
-            fontSize: 16,
-            marginLeft: 15,
+            fontSize: 13,
+            marginLeft: 8,
         },
         inputContainer: {
             flexDirection: 'row',
@@ -822,6 +1051,85 @@ const styles = StyleSheet.create({
             borderBottomRightRadius: 20,
             borderBottomLeftRadius: 20,
             padding: 0,
+        },
+        modalAddButton: {
+            backgroundColor: '#2757CB',
+            padding: 15,
+            borderRadius: 20,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        modalAddButtonText: {
+            fontSize: 16,
+            fontWeight: 'bold',
+            color: 'white',
+        },
+        selectedAddressContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            padding: 10,
+            borderWidth: 1,
+            borderColor: '#D3D3D3',
+            borderRadius: 10,
+        },
+        selectedAddressLabel: {
+            fontSize: 16,
+            fontWeight: 'bold',
+            color: 'black',
+            marginRight: 10,
+        },
+        selectedAddressText: {
+            fontSize: 16,
+            color: 'black',
+        },
+        changeAddressButton: {
+            backgroundColor: '#2757CB',
+            padding: 10,
+            borderRadius: 10,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        changeAddressButtonText: {
+            fontSize: 16,
+            fontWeight: 'bold',
+            color: 'white',
+        },
+        multipleResultsContainer: {
+            padding: 10,
+            borderWidth: 1,
+            borderColor: '#D3D3D3',
+            borderRadius: 10,
+        },
+        multipleResultsLabel: {
+            fontSize: 16,
+            fontWeight: 'bold',
+            color: 'black',
+            marginBottom: 10,
+        },
+        resultsList: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+        },
+        resultItem: {
+            padding: 10,
+            borderWidth: 1,
+            borderColor: '#D3D3D3',
+            borderRadius: 10,
+            margin: 5,
+        },
+        selectedResultItem: {
+            backgroundColor: '#E15B2D',
+        },
+        resultText: {
+            fontSize: 16,
+            color: 'black',
+        },
+        searchButton: {
+            marginTop: 10,
+            marginBottom: 10,
+        },
+        disabledButton: {
+            backgroundColor: '#D3D3D3',
         },
     }
 );

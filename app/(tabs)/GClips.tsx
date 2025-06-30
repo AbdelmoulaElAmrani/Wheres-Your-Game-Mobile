@@ -16,17 +16,19 @@ import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import {getUserProfile} from "@/redux/UserSlice";
 import LinkPreviewComponent from "@/components/LinkPreviewComponent";
+import TikTokOEmbedComponent from "@/components/TikTokOEmbedComponent";
 import {Helpers} from "@/constants/Helpers";
 import {useFocusEffect, useNavigation} from "expo-router";
 import { useAlert } from "@/utils/useAlert";
 import StyledAlert from "@/components/StyledAlert";
+import { isTikTokUrl } from "@/utils/tiktokUtils";
 
 
 const validDomains = {
     youtube: /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/,
     facebook: /^(https?:\/\/)?(www\.)?facebook\.com\/.+$/,
     instagram: /^(https?:\/\/)?(www\.)?instagram\.com\/.+$/,
-    tiktok: /^(https?:\/\/)?(www\.)?tiktok\.com\/.+$/
+    tiktok: /^(https?:\/\/)?(www\.)?(tiktok\.com|vm\.tiktok\.com|vt\.tiktok\.com)\/.+$/
 };
 const GClips = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -114,15 +116,21 @@ const GClips = () => {
 
     const _videoPreview = ({video}: { video: any }) => {
         const isYoutube: boolean = Helpers.isVideoLink(video.link);
+        const isTikTok: boolean = isTikTokUrl(video.link);
 
         return (
             <TouchableOpacity style={{marginBottom: 30}}>
                 <Text style={styles.videoTitle}>{video?.title}</Text>
-                <View style={[styles.videoPreview, !isYoutube && {height: 100, alignItems: 'center'}]}>
+                <View style={[styles.videoPreview, !isYoutube && !isTikTok && {height: 100, alignItems: 'center'}]}>
                     <View>
                         {
                             isYoutube ? (
                                 <VideoComponent url={video.link}/>
+                            ) : isTikTok ? (
+                                <TikTokOEmbedComponent 
+                                    url={video.link}
+                                    onPress={() => _handleShareClip(video)}
+                                />
                             ) : (
                                 <LinkPreviewComponent link={video.link}/>
                             )
@@ -205,7 +213,7 @@ const GClips = () => {
         const isValidLink =
             (socialMediaLink.facebook && (socialMediaLink.facebook.includes('facebook.com') || socialMediaLink.facebook.includes('fb.com'))) ||
             (socialMediaLink.instagram && socialMediaLink.instagram.includes('instagram.com')) ||
-            (socialMediaLink.tiktok && (socialMediaLink.tiktok.includes('tiktok.com') || socialMediaLink.tiktok.includes('vm.tiktok.com'))) ||
+            (socialMediaLink.tiktok && (socialMediaLink.tiktok.includes('tiktok.com') || socialMediaLink.tiktok.includes('vm.tiktok.com') || socialMediaLink.tiktok.includes('vt.tiktok.com'))) ||
             (socialMediaLink.youtube && (socialMediaLink.youtube.includes('youtube.com') || socialMediaLink.youtube.includes('youtu.be')));
 
         if (!isValidLink) {
