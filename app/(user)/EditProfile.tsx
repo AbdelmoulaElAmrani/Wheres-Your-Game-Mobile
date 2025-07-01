@@ -9,7 +9,8 @@ import {
     TouchableWithoutFeedback,
     View,
     Platform,
-    Modal
+    Modal,
+    Image
 } from "react-native"
 import {ImageBackground} from "expo-image";
 import {Avatar, Text, TextInput} from "react-native-paper";
@@ -41,6 +42,7 @@ import {MultiSelect} from "react-native-element-dropdown";
 import { useAlert } from "@/utils/useAlert";
 import StyledAlert from "@/components/StyledAlert";
 import { AntDesign } from '@expo/vector-icons';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, interpolate } from 'react-native-reanimated';
 
 
 const pickerSelectStyle = {
@@ -165,7 +167,7 @@ const EditProfile = () => {
     const dispatch = useDispatch();
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
-    const { showErrorAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
+    const { showErrorAlert, showAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
 
     const _router = useRouter();
 
@@ -245,6 +247,11 @@ const EditProfile = () => {
         preferenceSport?: string;
     }) => {
         try {
+            if (!user) {
+                console.error('User is null, cannot update');
+                return;
+            }
+
             let updatedUser = {...user};
             if (selectedGender !== null) {
                 updatedUser = {...updatedUser, gender: selectedGender};
@@ -269,7 +276,9 @@ const EditProfile = () => {
                     updatedUser = {...updatedUser, preferenceSport: coachFields.preferenceSport};
                 }
             }
-            const userRequest = updatedUser as UserRequest;
+            
+            // Sanitize the user data before sending to backend
+            const userRequest = sanitizeUserForBackend(updatedUser);
        
             try {
                 const result = await dispatch(updateUserProfile(userRequest) as any);
@@ -310,7 +319,7 @@ const EditProfile = () => {
                     if (selectedSports.length > 0 && userSport.length === 0) {
                         const response = await SportService.registerUserToSport(selectedSports, userData.id);
                     }
-                    router.navigate('/(tabs)');
+                    router.replace('/(tabs)');
                     return;
                 } catch (e) {
                     console.log(e);
@@ -352,6 +361,11 @@ const EditProfile = () => {
         setCurrentStep(oldValue => Math.max(1, oldValue - 1));
     };
     const _getCurrentStepTitle = () => {
+        // If editing from profile, use collapsible interface - return "Edit Profile"
+        if (paramData?.data === 'profile') {
+            return 'Edit Profile';
+        }
+        
         if (userData?.role === 'COACH') {
             return 'Coach';
         } else if (userData?.role === 'ORGANIZATION') {
@@ -368,38 +382,252 @@ const EditProfile = () => {
         }
     }
 
-    const _handleEditProfilePic = async () => {
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [4, 3],
-            quality: 0.2
-        });
 
-        if (!result.canceled) {
-            manipulateAsync(result.assets[0].uri, [{resize: {height: 900, width: 900}}], {
-                compress: 0.2,
-                format: SaveFormat.PNG
-            }).then(async (manipulateImgResult) => {
-                const formData = new FormData();
-                // @ts-ignore
-                formData.append(
-                    'file',
-                    {
-                        uri: manipulateImgResult.uri,
-                        name: result.assets[0].fileName ? result.assets[0].fileName : 'userProfileImg.png',
-                        type: 'image/png'
-                    });
-                const imageUrl = await StorageService.upload(userData.id, formData);
-            }).catch(err => {
-                console.error('Error during image manipulation:', err);
-            });
+
+    function formatDateInput(text: string) {
+        let cleaned = text.replace(/[^0-9]/g, '');
+        if (cleaned.length > 2 && cleaned.length <= 4) {
+            cleaned = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+        } else if (cleaned.length > 4) {
+            cleaned = cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4) + '/' + cleaned.slice(4, 8);
         }
+        return cleaned;
+    }
+
+    function formatDateForBackend(dateInput: string | Date | undefined): Date | null {
+        console.log('formatDateForBackend input:', dateInput, typeof dateInput);
+        
+        if (!dateInput) {
+            console.log('formatDateForBackend: no input, returning null');
+            return null;
+        }
+        
+        // If it's already a Date object, return it
+        if (dateInput instanceof Date) {
+            const isValid = !isNaN(dateInput.getTime());
+            console.log('formatDateForBackend: Date object, valid:', isValid);
+            return isValid ? dateInput : null;
+        }
+        
+        // If it's a string, parse it
+        if (typeof dateInput === 'string') {
+            if (dateInput.trim() === '') {
+                console.log('formatDateForBackend: empty string, returning null');
+                return null;
+            }
+            
+            console.log('formatDateForBackend: parsing string:', dateInput);
+            
+            // First, try to parse as ISO date string (from backend)
+            if (dateInput.includes('T') || dateInput.includes('Z') || dateInput.includes('+')) {
+                console.log('formatDateForBackend: attempting to parse as ISO date');
+                const isoDate = new Date(dateInput);
+                const isValid = !isNaN(isoDate.getTime());
+                console.log('formatDateForBackend: ISO date parsed:', isoDate, 'valid:', isValid);
+                if (isValid) {
+                    return isoDate;
+                }
+            }
+            
+            // Handle YYYY-MM-DD format (from backend)
+            if (dateInput.includes('-') && !dateInput.includes('/')) {
+                console.log('formatDateForBackend: attempting to parse as YYYY-MM-DD date');
+                const date = new Date(dateInput);
+                const isValid = !isNaN(date.getTime());
+                console.log('formatDateForBackend: YYYY-MM-DD date parsed:', date, 'valid:', isValid);
+                if (isValid) {
+                    return date;
+                }
+            }
+            
+            // Handle MM/DD/YYYY format (from user input)
+            const parts = dateInput.split('/');
+            console.log('formatDateForBackend: parts:', parts);
+            
+            if (parts.length === 3) {
+                const [month, day, year] = parts;
+                console.log('formatDateForBackend: month, day, year:', month, day, year);
+                
+                // Validate that we have valid numbers
+                if (month && day && year && 
+                    !isNaN(Number(month)) && !isNaN(Number(day)) && !isNaN(Number(year))) {
+                    
+                    // Validate reasonable date ranges
+                    const monthNum = Number(month);
+                    const dayNum = Number(day);
+                    const yearNum = Number(year);
+                    
+                    // More strict validation for reasonable dates
+                    if (monthNum >= 1 && monthNum <= 12 && 
+                        dayNum >= 1 && dayNum <= 31 && 
+                        yearNum >= 1900 && yearNum <= new Date().getFullYear()) {
+                        
+                        // Additional validation for specific months
+                        const daysInMonth = new Date(yearNum, monthNum, 0).getDate();
+                        if (dayNum > daysInMonth) {
+                            console.log('formatDateForBackend: day exceeds days in month');
+                            return null;
+                        }
+                        
+                        // Create Date object in YYYY-MM-DD format
+                        const dateString = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                        console.log('formatDateForBackend: creating date with string:', dateString);
+                        
+                        const date = new Date(dateString);
+                        const isValid = !isNaN(date.getTime());
+                        console.log('formatDateForBackend: created date:', date, 'valid:', isValid);
+                        
+                        if (isValid) {
+                            return date;
+                        }
+                    } else {
+                        console.log('formatDateForBackend: date values out of range');
+                    }
+                } else {
+                    console.log('formatDateForBackend: invalid numbers in date parts');
+                }
+            } else {
+                console.log('formatDateForBackend: wrong number of parts for MM/DD/YYYY format');
+            }
+        }
+        
+        console.log('formatDateForBackend: invalid format, returning null');
+        return null;
+    }
+
+    function formatDateForDisplay(dateInput: string | Date | undefined): string {
+        if (!dateInput) {
+            return '';
+        }
+        
+        let date: Date;
+        
+        if (dateInput instanceof Date) {
+            date = dateInput;
+        } else if (typeof dateInput === 'string') {
+            // Try to parse the string as a date
+            const parsedDate = new Date(dateInput);
+            if (isNaN(parsedDate.getTime())) {
+                return dateInput; // Return original string if parsing fails
+            }
+            date = parsedDate;
+        } else {
+            return '';
+        }
+        
+        // Format as MM/DD/YYYY
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        const year = date.getFullYear().toString();
+        
+        return `${month}/${day}/${year}`;
+    }
+
+    function sanitizeUserForBackend(user: UserResponse): UserRequest {
+        console.log('sanitizeUserForBackend: input user.dateOfBirth:', user.dateOfBirth, typeof user.dateOfBirth);
+        
+        const formattedDate = formatDateForBackend(user.dateOfBirth);
+        console.log('sanitizeUserForBackend: formattedDate:', formattedDate);
+        
+        // Ensure date is in YYYY-MM-DD format for backend
+        let finalDate: Date | null = null;
+        if (formattedDate) {
+            finalDate = formattedDate;
+        } else if (user.dateOfBirth) {
+            // If formatDateForBackend failed, try to parse the original date
+            if (user.dateOfBirth instanceof Date) {
+                finalDate = user.dateOfBirth;
+            } else {
+                // Handle string dates (MM/DD/YYYY format)
+                const dateStr = user.dateOfBirth as string;
+                if (dateStr.includes('/')) {
+                    const parts = dateStr.split('/');
+                    if (parts.length === 3) {
+                        const [month, day, year] = parts;
+                        const dateString = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                        finalDate = new Date(dateString);
+                    }
+                } else {
+                    // Try parsing as is
+                    finalDate = new Date(dateStr);
+                }
+            }
+        }
+        
+        // Validate the final date
+        if (finalDate && isNaN(finalDate.getTime())) {
+            console.log('sanitizeUserForBackend: Invalid date, using current date');
+            finalDate = new Date();
+        }
+        
+        const sanitizedUser = {
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            email: user.email || '',
+            phoneNumber: user.phoneNumber || '',
+            bio: user.bio || '',
+            zipCode: user.zipCode || '',
+            address: user.address || '',
+            gender: user.gender,
+            dateOfBirth: finalDate || new Date(),
+            isCertified: user.isCertified || false,
+            yearsOfExperience: user.yearsOfExperience || 0,
+            positionCoached: user.positionCoached || '',
+            ageGroup: user.ageGroup || [],
+            skillLevel: Array.isArray(user.skillLevel) ? user.skillLevel.map(level => level.toString()) : [],
+            country: user.country || '',
+            stateRegion: user.stateRegion || '',
+            city: user.city || '',
+            preferenceSport: user.preferenceSport || ''
+        };
+        
+        console.log('sanitizeUserForBackend: final dateOfBirth:', sanitizedUser.dateOfBirth, typeof sanitizedUser.dateOfBirth);
+        console.log('sanitizeUserForBackend: email:', sanitizedUser.email);
+        console.log('sanitizeUserForBackend: phoneNumber:', sanitizedUser.phoneNumber);
+        return sanitizedUser;
     }
 
     const UserInfoEdit = () => {
         const [editUser, setEditUser] = useState<UserResponse>({...user});
         const [open, setOpen] = useState(false);
+
+        const _handleEditProfilePic = async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [1, 1],
+                quality: 0.2
+            });
+
+            if (!result.canceled) {
+                // Immediately update the preview with the selected image
+                setEditUser(prev => ({ ...prev, imageUrl: result.assets[0].uri }));
+                
+                manipulateAsync(result.assets[0].uri, [{resize: {height: 900, width: 900}}], {
+                    compress: 0.2,
+                    format: SaveFormat.PNG
+                }).then(async (manipulateImgResult) => {
+                    const formData = new FormData();
+                    // @ts-ignore
+                    formData.append(
+                        'file',
+                        {
+                            uri: manipulateImgResult.uri,
+                            name: result.assets[0].fileName ? result.assets[0].fileName : 'userProfileImg.png',
+                            type: 'image/png'
+                        });
+                    const imageUrl = await StorageService.upload(user.id, formData);
+                    // Update with the server URL after successful upload
+                    if (imageUrl) {
+                        setEditUser(prev => ({ ...prev, imageUrl: imageUrl }));
+                    }
+                }).catch(err => {
+                    console.error('Error during image manipulation:', err);
+                    // Revert to original image if upload fails
+                    setEditUser(prev => ({ ...prev, imageUrl: user.imageUrl }));
+                });
+            }
+        };
 
         const onDismissSingle = useCallback(() => {
             setOpen(false);
@@ -420,20 +648,39 @@ const EditProfile = () => {
                 return;
             }
             setUser(oldValue => ({...editUser}));
-            await _handleContinue(null, editUser.bio || '');
+            // Log the data being sent for update
+            console.log('EditProfile: Saving user info', editUser);
+            
+            // If editing from profile, save and continue to next step
+            if (paramData?.data === 'profile') {
+                try {
+                    await _handleUpdateUser(null, editUser.bio || '');
+                    setCurrentStep(2); // Continue to step 2
+                } catch (e) {
+                    console.log(e);
+                }
+            } else {
+                // Continue with registration flow
+                await _handleContinue(null, editUser.bio || '');
+            }
         }
 
         const _verifyUserInfo = (user: UserResponse): string[] => {
             const errors: string[] = [];
-            if (!user.firstName || user.firstName.trim() === '') {
-                errors.push('First name is required');
+            
+            // Only validate these fields when in profile edit mode
+            if (paramData?.data === 'profile') {
+                if (!user.firstName || user.firstName.trim() === '') {
+                    errors.push('First name is required');
+                }
+                if (!user.lastName || user.lastName.trim() === '') {
+                    errors.push('Last name is required');
+                }
+                if (!user.email || user.email.trim() === '') {
+                    errors.push('Email is required');
+                }
             }
-            if (!user.lastName || user.lastName.trim() === '') {
-                errors.push('Last name is required');
-            }
-            if (!user.email || user.email.trim() === '') {
-                errors.push('Email is required');
-            }
+            
             if (!user.dateOfBirth || user.dateOfBirth.toString().trim() === '') {
                 errors.push('Date of birth is required');
             }
@@ -463,118 +710,143 @@ const EditProfile = () => {
                                          keyboardShouldPersistTaps="handled">
                     <View style={styles.formContainer}>
                         <View style={styles.mgTop}>
-                            <Text style={styles.textLabel}>First Name</Text>
-                            <TextInput
-                                style={styles.inputStyle}
-                                placeholder={'First Name'}
-                                cursorColor='black'
-                                placeholderTextColor={'grey'}
-                                left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
-                                value={editUser.firstName}
-                                onChangeText={(text) => setEditUser({...editUser, firstName: text})}
-                                underlineStyle={{height: 0}}
-                            />
-                            <Text style={styles.textLabel}>Last Name</Text>
-                            <TextInput
-                                style={styles.inputStyle}
-                                placeholder={'Last Name'}
-                                cursorColor='black'
-                                placeholderTextColor={'grey'}
-                                left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
-                                value={editUser.lastName}
-                                onChangeText={(text) => setEditUser({...editUser, lastName: text})}
-                                underlineStyle={{height: 0}}
-                            />
-
-                            <Text style={styles.textLabel}>Email</Text>
-                            <TextInput
-                                style={styles.inputStyle}
-                                focusable={false}
-                                placeholder={'Email'}
-                                cursorColor='black'
-                                placeholderTextColor={'grey'}
-                                left={<TextInput.Icon color={'#D3D3D3'} icon='email-outline' size={30}/>}
-                                value={editUser.email}
-                                onChangeText={(text) => setEditUser({...editUser, email: text})}
-                                disabled={true}
-                                underlineStyle={{height: 0}}
-                            />
+                            {/* Show the 4 fields only when editing profile from settings */}
+                            {paramData?.data === 'profile' && (
+                                <>
+                                    <Text style={styles.textLabel}>First Name</Text>
+                                    <TextInput
+                                        style={styles.inputStyle}
+                                        placeholder={'First Name'}
+                                        cursorColor='black'
+                                        placeholderTextColor={'grey'}
+                                        left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
+                                        value={editUser.firstName}
+                                        onChangeText={(text) => setEditUser({...editUser, firstName: text})}
+                                        underlineStyle={{height: 0}}
+                                    />
+                                    <Text style={styles.textLabel}>Last Name</Text>
+                                    <TextInput
+                                        style={styles.inputStyle}
+                                        placeholder={'Last Name'}
+                                        cursorColor='black'
+                                        placeholderTextColor={'grey'}
+                                        left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
+                                        value={editUser.lastName}
+                                        onChangeText={(text) => setEditUser({...editUser, lastName: text})}
+                                        underlineStyle={{height: 0}}
+                                    />
+                                    <Text style={styles.textLabel}>Email</Text>
+                                    <TextInput
+                                        style={styles.inputStyle}
+                                        placeholder={'Email'}
+                                        cursorColor='black'
+                                        placeholderTextColor={'grey'}
+                                        left={<TextInput.Icon color={'#D3D3D3'} icon='email-outline' size={30}/>}
+                                        value={editUser.email}
+                                        onChangeText={(text) => setEditUser({...editUser, email: text})}
+                                        keyboardType="email-address"
+                                        underlineStyle={{height: 0}}
+                                    />
+                                    <Text style={styles.textLabel}>Phone Number</Text>
+                                    <TextInput
+                                        style={styles.inputStyle}
+                                        placeholder={'Phone Number'}
+                                        cursorColor='black'
+                                        placeholderTextColor={'grey'}
+                                        left={<TextInput.Icon color={'#D3D3D3'} icon='phone-outline' size={30}/>}
+                                        value={editUser.phoneNumber}
+                                        onChangeText={(text) => setEditUser({...editUser, phoneNumber: text})}
+                                        keyboardType="phone-pad"
+                                        underlineStyle={{height: 0}}
+                                    />
+                                </>
+                            )}
+                            
                             <Text style={styles.textLabel}>Date of Birth</Text>
+                            <TouchableOpacity
+                                style={styles.inputStyle}
+                                onPress={() => setOpen(true)}
+                            >
+                                <View style={{ flexDirection: 'row', alignItems: 'center', height: 50 }}>
+                                    <TextInput.Icon color={'#D3D3D3'} icon='calendar' size={30}/>
+                                    <Text style={{ 
+                                        color: formatDateForDisplay(editUser.dateOfBirth) ? 'black' : 'grey',
+                                        fontSize: 16,
+                                        flex: 1,
+                                        marginLeft: 40
+                                    }}>
+                                        {formatDateForDisplay(editUser.dateOfBirth) || 'MM/DD/YYYY'}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
                             <DatePickerModal
+                                locale="en"
                                 mode="single"
                                 visible={open}
-                                onDismiss={onDismissSingle}
+                                onDismiss={() => setOpen(false)}
                                 date={editUser.dateOfBirth ? new Date(editUser.dateOfBirth) : undefined}
-                                onConfirm={onConfirmSingle}
-                                saveLabel="Select Date"
-                                label="Select birth date"
-                                animationType="slide"
-                                locale="en"
-                                onChange={(p) => {
-                                    if (p && p.date) {
-                                        setEditUser({...editUser, dateOfBirth: new Date(p.date)});
+                                onConfirm={({ date }) => {
+                                    setOpen(false);
+                                    if (date) {
+                                        setEditUser({...editUser, dateOfBirth: date});
                                     }
-                                }
-                                }
+                                }}
                             />
+                            <Text style={styles.textLabel}>Address</Text>
                             <TextInput
                                 style={styles.inputStyle}
-                                placeholder={'Date of Birth'}
+                                placeholder={'Address'}
                                 cursorColor='black'
                                 placeholderTextColor={'grey'}
-                                left={<TextInput.Icon color={'#D3D3D3'} icon='calendar' size={30}/>}
-                                value={editUser.dateOfBirth ? new Date(editUser.dateOfBirth).toLocaleDateString() : ''}
-                                onFocus={() => setOpen(true)}
+                                left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30}/>}
+                                value={editUser.address}
+                                onChangeText={(text) => setEditUser({...editUser, address: text})}
                                 underlineStyle={{height: 0}}
                             />
-                            <Text style={styles.textLabel}>Phone number</Text>
-                            <View style={styles.mgTop}>
-                                <TextInput
-                                    disabled={true}
-                                    style={styles.inputStyle}
-                                    placeholder={'Phone number'}
-                                    cursorColor='black'
-                                    placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='phone' size={30}/>}
-                                    value={editUser.countryCode + editUser.phoneNumber}
-                                    onFocus={() => setOpen(true)}
-                                    underlineStyle={{height: 0}}
-                                />
-                                <Text style={styles.textLabel}>Address</Text>
-                                <TextInput
-                                    style={styles.inputStyle}
-                                    placeholder={'Address'}
-                                    cursorColor='black'
-                                    placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30}/>}
-                                    value={editUser.address}
-                                    onChangeText={(text) => setEditUser({...editUser, address: text})}
-                                    underlineStyle={{height: 0}}
-                                />
 
-                                <Text style={styles.textLabel}>Zip Code</Text>
-                                <TextInput
-                                    style={styles.inputStyle}
-                                    placeholder={'Zip Code'}
-                                    cursorColor='black'
-                                    placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30}/>}
-                                    value={editUser.zipCode}
-                                    onChangeText={(text) => setEditUser({...editUser, zipCode: text})}
-                                    underlineStyle={{height: 0}}
-                                />
-                                {userData?.role == UserType[UserType.ORGANIZATION] && <View style={{marginTop: 20}}>
-                                    <Text style={{textAlign: 'center', fontWeight: 'bold'}}>Note:</Text>
-                                    <Text style={{textAlign: 'center', fontWeight: 'bold'}}>If you're signing up for an organization, your info will be used as the admin. If you're not the admin, sign up as a coach and ask the admin to connect you to the organization.</Text>
-                                </View>}
-                                <View style={styles.buttonContainer}>
-                                    <CustomButton
-                                        textStyle={{fontSize: 15, fontWeight: 'bold'}}
-                                        text="Save & Continue"
-                                        onPress={_handleContinueUserInfo}/>
-                                </View>
+                            <Text style={styles.textLabel}>Zip Code</Text>
+                            <TextInput
+                                style={styles.inputStyle}
+                                placeholder={'Zip Code'}
+                                cursorColor='black'
+                                placeholderTextColor={'grey'}
+                                left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30}/>}
+                                value={editUser.zipCode}
+                                onChangeText={(text) => setEditUser({...editUser, zipCode: text})}
+                                underlineStyle={{height: 0}}
+                            />
+                            {userData?.role == UserType[UserType.ORGANIZATION] && <View style={{marginTop: 20}}>
+                                <Text style={{textAlign: 'center', fontWeight: 'bold'}}>Note:</Text>
+                                <Text style={{textAlign: 'center', fontWeight: 'bold'}}>If you're signing up for an organization, your info will be used as the admin. If you're not the admin, sign up as a coach and ask the admin to connect you to the organization.</Text>
+                            </View>}
+                            <View style={styles.buttonContainer}>
+                                <CustomButton
+                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                    text={paramData?.data === 'profile' ? "Save & Continue" : "Save & Continue"}
+                                    onPress={_handleContinueUserInfo}/>
                             </View>
                         </View>
+                        {/* Hidden fields for required data - only when not in profile edit mode */}
+                        {paramData?.data !== 'profile' && (
+                            <View style={{ display: 'none' }}>
+                                <TextInput
+                                    value={editUser.firstName}
+                                    onChangeText={(text) => setEditUser({ ...editUser, firstName: text })}
+                                />
+                                <TextInput
+                                    value={editUser.lastName}
+                                    onChangeText={(text) => setEditUser({ ...editUser, lastName: text })}
+                                />
+                                <TextInput
+                                    value={editUser.email}
+                                    onChangeText={(text) => setEditUser({ ...editUser, email: text })}
+                                />
+                                <TextInput
+                                    value={editUser.phoneNumber}
+                                    onChangeText={(text) => setEditUser({ ...editUser, phoneNumber: text })}
+                                />
+                            </View>
+                        )}
                     </View>
                 </KeyboardAwareScrollView>
             </>
@@ -656,8 +928,85 @@ const EditProfile = () => {
         );
     });
 
-    const CoachSportInfoEdit = () => {
+    const ProfileGenderEdit = () => {
+        const [selectedGender, setSelectedGender] = useState(user?.gender === Gender.MALE || user?.gender === Gender.FEMALE ? user.gender : Gender.DEFAULT);
 
+        useEffect(() => {
+            setSelectedGender(user?.gender === Gender.MALE || user?.gender === Gender.FEMALE ? user.gender : Gender.DEFAULT);
+        }, [user.gender, user]);
+
+        const _handleContinueGenderEdit = async () => {
+            if (selectedGender !== Gender.MALE && selectedGender !== Gender.FEMALE) {
+                showErrorAlert('Please select your gender to continue.', closeAlert);
+                return;
+            }
+            setUser((prevEditUser) => ({...prevEditUser, gender: selectedGender}));
+            
+            // If editing from profile, save and continue to next step
+            if (paramData?.data === 'profile') {
+                try {
+                    await _handleUpdateUser(selectedGender);
+                    setCurrentStep(3);
+                } catch (e) {
+                    console.log(e);
+                }
+            } else {
+                await _handleContinue(selectedGender);
+            }
+        };
+
+        const genderOptions = [
+            { label: 'Male', value: Gender.MALE },
+            { label: 'Female', value: Gender.FEMALE }
+        ];
+
+        return (
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <KeyboardAwareScrollView style={{flex: 1}}>
+                    <View style={styles.formContainer}>
+                        <Text style={{color: 'black', fontSize: 20, fontWeight: 'bold', marginTop: 5}}>Gender</Text>
+                        <View style={styles.mgTop}>
+                            <Text style={styles.textLabel}>Select your gender</Text>
+                            <View style={styles.inputStyle}>
+                                <RNPickerSelect
+                                    style={pickerSelectStyle}
+                                    items={genderOptions}
+                                    placeholder={{ label: 'Select gender...', value: null, color: '#aaa' }}
+                                    onValueChange={(value) => setSelectedGender(value as Gender)}
+                                    value={selectedGender}
+                                    useNativeAndroidPickerStyle={false}
+                                    Icon={() => (
+                                        <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
+                                    )}
+                                />
+                            </View>
+                            <View style={{marginTop: 30, flexDirection: 'row', justifyContent: 'space-between'}}>
+                                <CustomButton
+                                    text="Back"
+                                    onPress={goToPreviousStep}
+                                    style={[styles.backButton, {width: wp('40%')}]}
+                                    textStyle={[styles.buttonText, {fontSize: 15, fontWeight: 'bold'}]}
+                                />
+                                <CustomButton
+                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                    text="Save & Continue"
+                                    onPress={_handleContinueGenderEdit}
+                                    style={[styles.continueButton, {width: wp('40%')}]}
+                                />
+                            </View>
+                        </View>
+                    </View>
+                </KeyboardAwareScrollView>
+            </TouchableWithoutFeedback>
+        );
+    };
+
+    const CoachSportInfoEdit = () => {
+        if (!user) {
+            console.log('user is null' + new Date().toISOString());
+            return null; // Return null if user is not available
+        }
+        
         const [selectedSport, setSelectedSport] = useState<Sport | null>(() => {
             // Initialize with existing user sport data if available
             if (userSport.length > 0) {
@@ -665,10 +1014,10 @@ const EditProfile = () => {
             }
             return null;
         });
-        const [positionCoach, setPositionCoach] = useState<string>(user.positionCoached ?? '');
+        const [positionCoach, setPositionCoach] = useState<string>(user?.positionCoached ?? '');
         const [sportLevel, setSportLevel] = useState<SportLevel>(() => {
             // Initialize with existing user skill level if available
-            if (user.skillLevel && user.skillLevel.length > 0) {
+            if (user?.skillLevel && user.skillLevel.length > 0) {
                 const skillLevelString = user.skillLevel[0];
                 const convertedLevel = convertStringToEnumValue(SportLevel, skillLevelString);
                 return convertedLevel || SportLevel.Beginner;
@@ -679,21 +1028,21 @@ const EditProfile = () => {
             }
             return SportLevel.Beginner;
         });
-        const [yearsOfExperience, setYearsOfExperience] = useState<number>(user.yearsOfExperience ?? 0);
-        const [isCertified, setIsCertified] = useState<boolean>(user.isCertified ?? false);
+        const [yearsOfExperience, setYearsOfExperience] = useState<number>(user?.yearsOfExperience ?? 0);
+        const [isCertified, setIsCertified] = useState<boolean>(user?.isCertified ?? false);
 
         const [editUser, setEditUser] = useState<UserResponse>({...user});
 
         // Update sportLevel when user data changes
         useEffect(() => {
-            if (user.skillLevel && user.skillLevel.length > 0) {
+            if (user?.skillLevel && user.skillLevel.length > 0) {
                 const skillLevelString = user.skillLevel[0];
                 const convertedLevel = convertStringToEnumValue(SportLevel, skillLevelString);
                 if (convertedLevel) {
                     setSportLevel(convertedLevel);
                 }
             }
-        }, [user.skillLevel]);
+        }, [user?.skillLevel]);
 
         const _handleCoachSportInfoEdit = async () => {
             // Check if user has existing sport data or has selected a new sport
@@ -715,8 +1064,19 @@ const EditProfile = () => {
                 bio: editUser.bio,
                 positionCoached: positionCoach,
                 yearsOfExperience: yearsOfExperience,
-                isCertified: isCertified
+                isCertified: isCertified,
+                skillLevel: [sportLevel],
+                preferenceSport: selectedSport?.name || ""
             }));
+            console.log('EditProfile: Saving coach sport info', {
+                ...editUser,
+                bio: editUser.bio,
+                positionCoached: positionCoach,
+                yearsOfExperience: yearsOfExperience,
+                isCertified: isCertified,
+                skillLevel: [sportLevel?.toString() || ""],
+                preferenceSport: selectedSport?.name || ""
+            });
              
             if (userSport.length === 0) {
                 const convertedSportLevel = convertStringToEnumValue(SportLevel, sportLevel);
@@ -737,9 +1097,9 @@ const EditProfile = () => {
             await _handleContinue(null, editUser.bio || '', {
                 yearsOfExperience: yearsOfExperience,
                 positionCoached: positionCoach,
-                skillLevel: [sportLevel.toString()],
-                isCertified: isCertified ?? false,
-                preferenceSport: selectedSport?.name || ''
+                skillLevel: [sportLevel?.toString() || ""],
+                isCertified: isCertified,
+                preferenceSport: selectedSport?.name || ""
             });
         }
 
@@ -759,75 +1119,75 @@ const EditProfile = () => {
                             <Text style={{color: 'black', fontSize: 20, fontWeight: 'bold', marginTop: 5}}>Sport
                                 Info</Text>
                             <View style={styles.mgTop}>
-                                <Text style={styles.textLabel}>Your Sport</Text>
-                                <View style={styles.inputStyle}>
-                                    <RNPickerSelect
-                                        style={pickerSelectStyle}
-                                        items={sports.map(sport => ({ label: sport.name, value: sport.id, key: sport.id }))}
-                                        placeholder={{ label: 'Select sport', value: null }}
-                                        onValueChange={(value) => setSelectedSport(sports.find(sport => sport.id === value) || null)}
-                                        value={selectedSport?.id || null}
-                                        useNativeAndroidPickerStyle={false}
-                                        Icon={() => (
-                                            <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
-                                        )}
-                                    />
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                    <View style={{ flex: 1, marginRight: 5 }}>
+                                        <Text style={styles.textLabel}>Primary Sport</Text>
+                                        <View style={styles.inputStyle}>
+                                            <RNPickerSelect
+                                                style={pickerSelectStyle}
+                                                items={sports.map(sport => ({ label: sport.name, value: sport.id, key: sport.id }))}
+                                                placeholder={{ label: 'Select sport...', value: null, color: '#aaa' }}
+                                                onValueChange={(value) => setSelectedSport(sports.find(sport => sport.id === value) || null)}
+                                                value={selectedSport?.id || null}
+                                                useNativeAndroidPickerStyle={false}
+                                                Icon={() => (
+                                                    <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
+                                                )}
+                                            />
+                                        </View>
+                                    </View>
+                                    <View style={{ flex: 1, marginLeft: 5 }}>
+                                        <Text style={styles.textLabel}>Coaching Position</Text>
+                                        <TextInput
+                                            style={[styles.inputStyle, { paddingLeft: 0 }]}
+                                            placeholder={'e.g. Head Coach'}
+                                            cursorColor='black'
+                                            placeholderTextColor={'grey'}
+                                            left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>} 
+                                            underlineStyle={{height: 0}}
+                                            value={positionCoach}
+                                            onChangeText={(text) => setPositionCoach(text)}
+                                        />
+                                    </View>
                                 </View>
-                                <Text style={styles.textLabel}>Position Coach</Text>
-                                <TextInput
-                                    style={[styles.inputStyle, {paddingLeft: 0}]}
-                                    placeholder={'Position Coached'}
-                                    cursorColor='black'
-                                    placeholderTextColor={'grey'}
-                                    left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
-                                    underlineStyle={{height: 0}}
-                                    value={positionCoach}
-                                    onChangeText={(text) => setPositionCoach(text)}
-                                />
-                                <Text style={styles.textLabel}>Skill Level</Text>
-                                <View style={styles.inputStyle}>
-                                    <RNPickerSelect
-                                        style={pickerSelectStyle}
-                                        items={_generateSportLevelItems()}
-                                        placeholder={{ label: 'Select skill level', value: null }}
-                                        onValueChange={(value) => setSportLevel(value as SportLevel)}
-                                        value={sportLevel?.toString() || null}
-                                        useNativeAndroidPickerStyle={false}
-                                        Icon={() => (
-                                            <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
-                                        )}
-                                    />
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                    <View style={{ flex: 1, marginRight: 5 }}>
+                                        <Text style={styles.textLabel}>Skill Level</Text>
+                                        <View style={styles.inputStyle}>
+                                            <RNPickerSelect
+                                                style={pickerSelectStyle}
+                                                items={_generateSportLevelItems()}
+                                                placeholder={{ label: 'Select skill level...', value: null, color: '#aaa' }}
+                                                onValueChange={(value) => setSportLevel(value as SportLevel)}
+                                                value={sportLevel?.toString() || null}
+                                                useNativeAndroidPickerStyle={false}
+                                                Icon={() => (
+                                                    <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
+                                                )}
+                                            />
+                                        </View>
+                                    </View>
+                                    <View style={{ flex: 1, marginLeft: 5 }}>
+                                        <Text style={styles.textLabel}>Years of Experience</Text>
+                                        <TextInput
+                                            style={styles.inputStyle}
+                                            placeholder="e.g. 5"
+                                            cursorColor="black"
+                                            placeholderTextColor="grey"
+                                            left={<TextInput.Icon color={'#D3D3D3'} icon='calendar' size={24} />}
+                                            value={yearsOfExperience ? yearsOfExperience.toString() : ''}
+                                            onChangeText={text => setYearsOfExperience(Number(text.replace(/[^0-9]/g, '')))}
+                                            keyboardType="number-pad"
+                                            underlineStyle={{height: 0}}
+                                        />
+                                    </View>
                                 </View>
-
-                                <Text style={styles.textLabel}>Years of Experience</Text>
+                                <Text style={styles.textLabel}>Are you certified?</Text>
                                 <View style={styles.inputStyle}>
                                     <RNPickerSelect
                                         style={pickerSelectStyle}
-                                        items={Array.from({length: 40}, (_, i) => i).map(i => ({
-                                            label: i.toString(),
-                                            value: i,
-                                            key: i
-                                        }))}
-                                        placeholder={{ label: 'Select years of experience', value: null }}
-                                        onValueChange={(value) => setYearsOfExperience(value as number)}
-                                        value={yearsOfExperience || null}
-                                        useNativeAndroidPickerStyle={false}
-                                        Icon={() => (
-                                            <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
-                                        )}
-                                    />
-                                </View>
-
-                                <Text style={styles.textLabel}>Certification</Text>
-                                <View style={styles.inputStyle}>
-                                    <RNPickerSelect
-                                        style={pickerSelectStyle}
-                                        items={[{label: 'Yes', value: true, key: 'Yes'}, {
-                                            label: 'No',
-                                            value: false,
-                                            key: 'No'
-                                        }]}
-                                        placeholder={{ label: 'Select certification', value: null }}
+                                        items={[{label: 'Yes', value: true, key: 'Yes'}, {label: 'No', value: false, key: 'No'}]}
+                                        placeholder={{ label: 'e.g. Yes', value: null }}
                                         onValueChange={(value) => setIsCertified(value as boolean)}
                                         value={isCertified}
                                         useNativeAndroidPickerStyle={false}
@@ -836,25 +1196,23 @@ const EditProfile = () => {
                                         )}
                                     />
                                 </View>
-
-
-                                <Text style={styles.textLabel}>Tell us about yourself</Text>
+                                <Text style={styles.textLabel}>About You</Text>
                                 <TextInput
                                     style={styles.inputInfoStyle}
-                                    placeholder={'Tell us about yourself'}
+                                    placeholder={'e.g. Former college athlete, now coaching youth teams'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='information-outline' size={24}/>} 
                                     value={editUser.bio}
                                     onChangeText={(text) => setEditUser({...editUser, bio: text})}
                                     underlineStyle={{height: 0}}
                                     multiline={true}
                                     numberOfLines={4}
                                 />
-
                                 <View style={{marginTop: 30}}>
                                     <CustomButton
                                         textStyle={{fontSize: 15, fontWeight: 'bold'}}
-                                        text="Save & Continue" onPress={_handleCoachSportInfoEdit}/>
+                                        text="Save" onPress={_handleCoachSportInfoEdit}/>
                                 </View>
                             </View>
                         </View>
@@ -863,6 +1221,499 @@ const EditProfile = () => {
             </TouchableWithoutFeedback>
         )
     }
+
+    const CollapsibleSection = ({ title, children, isExpanded, onToggle }: {
+        title: string;
+        children: React.ReactNode;
+        isExpanded: boolean;
+        onToggle: () => void;
+    }) => {
+        const animatedHeight = useSharedValue(isExpanded ? 1 : 0);
+        const animatedRotation = useSharedValue(isExpanded ? 1 : 0);
+
+        useEffect(() => {
+            animatedHeight.value = withTiming(isExpanded ? 1 : 0, { duration: 300 });
+            animatedRotation.value = withTiming(isExpanded ? 1 : 0, { duration: 300 });
+        }, [isExpanded]);
+
+        const heightStyle = useAnimatedStyle(() => ({
+            height: interpolate(animatedHeight.value, [0, 1], [0, 500]), // Adjust max height as needed
+            opacity: animatedHeight.value,
+        }));
+
+        const rotationStyle = useAnimatedStyle(() => ({
+            transform: [{ rotate: `${interpolate(animatedRotation.value, [0, 1], [0, 180])}deg` }],
+        }));
+
+        return (
+            <View style={styles.collapsibleSection}>
+                <TouchableOpacity style={styles.sectionHeader} onPress={onToggle}>
+                    <Text style={styles.sectionTitle}>{title}</Text>
+                    <Animated.View style={rotationStyle}>
+                        <AntDesign name="down" size={20} color="#2757CB" />
+                    </Animated.View>
+                </TouchableOpacity>
+                <Animated.View style={[styles.sectionContent, heightStyle]}>
+                    {children}
+                </Animated.View>
+            </View>
+        );
+    };
+
+    const ProfileEditCollapsible = () => {
+        if (!user) {
+            console.log('user is null' + new Date().toISOString());
+            return null;
+        }
+
+        const [expandedSections, setExpandedSections] = useState({
+            personal: true,
+            contact: false,
+            sports: false
+        });
+
+        const [editUser, setEditUser] = useState<UserResponse>({...user});
+        const [datePickerOpen, setDatePickerOpen] = useState(false);
+        const [selectedGender, setSelectedGender] = useState(user?.gender === Gender.MALE || user?.gender === Gender.FEMALE ? user.gender : Gender.DEFAULT);
+        const [selectedSport, setSelectedSport] = useState<Sport | null>(() => {
+            if (userSport.length > 0) {
+                return sports.find(sport => sport.id === userSport[0]?.sportId) || null;
+            }
+            return null;
+        });
+        const [positionCoach, setPositionCoach] = useState<string>(user?.positionCoached ?? '');
+        const [sportLevel, setSportLevel] = useState<SportLevel>(() => {
+            if (user?.skillLevel && user.skillLevel.length > 0) {
+                const skillLevelString = user.skillLevel[0];
+                const convertedLevel = convertStringToEnumValue(SportLevel, skillLevelString);
+                return convertedLevel || SportLevel.Beginner;
+            }
+            if (userSport.length > 0) {
+                return userSport[0]?.sportLevel || SportLevel.Beginner;
+            }
+            return SportLevel.Beginner;
+        });
+        const [yearsOfExperience, setYearsOfExperience] = useState<number>(user?.yearsOfExperience ?? 0);
+        const [isCertified, setIsCertified] = useState<boolean>(user?.isCertified ?? false);
+
+        const _handleEditProfilePic = async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [4, 3],
+                quality: 0.2
+            });
+
+            if (!result.canceled) {
+                // Immediately update the preview with the selected image
+                setEditUser(prev => ({ ...prev, imageUrl: result.assets[0].uri }));
+                
+                manipulateAsync(result.assets[0].uri, [{resize: {height: 900, width: 900}}], {
+                    compress: 0.2,
+                    format: SaveFormat.PNG
+                }).then(async (manipulateImgResult) => {
+                    const formData = new FormData();
+                    // @ts-ignore
+                    formData.append(
+                        'file',
+                        {
+                            uri: manipulateImgResult.uri,
+                            name: result.assets[0].fileName ? result.assets[0].fileName : 'userProfileImg.png',
+                            type: 'image/png'
+                        });
+                    const imageUrl = await StorageService.upload(user.id, formData);
+                    // Update with the server URL after successful upload
+                    if (imageUrl) {
+                        setEditUser(prev => ({ ...prev, imageUrl: imageUrl }));
+                    }
+                }).catch(err => {
+                    console.error('Error during image manipulation:', err);
+                    // Revert to original image if upload fails
+                    setEditUser(prev => ({ ...prev, imageUrl: user.imageUrl }));
+                });
+            }
+        };
+
+        const toggleSection = (section: keyof typeof expandedSections) => {
+            setExpandedSections(prev => {
+                // If the clicked section is already expanded, collapse it
+                if (prev[section]) {
+                    return {
+                        personal: false,
+                        contact: false,
+                        sports: false
+                    };
+                } else {
+                    // If clicking a different section, expand only that one
+                    return {
+                        personal: section === 'personal',
+                        contact: section === 'contact',
+                        sports: section === 'sports'
+                    };
+                }
+            });
+        };
+
+        const _handleSaveAll = async () => {
+            try {
+                console.log('ProfileEditCollapsible: Starting profile update...');
+                
+                // Validate required fields
+                const errors: string[] = [];
+                if (!editUser.firstName?.trim()) errors.push('First name is required');
+                if (!editUser.lastName?.trim()) errors.push('Last name is required');
+                
+                if (errors.length > 0) {
+                    showErrorAlert(errors.join('\n'), closeAlert);
+                    return;
+                }
+                
+                // Create updated user object with all the changes
+                const updatedUser = {
+                    ...editUser,
+                    gender: selectedGender,
+                    bio: editUser.bio || '',
+                    yearsOfExperience: yearsOfExperience,
+                    positionCoached: positionCoach,
+                    skillLevel: sportLevel ? [sportLevel] : [],
+                    isCertified: isCertified,
+                    preferenceSport: selectedSport?.name || ""
+                };
+                
+                console.log('ProfileEditCollapsible: Updated user data:', updatedUser);
+                
+                // Sanitize the user data before sending to backend
+                const userRequest = sanitizeUserForBackend(updatedUser);
+                
+                // Update user profile directly
+                const result = await UserService.updateUser(userRequest);
+                
+                console.log('ProfileEditCollapsible: Backend response:', result);
+                
+                if (result) {
+                    console.log('ProfileEditCollapsible: Profile updated successfully');
+                    console.log('ProfileEditCollapsible: Updated email:', result.email);
+                    console.log('ProfileEditCollapsible: Updated phone:', result.phoneNumber);
+                    setUser(result); // Update local state
+                    
+                    // Refresh Redux store with fresh data from server
+                    dispatch(getUserProfile() as any);
+                    
+                    // Show success confirmation
+                    showAlert({
+                        title: 'Success!',
+                        message: 'Your profile has been updated successfully.',
+                        onConfirm: () => {
+                            // Navigate to Profile tab instead of going back
+                            _router.replace('/(tabs)');
+                        },
+                        confirmText: 'OK'
+                    });
+                } else {
+                    throw new Error('Failed to update profile - no response from server');
+                }
+                
+            } catch (e) {
+                console.error('ProfileEditCollapsible: Error updating profile:', e);
+                
+                // Show error message to user
+                showErrorAlert(
+                    'Failed to update profile. Please check your connection and try again.',
+                    closeAlert
+                );
+            }
+        };
+
+        const _generateSportLevelItems = (): { label: string; value: string; key: string }[] => {
+            return Object.keys(SportLevel).filter((key: string) => !isNaN(Number(SportLevel[key as keyof typeof SportLevel]))).map((key: string) => ({
+                label: key,
+                value: key,
+                key: SportLevel[key as keyof typeof SportLevel].toString()
+            }));
+        };
+
+        const genderOptions = [
+            { label: 'Male', value: Gender.MALE },
+            { label: 'Female', value: Gender.FEMALE }
+        ];
+
+        return (
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <KeyboardAwareScrollView style={{flex: 1}}>
+                    <View style={styles.formContainer}>
+                        {/* <Text style={{color: 'black', fontSize: 20, fontWeight: 'bold', marginTop: 5, marginBottom: 20}}>Edit Profile</Text> */}
+                        
+                        {/* Personal Information Section */}
+                        <CollapsibleSection
+                            title="Personal Information"
+                            isExpanded={expandedSections.personal}
+                            onToggle={() => toggleSection('personal')}
+                        >
+                            <View style={styles.sectionFields}>
+                                {/* Two Column Layout: Names on Left, Profile Picture on Right */}
+                                <View style={styles.twoColumnLayout}>
+                                    {/* Left Column - Name Fields */}
+                                    <View style={styles.leftColumn}>
+                                        <Text style={styles.textLabel}>First Name</Text>
+                                        <TextInput
+                                            style={styles.inputStyle}
+                                            placeholder={'First Name'}
+                                            cursorColor='black'
+                                            placeholderTextColor={'grey'}
+                                            left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
+                                            value={editUser.firstName}
+                                            onChangeText={(text) => setEditUser({...editUser, firstName: text})}
+                                            underlineStyle={{height: 0}}
+                                        />
+                                        <Text style={styles.textLabel}>Last Name</Text>
+                                        <TextInput
+                                            style={styles.inputStyle}
+                                            placeholder={'Last Name'}
+                                            cursorColor='black'
+                                            placeholderTextColor={'grey'}
+                                            left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>}
+                                            value={editUser.lastName}
+                                            onChangeText={(text) => setEditUser({...editUser, lastName: text})}
+                                            underlineStyle={{height: 0}}
+                                        />
+                                    </View>
+                                    
+                                    {/* Right Column - Profile Picture */}
+                                    <View style={styles.rightColumn}>
+                                        <View style={styles.profileImageContainer}>
+                                            {editUser.imageUrl ? (
+                                                <Image 
+                                                    source={{uri: editUser.imageUrl}} 
+                                                    style={styles.profileImage}
+                                                />
+                                            ) : (
+                                                <View style={styles.profilePlaceholder}>
+                                                    <Text style={styles.profilePlaceholderText}>
+                                                        {`${editUser.firstName[0] || ''}${editUser.lastName[0] || ''}`}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                        <TouchableOpacity 
+                                            style={styles.changePhotoButton}
+                                            onPress={_handleEditProfilePic}
+                                        >
+                                            <Text style={styles.changePhotoButtonText}>Change</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                                <Text style={styles.textLabel}>Date of Birth</Text>
+                                <TouchableOpacity
+                                    style={styles.inputStyle}
+                                    onPress={() => setDatePickerOpen(true)}
+                                >
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', height: 50 }}>
+                                        <TextInput.Icon color={'#D3D3D3'} icon='calendar' size={30}/>
+                                        <Text style={{ 
+                                            color: formatDateForDisplay(editUser.dateOfBirth) ? 'black' : 'grey',
+                                            fontSize: 16,
+                                            flex: 1,
+                                            marginLeft: 40
+                                        }}>
+                                            {formatDateForDisplay(editUser.dateOfBirth) || 'MM/DD/YYYY'}
+                                        </Text>
+                                    </View>
+                                </TouchableOpacity>
+                                <DatePickerModal
+                                    locale="en"
+                                    mode="single"
+                                    visible={datePickerOpen}
+                                    onDismiss={() => setDatePickerOpen(false)}
+                                    date={editUser.dateOfBirth ? new Date(editUser.dateOfBirth) : undefined}
+                                    onConfirm={({ date }) => {
+                                        setDatePickerOpen(false);
+                                        if (date) {
+                                            setEditUser({...editUser, dateOfBirth: date});
+                                        }
+                                    }}
+                                />
+                                <Text style={styles.textLabel}>Gender</Text>
+                                <View style={styles.inputStyle}>
+                                    <RNPickerSelect
+                                        style={pickerSelectStyle}
+                                        items={genderOptions}
+                                        placeholder={{ label: 'Select gender...', value: null, color: '#aaa' }}
+                                        onValueChange={(value) => setSelectedGender(value as Gender)}
+                                        value={selectedGender}
+                                        useNativeAndroidPickerStyle={false}
+                                        Icon={() => (
+                                            <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
+                                        )}
+                                    />
+                                </View>
+                            </View>
+                        </CollapsibleSection>
+
+                        {/* Contact Information Section */}
+                        <CollapsibleSection
+                            title="Contact Information"
+                            isExpanded={expandedSections.contact}
+                            onToggle={() => toggleSection('contact')}
+                        >
+                            <View style={styles.sectionFields}>
+                                <Text style={styles.textLabel}>Email</Text>
+                                <TextInput
+                                    style={[styles.inputStyle, {backgroundColor: '#f5f5f5'}]}
+                                    placeholder={'Email'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='email-outline' size={30}/>}
+                                    value={editUser.email}
+                                    editable={false}
+                                    underlineStyle={{height: 0}}
+                                />
+                                <Text style={styles.textLabel}>Phone Number</Text>
+                                <TextInput
+                                    style={[styles.inputStyle, {backgroundColor: '#f5f5f5'}]}
+                                    placeholder={'Phone Number'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='phone-outline' size={30}/>}
+                                    value={editUser.phoneNumber}
+                                    editable={false}
+                                    underlineStyle={{height: 0}}
+                                />
+                                <Text style={styles.textLabel}>Address</Text>
+                                <TextInput
+                                    style={styles.inputStyle}
+                                    placeholder={'Address'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30}/>}
+                                    value={editUser.address}
+                                    onChangeText={(text) => setEditUser({...editUser, address: text})}
+                                    underlineStyle={{height: 0}}
+                                />
+                                <Text style={styles.textLabel}>Zip Code</Text>
+                                <TextInput
+                                    style={styles.inputStyle}
+                                    placeholder={'Zip Code'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='map-marker-outline' size={30}/>}
+                                    value={editUser.zipCode}
+                                    onChangeText={(text) => setEditUser({...editUser, zipCode: text})}
+                                    underlineStyle={{height: 0}}
+                                />
+                            </View>
+                        </CollapsibleSection>
+
+                        {/* Sports Information Section */}
+                        <CollapsibleSection
+                            title="Sports Information"
+                            isExpanded={expandedSections.sports}
+                            onToggle={() => toggleSection('sports')}
+                        >
+                            <View style={styles.sectionFields}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                    <View style={{ flex: 1, marginRight: 5 }}>
+                                        <Text style={styles.textLabel}>Primary Sport</Text>
+                                        <View style={styles.inputStyle}>
+                                            <RNPickerSelect
+                                                style={pickerSelectStyle}
+                                                items={sports.map(sport => ({ label: sport.name, value: sport.id, key: sport.id }))}
+                                                placeholder={{ label: 'Select sport...', value: null, color: '#aaa' }}
+                                                onValueChange={(value) => setSelectedSport(sports.find(sport => sport.id === value) || null)}
+                                                value={selectedSport?.id || null}
+                                                useNativeAndroidPickerStyle={false}
+                                                Icon={() => (
+                                                    <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
+                                                )}
+                                            />
+                                        </View>
+                                    </View>
+                                    <View style={{ flex: 1, marginLeft: 5 }}>
+                                        <Text style={styles.textLabel}>Coaching Position</Text>
+                                        <TextInput
+                                            style={[styles.inputStyle, { paddingLeft: 0 }]}
+                                            placeholder={'e.g. Head Coach'}
+                                            cursorColor='black'
+                                            placeholderTextColor={'grey'}
+                                            left={<TextInput.Icon color={'#D3D3D3'} icon='account-outline' size={30}/>} 
+                                            underlineStyle={{height: 0}}
+                                            value={positionCoach}
+                                            onChangeText={(text) => setPositionCoach(text)}
+                                        />
+                                    </View>
+                                </View>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                    <View style={{ flex: 1, marginRight: 5 }}>
+                                        <Text style={styles.textLabel}>Skill Level</Text>
+                                        <View style={styles.inputStyle}>
+                                            <RNPickerSelect
+                                                style={pickerSelectStyle}
+                                                items={_generateSportLevelItems()}
+                                                placeholder={{ label: 'Select skill level...', value: null, color: '#aaa' }}
+                                                onValueChange={(value) => setSportLevel(value as SportLevel)}
+                                                value={sportLevel?.toString() || null}
+                                                useNativeAndroidPickerStyle={false}
+                                                Icon={() => (
+                                                    <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
+                                                )}
+                                            />
+                                        </View>
+                                    </View>
+                                    <View style={{ flex: 1, marginLeft: 5 }}>
+                                        <Text style={styles.textLabel}>Years of Experience</Text>
+                                        <TextInput
+                                            style={styles.inputStyle}
+                                            placeholder="e.g. 5"
+                                            cursorColor="black"
+                                            placeholderTextColor="grey"
+                                            left={<TextInput.Icon color={'#D3D3D3'} icon='calendar' size={24} />}
+                                            value={yearsOfExperience ? yearsOfExperience.toString() : ''}
+                                            onChangeText={text => setYearsOfExperience(Number(text.replace(/[^0-9]/g, '')))}
+                                            keyboardType="number-pad"
+                                            underlineStyle={{height: 0}}
+                                        />
+                                    </View>
+                                </View>
+                                <Text style={styles.textLabel}>Are you certified?</Text>
+                                <View style={styles.inputStyle}>
+                                    <RNPickerSelect
+                                        style={pickerSelectStyle}
+                                        items={[{label: 'Yes', value: true, key: 'Yes'}, {label: 'No', value: false, key: 'No'}]}
+                                        placeholder={{ label: 'e.g. Yes', value: null }}
+                                        onValueChange={(value) => setIsCertified(value as boolean)}
+                                        value={isCertified}
+                                        useNativeAndroidPickerStyle={false}
+                                        Icon={() => (
+                                            <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
+                                        )}
+                                    />
+                                </View>
+                                <Text style={styles.textLabel}>About You</Text>
+                                <TextInput
+                                    style={styles.inputInfoStyle}
+                                    placeholder={'e.g. Former college athlete, now coaching youth teams'}
+                                    cursorColor='black'
+                                    placeholderTextColor={'grey'}
+                                    left={<TextInput.Icon color={'#D3D3D3'} icon='information-outline' size={24}/>} 
+                                    value={editUser.bio}
+                                    onChangeText={(text) => setEditUser({...editUser, bio: text})}
+                                    underlineStyle={{height: 0}}
+                                    multiline={true}
+                                    numberOfLines={4}
+                                />
+                            </View>
+                        </CollapsibleSection>
+
+                        <View style={{marginTop: 30}}>
+                            <CustomButton
+                                textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                text="Save All Changes"
+                                onPress={_handleSaveAll}/>
+                        </View>
+                    </View>
+                </KeyboardAwareScrollView>
+            </TouchableWithoutFeedback>
+        );
+    };
 
 
     const OrganizationInfoEdit = () => {
@@ -1118,7 +1969,7 @@ const EditProfile = () => {
             const res = _handleAddAnotherSport();
             if (!res) {
                 _handleUpdateUser();
-                router.navigate('/(tabs)');
+                router.replace('/(tabs)');
             }
 
             try {
@@ -1135,7 +1986,7 @@ const EditProfile = () => {
 
                 }
                 await _handleUpdateUser();
-                router.navigate('/(tabs)');
+                router.replace('/(tabs)');
 
 
             } catch (e) {
@@ -1247,6 +2098,21 @@ const EditProfile = () => {
     }
 
 
+    // Guard against null user
+    if (!user) {
+        return (
+            <ImageBackground
+                style={StyleSheet.absoluteFill}
+                source={require('../../assets/images/signupBackGround.jpg')}>
+                <SafeAreaView style={{flex: 1}}>
+                    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                        <Text style={{color: 'white', fontSize: 18}}>Loading user data...</Text>
+                    </View>
+                </SafeAreaView>
+            </ImageBackground>
+        );
+    }
+
     return (
         <ImageBackground
             style={StyleSheet.absoluteFill}
@@ -1255,14 +2121,22 @@ const EditProfile = () => {
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                     <CustomNavigationHeader text={_getCurrentStepTitle()} goBackFunction={goBackFunc()} showBackArrow/>
                 </TouchableWithoutFeedback>
-                <Text style={styles.stepText}>Step {currentStep}/3</Text>
-                <View style={styles.cardContainer}>
-                    {currentStep === 1 && <UserInfoEdit/>}
-                    {currentStep === 2 && userData?.role != UserType[UserType.ORGANIZATION] && <UserGenderEdit/>}
-                    {currentStep === 2 && userData?.role == UserType[UserType.ORGANIZATION] && <OrganizationInfoEdit/>}
-                    {currentStep === 3 && userData?.role != UserType[UserType.ORGANIZATION] && <CoachSportInfoEdit/>}
-                    {currentStep === 3 && userData?.role == UserType[UserType.ORGANIZATION] && <OrganizationSport/>}
-                </View>
+                {paramData?.data === 'profile' ? (
+                    // Use collapsible interface for profile editing
+                    <ProfileEditCollapsible />
+                ) : (
+                    // Use step-based interface for registration/onboarding
+                    <>
+                        <Text style={styles.stepText}>Step {currentStep}/3</Text>
+                        <View style={styles.cardContainer}>
+                            {currentStep === 1 && <UserInfoEdit/>}
+                            {currentStep === 2 && userData?.role != UserType[UserType.ORGANIZATION] && <UserGenderEdit/>}
+                            {currentStep === 2 && userData?.role == UserType[UserType.ORGANIZATION] && <OrganizationInfoEdit/>}
+                            {currentStep === 3 && userData?.role != UserType[UserType.ORGANIZATION] && <CoachSportInfoEdit/>}
+                            {currentStep === 3 && userData?.role == UserType[UserType.ORGANIZATION] && <OrganizationSport/>}
+                        </View>
+                    </>
+                )}
                 <StyledAlert
                     visible={showStyledAlert}
                     config={alertConfig}
@@ -1461,6 +2335,94 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 2.50,
         elevation: 5
+    },
+    collapsibleSection: {
+        backgroundColor: 'white',
+        borderRadius: 15,
+        marginBottom: 10,
+        overflow: 'hidden',
+        shadowColor: 'black',
+        shadowOffset: {width: 0, height: 2},
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 15,
+        backgroundColor: '#f8f9fa',
+        borderBottomWidth: 1,
+        borderBottomColor: '#e9ecef',
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    sectionContent: {
+        padding: 15,
+    },
+    sectionFields: {
+        marginBottom: 15,
+    },
+    modernProfileContainer: {
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    profileImageContainer: {
+        marginBottom: 10,
+    },
+    profileImage: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        borderWidth: 3,
+        borderColor: '#2757CB',
+    },
+    profilePlaceholder: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: '#2757CB',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 3,
+        borderColor: '#2757CB',
+    },
+    profilePlaceholderText: {
+        color: 'white',
+        fontSize: 32,
+        fontWeight: 'bold',
+    },
+    changePhotoButton: {
+        backgroundColor: '#2757CB',
+        paddingHorizontal: 20,
+        paddingVertical: 8,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#2757CB',
+    },
+    changePhotoButtonText: {
+        color: 'white',
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+    twoColumnLayout: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: 20,
+    },
+    leftColumn: {
+        flex: 1,
+        marginRight: 15,
+    },
+    rightColumn: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingTop: 20,
     },
 })
 

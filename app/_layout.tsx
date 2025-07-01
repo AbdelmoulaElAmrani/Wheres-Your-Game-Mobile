@@ -80,7 +80,11 @@ function RootLayoutNav() {
                         }}
                     >
                         <Stack.Screen name="(auth)" options={{headerShown: false}}/>
-                        <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
+                        <Stack.Screen name="(tabs)" options={{
+                            headerShown: false,
+                            gestureEnabled: false,
+                            gestureDirection: 'horizontal',
+                        }}/>
                         <Stack.Screen name="(user)" options={{headerShown: false}}/>
                         <Stack.Screen name="(map)" options={{headerShown: false}}/>
                         <Stack.Screen name="(team)" options={{headerShown: false}}/>

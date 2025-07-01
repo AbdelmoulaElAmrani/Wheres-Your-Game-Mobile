@@ -8,8 +8,11 @@ import {
     setupNotificationListeners
 } from "@/services/pushNotificationService";
 import LocalStorageService from "@/services/LocalStorageService";
+import {useSelector} from "react-redux";
+import {BackHandler} from "react-native";
 
 const Layout = () => {
+    const userData = useSelector((state: any) => state.user.userData);
 
     useEffect(() => {
         async function setupPushNotifications() {
@@ -38,6 +41,25 @@ const Layout = () => {
         );
 
         return removeListeners;
+    }, []);
+
+    // Navigation guard to prevent going back to auth screens
+    useEffect(() => {
+        if (!userData || !userData.id) {
+            // If no user data, redirect to auth
+            const { router } = require('expo-router');
+            router.replace('/(auth)');
+        }
+    }, [userData]);
+
+    // Prevent back navigation from tabs screen
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+            // Prevent going back to auth screens
+            return true; // This prevents the default back behavior
+        });
+
+        return () => backHandler.remove();
     }, []);
 
 

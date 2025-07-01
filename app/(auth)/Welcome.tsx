@@ -1,3 +1,4 @@
+import React from 'react';
 import {StatusBar} from 'expo-status-bar'
 import {StyleSheet, Text, View} from 'react-native'
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
@@ -8,7 +9,7 @@ import {Image, ImageBackground} from "expo-image";
 const Welcome = () => {
 
     const _handleGetStarted = () => {
-        router.navigate('/(tabs)');
+        router.replace('/(tabs)');
     }
     return (
         <>
