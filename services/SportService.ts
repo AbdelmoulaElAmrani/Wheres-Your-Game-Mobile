@@ -27,4 +27,20 @@ export class SportService {
         }
         return res?.data;
     }
+
+    static deleteUserSport = async (userId: string, sportId: string) => {
+        const res = await Requests.delete(`sport/user/${userId}/sport/${sportId}`);
+        if (res?.status !== 200) {
+            return undefined;
+        }
+        return res?.data;
+    }
+
+    static deleteAllUserSports = async (userId: string) => {
+        const res = await Requests.delete(`sport/user/${userId}/sports`);
+        if (res?.status !== 200) {
+            return undefined;
+        }
+        return res?.data;
+    }
 }

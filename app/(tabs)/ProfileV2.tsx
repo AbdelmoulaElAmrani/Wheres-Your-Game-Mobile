@@ -168,6 +168,18 @@ export const ProfileV2 = () => {
                                 </Text>
                             </View>
                         </View>
+                                    <TouchableOpacity
+                                        onPress={_handleSettings}
+                                        style={styles.followBtn}>
+                                        <FontAwesome6 name="gear" size={15} color="white"/>
+                                        <Text style={{
+                                            color: 'white',
+                                            fontSize: 16,
+                                            marginLeft: 10,
+                                            fontWeight: 'bold'
+                                        }}>Settings</Text>
+                                    </TouchableOpacity>
+                                
                         <View style={styles.bioContainer}>
                             <Text style={{fontWeight: 'bold', fontSize: 16}}>Bio:</Text>
                             <Text style={{fontSize: 14, textAlign: 'center'}}>{currentUser?.bio || ""}</Text>
@@ -209,7 +221,7 @@ export const ProfileV2 = () => {
                                     {selectOption == MenuOption.Childrens && <View style={styles.underline}/>}
                                 </TouchableOpacity>)}
                         </View>
-                        <Divider bold={true} style={{width: '90%', alignSelf: 'center', marginBottom: hp('2%')}}/>
+                        <Divider bold={true} style={{width: '90%', alignSelf: 'center', marginBottom: hp('1%')}}/>
                         <View style={{width: '90%', height: '23%'}}>
                             {selectOption === MenuOption.Overview && <>
                                 <View style={{flexDirection: 'row', justifyContent: 'space-around', width: '100%'}}>
@@ -369,7 +381,7 @@ export const ProfileV2 = () => {
                                         )}
                                     />
                                 </View>}
-                            {selectOption === MenuOption.Videos ? (
+                            {selectOption === MenuOption.Videos && (
                                 <TouchableOpacity
                                     onPress={_showSocialMediaCard}
                                     style={styles.followBtn}>
@@ -381,20 +393,6 @@ export const ProfileV2 = () => {
                                         fontWeight: 'bold'
                                     }}>Edit Links</Text>
                                 </TouchableOpacity>
-                            ) : (
-                                selectOption === MenuOption.Overview && (
-                                    <TouchableOpacity
-                                        onPress={_handleSettings}
-                                        style={styles.followBtn}>
-                                        <FontAwesome6 name="gear" size={15} color="white"/>
-                                        <Text style={{
-                                            color: 'white',
-                                            fontSize: 16,
-                                            marginLeft: 10,
-                                            fontWeight: 'bold'
-                                        }}>Settings</Text>
-                                    </TouchableOpacity>
-                                )
                             )}
                         </View>
                     </ScrollView>

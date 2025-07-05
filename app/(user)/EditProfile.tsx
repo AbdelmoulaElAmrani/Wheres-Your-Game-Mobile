@@ -10,7 +10,8 @@ import {
     View,
     Platform,
     Modal,
-    Image
+    Image,
+    ScrollView
 } from "react-native"
 import {ImageBackground} from "expo-image";
 import {Avatar, Text, TextInput} from "react-native-paper";
@@ -1396,8 +1397,44 @@ const EditProfile = () => {
                     console.log('ProfileEditCollapsible: Updated phone:', result.phoneNumber);
                     setUser(result); // Update local state
                     
+                    // Save sports changes for non-coach users
+                    if (!isCoach && userData?.id) {
+                        try {
+                            // First, delete all existing user sports
+                            console.log('ProfileEditCollapsible: Deleting all existing sports...');
+                            await SportService.deleteAllUserSports(userData.id);
+                            console.log('ProfileEditCollapsible: All existing sports deleted');
+                            
+                            // Then add the new sports from playerSports
+                            if (playerSports.length > 0) {
+                                // Convert playerSports to UserInterestedSport format
+                                const sportsToSave = playerSports.map(sport => ({
+                                    sportId: sport.sportId,
+                                    sportName: sport.sportName,
+                                    sportLevel: SportLevel.Beginner, // Default level since we don't store it in playerSports
+                                    createAt: new Date(),
+                                    typeOfGame: [],
+                                    seasonDuration: undefined,
+                                    estimatedCost: 0,
+                                    locationOfGame: undefined,
+                                    score: 0
+                                }));
+                                
+                                console.log('ProfileEditCollapsible: Saving sports data:', sportsToSave);
+                                await SportService.registerUserToSport(sportsToSave, userData.id);
+                                console.log('ProfileEditCollapsible: Sports saved successfully');
+                            }
+                        } catch (sportError) {
+                            console.error('ProfileEditCollapsible: Error saving sports:', sportError);
+                            // Don't fail the entire save if sports fail
+                        }
+                    }
+                    
                     // Refresh Redux store with fresh data from server
                     dispatch(getUserProfile() as any);
+                    if (userData?.id) {
+                        dispatch(getUserSports(userData.id) as any);
+                    }
                     
                     // Show success confirmation
                     showAlert({
@@ -1436,6 +1473,54 @@ const EditProfile = () => {
             { label: 'Male', value: Gender.MALE },
             { label: 'Female', value: Gender.FEMALE }
         ];
+
+        const isCoach = userData?.role === UserType[UserType.COACH] || userData?.role === 'COACH';
+        // For player/other: local state for sports list
+        const [playerSports, setPlayerSports] = useState<{ sportId: string, sportName: string, skillLevels: string[] }[]>(
+            userSport
+                .filter(s => !!s.sportId)
+                .map(s => ({
+                    sportId: s.sportId!,
+                    sportName: s.sportName,
+                    skillLevels: s.sportLevel ? [s.sportLevel.toString()] : []
+                }))
+        );
+        // Modal state for adding sport
+        const [addSportModalVisible, setAddSportModalVisible] = useState(false);
+        // Modal state for delete confirmation
+        const [deleteConfirmModalVisible, setDeleteConfirmModalVisible] = useState(false);
+        const [sportToDelete, setSportToDelete] = useState<{ sportId: string, sportName: string } | null>(null);
+        const [modalSelectedSport, setModalSelectedSport] = useState<Sport | null>(null);
+        const [modalSelectedSkillLevels, setModalSelectedSkillLevels] = useState<string[]>([]);
+        // Handler to add sport from modal
+        const handleAddSportFromModal = () => {
+            if (!modalSelectedSport || !modalSelectedSport.id) return;
+            if (modalSelectedSkillLevels.length === 0) return;
+            setPlayerSports(prev => [...prev, {
+                sportId: String(modalSelectedSport.id),
+                sportName: modalSelectedSport.name,
+                skillLevels: [...modalSelectedSkillLevels]
+            }]);
+            setAddSportModalVisible(false);
+            setModalSelectedSport(null);
+            setModalSelectedSkillLevels([]);
+        };
+        // Handler to delete a sport
+        const handleDeletePlayerSport = (sportId: string) => {
+            const sportToDelete = playerSports.find(s => s.sportId === sportId);
+            if (sportToDelete) {
+                setSportToDelete({ sportId, sportName: sportToDelete.sportName });
+                setDeleteConfirmModalVisible(true);
+            }
+        };
+        // Handler to confirm delete
+        const handleConfirmDelete = () => {
+            if (sportToDelete) {
+                setPlayerSports(prev => prev.filter(s => s.sportId !== sportToDelete.sportId));
+                setDeleteConfirmModalVisible(false);
+                setSportToDelete(null);
+            }
+        };
 
         return (
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -1604,6 +1689,7 @@ const EditProfile = () => {
                         </CollapsibleSection>
 
                         {/* Sports Information Section */}
+                        {isCoach && (
                         <CollapsibleSection
                             title="Sports Information"
                             isExpanded={expandedSections.sports}
@@ -1702,6 +1788,126 @@ const EditProfile = () => {
                                 />
                             </View>
                         </CollapsibleSection>
+                        )}
+
+                        {/* Sports List for non-coach users */}
+                        {!isCoach && (
+                            <CollapsibleSection
+                                title="Your Sports"
+                                isExpanded={expandedSections.sports}
+                                onToggle={() => toggleSection('sports')}
+                            >
+                                <View style={styles.sectionFields}>
+                                    {/* Table header */}
+                                    <View style={{flexDirection: 'row', backgroundColor: '#f0f4fa', paddingVertical: 8, borderRadius: 8, marginBottom: 8}}>
+                                        <Text style={[styles.textLabel, {flex: 2, fontWeight: 'bold'}]}>Sport</Text>
+                                        <Text style={[styles.textLabel, {flex: 2, fontWeight: 'bold'}]}>Skill Level(s)</Text>
+                                        <View style={{flex: 1}} />
+                                    </View>
+                                    {playerSports.length === 0 ? (
+                                        <Text style={{color: 'grey', textAlign: 'center'}}>No sports added.</Text>
+                                    ) : (
+                                        playerSports.map((sport) => (
+                                            <View key={sport.sportId} style={{flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 8, marginBottom: 8, paddingVertical: 8, paddingHorizontal: 6, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 2, elevation: 1}}>
+                                                <Text style={[styles.textLabel, {flex: 2}]}>{sport.sportName}</Text>
+                                                <Text style={[styles.textLabel, {flex: 2}]}>{sport.skillLevels.join(', ')}</Text>
+                                                <TouchableOpacity style={{flex: 1, alignItems: 'flex-end'}} onPress={() => handleDeletePlayerSport(sport.sportId)}>
+                                                    <AntDesign name="delete" size={20} color="red" />
+                                                </TouchableOpacity>
+                                            </View>
+                                        ))
+                                    )}
+                                    <CustomButton textStyle={{fontSize: 15, fontWeight: 'bold'}} text="Add Sport" onPress={() => setAddSportModalVisible(true)} />
+                                </View>
+                                {/* Add Sport Modal */}
+                                <Modal
+                                    visible={addSportModalVisible}
+                                    transparent
+                                    animationType="slide"
+                                    onRequestClose={() => setAddSportModalVisible(false)}
+                                >
+                                    <View style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center'}}>
+                                        <View style={{backgroundColor: 'white', borderRadius: 20, padding: 20, width: '85%'}}>
+                                            <Text style={[styles.textLabel, {marginBottom: 10}]}>Select Sport</Text>
+                                            <View style={styles.inputStyle}>
+                                                <RNPickerSelect
+                                                    style={pickerSelectStyle}
+                                                    items={sports.map(sport => ({ label: sport.name, value: sport.id, key: sport.id }))}
+                                                    placeholder={{ label: 'Select sport...', value: null, color: '#aaa' }}
+                                                    onValueChange={(value) => setModalSelectedSport(sports.find(sport => sport.id === value) || null)}
+                                                    value={modalSelectedSport?.id || null}
+                                                    useNativeAndroidPickerStyle={false}
+                                                    Icon={() => (
+                                                        <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
+                                                    )}
+                                                />
+                                            </View>
+                                            <Text style={[styles.textLabel, {marginTop: 15}]}>Skill Level(s)</Text>
+                                            <View style={{marginTop: 10, marginBottom: 20}}>
+                                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingVertical: 10 }}>
+                                                    {_generateSportLevelItems().map((item) => {
+                                                        const value = item.value;
+                                                        const isSelected = modalSelectedSkillLevels.includes(value);
+                                                        return (
+                                                            <TouchableOpacity
+                                                                key={item.key}
+                                                                style={[
+                                                                    { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 15, marginRight: 10, marginBottom: 10 },
+                                                                    isSelected ? { backgroundColor: '#4564f5' } : { backgroundColor: '#f2f4fb' }
+                                                                ]}
+                                                                onPress={() => {
+                                                                    setModalSelectedSkillLevels((prev: string[]) => {
+                                                                        if (prev.includes(value)) {
+                                                                            return prev.filter(level => level !== value);
+                                                                        } else {
+                                                                            return [...prev, value];
+                                                                        }
+                                                                    });
+                                                                }}
+                                                            >
+                                                                <Text style={{ fontSize: 14, fontWeight: 'bold', color: isSelected ? 'white' : 'black' }}>
+                                                                    {item.label}
+                                                                </Text>
+                                                            </TouchableOpacity>
+                                                        );
+                                                    })}
+                                                </ScrollView>
+                                            </View>
+                                            <CustomButton textStyle={{fontSize: 15, fontWeight: 'bold'}} text="Add" onPress={handleAddSportFromModal} />
+                                            <CustomButton textStyle={{fontSize: 15, fontWeight: 'bold'}} text="Cancel" onPress={() => setAddSportModalVisible(false)} style={{marginTop: 10, backgroundColor: '#eee'}} />
+                                        </View>
+                                    </View>
+                                </Modal>
+                                {/* Delete Confirmation Modal */}
+                                <Modal
+                                    visible={deleteConfirmModalVisible}
+                                    transparent
+                                    animationType="slide"
+                                    onRequestClose={() => setDeleteConfirmModalVisible(false)}
+                                >
+                                    <View style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center'}}>
+                                        <View style={{backgroundColor: 'white', borderRadius: 20, padding: 20, width: '85%'}}>
+                                            <Text style={[styles.textLabel, {marginBottom: 10}]}>Confirm Delete</Text>
+                                            <Text style={[styles.textLabel, {marginBottom: 20}]}>Are you sure you want to delete {sportToDelete?.sportName}?</Text>
+                                            <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                                                <CustomButton
+                                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                                    text="Yes"
+                                                    onPress={handleConfirmDelete}
+                                                    style={{width: wp('40%')}}
+                                                />
+                                                <CustomButton
+                                                    textStyle={{fontSize: 15, fontWeight: 'bold'}}
+                                                    text="No"
+                                                    onPress={() => setDeleteConfirmModalVisible(false)}
+                                                    style={{width: wp('40%')}}
+                                                />
+                                            </View>
+                                        </View>
+                                    </View>
+                                </Modal>
+                            </CollapsibleSection>
+                        )}
 
                         <View style={{marginTop: 30}}>
                             <CustomButton

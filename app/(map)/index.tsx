@@ -12,6 +12,7 @@ import {
     Clipboard,
     Platform
 } from "react-native";
+import LottieView from "lottie-react-native";
 import MapView, {PROVIDER_GOOGLE, Circle, Marker, Callout} from "react-native-maps";
 import {StatusBar} from "expo-status-bar";
 import React, {useEffect, useRef, useState} from "react";
@@ -361,7 +362,12 @@ const SportMap = () => {
 
             {isLoading ? (
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#2757CB" />
+                    <LottieView
+                        source={require('../../assets/animation/load.json')}
+                        autoPlay
+                        loop
+                        style={styles.loadingAnimation}
+                    />
                     <Text style={styles.loadingText}>Loading your location...</Text>
                 </View>
             ) : (
@@ -1051,6 +1057,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'white',
+    },
+    loadingAnimation: {
+        width: 100,
+        height: 100,
     },
     loadingText: {
         marginTop: 10,
