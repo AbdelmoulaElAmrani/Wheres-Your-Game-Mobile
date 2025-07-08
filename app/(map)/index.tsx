@@ -362,12 +362,7 @@ const SportMap = () => {
 
             {isLoading ? (
                 <View style={styles.loadingContainer}>
-                    <LottieView
-                        source={require('../../assets/animation/load.json')}
-                        autoPlay
-                        loop
-                        style={styles.loadingAnimation}
-                    />
+                    <ActivityIndicator size="large" color="#2757CB" />
                     <Text style={styles.loadingText}>Loading your location...</Text>
                 </View>
             ) : (
