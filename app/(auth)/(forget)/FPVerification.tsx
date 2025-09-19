@@ -62,13 +62,20 @@ const FPVerification = () => {
     const _handleOnVerify = async () => {
         setErrorMessage("");
         if (code.length == 4 && userInfo != null) {
+            console.log("Verifying code:", code, "for user:", userInfo.id);
             const token = await AuthService.verifyOTPFG(code, userInfo.id);
-            if(token != null && token.isValid){
-            //if (code === sentCode) {
+            console.log("Verification response:", token);
+            console.log("Token is null:", token === null);
+            console.log("Token isValid:", token?.isValid);
+            console.log("Token valid:", token?.valid);
+            
+            if(token != null && (token.isValid === true || token.valid === true)){
+                console.log("Verification successful! Reset token:", token.resetToken);
                 //TODO:: you need to send the user id and resetToken
                 await LocalStorageService.storeItem<IResetTokenObj>('resetToken', {resetToken: token.resetToken, id: userInfo.id});
                 router.replace("/FPReset");
             } else {
+                console.log("Verification failed. Token:", token);
                 setErrorMessage("The code is not correct, try again.");
             }
         }

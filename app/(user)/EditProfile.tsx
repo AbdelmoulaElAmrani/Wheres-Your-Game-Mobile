@@ -1852,7 +1852,18 @@ const EditProfile = () => {
                                                             <TouchableOpacity
                                                                 key={item.key}
                                                                 style={[
-                                                                    { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 15, marginRight: 10, marginBottom: 10 },
+                                                                    { 
+                                                                        paddingHorizontal: 15, 
+                                                                        paddingVertical: 12, 
+                                                                        borderRadius: 8, 
+                                                                        marginRight: 10, 
+                                                                        marginBottom: 10,
+                                                                        minHeight: 44, // Minimum touch target size
+                                                                        justifyContent: 'center',
+                                                                        alignItems: 'center',
+                                                                        borderWidth: 2,
+                                                                        borderColor: isSelected ? '#4564f5' : '#d1d5db'
+                                                                    },
                                                                     isSelected ? { backgroundColor: '#4564f5' } : { backgroundColor: '#f2f4fb' }
                                                                 ]}
                                                                 onPress={() => {
@@ -1864,8 +1875,14 @@ const EditProfile = () => {
                                                                         }
                                                                     });
                                                                 }}
+                                                                activeOpacity={0.7}
                                                             >
-                                                                <Text style={{ fontSize: 14, fontWeight: 'bold', color: isSelected ? 'white' : 'black' }}>
+                                                                <Text style={{ 
+                                                                    fontSize: 14, 
+                                                                    fontWeight: 'bold', 
+                                                                    color: isSelected ? 'white' : 'black',
+                                                                    textAlign: 'center'
+                                                                }}>
                                                                     {item.label}
                                                                 </Text>
                                                             </TouchableOpacity>

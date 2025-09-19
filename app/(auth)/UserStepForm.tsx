@@ -151,7 +151,7 @@ const UserStepForm = () => {
                 <TouchableOpacity onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.PARENT}))}
                                   style={[styles.squareContainer, {backgroundColor: _verifySelectedType(UserType.PARENT) ? '#2757CB' : 'white'}]}>
                     {_verifySelectedType(UserType.PARENT) && <View style={styles.checkIcon}>
-                        <AntDesign name="checkcircle" size={20} color="white"/>
+                        <AntDesign name="check" size={20} color="white"/>
                     </View>}
                     <View>
                         <ParentIcon style={styles.userTypeIcon}
@@ -166,7 +166,7 @@ const UserStepForm = () => {
                 <TouchableOpacity onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.PLAYER}))}
                                   style={[styles.squareContainer, {backgroundColor: _verifySelectedType(UserType.PLAYER) ? '#2757CB' : 'white'}]}>
                     {_verifySelectedType(UserType.PLAYER) && <View style={styles.checkIcon}>
-                        <AntDesign name="checkcircle" size={20} color="white"/>
+                        <AntDesign name="check" size={20} color="white"/>
                     </View>}
                     <View>
                         <PlayerIcon style={styles.userTypeIcon}
@@ -183,7 +183,7 @@ const UserStepForm = () => {
                 <TouchableOpacity onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.COACH}))}
                                   style={[styles.squareContainer, {backgroundColor: _verifySelectedType(UserType.COACH) ? '#2757CB' : 'white'}]}>
                     {_verifySelectedType(UserType.COACH) && <View style={styles.checkIcon}>
-                        <AntDesign name="checkcircle" size={20} color="white"/>
+                        <AntDesign name="check" size={20} color="white"/>
                     </View>}
                     <View>
                         <CoachIconV2 style={styles.userTypeIcon}
@@ -198,7 +198,7 @@ const UserStepForm = () => {
                 <TouchableOpacity onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.ORGANIZATION}))}
                                   style={[styles.squareContainer, {backgroundColor: _verifySelectedType(UserType.ORGANIZATION) ? '#2757CB' : 'white'}]}>
                     {_verifySelectedType(UserType.ORGANIZATION) && <View style={styles.checkIcon}>
-                        <AntDesign name="checkcircle" size={20} color="white"/>
+                        <AntDesign name="check" size={20} color="white"/>
                     </View>}
                     <View>
                         <OrganizationIcon style={styles.userTypeIcon}
@@ -215,7 +215,7 @@ const UserStepForm = () => {
                     onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.TOURNAMENTS}))}
                     style={[styles.squareContainer, styles.disabled]}>
                     {_verifySelectedType(UserType.TOURNAMENTS) && <View style={styles.checkIcon}>
-                        <AntDesign name="checkcircle" size={20} color="white"/>
+                        <AntDesign name="check" size={20} color="white"/>
                     </View>}
                     <View>
                         <Ionicons
@@ -234,7 +234,7 @@ const UserStepForm = () => {
                     onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.TRAINER_CAMP_TRAINING}))}
                     style={[styles.squareContainer, styles.disabled]}>
                     {_verifySelectedType(UserType.TRAINER_CAMP_TRAINING) && <View style={styles.checkIcon}>
-                        <AntDesign name="checkcircle" size={20} color="white"/>
+                        <AntDesign name="check" size={20} color="white"/>
                     </View>}
                     <View>
                         <CampIcon style={styles.userTypeIcon}
@@ -253,7 +253,7 @@ const UserStepForm = () => {
                     onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.LEAGUE}))}
                     style={[styles.squareContainer, styles.disabled]}>
                     {_verifySelectedType(UserType.LEAGUE) && <View style={styles.checkIcon}>
-                        <AntDesign name="checkcircle" size={20} color="white"/>
+                        <AntDesign name="check" size={20} color="white"/>
                     </View>}
                     <View>
                         <Ionicons
@@ -272,7 +272,7 @@ const UserStepForm = () => {
                     onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.REFEREES_OFFICIALS_UMPIRES}))}
                     style={[styles.squareContainer, styles.disabled]}>
                     {_verifySelectedType(UserType.REFEREES_OFFICIALS_UMPIRES) && <View style={styles.checkIcon}>
-                        <AntDesign name="checkcircle" size={20} color="white"/>
+                        <AntDesign name="check" size={20} color="white"/>
                     </View>}
                     <View>
                         <CoachIcon style={styles.userTypeIcon}
@@ -291,7 +291,7 @@ const UserStepForm = () => {
                     onPress={() => setUserData(oldValue => ({...oldValue, role: UserType.BUSINESS}))}
                     style={[styles.squareContainer, styles.disabled]}>
                     {_verifySelectedType(UserType.BUSINESS) && <View style={styles.checkIcon}>
-                        <AntDesign name="checkcircle" size={20} color="white"/>
+                        <AntDesign name="check" size={20} color="white"/>
                     </View>}
                     <View>
                         <BusinessIconV2
@@ -460,7 +460,7 @@ const UserStepForm = () => {
                 <Modal onDismiss={_hideModal} onModalHide={Keyboard.dismiss} isVisible={visible}
                        style={styles.containerStyle}>
                     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                        <>
+                        <View style={{flex: 1}}>
                             <Text style={{
                                 textAlign: "center",
                                 position: "absolute",
@@ -480,7 +480,7 @@ const UserStepForm = () => {
                             }}>{_stepTitles[currentStep - 1].modalSubTitle}</Text>
                             <CustomButton style={{position: "absolute", bottom: 25}} text={"OK"}
                                           onPress={() => _onNext()}/>
-                        </>
+                        </View>
                     </TouchableWithoutFeedback>
                 </Modal>
                 <StyledAlert

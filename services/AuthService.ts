@@ -135,13 +135,19 @@ export class AuthService {
     }
     static verifyOTPFG = async (code: string, email: string): Promise<VerificationResponse | null> => {
         try {
+            console.log('AuthService: Sending verification request:', {code, email});
             const res = await Requests.post(`auth/verifyCode`, {code, email});
+            console.log('AuthService: Response status:', res?.status);
+            console.log('AuthService: Response data:', res?.data);
+            
             if (res?.status == 200) {
+                console.log('AuthService: Returning success response:', res.data);
                 return res.data as VerificationResponse;
             }
+            console.log('AuthService: Non-200 status, returning null');
             return null;
         } catch (e) {
-            console.log('verifyTokenForForgetPassword => ', e);
+            console.log('AuthService: Error in verifyOTPFG => ', e);
             return null;
         }
     }
