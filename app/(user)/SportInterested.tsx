@@ -218,21 +218,39 @@ const SportInterested = () => {
                     <Text style={{fontWeight: 'bold', fontSize: 16}}>{item.sportName}</Text>
                     <View>
                         {sportLevels.map((value, key) => (
-                            <View
+                            <TouchableOpacity
                                 key={key}
                                 style={{
                                     flexDirection: 'row',
                                     marginTop: 5,
                                     alignItems: 'center',
-                                    justifyContent: 'flex-start'
+                                    justifyContent: 'flex-start',
+                                    paddingVertical: 8
+                                }}
+                                onPress={() => _onSelectSportLevel(item.sportId, value)}
+                            >
+                                <View style={{
+                                    width: 20,
+                                    height: 20,
+                                    borderRadius: 10,
+                                    borderWidth: 2,
+                                    borderColor: _checkIfSelected(item.sportId, value) ? '#2757CB' : '#9BA0AB',
+                                    backgroundColor: _checkIfSelected(item.sportId, value) ? '#2757CB' : 'transparent',
+                                    marginRight: 10,
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
                                 }}>
-                                <RadioButton
-                                    value={value.toString()}
-                                    status={_checkIfSelected(item.sportId, value) ? 'checked' : 'unchecked'}
-                                    onPress={() => _onSelectSportLevel(item.sportId, value)}
-                                />
-                                <Text style={{fontSize: 16, marginLeft: 10}}>{value}</Text>
-                            </View>
+                                    {_checkIfSelected(item.sportId, value) && (
+                                        <View style={{
+                                            width: 8,
+                                            height: 8,
+                                            borderRadius: 4,
+                                            backgroundColor: 'white'
+                                        }} />
+                                    )}
+                                </View>
+                                <Text style={{fontSize: 16, color: 'black'}}>{value}</Text>
+                            </TouchableOpacity>
                         ))}
                     </View>
                 </View>);
@@ -393,7 +411,8 @@ const styles = StyleSheet.create({
         elevation: 5,
         borderColor: '#E9EDF9',
         borderWidth: 1,
-        alignSelf: 'center'
+        alignSelf: 'center',
+        minHeight: 120
     }
 });
 
