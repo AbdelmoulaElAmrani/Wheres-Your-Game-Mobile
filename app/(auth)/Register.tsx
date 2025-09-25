@@ -152,7 +152,15 @@ const Register = () => {
                                source={require('../../assets/images/logoBall.png')}/>
                     </View>
                     <Text style={styles.headerTitle}>Sports For Every Age</Text>
-                    <KeyboardAwareScrollView style={{flex: 1}}>
+                    <KeyboardAwareScrollView
+                        style={{flex: 1}}
+                        contentContainerStyle={{flexGrow: 1}}
+                        enableOnAndroid
+                        extraScrollHeight={120}
+                        keyboardOpeningTime={0}
+                        keyboardShouldPersistTaps="handled"
+                        showsVerticalScrollIndicator={false}
+                    >
                         <View style={styles.formContainer}>
                             <View>
                                 <Text style={styles.textLabel}>First Name</Text>
