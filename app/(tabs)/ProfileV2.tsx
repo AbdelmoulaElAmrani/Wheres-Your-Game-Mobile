@@ -222,7 +222,7 @@ export const ProfileV2 = () => {
                                 </TouchableOpacity>)}
                         </View>
                         <Divider bold={true} style={{width: '90%', alignSelf: 'center', marginBottom: hp('1%')}}/>
-                        <View style={{width: '90%', height: '23%'}}>
+                        <View style={{width: '90%', height: '23%', marginBottom: 100}}>
                             {selectOption === MenuOption.Overview && <>
                                 <View style={{flexDirection: 'row', justifyContent: 'space-around', width: '100%'}}>
                                     <View style={styles.infoMiniCard}>
