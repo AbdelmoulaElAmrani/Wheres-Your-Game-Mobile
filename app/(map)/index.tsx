@@ -138,7 +138,7 @@ const SportMap = () => {
     }, []);
 
     const _onGoBack = () => {
-        if (router.canGoBack()) router.back();
+        router.push('/(tabs)');
     }
 
     const _hideModal = () => setModalVisible(false);

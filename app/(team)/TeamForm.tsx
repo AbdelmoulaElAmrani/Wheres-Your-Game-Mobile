@@ -194,10 +194,8 @@ function TeamForm() {
         [setOpenDatePicker]
     );
 
-    // Filter availableSport to only show the user's preferred sport
-    const filteredSports = availableSport.filter(
-        (sport) => sport.name === userData.preferenceSport || sport.id === userData.preferenceSport
-    );
+    // Use all available sports from the database
+    const allSports = availableSport || [];
 
     return (
         <ImageBackground
@@ -230,6 +228,10 @@ function TeamForm() {
                                 {(loading || !organizations)
                                     ? (
                                         <TextInput style={styles.inputStyle} placeholder={'Loading...'}
+                                                   cursorColor={'black'} placeholderTextColor={'grey'}
+                                                   editable={false}/>
+                                    ) : organizations.length === 0 ? (
+                                        <TextInput style={styles.inputStyle} placeholder={'No organization found'}
                                                    cursorColor={'black'} placeholderTextColor={'grey'}
                                                    editable={false}/>
                                     ) : (
@@ -270,15 +272,15 @@ function TeamForm() {
                                                    cursorColor={'black'} placeholderTextColor={'grey'}
                                                    editable={false}/>
                                     ) : (
-                                        <View style={styles.inputStyle}>
+                                        <View style={[styles.inputStyle, {justifyContent: 'center'}]}>
                                             <RNPickerSelect
                                                 useNativeAndroidPickerStyle={false}
                                                 style={{
-                                                    inputIOS: {paddingLeft: 15, color: 'black'},
-                                                    inputAndroid: {paddingLeft: 15, color: 'black', height: 45},
+                                                    inputIOS: {paddingLeft: 15, color: 'black', paddingVertical: 12},
+                                                    inputAndroid: {paddingLeft: 15, color: 'black', height: 45, paddingVertical: 12},
                                                     placeholder: {color: 'grey'}
                                                 }}
-                                                items={filteredSports.map((sport: Sport) => ({
+                                                items={allSports.map((sport: Sport) => ({
                                                     label: sport.name,
                                                     value: sport.id,
                                                     key: sport.id,
