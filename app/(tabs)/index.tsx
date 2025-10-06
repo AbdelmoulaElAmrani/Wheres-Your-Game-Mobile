@@ -223,15 +223,22 @@ const Home = () => {
         setPlayers([]);
     }
     const _onSelectSport = async (id: any) => {
-        if (isOrganization()) {
-            if (selectedSport == id) {
-                _resetSelectedSport();
-            } else {
-                setSelectedSport(id);
+        if (selectedSport == id) {
+            // If same sport is clicked, deselect it
+            _resetSelectedSport();
+        } else {
+            // Select new sport and filter teams
+            setSelectedSport(id);
+            
+            if (isOrganization()) {
+                // For organizations, also load coaches for this sport
                 const data = await OrganizationService.getAllCoachesOfThisSport(userData.id, id);
                 setSelectedProfile(prev => ({...prev, coaches: data}));
                 _resetSelectedCoach();
             }
+            
+            // Filter teams for all user types based on selected sport
+            await _getMyTeams(selectedProfileId || userData?.id, id);
         }
     }
 
@@ -288,7 +295,6 @@ const Home = () => {
 
     const _renderSportItem = memo(({item}: { item: UserSportResponse }) => {
         return (<TouchableOpacity
-            disabled={!isOrganization()}
             style={{justifyContent: 'center', alignItems: 'center', alignContent: 'center'}}
             onPress={() => _onSelectSport(item.id.sportId)}>
             <View style={[styles.circle, selectedSport == item.id.sportId && styles.selectedTag]}>
@@ -299,7 +305,7 @@ const Home = () => {
                     style={styles.iconImage}/>
             </View>
             <Text
-                style={[styles.tagText, selectedSport == item.id.sportId && {fontWeight: 'bold'}]}>{item.sportName}</Text>
+                style={[styles.tagText, selectedSport == item.id.sportId && {fontWeight: 'bold', color: selectedSport == item.id.sportId ? 'white' : '#333'}]}>{item.sportName}</Text>
         </TouchableOpacity>);
     });
 
@@ -640,9 +646,20 @@ const Home = () => {
                             {((!isOrganization()) || (isOrganization() && (selectedProfile?.teams?.length ?? 0) > 0)) &&
                                 <View style={styles.menuContainer}>
                                     <View style={styles.menuTitleContainer}>
-                                        <View style={{flexDirection: 'row'}}>
-                                            <Text style={styles.menuTitle}>Your Teams <Text
+                                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                            <Text style={styles.menuTitle}>
+                                                {selectedSport ? 
+                                                    `${selectedProfile?.sports?.find(s => s.id.sportId === selectedSport)?.sportName || 'Filtered'} Teams` : 
+                                                    'Your Teams'
+                                                } <Text
                                                 style={styles.count}>{selectedProfile.teams?.length}</Text></Text>
+                                            {selectedSport && (
+                                                <TouchableOpacity
+                                                    onPress={_resetSelectedSport}
+                                                    style={[styles.btnContainer, {marginLeft: 10}]}>
+                                                    <Text style={styles.btnText}>Clear Filter</Text>
+                                                </TouchableOpacity>
+                                            )}
                                         </View>
                                         {isCoach() && <TouchableOpacity
                                             onPress={_onAddTeam}

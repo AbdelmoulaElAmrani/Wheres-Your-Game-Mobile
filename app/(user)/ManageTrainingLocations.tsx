@@ -14,8 +14,7 @@ import Requests from '@/services/Requests';
 import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
 import StyledAlert from "@/components/StyledAlert";
 import { useAlert } from "@/utils/useAlert";
-
-const GOOGLE_PLACES_API_KEY = "AIzaSyDlFo6upaajnGewXn4DX4-naBhsWPcn8VE";
+import { GOOGLE_PLACES_API_KEY } from "@/config/apiKeys";
 
 const ManageTrainingLocations = () => {
     const router = useRouter();

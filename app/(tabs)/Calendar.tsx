@@ -30,7 +30,7 @@ import StyledAlert from "@/components/StyledAlert";
 import { useAlert } from "@/utils/useAlert";
 import { UserSportResponse } from "@/models/responseObjects/UserSportResponse";
 
-const GOOGLE_PLACES_API_KEY = "AIzaSyDlFo6upaajnGewXn4DX4-naBhsWPcn8VE";
+import { GOOGLE_PLACES_API_KEY } from "@/config/apiKeys";
 
 interface CheckboxProps {
     title: string;

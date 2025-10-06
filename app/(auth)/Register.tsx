@@ -13,6 +13,7 @@ import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-nativ
 import CustomButton from "@/components/CustomButton";
 import {TextInput} from "react-native-paper";
 import {router} from "expo-router";
+import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import {RegisterRequest} from "@/models/requestObjects/RegisterRequest";
 import UserType from "@/models/UserType";
 import {useDispatch} from 'react-redux'
@@ -147,11 +148,14 @@ const Register = () => {
         <SafeAreaView style={{height: hp(100)}}>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <View style={styles.container}>
-                    <View style={styles.headerContainer}>
-                        <Image style={styles.logoContainer}
-                               source={require('../../assets/images/logoBall.png')}/>
-                    </View>
-                    <Text style={styles.headerTitle}>Sports For Every Age</Text>
+                    
+                    <CustomNavigationHeader 
+                        showBackArrow={true} 
+                        showSkip={false} 
+                        showLogo={true}
+                        goBackFunction={() => router.push('/(auth)/Login')}
+                    />
+                   
                     <KeyboardAwareScrollView
                         style={{flex: 1}}
                         contentContainerStyle={{flexGrow: 1}}
@@ -163,6 +167,8 @@ const Register = () => {
                     >
                         <View style={styles.formContainer}>
                             <View>
+                            <Text style={styles.headerTitle}>Sports For Every Age</Text>
+
                                 <Text style={styles.textLabel}>First Name</Text>
                                 <TextInput
                                     style={styles.inputStyle}
@@ -268,9 +274,7 @@ const styles = StyleSheet.create({
         flex: 1
     },
     headerContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
+        marginTop: hp(10),
     },
     logoContainer: {
         resizeMode: 'contain',
@@ -283,6 +287,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 20,
         marginTop: -40,
+        marginBottom: 20,
         letterSpacing: 5
     },
     formContainer: {
