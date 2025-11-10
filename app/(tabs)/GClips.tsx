@@ -283,20 +283,20 @@ const GClips = () => {
                             Link Social Media
                         </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.button, styles.whiteButton]}
+                    {/* <TouchableOpacity style={[styles.button, styles.whiteButton]}
                                       onPress={() => {
                                           setSelectedTag('followers');
                                       }}>
                         <Text style={styles.buttonText}>
                             Followers
                         </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.button, styles.whiteButton]}
+                    </TouchableOpacity> */}
+                    {/* <TouchableOpacity style={[styles.button, styles.whiteButton]}
                                       onPress={shareAppLink}>
                         <Text style={styles.buttonText}>
                             Invite
                         </Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                     <TouchableOpacity style={[styles.button, styles.blueButton]}
                                       onPress={_showPostModal}>
                         <Text style={[styles.buttonText, {color: 'white'}]}>
