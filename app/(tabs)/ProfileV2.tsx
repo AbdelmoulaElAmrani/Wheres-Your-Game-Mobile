@@ -21,7 +21,7 @@ enum MenuOption {
     Overview,
     Videos,
     Sports_Profiles,
-    Childrens
+    Children
 }
 
 export const ProfileV2 = () => {
@@ -213,12 +213,12 @@ export const ProfileV2 = () => {
                                     </Text>
                                     {selectOption == MenuOption.Sports_Profiles && <View style={styles.underline}/>}
                                 </TouchableOpacity>) :
-                                (<TouchableOpacity onPress={() => _option(MenuOption.Childrens)}>
+                                (<TouchableOpacity onPress={() => _option(MenuOption.Children)}>
                                     <Text
-                                        style={[styles.selectionText, selectOption == MenuOption.Childrens && styles.selectedText]}>
-                                        Childrens
+                                        style={[styles.selectionText, selectOption == MenuOption.Children && styles.selectedText]}>
+                                        Children
                                     </Text>
-                                    {selectOption == MenuOption.Childrens && <View style={styles.underline}/>}
+                                    {selectOption == MenuOption.Children && <View style={styles.underline}/>}
                                 </TouchableOpacity>)}
                         </View>
                         <Divider bold={true} style={{width: '90%', alignSelf: 'center', marginBottom: hp('1%')}}/>
@@ -347,7 +347,7 @@ export const ProfileV2 = () => {
                                     </View>
                                 </View>
                             </>}
-                            {selectOption === MenuOption.Childrens &&
+                            {selectOption === MenuOption.Children &&
                                 <View style={{width: '100%', flex: 1}}>
                                     <FlatList
                                         data={currentUser?.children}
