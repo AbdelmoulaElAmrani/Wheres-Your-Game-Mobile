@@ -10,7 +10,7 @@ import React, {memo, useCallback, useState, useEffect, useMemo} from "react";
 import {Image, ImageBackground} from "expo-image";
 import ReactNativeCalendarStrip from "react-native-calendar-strip";
 import moment from "moment";
-import {AntDesign, Entypo, Octicons} from "@expo/vector-icons";
+import {AntDesign, Entypo, Ionicons, Octicons} from "@expo/vector-icons";
 import {useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
 import UserType from "@/models/UserType";
@@ -56,6 +56,8 @@ const Calendar = () => {
     const [editMode, setEditMode] = useState<boolean>(false);
     // EVENT MODAL
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isViewEventModalVisible, setIsViewEventModalVisible] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState<SportEvent | null>(null);
     const [open, setOpen] = useState(false);
     //const [eventDate, setEventDate] = useState<Date | null>(null);
 
@@ -85,7 +87,11 @@ const Calendar = () => {
         {title: 'Official', isChecked: false},
         {title: 'Compettition', isChecked: false},
         {title: 'Meet', isChecked: false},
-        {title: 'Match', isChecked: false}
+        {title: 'Match', isChecked: false},
+        {title: 'Practice', isChecked: false},
+        {title: 'Training Camp', isChecked: false},
+        {title: 'Free Camp', isChecked: false},
+        {title: 'Conditioning', isChecked: false}
     ]);
     const [ageGroupOptions, setAgeGroupOptions] = useState([
         {title: 'All', isChecked: false},
@@ -116,18 +122,29 @@ const Calendar = () => {
                 getUserEvents();
             }
         }
-    }, [selectedDate, user.id]))
+    }, [selectedDate, user.id, showAllEvents]))
+
+    const isCoach = (): boolean => user?.role == UserType[UserType.COACH] || user?.role == UserType[UserType.ORGANIZATION];
+
+    // Also fetch events when filter changes
+    useEffect(() => {
+        if (user?.id && !isCoach()) {
+            console.log('Filter changed, fetching events. showAllEvents:', showAllEvents);
+            getUserEvents();
+        }
+    }, [showAllEvents, getUserEvents, user.id])
 
     const [selectedSportLevel, setSelectedSportLevel] = useState<string[]>([]);
     registerTranslation("en", enGB);
     const [events, setEvents] = useState<SportEvent[]>([]);
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
+    const [showAllEvents, setShowAllEvents] = useState<boolean>(false); // false = My Sports, true = All Events
 
     const sportLevels = Object.keys(SportLevel).filter((key: string) => !isNaN(Number(SportLevel[key as keyof typeof SportLevel])));
     sportLevels.push('All');
 
 
-    const getCoachEvents = async () => {
+    const getCoachEvents = useCallback(async () => {
         try {
             setIsLoaded(true);
             const data = await EventService.getEvents(user.id, selectedDate.format('YYYY-MM-DDT00:00:00'), 0, 100, '');
@@ -139,27 +156,101 @@ const Calendar = () => {
         } finally {
             setIsLoaded(false);
         }
-    }
+    }, [user.id, selectedDate]);
 
-    const getUserEvents = async () => {
+    const getUserEvents = useCallback(async () => {
         try {
             setIsLoaded(true);
-            const events = await EventService.getEvents(user.id, selectedDate.format('YYYY-MM-DDT00:00:00'), 0, 100, '');
-            if (events?.content) {
-                setEvents(events.content);
+            console.log('getUserEvents called, showAllEvents:', showAllEvents);
+            if (showAllEvents) {
+                // Get all events for the selected date (using map-upcoming endpoint filtered by date)
+                console.log('Fetching all events for date:', selectedDate.format('YYYY-MM-DD'));
+                const allEvents = await EventService.getEventsForMap('');
+                console.log('All events received:', allEvents?.length || 0);
+                if (allEvents && Array.isArray(allEvents)) {
+                    // Filter events by selected date
+                    const filteredEvents = allEvents.filter((event: SportEvent) => {
+                        try {
+                            const eventDate = moment(event.eventDate);
+                            const isSameDay = eventDate.isSame(selectedDate, 'day');
+                            return isSameDay;
+                        } catch (e) {
+                            console.error('Error parsing event date:', e, event);
+                            return false;
+                        }
+                    });
+                    console.log('Filtered events for selected date:', filteredEvents.length);
+                    setEvents(filteredEvents);
+                } else {
+                    console.log('No events array received');
+                    setEvents([]);
+                }
+            } else {
+                // Get events filtered by user's sports
+                console.log('Fetching my sports events for date:', selectedDate.format('YYYY-MM-DD'));
+                const events = await EventService.getEvents(user.id, selectedDate.format('YYYY-MM-DDT00:00:00'), 0, 100, '');
+                console.log('My sports events received:', events?.content?.length || 0);
+                if (events?.content) {
+                    setEvents(events.content);
+                } else {
+                    setEvents([]);
+                }
             }
         } catch (e) {
-            console.log(e);
+            console.error('Error in getUserEvents:', e);
+            setEvents([]);
         } finally {
             setIsLoaded(false);
         }
-    }
+    }, [showAllEvents, selectedDate, user.id]);
 
     const _onAddEvent = (): void => {
         showModal();
     }
 
-    const _onClickEvent = (event: any): void => {
+    const _onClickEvent = (event: SportEvent): void => {
+        console.log('Event clicked:', event);
+        setSelectedEvent(event);
+        setIsViewEventModalVisible(true);
+        console.log('Modal should be visible now');
+    }
+
+    const _onCloseViewEventModal = () => {
+        setIsViewEventModalVisible(false);
+        setSelectedEvent(null);
+    }
+
+    const _onDeleteEvent = async () => {
+        if (!selectedEvent) return;
+        
+        console.log('Attempting to delete event:', selectedEvent.id);
+        try {
+            const deleted = await EventService.deleteEvent(selectedEvent.id);
+            console.log('Delete result:', deleted);
+            if (deleted !== undefined) {
+                setEvents(events.filter(e => e.id !== selectedEvent.id));
+                _onCloseViewEventModal();
+                // Refresh events after deletion
+                if (user?.id) {
+                    if (user.role == UserType[UserType.COACH] || user.role == UserType[UserType.ORGANIZATION]) {
+                        getCoachEvents();
+                    } else {
+                        getUserEvents();
+                    }
+                }
+            } else {
+                showErrorAlert('Failed to delete event. Please try again.', closeAlert);
+            }
+        } catch (error: any) {
+            console.error("Error deleting event:", error);
+            const errorMessage = error?.response?.data || error?.message || 'An error occurred while deleting the event';
+            showErrorAlert(errorMessage, closeAlert);
+        }
+    }
+
+    const isEventOwner = (event: SportEvent | null): boolean => {
+        if (!event || !user) return false;
+        return event.owner === user.id;
     }
 
     function _onEditEvent(item: any): void {
@@ -205,6 +296,18 @@ const Calendar = () => {
 
     const showModal = () => {
         setTime({hours: new Date().getHours(), minutes: new Date().getMinutes()});
+        // For players and parents, pre-select "Meet" event type
+        if (isPlayerOrParent()) {
+            const meetIndex = options.findIndex(opt => opt.title === 'Meet');
+            if (meetIndex !== -1) {
+                const newOptions = options.map((opt, i) => ({
+                    ...opt,
+                    isChecked: i === meetIndex
+                }));
+                setOptions(newOptions);
+                setEvent((prev: any) => ({ ...prev, eventTypes: ['Meet'] }));
+            }
+        }
         setIsModalVisible(true);
     }
     const hideModal = () => setIsModalVisible(false);
@@ -238,8 +341,19 @@ const Calendar = () => {
         if (step === 1 && (!event.name.trim() || event.name.length < 3)) {
             errorMessages.push('Event name is required and must be at least 3 characters');
         }
-        if (step === 2 && options.filter(option => option.isChecked).length === 0) {
-            errorMessages.push('Event type is required');
+        if (step === 2) {
+            const selectedTypes = options.filter(option => option.isChecked);
+            if (selectedTypes.length === 0) {
+                errorMessages.push('Event type is required');
+            }
+            // For players and parents, ensure only "Meet" is selected
+            if (isPlayerOrParent()) {
+                const hasMeet = selectedTypes.some(opt => opt.title === 'Meet');
+                const hasOtherTypes = selectedTypes.some(opt => opt.title !== 'Meet');
+                if (!hasMeet || hasOtherTypes) {
+                    errorMessages.push('Players and parents can only create Meet events');
+                }
+            }
         }
         if (step === 3 && ageGroupOptions.filter(option => option.isChecked).length === 0) {
             errorMessages.push('Age groups are required');
@@ -376,6 +490,21 @@ const Calendar = () => {
 
     const _handlePress = (index: number) => {
         const newOptions = [...options];
+        
+        // For players and parents, only allow "Meet" to be selected
+        if (isPlayerOrParent() && newOptions[index].title !== 'Meet') {
+            return;
+        }
+        
+        // If player/parent is selecting Meet, uncheck all other options first
+        if (isPlayerOrParent() && newOptions[index].title === 'Meet') {
+            newOptions.forEach((opt, i) => {
+                if (i !== index) {
+                    opt.isChecked = false;
+                }
+            });
+        }
+        
         newOptions[index].isChecked = !newOptions[index].isChecked;
         setOptions(newOptions);
         
@@ -488,8 +617,11 @@ const Calendar = () => {
         const sport = userSport.find(sport => sport.sportId === item.sportId);
         return (
             <TouchableOpacity
-                onPress={() => _onClickEvent(item)}
-                disabled={isCoach()}
+                onPress={() => {
+                    console.log('TouchableOpacity pressed for event:', item.name);
+                    _onClickEvent(item);
+                }}
+                activeOpacity={0.7}
                 style={styles.eventContainer}>
                 <View style={{flex: 0.25, justifyContent: 'center', alignItems: 'center'}}>
                     <Image
@@ -502,22 +634,38 @@ const Calendar = () => {
                     <View style={{flexDirection: 'row', justifyContent: 'space-between', flex: 0.7}}>
                         <Text style={{fontWeight: 'bold', fontSize: 16}}>{item.name}</Text>
                         {isCoach() &&
-                            <Octicons onPress={() => _onEditEvent(item)} name="pencil" size={24} color="grey"/>}
+                            <TouchableOpacity 
+                                onPress={(e) => {
+                                    e.stopPropagation();
+                                    _onEditEvent(item);
+                                }}
+                                hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                            >
+                                <Octicons name="pencil" size={24} color="grey"/>
+                            </TouchableOpacity>}
                     </View>
                     <Text style={{color: 'grey', flex: 0.3}} numberOfLines={1} ellipsizeMode="tail">
-                        {isCoach() ? moment(item.eventDate).format('YYYY-MM-DD hh:mm A') : 
-                          `${sport ? sport.sportName : 'Unknown Sport'} | ${moment(item.eventDate).format('YYYY-MM-DD hh:mm A')}`}
+                        {isCoach() ? moment(item.eventDate).format('MM/DD/YYYY hh:mm A') : 
+                          `${sport ? sport.sportName : 'Unknown Sport'} | ${moment(item.eventDate).format('MM/DD/YYYY hh:mm A')}`}
                     </Text>
                 </View>
             </TouchableOpacity>
         );
     });
 
-    const isCoach = (): boolean => user?.role == UserType[UserType.COACH] || user?.role == UserType[UserType.ORGANIZATION];
+    const canCreateEvent = (): boolean => {
+        return isCoach() || 
+               user?.role == UserType[UserType.PLAYER] || 
+               user?.role == UserType[UserType.PARENT];
+    };
+    
+    const isPlayerOrParent = (): boolean => {
+        return user?.role == UserType[UserType.PLAYER] || user?.role == UserType[UserType.PARENT];
+    };
 
     const getTitle = (): string => {
         if (isCoach())
-            return `All Events for ${selectedDate.format('YYYY-MM-DD')}`;
+            return `All Events for ${selectedDate.format('MM/DD/YYYY')}`;
         else {
             const today = moment().startOf('day');
             const tomorrow = moment().add(1, 'days').startOf('day');
@@ -530,7 +678,7 @@ const Calendar = () => {
             } else if (selectedDate.isSame(yesterday, 'day')) {
                 return "Yesterday's Event";
             } else {
-                return selectedDate.format('YYYY-MM-DD') + " 's Event";
+                return selectedDate.format('MM/DD/YYYY') + " 's Event";
             }
         }
     }
@@ -568,12 +716,54 @@ const Calendar = () => {
                         />
                     </View>
                     <View style={styles.mainContainer}>
-                        {isCoach() && <TouchableOpacity
-                            onPress={_onAddEvent}
-                            style={styles.addEventBtn}>
-                            <Text style={{fontSize: 16, fontWeight: 'bold', color: 'white'}}>Add Event</Text>
-                        </TouchableOpacity>}
-                        <Text style={{fontWeight: 'bold', fontSize: 20}}>{getTitle()}</Text>
+                        <View style={styles.headerRow}>
+                            <Text style={{fontWeight: 'bold', fontSize: 20, flex: 1}}>{getTitle()}</Text>
+                            {canCreateEvent() && (
+                                <TouchableOpacity
+                                    onPress={_onAddEvent}
+                                    style={styles.addEventBtn}>
+                                    <Text style={{fontSize: 16, fontWeight: 'bold', color: 'white'}}>Add Event</Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                        {!isCoach() && (
+                            <View style={styles.filterContainer}>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        console.log('My Sports clicked');
+                                        setShowAllEvents(false);
+                                    }}
+                                    style={[
+                                        styles.filterButton,
+                                        !showAllEvents && styles.filterButtonActive
+                                    ]}
+                                >
+                                    <Text style={[
+                                        styles.filterButtonText,
+                                        !showAllEvents && styles.filterButtonTextActive
+                                    ]}>
+                                        My Sports
+                                    </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        console.log('All Events clicked');
+                                        setShowAllEvents(true);
+                                    }}
+                                    style={[
+                                        styles.filterButton,
+                                        showAllEvents && styles.filterButtonActive
+                                    ]}
+                                >
+                                    <Text style={[
+                                        styles.filterButtonText,
+                                        showAllEvents && styles.filterButtonTextActive
+                                    ]}>
+                                        All Events
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
                         <View style={{marginTop: 10, height: '100%'}}>
                             {isLoaded ? <ActivityIndicator animating={true} color={MD2Colors.blueGrey800} size={50}
                                                            style={{marginTop: 50}}/> :
@@ -640,7 +830,7 @@ const Calendar = () => {
                                 />
                                 <View style={styles.inputContainer}>
                                     <View style={styles.iconContainer}>
-                                        <AntDesign name="clockcircle" size={20} color="#D3D3D3"/>
+                                        <Ionicons name="time-outline" size={20} color="#D3D3D3"/>
                                     </View>
                                     <TextInput
                                         style={styles.inputStyleWithoutIcon}
@@ -691,34 +881,53 @@ const Calendar = () => {
                                 <Text style={[styles.textLabel, {marginBottom: 20, textAlign: 'center', fontSize: 16}]}>Event
                                     Type</Text>
                                 <View style={{marginTop: 30}}>
-                                    {options.map((option, index) => (
-                                        index % 2 === 0 && (
-                                            <View key={index} style={{
-                                                flexDirection: 'row',
-                                                justifyContent: 'space-between',
-                                                marginBottom: 30,
-                                                paddingHorizontal: 10
-                                            }}>
-                                                <View style={{flex: 1, marginRight: 5}}>
-                                                    <CustomCheckbox
-                                                        title={options[index].title}
-                                                        isChecked={options[index].isChecked}
-                                                        onPress={() => _handlePress(index)}
-                                                    />
-                                                </View>
-                                                {options[index + 1] ? (
-                                                    <View style={{flex: 1, marginHorizontal: 5}}>
+                                    {(() => {
+                                        // Filter options for players/parents to only show "Meet"
+                                        const filteredOptions = isPlayerOrParent() 
+                                            ? options.filter(opt => opt.title === 'Meet')
+                                            : options;
+                                        
+                                        // Create pairs for rendering
+                                        const pairs = [];
+                                        for (let i = 0; i < filteredOptions.length; i += 2) {
+                                            pairs.push([
+                                                filteredOptions[i],
+                                                filteredOptions[i + 1]
+                                            ]);
+                                        }
+                                        
+                                        return pairs.map((pair, pairIndex) => {
+                                            const [firstOption, secondOption] = pair;
+                                            const firstIndex = options.findIndex(opt => opt.title === firstOption.title);
+                                            const secondIndex = secondOption ? options.findIndex(opt => opt.title === secondOption.title) : -1;
+                                            
+                                            return (
+                                                <View key={pairIndex} style={{
+                                                    flexDirection: 'row',
+                                                    justifyContent: 'space-between',
+                                                    marginBottom: 30,
+                                                    paddingHorizontal: 10
+                                                }}>
+                                                    <View style={{flex: 1, marginRight: 5}}>
                                                         <CustomCheckbox
-                                                            title={options[index + 1].title}
-                                                            isChecked={options[index + 1].isChecked}
-                                                            onPress={() => _handlePress(index + 1)}
+                                                            title={firstOption.title}
+                                                            isChecked={firstOption.isChecked}
+                                                            onPress={() => _handlePress(firstIndex)}
                                                         />
                                                     </View>
-                                                ) : <View style={{flex: 1}} />}
-                                                
-                                            </View>
-                                        )
-                                    ))}
+                                                    {secondOption ? (
+                                                        <View style={{flex: 1, marginHorizontal: 5}}>
+                                                            <CustomCheckbox
+                                                                title={secondOption.title}
+                                                                isChecked={secondOption.isChecked}
+                                                                onPress={() => _handlePress(secondIndex)}
+                                                            />
+                                                        </View>
+                                                    ) : <View style={{flex: 1}} />}
+                                                </View>
+                                            );
+                                        });
+                                    })()}
                                 </View>
                             </ScrollView>
                         )}
@@ -808,7 +1017,7 @@ const Calendar = () => {
                                 {!selectedResult && (
                                     <View style={styles.inputContainer}>
                                         <View style={styles.iconContainer}>
-                                            <AntDesign name="enviromento" size={20} color="#D3D3D3"/>
+                                            <Ionicons name="location-outline" size={20} color="#D3D3D3"/>
                                         </View>
                                         <TextInput
                                             style={styles.inputStyleWithoutIcon}
@@ -901,6 +1110,76 @@ const Calendar = () => {
                 </Modal>
             </SafeAreaView>
             
+            {/* View Event Modal */}
+            <Modal 
+                visible={isViewEventModalVisible} 
+                onDismiss={_onCloseViewEventModal}
+                dismissable={true}
+                contentContainerStyle={styles.viewEventModal}
+            >
+                {selectedEvent ? (
+                    <View style={styles.viewEventModalContent}>
+                        <View style={styles.viewEventModalHeader}>
+                            <Text style={styles.viewEventModalTitle}>{selectedEvent.name}</Text>
+                            <TouchableOpacity onPress={_onCloseViewEventModal}>
+                                <Ionicons name="close" size={24} color="#666" />
+                            </TouchableOpacity>
+                        </View>
+                        
+                        <ScrollView 
+                            style={styles.viewEventModalBody}
+                            contentContainerStyle={{paddingBottom: 20}}
+                        >
+                            <View style={styles.viewEventDetailRow}>
+                                <Ionicons name="calendar-outline" size={20} color="#2757CB" />
+                                <Text style={styles.viewEventDetailText}>
+                                    {moment(selectedEvent.eventDate).format('MM/DD/YYYY hh:mm A')}
+                                </Text>
+                            </View>
+                            
+                            {selectedEvent.address && selectedEvent.address.trim() !== '' && (
+                                <View style={styles.viewEventDetailRow}>
+                                    <Ionicons name="location-outline" size={20} color="#2757CB" />
+                                    <Text style={styles.viewEventDetailText}>{selectedEvent.address}</Text>
+                                </View>
+                            )}
+                            
+                            {selectedEvent.description && selectedEvent.description.trim() !== '' && (
+                                <View style={styles.viewEventDetailRow}>
+                                    <Ionicons name="document-text-outline" size={20} color="#2757CB" />
+                                    <Text style={styles.viewEventDetailText}>{selectedEvent.description}</Text>
+                                </View>
+                            )}
+                            
+                            {userSport.find(sport => sport.sportId === selectedEvent.sportId) && (
+                                <View style={styles.viewEventDetailRow}>
+                                    <Ionicons name="football-outline" size={20} color="#2757CB" />
+                                    <Text style={styles.viewEventDetailText}>
+                                        {userSport.find(sport => sport.sportId === selectedEvent.sportId)?.sportName}
+                                    </Text>
+                                </View>
+                            )}
+                        </ScrollView>
+                        
+                        {isEventOwner(selectedEvent) && (
+                            <View style={styles.viewEventModalFooter}>
+                                <TouchableOpacity 
+                                    style={styles.deleteEventButton}
+                                    onPress={_onDeleteEvent}
+                                >
+                                    <Ionicons name="trash-outline" size={20} color="white" />
+                                    <Text style={styles.deleteEventButtonText}>Delete Event</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+                    </View>
+                ) : (
+                    <View style={styles.viewEventModalContent}>
+                        <Text>Loading event...</Text>
+                    </View>
+                )}
+            </Modal>
+
             {/* Custom Styled Alert for Android */}
             <StyledAlert
                 visible={showStyledAlert}
@@ -1130,6 +1409,110 @@ const styles = StyleSheet.create({
         },
         disabledButton: {
             backgroundColor: '#D3D3D3',
+        },
+        viewEventModal: {
+            backgroundColor: 'white',
+            borderRadius: 20,
+            padding: 0,
+            width: '90%',
+            minHeight: heightPercentageToDP(50),
+            maxHeight: heightPercentageToDP(85),
+            alignSelf: 'center',
+            margin: heightPercentageToDP(5),
+        },
+        viewEventModalContent: {
+            minHeight: heightPercentageToDP(50),
+            backgroundColor: 'white',
+            borderRadius: 20,
+        },
+        viewEventModalHeader: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: 20,
+            borderBottomWidth: 1,
+            borderBottomColor: '#E0E0E0',
+            backgroundColor: 'white',
+        },
+        viewEventModalTitle: {
+            fontSize: 22,
+            fontWeight: 'bold',
+            color: '#2757CB',
+            flex: 1,
+            marginRight: 10,
+        },
+        viewEventModalBody: {
+            padding: 20,
+            minHeight: heightPercentageToDP(30),
+            maxHeight: heightPercentageToDP(60),
+            backgroundColor: 'white',
+        },
+        viewEventDetailRow: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            marginBottom: 20,
+            paddingBottom: 15,
+            borderBottomWidth: 1,
+            borderBottomColor: '#F0F0F0',
+        },
+        viewEventDetailText: {
+            fontSize: 16,
+            color: '#333',
+            marginLeft: 10,
+            flex: 1,
+        },
+        viewEventModalFooter: {
+            padding: 20,
+            borderTopWidth: 1,
+            borderTopColor: '#E0E0E0',
+            backgroundColor: 'white',
+        },
+        deleteEventButton: {
+            backgroundColor: '#E15B2D',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 15,
+            borderRadius: 10,
+        },
+        deleteEventButtonText: {
+            color: 'white',
+            fontSize: 16,
+            fontWeight: 'bold',
+            marginLeft: 10,
+        },
+        headerRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 10,
+        },
+        filterContainer: {
+            flexDirection: 'row',
+            marginTop: 10,
+            marginBottom: 15,
+            backgroundColor: '#F0F0F0',
+            borderRadius: 25,
+            padding: 3,
+        },
+        filterButton: {
+            flex: 1,
+            paddingVertical: 8,
+            paddingHorizontal: 15,
+            borderRadius: 20,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        filterButtonActive: {
+            backgroundColor: '#2757CB',
+        },
+        filterButtonText: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: '#666',
+        },
+        filterButtonTextActive: {
+            color: 'white',
         },
     }
 );

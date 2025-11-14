@@ -51,7 +51,7 @@ const UserStepForm = () => {
         {
             title: 'Choose a user type',
             subTitle: 'Please select the user',
-            modalTitle: 'Verification code send to your phone number',
+            modalTitle: 'Verification code sent to your phone number',
             modalSubTitle: 'A verification code will be sent to your mobile to verify the account and create your profile.'
         }, {
             title: 'Verification Number',
@@ -460,25 +460,14 @@ const UserStepForm = () => {
                 <Modal onDismiss={_hideModal} onModalHide={Keyboard.dismiss} isVisible={visible}
                        style={styles.containerStyle}>
                     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                        <View style={{flex: 1}}>
-                            <Text style={{
-                                textAlign: "center",
-                                position: "absolute",
-                                top: 20,
-                                fontWeight: '900',
-                                letterSpacing: 1,
-                                fontSize: 20,
-                                marginHorizontal: 20,
-                                width: 300
-                            }}>{_stepTitles[currentStep - 1].modalTitle}</Text>
-                            <Text style={{
-                                textAlign: 'center',
-                                color: 'grey',
-                                letterSpacing: 0.2,
-                                fontSize: 16,
-                                marginHorizontal: 40
-                            }}>{_stepTitles[currentStep - 1].modalSubTitle}</Text>
-                            <CustomButton style={{position: "absolute", bottom: 25}} text={"OK"}
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>
+                                {_stepTitles[currentStep - 1].modalTitle}
+                            </Text>
+                            <Text style={styles.modalSubTitle}>
+                                {_stepTitles[currentStep - 1].modalSubTitle}
+                            </Text>
+                            <CustomButton style={styles.modalButton} text={"OK"}
                                           onPress={() => _onNext()}/>
                         </View>
                     </TouchableWithoutFeedback>
@@ -583,6 +572,38 @@ const styles = StyleSheet.create({
         alignSelf: "center",
         position: "absolute",
         bottom: hp(8)
+    },
+    modalContent: {
+        flex: 1,
+        padding: 20,
+        justifyContent: 'flex-start',
+        alignItems: 'center'
+    },
+    modalTitle: {
+        textAlign: "center",
+        fontWeight: '900',
+        letterSpacing: 1,
+        fontSize: 20,
+        marginTop: 20,
+        marginBottom: 15,
+        marginHorizontal: 20,
+        width: '100%'
+    },
+    modalSubTitle: {
+        textAlign: 'center',
+        color: 'grey',
+        letterSpacing: 0.2,
+        fontSize: 16,
+        marginHorizontal: 20,
+        marginBottom: 20,
+        flex: 1,
+        width: '100%'
+    },
+    modalButton: {
+        position: "absolute",
+        bottom: 25,
+        width: '90%',
+        alignSelf: 'center'
     },
     disabled: {
         backgroundColor: 'rgba(196,192,192,0.2)'

@@ -39,4 +39,16 @@ export class EventService {
         }
         return res?.data;
     }
+
+    public static deleteEvent = async (eventId: number) => {
+        const url = `event/delete/${eventId}`;
+        console.log('Deleting event with URL:', url);
+        const res = await Requests.delete(url);
+        console.log('Delete response status:', res?.status);
+        if (res?.status !== 200) {
+            console.error('Delete failed with status:', res?.status, 'Response:', res?.data);
+            return undefined;
+        }
+        return res?.data;
+    }
 }

@@ -145,7 +145,10 @@ function TeamForm() {
                 }
                 setCreating(false);
                 showSuccessAlert('Team created successfully!', closeAlert);
-                router.replace('/(tabs)');
+                // Use back navigation to ensure useFocusEffect triggers properly
+                setTimeout(() => {
+                    router.back();
+                }, 500);
             } else {
                 setCreating(false);
                 showErrorAlert('Failed to create team', closeAlert);
@@ -272,32 +275,85 @@ function TeamForm() {
                                                    cursorColor={'black'} placeholderTextColor={'grey'}
                                                    editable={false}/>
                                     ) : (
-                                        <View style={[styles.inputStyle, {justifyContent: 'center'}]}>
+                                        <View style={styles.sportPickerContainer}>
                                             <RNPickerSelect
                                                 useNativeAndroidPickerStyle={false}
                                                 style={{
-                                                    inputIOS: {paddingLeft: 15, color: 'black', paddingVertical: 12},
-                                                    inputAndroid: {paddingLeft: 15, color: 'black', height: 45, paddingVertical: 12},
-                                                    placeholder: {color: 'grey'}
+                                                    inputIOS: {
+                                                        paddingLeft: 15,
+                                                        paddingRight: 45,
+                                                        color: '#333',
+                                                        paddingVertical: 14,
+                                                        fontSize: 16,
+                                                        width: '100%',
+                                                        flex: 1,
+                                                        overflow: 'hidden',
+                                                        fontWeight: '500'
+                                                    },
+                                                    inputAndroid: {
+                                                        paddingLeft: 15,
+                                                        paddingRight: 45,
+                                                        color: '#333',
+                                                        height: 50,
+                                                        paddingVertical: 14,
+                                                        fontSize: 16,
+                                                        width: '100%',
+                                                        flex: 1,
+                                                        overflow: 'hidden',
+                                                        fontWeight: '500'
+                                                    },
+                                                    placeholder: {
+                                                        color: '#999',
+                                                        fontSize: 16
+                                                    },
+                                                    viewContainer: {
+                                                        flex: 1,
+                                                        width: '100%'
+                                                    },
+                                                    inputWeb: {
+                                                        paddingLeft: 15,
+                                                        paddingRight: 45,
+                                                        color: '#333',
+                                                        fontSize: 16,
+                                                        width: '100%'
+                                                    }
                                                 }}
                                                 items={allSports.map((sport: Sport) => ({
                                                     label: sport.name,
                                                     value: sport.id,
                                                     key: sport.id,
-                                                    color: '#000'
+                                                    color: '#333'
                                                 }))}
-                                                placeholder={{label: 'Select sport', value: null}}
+                                                placeholder={{label: 'Select sport type...', value: null}}
                                                 onValueChange={(value) =>
                                                     setSelectedSportId(value)
                                                 }
                                                 value={selectedSportId}
+                                                touchableWrapperProps={{
+                                                    activeOpacity: 0.6,
+                                                    style: {
+                                                        flex: 1,
+                                                        width: '100%',
+                                                        height: '100%',
+                                                        position: 'absolute',
+                                                        top: 0,
+                                                        left: 0,
+                                                        right: 0,
+                                                        bottom: 0,
+                                                        borderRadius: 5
+                                                    }
+                                                }}
+                                                textInputProps={{
+                                                    numberOfLines: 1
+                                                }}
                                                 Icon={() => (
-                                                    <AntDesign
-                                                        name="down"
-                                                        size={20}
-                                                        color="grey"
-                                                        style={{ position: 'absolute', right: 10, top: 12 }}
-                                                    />
+                                                    <View style={styles.dropdownIconContainer}>
+                                                        <AntDesign
+                                                            name="down"
+                                                            size={18}
+                                                            color="#666"
+                                                        />
+                                                    </View>
                                                 )}
                                             />
                                         </View>
@@ -493,6 +549,34 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 5,
         borderColor: '#D3D3D3',
         borderWidth: 1
+    },
+    sportPickerContainer: {
+        backgroundColor: 'white',
+        height: 50,
+        marginTop: 5,
+        borderTopLeftRadius: 5,
+        borderTopRightRadius: 5,
+        borderBottomRightRadius: 5,
+        borderBottomLeftRadius: 5,
+        borderColor: '#D3D3D3',
+        borderWidth: 1,
+        justifyContent: 'center',
+        position: 'relative',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 1
+    },
+    dropdownIconContainer: {
+        position: 'absolute',
+        right: 15,
+        top: 16,
+        width: 30,
+        height: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1
     },
     placeholderStyle: {
         color: 'grey',
