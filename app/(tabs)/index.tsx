@@ -22,6 +22,7 @@ import {NOTIFICATION_REFRESH_TIMER} from "@/appConfig";
 import {SportService} from "@/services/SportService";
 import OverlaySpinner from "@/components/OverlaySpinner";
 import {OrganizationService} from "@/services/OrganizationService";
+import BannerAdComponent from "@/components/BannerAd";
 
 const REFRESH_NOTIFICATION_TIME = NOTIFICATION_REFRESH_TIMER * 1000;
 
@@ -148,7 +149,7 @@ const Home = () => {
         try {
             const organizationId = isOrganization() ? userData.id : undefined;
             const result = await TeamService.getUserTeams(userId, sportId, organizationId);
-            setSelectedProfile(prev => ({...prev, teams: result}));
+            setSelectedProfile(prev => ({...prev, teams: result || []}));
         } catch (e) {
             setSelectedProfile(prev => ({...prev, teams: []}));
             console.error('_getMyTeams', e);
@@ -164,12 +165,13 @@ const Home = () => {
             if (id) {
                 setPlayersLoading(true);
                 const teamPlayers = await TeamService.getTeamPlayers(id);
-                setPlayers(teamPlayers);
+                setPlayers(teamPlayers || []);
             } else {
                 setPlayers([]);
             }
         } catch (e) {
             console.error('_getAllPlayerOfSelectedTeam', e);
+            setPlayers([]);
         } finally {
             setPlayersLoading(false);
         }
@@ -287,8 +289,8 @@ const Home = () => {
         }
     }
 
-    const isCoach = (): boolean => userData.role == UserType[UserType.COACH];
-    const isOrganization = (): boolean => userData.role == UserType[UserType.ORGANIZATION];
+    const isCoach = (): boolean => userData?.role == UserType[UserType.COACH];
+    const isOrganization = (): boolean => userData?.role == UserType[UserType.ORGANIZATION];
 
     const isPlayersVisible = (): boolean =>
         selectedTeam !== undefined;
@@ -296,8 +298,8 @@ const Home = () => {
     const _renderSportItem = memo(({item}: { item: UserSportResponse }) => {
         return (<TouchableOpacity
             style={{justifyContent: 'center', alignItems: 'center', alignContent: 'center'}}
-            onPress={() => _onSelectSport(item.id.sportId)}>
-            <View style={[styles.circle, selectedSport == item.id.sportId && styles.selectedTag]}>
+            onPress={() => _onSelectSport(item.sportId)}>
+            <View style={[styles.circle, selectedSport == item.sportId && styles.selectedTag]}>
                 <Image
                     placeholder={require('../../assets/images/sport/sport.png')}
                     placeholderContentFit={'contain'}
@@ -305,7 +307,7 @@ const Home = () => {
                     style={styles.iconImage}/>
             </View>
             <Text
-                style={[styles.tagText, selectedSport == item.id.sportId && {fontWeight: 'bold', color: selectedSport == item.id.sportId ? 'white' : '#333'}]}>{item.sportName}</Text>
+                style={[styles.tagText, selectedSport == item.sportId && {fontWeight: 'bold', color: selectedSport == item.sportId ? 'white' : '#333'}]}>{item.sportName}</Text>
         </TouchableOpacity>);
     });
 
@@ -537,7 +539,7 @@ const Home = () => {
                                 style={styles.tag}>
                                 <Text style={styles.tagText}>Add Coach</Text>
                             </TouchableOpacity>
-                            {userData.role == UserType[UserType.PARENT] && (
+                            {userData?.role == UserType[UserType.PARENT] && (
                                 <TouchableOpacity
                                     onPress={_handleOpenInviteChild}
                                     style={styles.tag}>
@@ -564,8 +566,9 @@ const Home = () => {
                         </View>
                         <ScrollView
                             style={{flex: 1}}
+                            contentContainerStyle={{ paddingBottom: 100 }}
                             showsVerticalScrollIndicator={true}>
-                            {userData.role == UserType[UserType.PARENT] && (
+                            {userData?.role == UserType[UserType.PARENT] && (
                                 <View style={styles.dropdownContainer}>
                                     <Text style={styles.dropdownLabel}>Select Profile:</Text>
                                     <View style={styles.dropdownWrapper}>
@@ -625,6 +628,10 @@ const Home = () => {
                                     focusable={true}
                                     nestedScrollEnabled={true}
                                 />
+                                {/* Banner Ad below Your Sports */}
+                                <View style={styles.adWrapper}>
+                                    <BannerAdComponent />
+                                </View>
                             </View>
                             {isOrganization() && <View style={styles.menuContainer}>
                                 <View style={styles.menuTitleContainer}>
@@ -649,10 +656,10 @@ const Home = () => {
                                         <View style={{flexDirection: 'row', alignItems: 'center'}}>
                                             <Text style={styles.menuTitle}>
                                                 {selectedSport ? 
-                                                    `${selectedProfile?.sports?.find(s => s.id.sportId === selectedSport)?.sportName || 'Filtered'} Teams` : 
+                                                    `${selectedProfile?.sports?.find(s => s.sportId === selectedSport)?.sportName || 'Filtered'} Teams` : 
                                                     'Your Teams'
                                                 } <Text
-                                                style={styles.count}>{selectedProfile.teams?.length}</Text></Text>
+                                                style={styles.count}>{selectedProfile.teams?.length || 0}</Text></Text>
                                             {selectedSport && (
                                                 <TouchableOpacity
                                                     onPress={_resetSelectedSport}
@@ -704,7 +711,7 @@ const Home = () => {
                                     />)}
                             </View>}
 
-                            <View style={[styles.menuContainer, {marginBottom: 100}]}>
+                            <View style={[styles.menuContainer, {marginBottom: 20}]}>
                                 {/*<View style={styles.menuTitleContainer}>
                                     <View style={{flexDirection: 'row'}}>
                                         <Text style={styles.menuTitle}>Explore by Categories</Text>
@@ -921,6 +928,12 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         // backgroundColor: 'white',
         flex: 1,
+    },
+    adWrapper: {
+        width: '100%',
+        paddingBottom: 20,
+        marginTop: 10,
+        backgroundColor: 'transparent',
     },
 });
 

@@ -31,6 +31,7 @@ import { useAlert } from "@/utils/useAlert";
 import { UserSportResponse } from "@/models/responseObjects/UserSportResponse";
 
 import { GOOGLE_PLACES_API_KEY } from "@/config/apiKeys";
+import BannerAdComponent from "@/components/BannerAd";
 
 interface CheckboxProps {
     title: string;
@@ -764,7 +765,11 @@ const Calendar = () => {
                                 </TouchableOpacity>
                             </View>
                         )}
-                        <View style={{marginTop: 10, height: '100%'}}>
+                        {/* Ad banner always on top, even if no events */}
+                        <View style={{paddingVertical: 15, width: '100%', backgroundColor: 'white'}}>
+                            <BannerAdComponent />
+                        </View>
+                        <View style={{marginTop: 5, flex: 1}}>
                             {isLoaded ? <ActivityIndicator animating={true} color={MD2Colors.blueGrey800} size={50}
                                                            style={{marginTop: 50}}/> :
                                 (
@@ -774,7 +779,9 @@ const Calendar = () => {
                                         keyExtractor={item => item.id.toString()}
                                         estimatedItemSize={10}
                                         contentContainerStyle={{backgroundColor: 'white', padding: 10}}
-                                        ListFooterComponent={<View style={{height: heightPercentageToDP(50)}}/>}
+                                        ListFooterComponent={
+                                            <View style={{height: heightPercentageToDP(30)}}/>
+                                        }
                                     />
                                 )}
                         </View>

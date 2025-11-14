@@ -2,7 +2,7 @@
   "expo": {
     "name": "Where's Your Game",
     "slug": "Sport-Games",
-    "version": "1.1.2",
+    "version": "1.1.5",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "sport-app",
@@ -22,7 +22,8 @@
         "NSLocationWhenInUseUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to search for the nearest event to your current location for your selected sport.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to determine your current location and help you search for the nearest selected sport event in your area.",
         "NSLocationUsageDescription": "$(PRODUCT_NAME) requires access to your GPS to allow you to get the position of your current location.",
-        "NSPhotoLibraryUsageDescription ": "$(PRODUCT_NAME) requires access to your photo to allow you to upload photos"
+        "NSPhotoLibraryUsageDescription ": "$(PRODUCT_NAME) requires access to your photo to allow you to upload photos",
+        "GADApplicationIdentifier": "ca-app-pub-7955655880775798~4296835243"
       },
       "config": {
         "googleMapsApiKey": "AIzaSyDlFo6upaajnGewXn4DX4-naBhsWPcn8VE"
@@ -31,7 +32,7 @@
       "buildNumber": "4"
     },
     "android": {
-      "versionCode": 5,
+      "versionCode": 14,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#160076"
