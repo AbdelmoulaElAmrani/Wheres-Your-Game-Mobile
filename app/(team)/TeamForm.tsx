@@ -372,7 +372,7 @@ function TeamForm() {
                                 />
                                 <Text style={styles.textLabel}>Address</Text>
                                 <TextInput
-                                    style={styles.inputStyle}
+                                    style={[styles.inputStyle, styles.addressInputStyle]}
                                     placeholder={'Address'}
                                     cursorColor={'black'}
                                     placeholderTextColor={'grey'}
@@ -380,6 +380,9 @@ function TeamForm() {
                                     underlineColor="transparent"
                                     value={team?.address}
                                     onChangeText={(text) => setTeam({...team, address: text})}
+                                    multiline={true}
+                                    numberOfLines={2}
+                                    textAlignVertical="top"
                                 />
                                 <Text style={styles.textLabel}>Country</Text>
                                 <TextInput
@@ -549,6 +552,14 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 5,
         borderColor: '#D3D3D3',
         borderWidth: 1
+    },
+    addressInputStyle: {
+        height: undefined,
+        minHeight: 45,
+        maxHeight: 100,
+        paddingTop: 12,
+        paddingBottom: 12,
+        paddingRight: 15,
     },
     sportPickerContainer: {
         backgroundColor: 'white',
