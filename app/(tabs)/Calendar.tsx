@@ -648,8 +648,8 @@ const Calendar = () => {
                             </TouchableOpacity>}
                     </View>
                     <Text style={{color: 'grey', flex: 0.3}} numberOfLines={1} ellipsizeMode="tail">
-                        {isCoach() ? moment(item.eventDate).format('MM/DD/YYYY hh:mm A') : 
-                          `${sport ? sport.sportName : 'Unknown Sport'} | ${moment(item.eventDate).format('MM/DD/YYYY hh:mm A')}`}
+                        {isCoach() ? moment(item.eventDate).format('MMMM DD, YYYY hh:mm A') : 
+                          `${sport ? sport.sportName : 'Unknown Sport'} | ${moment(item.eventDate).format('MMMM DD, YYYY hh:mm A')}`}
                     </Text>
                 </View>
             </TouchableOpacity>
@@ -668,7 +668,7 @@ const Calendar = () => {
 
     const getTitle = (): string => {
         if (isCoach())
-            return `All Events for ${selectedDate.format('MM/DD/YYYY')}`;
+            return `All Events for ${selectedDate.format('MMMM DD, YYYY')}`;
         else {
             const today = moment().startOf('day');
             const tomorrow = moment().add(1, 'days').startOf('day');
@@ -681,7 +681,7 @@ const Calendar = () => {
             } else if (selectedDate.isSame(yesterday, 'day')) {
                 return "Yesterday's Event";
             } else {
-                return selectedDate.format('MM/DD/YYYY') + " 's Event";
+                return selectedDate.format('MMMM DD, YYYY') + " 's Event";
             }
         }
     }
@@ -1136,7 +1136,7 @@ const Calendar = () => {
                             <View style={styles.viewEventDetailRow}>
                                 <Ionicons name="calendar-outline" size={20} color="#2757CB" />
                                 <Text style={styles.viewEventDetailText}>
-                                    {moment(selectedEvent.eventDate).format('MM/DD/YYYY hh:mm A')}
+                                    {moment(selectedEvent.eventDate).format('MMMM DD, YYYY hh:mm A')}
                                 </Text>
                             </View>
                             
