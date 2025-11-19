@@ -631,6 +631,7 @@ const Calendar = () => {
                         source={{uri: sport?.iconUrl}}
                         style={{width: 40, height: 40}}
                         placeholder={require('../../assets/images/sport/sport.png')}
+                        placeholderContentFit="contain"
                     />
                 </View>
                 <View style={{flex:1, paddingHorizontal: 10}}>
