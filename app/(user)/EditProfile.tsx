@@ -2067,7 +2067,7 @@ const EditProfile = () => {
                                                                         paddingHorizontal: 15, 
                                                                         paddingVertical: 12, 
                                                                         borderRadius: 8, 
-                                                                        marginRight: 10, 
+                                                                        marginRight: 5, 
                                                                         marginBottom: 10,
                                                                         minHeight: 44, // Minimum touch target size
                                                                         justifyContent: 'center',
