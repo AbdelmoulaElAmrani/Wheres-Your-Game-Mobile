@@ -285,9 +285,6 @@ function TeamForm() {
                                                         color: '#333',
                                                         paddingVertical: 14,
                                                         fontSize: 16,
-                                                        width: '100%',
-                                                        flex: 1,
-                                                        overflow: 'hidden',
                                                         fontWeight: '500'
                                                     },
                                                     inputAndroid: {
@@ -295,27 +292,12 @@ function TeamForm() {
                                                         paddingRight: 45,
                                                         color: '#333',
                                                         height: 50,
-                                                        paddingVertical: 14,
                                                         fontSize: 16,
-                                                        width: '100%',
-                                                        flex: 1,
-                                                        overflow: 'hidden',
                                                         fontWeight: '500'
                                                     },
                                                     placeholder: {
                                                         color: '#999',
                                                         fontSize: 16
-                                                    },
-                                                    viewContainer: {
-                                                        flex: 1,
-                                                        width: '100%'
-                                                    },
-                                                    inputWeb: {
-                                                        paddingLeft: 15,
-                                                        paddingRight: 45,
-                                                        color: '#333',
-                                                        fontSize: 16,
-                                                        width: '100%'
                                                     }
                                                 }}
                                                 items={allSports.map((sport: Sport) => ({
@@ -329,23 +311,6 @@ function TeamForm() {
                                                     setSelectedSportId(value)
                                                 }
                                                 value={selectedSportId}
-                                                touchableWrapperProps={{
-                                                    activeOpacity: 0.6,
-                                                    style: {
-                                                        flex: 1,
-                                                        width: '100%',
-                                                        height: '100%',
-                                                        position: 'absolute',
-                                                        top: 0,
-                                                        left: 0,
-                                                        right: 0,
-                                                        bottom: 0,
-                                                        borderRadius: 5
-                                                    }
-                                                }}
-                                                textInputProps={{
-                                                    numberOfLines: 1
-                                                }}
                                                 Icon={() => (
                                                     <View style={styles.dropdownIconContainer}>
                                                         <AntDesign
