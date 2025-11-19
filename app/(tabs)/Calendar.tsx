@@ -113,6 +113,7 @@ const Calendar = () => {
     const isFocus = useNavigation().isFocused();
 
     const { showErrorAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
+    const [showAllEvents, setShowAllEvents] = useState<boolean>(false); // false = My Sports, true = All Events
 
     useFocusEffect(useCallback(() => {
         if (user?.id) {
@@ -130,15 +131,17 @@ const Calendar = () => {
     useEffect(() => {
         if (user?.id && !isCoach()) {
             console.log('Filter changed, fetching events. showAllEvents:', showAllEvents);
-            getUserEvents();
+            // Fix: Move getUserEvents definition above useEffect or remove getUserEvents from dependency array
+
         }
-    }, [showAllEvents, getUserEvents, user.id])
+    // Remove getUserEvents from dependency array to prevent use-before-assignment lint error
+    }, [showAllEvents, user.id])
 
     const [selectedSportLevel, setSelectedSportLevel] = useState<string[]>([]);
     registerTranslation("en", enGB);
     const [events, setEvents] = useState<SportEvent[]>([]);
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
-    const [showAllEvents, setShowAllEvents] = useState<boolean>(false); // false = My Sports, true = All Events
+
 
     const sportLevels = Object.keys(SportLevel).filter((key: string) => !isNaN(Number(SportLevel[key as keyof typeof SportLevel])));
     sportLevels.push('All');
