@@ -236,8 +236,8 @@ export const ProfileV2 = () => {
                                         </Text>
                                     </View>
                                     <View style={styles.infoMiniCard}>
-                                        <Text style={styles.infoTitle}>Positions</Text>
-                                        <Text style={styles.infoText}>{currentUser?.positionCoached || ""}</Text>
+                                        <Text style={styles.infoTitle}>Followers</Text>
+                                        <Text style={styles.infoText}>{currentUser?.followers?.length || 0}</Text>
                                     </View>
                                 </View>
                                 <View style={{
@@ -252,9 +252,9 @@ export const ProfileV2 = () => {
                                             {currentUser?.role === "COACH" ? userSport[0]?.sportLevel : currentUser?.skillLevel?.[0] ?? ""}
                                         </Text>
                                     </View>
-                                    <View style={styles.infoMiniCard}>
-                                        <Text style={styles.infoTitle}>Followers</Text>
-                                        <Text style={styles.infoText}>{currentUser?.followers?.length || 0}</Text>
+                                    <View style={styles.positionInfoCard}>
+                                        <Text style={styles.infoTitle}>Positions</Text>
+                                        <Text style={styles.infoText}>{currentUser?.positionCoached || ""}</Text>
                                     </View>
                                 </View>
                             </>}
@@ -595,6 +595,20 @@ const styles = StyleSheet.create({
         width: widthPercentageToDP('28%'),
         maxWidth: 110,
     },
+    positionInfoCard: {
+        borderWidth: 0,
+        padding: 15,
+        backgroundColor: 'white',
+        alignItems: 'center',
+        borderRadius: 15,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 6,
+        width: widthPercentageToDP('45%'),
+        minWidth: '60%'   
+    },
     infoTitle: {
         fontSize: 14,
         fontWeight: '600',
@@ -605,6 +619,8 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#2757CB',
         fontSize: 13,
+        textAlign: 'center',
+        flexWrap: 'wrap',
     },
     followBtn: {
         backgroundColor: '#2757CB',
