@@ -50,4 +50,32 @@ export class TeamService {
             return undefined;
         return res?.data;
     }
+
+    static updateTeam = async (team: any) => {
+        const res = await Requests.put(`team/updateTeam`, team);
+        if (res?.status !== 200)
+            return undefined;
+        return res?.data;
+    }
+
+    static addPlayerToTeam = async (teamId: string, playerId: string) => {
+        const res = await Requests.post(`team/addPlayer`, {
+            teamId,
+            playerId
+        });
+        if (res?.status !== 200)
+            return undefined;
+        return res?.data;
+    }
+
+    static async checkPlayerHasTeams(playerId: string): Promise<boolean> {
+        try {
+            // Get all teams for this player - if any exist, player is assigned to a team
+            const teams = await TeamService.getUserTeams(playerId);
+            return teams && teams.length > 0;
+        } catch (e) {
+            console.error('Error checking player teams:', e);
+            return false;
+        }
+    }
 }

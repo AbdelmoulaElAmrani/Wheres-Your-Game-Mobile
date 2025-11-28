@@ -23,7 +23,7 @@ import {PlayerService} from '@/services/PlayerService';
 import {TeamService} from '@/services/TeamService';
 import {UserResponse} from '@/models/responseObjects/UserResponse';
 import {getUserProfile} from '@/redux/UserSlice';
-import {router} from 'expo-router';
+import {router, useLocalSearchParams} from 'expo-router';
 import * as ImagePicker from "expo-image-picker";
 import {manipulateAsync, SaveFormat} from "expo-image-manipulator";
 import {StorageService} from '@/services/StorageService';
@@ -37,10 +37,13 @@ import StyledAlert from "@/components/StyledAlert";
 
 function TeamForm() {
     const dispatch = useDispatch();
-    const [isAddTeam, setIsAddTeam] = useState(true);
+    const params = useLocalSearchParams();
+    const teamId = params.teamId as string | undefined;
+    const [isAddTeam, setIsAddTeam] = useState(!teamId);
     const [loading, setLoading] = useState(true);
     const [creating, setCreating] = useState(false);
     const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
+    const [currentTeamPlayers, setCurrentTeamPlayers] = useState<any[]>([]);
     const [selectedSportId, setSelectedSportId] = useState<string | null>(null);
     const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
     const [players, setPlayers] = useState<any[]>([]);
@@ -48,6 +51,7 @@ function TeamForm() {
     const [team, setTeam] = useState<any>();
     const [manipulatedImageUri, setManipulatedImageUri] = useState<any>(null);
     const [openDatePicker, setOpenDatePicker] = useState(false);
+    const [loadingTeamData, setLoadingTeamData] = useState(false);
     const { showErrorAlert, showSuccessAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
     registerTranslation('en', enGB);
 
@@ -91,6 +95,46 @@ function TeamForm() {
         }
     }, [userData]);
 
+    // Load team data when editing
+    useEffect(() => {
+        if (teamId) {
+            _loadTeamData();
+        }
+    }, [teamId]);
+
+    const _loadTeamData = async () => {
+        if (!teamId) return;
+        try {
+            setLoadingTeamData(true);
+            const teamData = await TeamService.getTeamById(teamId);
+            if (teamData) {
+                setTeam({
+                    name: teamData.name,
+                    address: teamData.address,
+                    country: teamData.country,
+                    league: teamData.league,
+                    founded: teamData.founded,
+                    imgUrl: teamData.imgUrl
+                });
+                setSelectedSportId(teamData.sportId);
+                setSelectedOrganizationId(teamData.organizationId);
+                setIsAddTeam(false);
+                
+                // Load current team players
+                const teamPlayers = await TeamService.getTeamPlayers(teamId);
+                if (teamPlayers) {
+                    setCurrentTeamPlayers(teamPlayers);
+                    setSelectedPlayers(teamPlayers.map((p: any) => p.id));
+                }
+            }
+        } catch (e) {
+            console.error('Error loading team data:', e);
+            showErrorAlert('Failed to load team data', closeAlert);
+        } finally {
+            setLoadingTeamData(false);
+        }
+    };
+
 
     const _fetchCoachOrganization = async () => {
         const data: UserResponse[] = await OrganizationService.getOrganizationsByCoachId(userData.id);
@@ -123,41 +167,100 @@ function TeamForm() {
 
         try {
             setCreating(true);
-            const response = await TeamService.createTeam({
-                ...team,
-                sportId: selectedSportId,
-                organizationId: selectedOrganizationId,
-                players: selectedPlayers,
-                accountId: userData.id,
-                imgUrl: '',
-                founded: team?.founded ? new Date(team.founded).toISOString().split('T')[0] : null
-            });
+            
+            if (isAddTeam) {
+                // Create new team
+                const response = await TeamService.createTeam({
+                    ...team,
+                    sportId: selectedSportId,
+                    organizationId: selectedOrganizationId,
+                    players: selectedPlayers,
+                    accountId: userData.id,
+                    imgUrl: '',
+                    founded: team?.founded ? new Date(team.founded).toISOString().split('T')[0] : null
+                });
 
-            if (response) {
-                if (manipulatedImageUri) {
-                    const formData = new FormData();
-                    formData.append('file', manipulatedImageUri);
-                    try {
-                        const imageUrl = await StorageService.upload(response.id, formData, false);
-                    } catch (err) {
-                        console.error('Error during image upload:', err);
+                if (response) {
+                    if (manipulatedImageUri) {
+                        const formData = new FormData();
+                        formData.append('file', manipulatedImageUri);
+                        try {
+                            const imageUrl = await StorageService.upload(response.id, formData, false);
+                        } catch (err) {
+                            console.error('Error during image upload:', err);
+                        }
                     }
+                    setCreating(false);
+                    showSuccessAlert('Team created successfully!', closeAlert);
+                    setTimeout(() => {
+                        router.back();
+                    }, 500);
+                } else {
+                    setCreating(false);
+                    showErrorAlert('Failed to create team', closeAlert);
                 }
-                setCreating(false);
-                showSuccessAlert('Team created successfully!', closeAlert);
-                // Use back navigation to ensure useFocusEffect triggers properly
-                setTimeout(() => {
-                    router.back();
-                }, 500);
             } else {
-                setCreating(false);
-                showErrorAlert('Failed to create team', closeAlert);
+                // Update existing team
+                const response = await TeamService.updateTeam({
+                    id: teamId,
+                    ...team,
+                    sportId: selectedSportId,
+                    organizationId: selectedOrganizationId,
+                    accountId: userData.id,
+                    imgUrl: team?.imgUrl || '',
+                    founded: team?.founded ? new Date(team.founded).toISOString().split('T')[0] : null
+                });
+
+                if (response) {
+                    if (manipulatedImageUri) {
+                        const formData = new FormData();
+                        formData.append('file', manipulatedImageUri);
+                        try {
+                            const imageUrl = await StorageService.upload(teamId, formData, false);
+                        } catch (err) {
+                            console.error('Error during image upload:', err);
+                        }
+                    }
+                    
+                    // Handle player assignments
+                    await _updatePlayerAssignments();
+                    
+                    setCreating(false);
+                    showSuccessAlert('Team updated successfully!', closeAlert);
+                    setTimeout(() => {
+                        router.back();
+                    }, 500);
+                } else {
+                    setCreating(false);
+                    showErrorAlert('Failed to update team', closeAlert);
+                }
             }
         } catch (e) {
             setCreating(false);
-            console.error('Error creating team:', e);
+            console.error('Error saving team:', e);
             showErrorAlert('Something went wrong ' + e, closeAlert);
         }
+    };
+
+    const _updatePlayerAssignments = async () => {
+        if (!teamId) return;
+        
+        // Find players to add (in selectedPlayers but not in currentTeamPlayers)
+        const playersToAdd = selectedPlayers.filter(playerId => 
+            !currentTeamPlayers.some((p: any) => p.id === playerId)
+        );
+        
+        // Add new players
+        for (const playerId of playersToAdd) {
+            try {
+                await TeamService.addPlayerToTeam(teamId, playerId);
+            } catch (e) {
+                console.error(`Error adding player ${playerId}:`, e);
+            }
+        }
+        
+        // Note: Player removal is not implemented as there's no removePlayerFromTeam endpoint
+        // Unselected players will remain on the team until a backend endpoint is added
     };
 
     const _handleImagePicker = async () => {
@@ -205,7 +308,7 @@ function TeamForm() {
             style={{flex: 1, width: '100%'}}
             source={require('../../assets/images/signupBackGround.jpg')}>
             <SafeAreaView style={{flex: 1}}>
-                {creating && <OverlaySpinner visible={creating}/>}
+                {(creating || loadingTeamData) && <OverlaySpinner visible={creating || loadingTeamData}/>}
                 <CustomNavigationHeader text={isAddTeam ? 'Create Team' : 'Edit Team'} showBackArrow/>
                 <View style={styles.cardContainer}>
                     <KeyboardAwareScrollView
@@ -409,44 +512,49 @@ function TeamForm() {
                                     value={team?.league}
                                     onChangeText={(text) => setTeam({...team, league: text})}
                                 />
-                                {/* <Text style={styles.textLabel}>Players</Text>
-                                <MultiSelect
-                                    style={styles.inputStyle}
-                                    placeholderStyle={styles.placeholderStyle}
-                                    selectedTextStyle={styles.selectedTextStyle}
-                                    inputSearchStyle={styles.inputSearchStyle}
-                                    containerStyle={styles.containerStyle}
-                                    data={players.map((player: any) => ({
-                                        label: player.firstName + ' ' + player.lastName,
-                                        value: player.id,
-                                        color: '#000'
-                                    }))}
-                                    placeholder="Select players"
-                                    value={selectedPlayers}
-                                    search
-                                    labelField="label"
-                                    valueField="value"
-                                    onChange={item => {
-                                        if (item.length < 15)
-                                            setSelectedPlayers(item);
-                                        else
-                                            showErrorAlert("The maximum number of players allowed is 15. You have reached this limit.", closeAlert);
-                                    }}
-                                    iconStyle={styles.iconStyle}
-                                    renderLeftIcon={() => (
-                                        <AntDesign
-                                            style={styles.icon}
-                                            color="black"
-                                            name="user"
-                                            size={20}
+                                {/* Assign Players section - only show in edit mode */}
+                                {!isAddTeam && (
+                                    <>
+                                        <Text style={styles.textLabel}>Assign Players</Text>
+                                        <MultiSelect
+                                            style={styles.inputStyle}
+                                            placeholderStyle={styles.placeholderStyle}
+                                            selectedTextStyle={styles.selectedTextStyle}
+                                            inputSearchStyle={styles.inputSearchStyle}
+                                            containerStyle={styles.containerStyle}
+                                            data={players.map((player: any) => ({
+                                                label: player.firstName + ' ' + player.lastName,
+                                                value: player.id,
+                                                color: '#000'
+                                            }))}
+                                            placeholder="Select players to assign"
+                                            value={selectedPlayers}
+                                            search
+                                            labelField="label"
+                                            valueField="value"
+                                            onChange={item => {
+                                                if (item.length < 15)
+                                                    setSelectedPlayers(item);
+                                                else
+                                                    showErrorAlert("The maximum number of players allowed is 15. You have reached this limit.", closeAlert);
+                                            }}
+                                            iconStyle={styles.iconStyle}
+                                            renderLeftIcon={() => (
+                                                <AntDesign
+                                                    style={styles.icon}
+                                                    color="black"
+                                                    name="user"
+                                                    size={20}
+                                                />
+                                            )}
+                                            renderItem={renderPlayerItem}
+                                            selectedStyle={styles.selectedStyle}
+                                            activeColor='#4564f5'
                                         />
-                                    )}
-                                    renderItem={renderPlayerItem}
-                                    selectedStyle={styles.selectedStyle}
-                                    activeColor='#4564f5'
-                                /> */}
+                                    </>
+                                )}
                                 <View style={{marginTop: 20}}>
-                                    <CustomButton text='Create' onPress={_onCreateTeam}/>
+                                    <CustomButton text={isAddTeam ? 'Create' : 'Update'} onPress={_onCreateTeam}/>
                                 </View>
                             </View>
                         </View>

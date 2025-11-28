@@ -144,9 +144,14 @@ const SearchUser = () => {
         }
     }
     const _onSendInvitationToCoachFromOrganization = async (coachId: string) => {
-        const res : boolean = await OrganizationService.sendCoachInviteRequest(coachId);
-        if (!res) {
-            showErrorAlert('Failed to send the invitation request. Please try again.', closeAlert);
+        console.log('SearchUser._onSendInvitationToCoachFromOrganization: Sending invitation to coach:', coachId);
+        const res = await OrganizationService.sendCoachInviteRequest(coachId);
+        console.log('SearchUser._onSendInvitationToCoachFromOrganization: Result:', res);
+        
+        if (!res.success) {
+            const errorMessage = res.message || 'Failed to send the invitation request. Please try again.';
+            console.error('SearchUser._onSendInvitationToCoachFromOrganization: Error:', errorMessage);
+            showErrorAlert(errorMessage, closeAlert);
             return;
         }
         showSuccessAlert('Your invitation request has been sent successfully to the coach.', closeAlert);

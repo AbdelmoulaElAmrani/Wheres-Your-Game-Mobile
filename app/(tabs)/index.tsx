@@ -16,6 +16,7 @@ import {Team} from "@/models/Team";
 import {router, useRouter, useNavigation, useFocusEffect} from "expo-router";
 import RNPickerSelect from 'react-native-picker-select';
 import {TeamService} from "@/services/TeamService";
+import {UserService} from "@/services/UserService";
 import {Image, ImageBackground} from "expo-image";
 import {NotificationService} from "@/services/NotificationService";
 import {NOTIFICATION_REFRESH_TIMER} from "@/appConfig";
@@ -40,8 +41,11 @@ const Home = () => {
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
     const dispatch = useDispatch();
     const [players, setPlayers] = useState<Player[]>([]);
+    const [friendPlayers, setFriendPlayers] = useState<Player[]>([]);
+    const [playerTeamStatus, setPlayerTeamStatus] = useState<Record<string, boolean>>({});
     const [selectedTeam, setSelectedTeam] = useState<Team | undefined>(undefined);
     const [playersLoading, setPlayersLoading] = useState<boolean>(false)
+    const [friendPlayersLoading, setFriendPlayersLoading] = useState<boolean>(false);
     const _router = useRouter();
     const [newNotif, setNewNotif] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -62,7 +66,6 @@ const Home = () => {
 
     useFocusEffect(
         useCallback(() => {
-            _resetSelectedSport();
             let isActive = true;
             const id = selectedProfileId || userData?.id;
 
@@ -97,18 +100,32 @@ const Home = () => {
                         teams = await TeamService.getUserTeams(id);
                     }
 
+                    // Load coaches for organizations (all coaches when no sport selected)
+                    let coaches: UserResponse[] = selectedProfile.coaches || [];
+                    if (isOrganization() && id === userData?.id) {
+                        if (!selectedSport) {
+                            // Load all coaches when no sport is selected
+                            const allCoaches = await OrganizationService.getCoachesByOrganization(userData.id);
+                            coaches = allCoaches || [];
+                        } else {
+                            // Coaches will be loaded when sport is selected in _onSelectSport
+                            coaches = selectedProfile.coaches || [];
+                        }
+                    }
+
                     // Only update profile if changed
                     const hasChanged =
                         selectedProfile.userId !== id ||
                         !Helpers.profileArraysEqual(selectedProfile.sports, sports) ||
-                        !Helpers.profileArraysEqual(selectedProfile.teams, teams);
+                        !Helpers.profileArraysEqual(selectedProfile.teams, teams) ||
+                        !Helpers.profileArraysEqual(selectedProfile.coaches, coaches);
 
                     if (hasChanged) {
                         setSelectedProfile({
                             userId: id,
                             sports,
                             teams,
-                            coaches: [],
+                            coaches: coaches || [],
                         });
                         setSelectedTeam(undefined);
                         setPlayers([]);
@@ -145,15 +162,109 @@ const Home = () => {
         }
     }
 
-    const _getMyTeams = async (userId: string, sportId?: string) => {
+    const _loadFriendPlayers = async () => {
+        if (!userData?.id || !isCoach()) {
+            console.log('_loadFriendPlayers: Skipping - userData?.id:', userData?.id, 'isCoach():', isCoach());
+            return;
+        }
         try {
-            const organizationId = isOrganization() ? userData.id : undefined;
-            const result = await TeamService.getUserTeams(userId, sportId, organizationId);
+            console.log('_loadFriendPlayers: Starting - userId:', userData.id);
+            setFriendPlayersLoading(true);
+            const friends = await UserService.getFriends(userData.id);
+            console.log('_loadFriendPlayers: getFriends() result:', friends);
+            console.log('_loadFriendPlayers: friends length:', friends?.length);
+            
+            if (friends) {
+                // Debug: Log all friend roles to see what we're getting
+                console.log('_loadFriendPlayers: All friends with roles:', friends.map(f => ({ 
+                    name: `${f.firstName} ${f.lastName}`, 
+                    role: f.role, 
+                    roleType: typeof f.role,
+                    expectedRoleString: 'PLAYER',
+                    UserTypeEnumValue: UserType[UserType.PLAYER],
+                    matchesString: f.role === 'PLAYER',
+                    matchesEnum: f.role === UserType[UserType.PLAYER]
+                })));
+                
+                // Filter to only players
+                // Role comes as a string from the API, compare with both string and enum value
+                const playerFriends = friends.filter(friend => {
+                    const roleStr = friend.role?.toString().toUpperCase() || '';
+                    const isPlayer = roleStr === 'PLAYER' || friend.role === UserType[UserType.PLAYER];
+                    console.log(`_loadFriendPlayers: Friend ${friend.firstName} ${friend.lastName} - role: "${friend.role}" -> normalized: "${roleStr}", isPlayer: ${isPlayer}`);
+                    return isPlayer;
+                }) as Player[];
+                console.log('_loadFriendPlayers: Filtered player friends:', playerFriends);
+                console.log('_loadFriendPlayers: Player friends length:', playerFriends.length);
+                setFriendPlayers(playerFriends);
+                
+                // Check team assignment for each player
+                const teamStatusMap: Record<string, boolean> = {};
+                for (const player of playerFriends) {
+                    const hasTeams = await TeamService.checkPlayerHasTeams(player.id);
+                    teamStatusMap[player.id] = hasTeams;
+                    console.log(`_loadFriendPlayers: Player ${player.firstName} ${player.lastName} (${player.id}) has teams:`, hasTeams);
+                }
+                console.log('_loadFriendPlayers: Team status map:', teamStatusMap);
+                setPlayerTeamStatus(teamStatusMap);
+            } else {
+                console.log('_loadFriendPlayers: No friends returned from API');
+            }
+        } catch (e) {
+            console.error('_loadFriendPlayers: Error loading friend players:', e);
+        } finally {
+            setFriendPlayersLoading(false);
+            console.log('_loadFriendPlayers: Finished loading');
+        }
+    };
+
+    // Load friend players for coaches
+    useEffect(() => {
+        console.log('useEffect [friend players]: userData?.role:', userData?.role, 'UserType.COACH:', UserType[UserType.COACH]);
+        console.log('useEffect [friend players]: userData?.id:', userData?.id, 'selectedTeam:', selectedTeam);
+        const shouldLoad = userData?.role === UserType[UserType.COACH] && userData?.id && !selectedTeam;
+        console.log('useEffect [friend players]: shouldLoad:', shouldLoad);
+        if (shouldLoad) {
+            console.log('useEffect [friend players]: Calling _loadFriendPlayers()');
+            _loadFriendPlayers();
+        } else {
+            console.log('useEffect [friend players]: Clearing friend players');
+            setFriendPlayers([]);
+            setPlayerTeamStatus({});
+        }
+    }, [userData?.id, userData?.role, selectedTeam]);
+
+    // Automatically load all players when teams are available and no team is selected
+    useEffect(() => {
+        if (selectedTeam === undefined && 
+            selectedProfile?.teams && 
+            selectedProfile.teams.length > 0 && 
+            !playersLoading) {
+            // Only load if players array is empty (to avoid reloading unnecessarily)
+            if (players.length === 0) {
+                _getAllPlayerOfSelectedTeam(undefined);
+            }
+        }
+    }, [selectedProfile?.teams?.length, selectedTeam]);
+
+
+    const _getMyTeams = async (userId: string, sportId?: string, organizationId?: string) => {
+        try {
+            // Only use organizationId filter when viewing organization's own teams, not when viewing a coach's teams
+            const orgId = organizationId !== undefined ? organizationId : (isOrganization() && !selectedCoach ? userData.id : undefined);
+            const result = await TeamService.getUserTeams(userId, sportId, orgId);
+            console.log('_getMyTeams: userId:', userId, 'sportId:', sportId, 'organizationId:', orgId, 'result:', result);
             setSelectedProfile(prev => ({...prev, teams: result || []}));
+            // After loading teams, if no team is selected, load all players from all teams
+            setSelectedTeam(undefined);
+            if (result && result.length > 0) {
+                await _getAllPlayerOfSelectedTeam(undefined);
+            } else {
+                setPlayers([]);
+            }
         } catch (e) {
             setSelectedProfile(prev => ({...prev, teams: []}));
             console.error('_getMyTeams', e);
-        } finally {
             setSelectedTeam(undefined);
             setPlayers([]);
         }
@@ -163,11 +274,28 @@ const Home = () => {
         try {
             const id = team?.id ?? selectedTeam?.id;
             if (id) {
+                // Fetch players for a specific team
                 setPlayersLoading(true);
                 const teamPlayers = await TeamService.getTeamPlayers(id);
                 setPlayers(teamPlayers || []);
             } else {
-                setPlayers([]);
+                // No team selected - fetch players from all teams
+                setPlayersLoading(true);
+                const allTeams = selectedProfile?.teams || [];
+                if (allTeams.length > 0) {
+                    // Fetch players from all teams and combine them
+                    const allPlayersPromises = allTeams.map(team => TeamService.getTeamPlayers(team.id));
+                    const allPlayersResults = await Promise.all(allPlayersPromises);
+                    // Flatten the array and remove duplicates based on player id
+                    const allPlayers = allPlayersResults
+                        .flat()
+                        .filter((player, index, self) => 
+                            index === self.findIndex(p => p.id === player.id)
+                        );
+                    setPlayers(allPlayers || []);
+                } else {
+                    setPlayers([]);
+                }
             }
         } catch (e) {
             console.error('_getAllPlayerOfSelectedTeam', e);
@@ -215,19 +343,36 @@ const Home = () => {
         router.navigate('/(team)/TeamForm');
     }
 
-    const _resetSelectedSport = () => {
+    const _resetSelectedSport = async () => {
         setSelectedSport(undefined);
         setSelectedCoach(undefined);
-        setSelectedProfile(prev => ({...prev, coaches: [], teams: []}));
-
         setSelectedTeam(undefined);
-
         setPlayers([]);
+        
+        // Reload all teams when resetting sport filter (no sport filter)
+        const id = selectedProfileId || userData?.id;
+        if (id) {
+            // For organizations, reload all coaches when no sport is selected
+            let coaches: UserResponse[] = [];
+            if (isOrganization()) {
+                const allCoaches = await OrganizationService.getCoachesByOrganization(userData.id);
+                coaches = allCoaches || [];
+                // Load all teams for the organization (with organizationId filter)
+                await _getMyTeams(id, undefined, userData.id);
+            } else {
+                // For non-organizations, load teams without organization filter
+                await _getMyTeams(id, undefined, undefined);
+            }
+            
+            setSelectedProfile(prev => ({...prev, coaches}));
+        } else {
+            setSelectedProfile(prev => ({...prev, coaches: [], teams: []}));
+        }
     }
     const _onSelectSport = async (id: any) => {
         if (selectedSport == id) {
-            // If same sport is clicked, deselect it
-            _resetSelectedSport();
+            // If same sport is clicked, deselect it and show all teams
+            await _resetSelectedSport();
         } else {
             // Select new sport and filter teams
             setSelectedSport(id);
@@ -237,30 +382,44 @@ const Home = () => {
                 const data = await OrganizationService.getAllCoachesOfThisSport(userData.id, id);
                 setSelectedProfile(prev => ({...prev, coaches: data}));
                 _resetSelectedCoach();
+                
+                // If a coach is selected, filter teams by coach and sport
+                // Otherwise, filter teams by organization and sport
+                if (selectedCoach) {
+                    await _getMyTeams(selectedCoach.id, id, undefined);
+                } else {
+                    await _getMyTeams(selectedProfileId || userData?.id, id, userData.id);
+                }
+            } else {
+                // Filter teams for non-organizations based on selected sport
+                await _getMyTeams(selectedProfileId || userData?.id, id);
             }
-            
-            // Filter teams for all user types based on selected sport
-            await _getMyTeams(selectedProfileId || userData?.id, id);
         }
     }
 
-    const _resetSelectedCoach = () => {
-        setSelectedCoach(undefined)
+    const _resetSelectedCoach = async () => {
+        setSelectedCoach(undefined);
         setSelectedTeam(undefined);
-        setSelectedProfile(prev => ({...prev, teams: []}));
         setPlayers([]);
+        // Teams will be reloaded by the caller
     }
 
     const _onSelectCoach = async (coach: UserResponse) => {
         if (!isOrganization()) return;
         if (selectedCoach?.id == coach.id) {
+            // Deselecting coach - show all teams for the organization
             _resetSelectedCoach();
+            // When showing organization's teams, pass organizationId
+            await _getMyTeams(selectedProfileId || userData?.id, selectedSport, userData.id);
         } else {
             try {
                 setSelectedCoach(coach);
-                await _getMyTeams(coach.id, selectedSport);
+                console.log('_onSelectCoach: Selected coach:', coach.firstName, coach.lastName, 'coach.id:', coach.id);
+                // Filter teams by selected coach and sport (if sport is selected)
+                // Don't pass organizationId when viewing a coach's teams - we want ALL teams for that coach
+                await _getMyTeams(coach.id, selectedSport, undefined);
             } catch (e) {
-                console.error(e);
+                console.error('_onSelectCoach: Error:', e);
             } finally {
             }
         }
@@ -268,8 +427,9 @@ const Home = () => {
 
     const _onSelectTeam = async (team: Team) => {
         if (selectedTeam?.id == team.id) {
+            // Deselecting the team - show all players from all teams
             setSelectedTeam(undefined);
-            setPlayers([]);
+            await _getAllPlayerOfSelectedTeam(undefined);
         } else {
             try {
                 setSelectedTeam(team);
@@ -292,8 +452,16 @@ const Home = () => {
     const isCoach = (): boolean => userData?.role == UserType[UserType.COACH];
     const isOrganization = (): boolean => userData?.role == UserType[UserType.ORGANIZATION];
 
-    const isPlayersVisible = (): boolean =>
-        selectedTeam !== undefined;
+    const isPlayersVisible = (): boolean => {
+        // Show players section if:
+        // 1. A team is selected, OR
+        // 2. No team is selected but there are teams available (to show all players), OR
+        // 3. Coach has friend players (when no team is selected)
+        const hasTeamPlayers = selectedTeam !== undefined || 
+                               (selectedTeam === undefined && (selectedProfile?.teams?.length || 0) > 0);
+        const hasFriendPlayers = isCoach() && selectedTeam === undefined && friendPlayers.length > 0;
+        return hasTeamPlayers || hasFriendPlayers;
+    }
 
     const _renderSportItem = memo(({item}: { item: UserSportResponse }) => {
         return (<TouchableOpacity
@@ -376,31 +544,41 @@ const Home = () => {
         )
     });
 
-    const _renderPlayer = memo(({item}: { item: Player }) => (
-        <TouchableOpacity
-            style={styles.card}
-            onPress={() => _onSelectPlayer(item)}>
-            <View>
-                <View style={styles.cardImage}>
-                    {item.imageUrl ? (
-                        <Avatar.Image size={60} source={{uri: item.imageUrl}}/>
-                    ) : (
-                        <Avatar.Text
-                            size={60}
-                            label={(item.firstName.charAt(0) + item.lastName.charAt(1)).toUpperCase()}
-                        />
-                    )}
+    const _renderPlayer = memo(({item, isFriendPlayer = false}: { item: Player, isFriendPlayer?: boolean }) => {
+        const hasTeams = playerTeamStatus[item.id] ?? false;
+        const showBanner = isFriendPlayer && !hasTeams;
+        
+        return (
+            <TouchableOpacity
+                style={styles.card}
+                onPress={() => _onSelectPlayer(item)}>
+                <View>
+                    <View style={styles.cardImage}>
+                        {item.imageUrl ? (
+                            <Avatar.Image size={60} source={{uri: item.imageUrl}}/>
+                        ) : (
+                            <Avatar.Text
+                                size={60}
+                                label={(item.firstName.charAt(0) + item.lastName.charAt(1)).toUpperCase()}
+                            />
+                        )}
+                    </View>
                 </View>
-            </View>
-            <Text style={{
-                textAlign: 'center',
-                fontSize: 16,
-                fontWeight: "600",
-                marginTop: 10,
-                width: 105
-            }}>{`${item.firstName} ${item.lastName}`}</Text>
-        </TouchableOpacity>
-    ));
+                <Text style={{
+                    textAlign: 'center',
+                    fontSize: 16,
+                    fontWeight: "600",
+                    marginTop: 10,
+                    width: 105
+                }}>{`${item.firstName} ${item.lastName}`}</Text>
+                {showBanner && (
+                    <View style={styles.unassignedBanner}>
+                        <Text style={styles.unassignedBannerText}>Not on a team</Text>
+                    </View>
+                )}
+            </TouchableOpacity>
+        );
+    });
 
     /* const _renderCategory = memo(({item}: { item: any }) => (
          <TouchableOpacity
@@ -635,9 +813,20 @@ const Home = () => {
                             </View>
                             {isOrganization() && <View style={styles.menuContainer}>
                                 <View style={styles.menuTitleContainer}>
-                                    <View style={{flexDirection: 'row'}}>
-                                        <Text style={styles.menuTitle}>Your Coaches <Text
+                                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                        <Text style={styles.menuTitle}>
+                                            {selectedSport ? 
+                                                `${selectedProfile?.sports?.find(s => s.sportId === selectedSport)?.sportName || 'Filtered'} Coaches` : 
+                                                'Your Coaches'
+                                            } <Text
                                             style={styles.count}>{selectedProfile?.coaches?.length || 0}</Text></Text>
+                                        {selectedSport && (
+                                            <TouchableOpacity
+                                                onPress={_resetSelectedSport}
+                                                style={[styles.btnContainer, {marginLeft: 10}]}>
+                                                <Text style={styles.btnText}>Clear Filter</Text>
+                                            </TouchableOpacity>
+                                        )}
                                     </View>
                                 </View>
                                 <FlatList
@@ -650,30 +839,63 @@ const Home = () => {
                                     nestedScrollEnabled={true}
                                 />
                             </View>}
-                            {((!isOrganization()) || (isOrganization() && (selectedProfile?.teams?.length ?? 0) > 0)) &&
+                            {((!isOrganization()) || (isOrganization() && ((selectedProfile?.teams?.length ?? 0) > 0 || selectedCoach || !selectedSport))) &&
                                 <View style={styles.menuContainer}>
                                     <View style={styles.menuTitleContainer}>
                                         <View style={{flexDirection: 'row', alignItems: 'center'}}>
                                             <Text style={styles.menuTitle}>
-                                                {selectedSport ? 
-                                                    `${selectedProfile?.sports?.find(s => s.sportId === selectedSport)?.sportName || 'Filtered'} Teams` : 
-                                                    'Your Teams'
+                                                {selectedCoach ? 
+                                                    `${selectedCoach.firstName} ${selectedCoach.lastName}'s Teams` :
+                                                    selectedSport ? 
+                                                        `${selectedProfile?.sports?.find(s => s.sportId === selectedSport)?.sportName || 'Filtered'} Teams` : 
+                                                        'Your Teams'
                                                 } <Text
                                                 style={styles.count}>{selectedProfile.teams?.length || 0}</Text></Text>
-                                            {selectedSport && (
+                                            {(selectedSport || selectedCoach) && (
                                                 <TouchableOpacity
-                                                    onPress={_resetSelectedSport}
+                                                    onPress={() => {
+                                                        if (selectedCoach) {
+                                                            _resetSelectedCoach();
+                                                            // Reload teams for organization
+                                                            const organizationId = isOrganization() ? userData.id : undefined;
+                                                            TeamService.getUserTeams(
+                                                                selectedProfileId || userData?.id, 
+                                                                selectedSport, 
+                                                                organizationId
+                                                            ).then(result => {
+                                                                setSelectedProfile(prev => ({...prev, teams: result || []}));
+                                                                if (result && result.length > 0) {
+                                                                    _getAllPlayerOfSelectedTeam(undefined);
+                                                                }
+                                                            });
+                                                        } else {
+                                                            _resetSelectedSport();
+                                                        }
+                                                    }}
                                                     style={[styles.btnContainer, {marginLeft: 10}]}>
                                                     <Text style={styles.btnText}>Clear Filter</Text>
                                                 </TouchableOpacity>
                                             )}
                                         </View>
-                                        {isCoach() && <TouchableOpacity
-                                            onPress={_onAddTeam}
-                                            style={styles.btnContainer}>
-                                            <Text style={styles.btnText}>Add Team</Text>
-                                            <AntDesign name="right" size={20} color="#4361EE"/>
-                                        </TouchableOpacity>}
+                                        <View style={{flexDirection: 'row', gap: 8}}>
+                                            {selectedTeam && isCoach() && (
+                                                <TouchableOpacity
+                                                    onPress={() => router.push({
+                                                        pathname: '/(team)/TeamForm',
+                                                        params: { teamId: selectedTeam.id }
+                                                    })}
+                                                    style={styles.btnContainer}>
+                                                    <Text style={styles.btnText}>Edit Team</Text>
+                                                    <AntDesign name="edit" size={18} color="#4361EE"/>
+                                                </TouchableOpacity>
+                                            )}
+                                            {isCoach() && <TouchableOpacity
+                                                onPress={_onAddTeam}
+                                                style={styles.btnContainer}>
+                                                <Text style={styles.btnText}>Add Team</Text>
+                                                <AntDesign name="right" size={20} color="#4361EE"/>
+                                            </TouchableOpacity>}
+                                        </View>
                                     </View>
                                     <FlatList
                                         data={selectedProfile?.teams}
@@ -687,22 +909,75 @@ const Home = () => {
                                 </View>}
                             {isPlayersVisible() && <View style={styles.menuContainer}>
                                 <View style={styles.menuTitleContainer}>
-                                    <View style={{flexDirection: 'row'}}>
-                                        <Text style={styles.menuTitle}>{isCoach() ? 'Your ' : ''}Players <Text
-                                            style={styles.count}>{players?.length}</Text></Text>
+                                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                        <Text style={styles.menuTitle}>
+                                            {selectedTeam ? 
+                                                `${selectedTeam.name} Players` :
+                                                selectedCoach ? 
+                                                    `${selectedCoach.firstName} ${selectedCoach.lastName}'s Players` :
+                                                    selectedSport ? 
+                                                        `${selectedProfile?.sports?.find(s => s.sportId === selectedSport)?.sportName || 'Filtered'} Players` :
+                                                        isCoach() && friendPlayers.length > 0 ? 
+                                                            'Friend Players' : 
+                                                            (isCoach() ? 'Your ' : '') + 'Players'
+                                            } <Text
+                                            style={styles.count}>
+                                                {selectedTeam ? 
+                                                    players?.length : 
+                                                    (isCoach() && friendPlayers.length > 0 ? 
+                                                        friendPlayers.length : 
+                                                        players?.length)
+                                                }
+                                            </Text>
+                                        </Text>
+                                        {(selectedTeam || selectedCoach || selectedSport) && (
+                                            <TouchableOpacity
+                                                onPress={() => {
+                                                    if (selectedTeam) {
+                                                        setSelectedTeam(undefined);
+                                                        _getAllPlayerOfSelectedTeam(undefined);
+                                                    } else if (selectedCoach) {
+                                                        _resetSelectedCoach();
+                                                        const organizationId = isOrganization() ? userData.id : undefined;
+                                                        TeamService.getUserTeams(
+                                                            selectedProfileId || userData?.id, 
+                                                            selectedSport, 
+                                                            organizationId
+                                                        ).then(result => {
+                                                            setSelectedProfile(prev => ({...prev, teams: result || []}));
+                                                            if (result && result.length > 0) {
+                                                                _getAllPlayerOfSelectedTeam(undefined);
+                                                            }
+                                                        });
+                                                    } else {
+                                                        _resetSelectedSport();
+                                                    }
+                                                }}
+                                                style={[styles.btnContainer, {marginLeft: 10}]}>
+                                                <Text style={styles.btnText}>Clear Filter</Text>
+                                            </TouchableOpacity>
+                                        )}
                                     </View>
-                                    {isCoach() && !playersLoading && <TouchableOpacity
+                                    {isCoach() && !playersLoading && !friendPlayersLoading && <TouchableOpacity
                                         onPress={_onAddPlayer}
                                         style={styles.btnContainer}>
                                         <Text style={styles.btnText}>Add Player</Text>
                                         <AntDesign name="right" size={20} color="#4361EE"/>
                                     </TouchableOpacity>}
                                 </View>
-                                {playersLoading ? (
+                                {(playersLoading || friendPlayersLoading) ? (
                                         <ActivityIndicator animating={true} color={MD2Colors.blueA700} size={35}/>) :
                                     (<FlatList
-                                        data={players}
-                                        renderItem={({item}) => <_renderPlayer item={item}/>}
+                                        data={selectedTeam ? 
+                                            players : 
+                                            (isCoach() && friendPlayers.length > 0 ? 
+                                                friendPlayers : 
+                                                players)
+                                        }
+                                        renderItem={({item}) => <_renderPlayer 
+                                            item={item} 
+                                            isFriendPlayer={!selectedTeam && isCoach() && friendPlayers.some(fp => fp.id === item.id)}
+                                        />}
                                         keyExtractor={item => item.id}
                                         horizontal={true}
                                         showsHorizontalScrollIndicator={false}
@@ -934,6 +1209,19 @@ const styles = StyleSheet.create({
         paddingBottom: 20,
         marginTop: 10,
         backgroundColor: 'transparent',
+    },
+    unassignedBanner: {
+        backgroundColor: '#FF6B6B',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
+        marginTop: 8,
+        alignSelf: 'center',
+    },
+    unassignedBannerText: {
+        color: 'white',
+        fontSize: 10,
+        fontWeight: '600',
     },
 });
 

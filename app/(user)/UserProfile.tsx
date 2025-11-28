@@ -5,7 +5,7 @@ import Spinner from "@/components/Spinner";
 import CustomNavigationHeader from "@/components/CustomNavigationHeader";
 import React, {useEffect, useState} from "react";
 import {router, useLocalSearchParams} from "expo-router";
-import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator} from "react-native";
 import {Avatar, Divider} from "react-native-paper";
 import {useDispatch, useSelector} from "react-redux";
 import {UserResponse} from "@/models/responseObjects/UserResponse";
@@ -15,6 +15,14 @@ import {UserService} from "@/services/UserService";
 import {Helpers} from "@/constants/Helpers";
 import {getUserProfile} from "@/redux/UserSlice";
 import OverlaySpinner from "@/components/OverlaySpinner";
+import {TeamService} from "@/services/TeamService";
+import {Team} from "@/models/Team";
+import UserType from "@/models/UserType";
+import {AntDesign} from "@expo/vector-icons";
+import {useAlert} from "@/utils/useAlert";
+import StyledAlert from "@/components/StyledAlert";
+import {Modal} from "react-native";
+import {FlatList} from "react-native";
 
 
 enum MenuOption {
@@ -32,6 +40,11 @@ export const UserProfile = () => {
     const [selectOption, setSelectOption] = useState<MenuOption>(MenuOption.Overview);
     const dispatch = useDispatch();
     const paramData = useLocalSearchParams<any>();
+    const [showTeamModal, setShowTeamModal] = useState<boolean>(false);
+    const [teams, setTeams] = useState<Team[]>([]);
+    const [loadingTeams, setLoadingTeams] = useState<boolean>(false);
+    const [assigning, setAssigning] = useState<boolean>(false);
+    const { showErrorAlert, showSuccessAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
 
     const _handleGoBack = () => {
         if (router.canGoBack())
@@ -48,6 +61,51 @@ export const UserProfile = () => {
 
         fetchUserById();
     }, [paramData.userId]);
+
+    // Load teams when modal opens (only for coaches viewing players)
+    useEffect(() => {
+        if (showTeamModal && currentUser?.role === UserType[UserType.COACH] && person?.role === UserType[UserType.PLAYER]) {
+            _loadTeams();
+        }
+    }, [showTeamModal]);
+
+    const _loadTeams = async () => {
+        if (!currentUser?.id) return;
+        try {
+            setLoadingTeams(true);
+            const userTeams = await TeamService.getUserTeams(currentUser.id);
+            setTeams(userTeams || []);
+        } catch (e) {
+            console.error('Error loading teams:', e);
+            showErrorAlert('Failed to load teams', closeAlert);
+        } finally {
+            setLoadingTeams(false);
+        }
+    };
+
+    const _handleAssignToTeam = async (team: Team) => {
+        if (!person?.id || !team.id) return;
+        try {
+            setAssigning(true);
+            const result = await TeamService.addPlayerToTeam(team.id, person.id);
+            if (result) {
+                showSuccessAlert(`Player assigned to ${team.name} successfully!`, closeAlert);
+                setShowTeamModal(false);
+            } else {
+                showErrorAlert('Failed to assign player to team', closeAlert);
+            }
+        } catch (e: any) {
+            console.error('Error assigning player to team:', e);
+            const errorMessage = e?.response?.data || e?.message || 'Failed to assign player to team';
+            showErrorAlert(errorMessage, closeAlert);
+        } finally {
+            setAssigning(false);
+        }
+    };
+
+    const isCoach = (): boolean => currentUser?.role === UserType[UserType.COACH];
+    const isPlayer = (): boolean => person?.role === UserType[UserType.PLAYER];
+    const showAssignButton = (): boolean => isCoach() && isPlayer();
 
 
     useEffect(() => {
@@ -103,6 +161,16 @@ export const UserProfile = () => {
                     goBackFunction={_handleGoBack} 
                     showBackArrow
                 />
+                {showAssignButton() && (
+                    <View style={styles.assignButtonContainer}>
+                        <TouchableOpacity
+                            onPress={() => setShowTeamModal(true)}
+                            style={styles.assignButton}>
+                            <AntDesign name="adduser" size={20} color="white" />
+                            <Text style={styles.assignButtonText}>Assign to Team</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
 
                 <View style={styles.mainContainer}>
                     <ScrollView showsVerticalScrollIndicator={false}
@@ -303,6 +371,79 @@ export const UserProfile = () => {
                         </View>
                     </ScrollView>
                 </View>
+                
+                {/* Team Selection Modal */}
+                <Modal
+                    visible={showTeamModal}
+                    transparent={true}
+                    animationType="slide"
+                    onRequestClose={() => setShowTeamModal(false)}>
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <View style={styles.modalHeader}>
+                                <Text style={styles.modalTitle}>Select Team</Text>
+                                <TouchableOpacity onPress={() => setShowTeamModal(false)}>
+                                    <AntDesign name="close" size={24} color="#333" />
+                                </TouchableOpacity>
+                            </View>
+                            
+                            {loadingTeams ? (
+                                <View style={styles.modalLoading}>
+                                    <Text>Loading teams...</Text>
+                                </View>
+                            ) : teams.length === 0 ? (
+                                <View style={styles.modalLoading}>
+                                    <Text style={styles.noTeamsText}>No teams available</Text>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            setShowTeamModal(false);
+                                            router.push('/(team)/TeamForm');
+                                        }}
+                                        style={styles.createTeamButton}>
+                                        <Text style={styles.createTeamButtonText}>Create Team</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            ) : (
+                                <FlatList
+                                    data={teams}
+                                    keyExtractor={item => item.id}
+                                    renderItem={({item}) => (
+                                        <TouchableOpacity
+                                            style={styles.teamItem}
+                                            onPress={() => _handleAssignToTeam(item)}
+                                            disabled={assigning}>
+                                            <View style={styles.teamItemContent}>
+                                                {item.imgUrl ? (
+                                                    <Avatar.Image size={50} source={{uri: item.imgUrl}} />
+                                                ) : (
+                                                    <Avatar.Text
+                                                        size={50}
+                                                        label={item.name.substring(0, 2).toUpperCase()}
+                                                    />
+                                                )}
+                                                <View style={styles.teamItemInfo}>
+                                                    <Text style={styles.teamItemName}>{item.name}</Text>
+                                                    {item.league && (
+                                                        <Text style={styles.teamItemLeague}>{item.league}</Text>
+                                                    )}
+                                                </View>
+                                            </View>
+                                            {assigning && (
+                                                <ActivityIndicator size="small" color="#2757CB" />
+                                            )}
+                                        </TouchableOpacity>
+                                    )}
+                                />
+                            )}
+                        </View>
+                    </View>
+                </Modal>
+                
+                <StyledAlert
+                    visible={showStyledAlert}
+                    config={alertConfig}
+                    onClose={closeAlert}
+                />
             </SafeAreaView>
         </ImageBackground>
     );
@@ -448,6 +589,98 @@ const styles = StyleSheet.create({
         color: '#666',
         textAlign: 'center',
         marginTop: 20,
+    },
+    assignButtonContainer: {
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        backgroundColor: 'white',
+    },
+    assignButton: {
+        backgroundColor: '#2757CB',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 10,
+        gap: 8,
+    },
+    assignButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'flex-end',
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        maxHeight: '70%',
+        paddingBottom: 20,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E0E0E0',
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    modalLoading: {
+        padding: 40,
+        alignItems: 'center',
+    },
+    noTeamsText: {
+        fontSize: 16,
+        color: '#666',
+        marginBottom: 20,
+    },
+    createTeamButton: {
+        backgroundColor: '#2757CB',
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 10,
+    },
+    createTeamButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    teamItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F0F0',
+    },
+    teamItemContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    teamItemInfo: {
+        marginLeft: 15,
+        flex: 1,
+    },
+    teamItemName: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#333',
+    },
+    teamItemLeague: {
+        fontSize: 14,
+        color: '#666',
+        marginTop: 4,
     },
 });
 

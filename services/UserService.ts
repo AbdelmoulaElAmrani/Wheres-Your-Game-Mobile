@@ -140,4 +140,26 @@ export class UserService {
             return null;
         }
     }
+
+    static async getFriends(userId: string): Promise<UserResponse[] | undefined> {
+        try {
+            console.log('UserService.getFriends: Calling API with userId:', userId);
+            console.log('UserService.getFriends: API endpoint: user/friends/' + userId);
+            var res = await Requests.get(`user/friends/${userId}`);
+            console.log('UserService.getFriends: API response status:', res?.status);
+            console.log('UserService.getFriends: API response data:', res?.data);
+            
+            if (res?.status === 200 && res?.data) {
+                console.log('UserService.getFriends: Success - returning', res.data.length, 'friends');
+                return res.data as UserResponse[];
+            } else {
+                console.log('UserService.getFriends: No data or wrong status - status:', res?.status, 'data:', res?.data);
+            }
+            return undefined;
+        } catch (error) {
+            console.error('UserService.getFriends: Error fetching friends:', error);
+            console.error('UserService.getFriends: Error details:', JSON.stringify(error));
+            return undefined;
+        }
+    }
 }

@@ -23,13 +23,25 @@ export class OrganizationService {
         }
     }
 
-    static async sendCoachInviteRequest(receiverId: string): Promise<any> {
+    static async sendCoachInviteRequest(receiverId: string): Promise<{success: boolean, message?: string}> {
         try {
+            console.log('OrganizationService.sendCoachInviteRequest: Sending invitation to coach:', receiverId);
             const res = await Requests.post(`organization/send/invitation?receiverId=${receiverId}`, {});
-            return res?.status === 200;
-        } catch (error) {
-            console.error('Error sending invitation:', error);
-            return false;
+            console.log('OrganizationService.sendCoachInviteRequest: Response status:', res?.status);
+            console.log('OrganizationService.sendCoachInviteRequest: Response data:', res?.data);
+            
+            if (res?.status === 200) {
+                return { success: true };
+            } else {
+                const errorMessage = res?.data || 'Failed to send invitation';
+                console.error('OrganizationService.sendCoachInviteRequest: Non-200 status:', res?.status, errorMessage);
+                return { success: false, message: errorMessage };
+            }
+        } catch (error: any) {
+            console.error('OrganizationService.sendCoachInviteRequest: Error sending invitation:', error);
+            console.error('OrganizationService.sendCoachInviteRequest: Error details:', JSON.stringify(error));
+            const errorMessage = error?.response?.data || error?.message || 'Failed to send invitation request';
+            return { success: false, message: errorMessage };
         }
     }
 
