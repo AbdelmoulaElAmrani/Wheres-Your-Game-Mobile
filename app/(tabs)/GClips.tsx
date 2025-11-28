@@ -22,6 +22,7 @@ import {useFocusEffect, useNavigation} from "expo-router";
 import { useAlert } from "@/utils/useAlert";
 import StyledAlert from "@/components/StyledAlert";
 import { isTikTokUrl } from "@/utils/tiktokUtils";
+import BannerAdComponent from "@/components/BannerAd";
 
 
 const validDomains = {
@@ -332,7 +333,15 @@ const GClips = () => {
                         {posts.length > 0 && (
                             <FlatList
                                 data={posts}
-                                renderItem={({item}) => _videoPreview({video: item})}
+                                renderItem={({item, index}) => (
+                                    <View>
+                                        {_videoPreview({video: item})}
+                                        {/* Ad between every post */}
+                                        <View style={{marginVertical: 15, paddingHorizontal: 5, width: '100%', alignItems: 'center'}}>
+                                            <BannerAdComponent />
+                                        </View>
+                                    </View>
+                                )}
                                 keyExtractor={item => item.id}
                                 horizontal={false}
                                 showsVerticalScrollIndicator={false}
@@ -344,9 +353,6 @@ const GClips = () => {
                                         setPage(prevPage => prevPage + 1);
                                     }
                                 }}
-                                getItemLayout={(data, index) => (
-                                    {length: 50, offset: 50 * index, index}
-                                )}
                             />
                         )}
                     </View>

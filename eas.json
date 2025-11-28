@@ -14,11 +14,17 @@
     "preview": {
       "distribution": "internal",
       "developmentClient": true,
-      "releaseChannel": "staging"
+      "releaseChannel": "staging",
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
       "ios": {
         "image": "macos-sequoia-15.3-xcode-16.2"
+      },
+      "android": {
+        "buildType": "app-bundle"
       }
     }
   },
