@@ -1,4 +1,4 @@
-import {Alert, Keyboard, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View, Platform} from "react-native";
+import {Alert, Keyboard, StyleSheet, Text, TouchableWithoutFeedback, View, Platform} from "react-native";
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from "react-native-responsive-screen";
 import {ImageBackground} from "expo-image";
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -14,6 +14,7 @@ import LocalStorageService from "@/services/LocalStorageService";
 import {IResetTokenObj} from "@/models/IUserInfo";
 import {useAlert} from "@/utils/useAlert";
 import StyledAlert from "@/components/StyledAlert";
+import {TextInput} from "react-native-paper";
 
 const FPReset = () => {
     const [newPassword, setNewPassword] = useState("");
@@ -21,6 +22,8 @@ const FPReset = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [resetToken, setResetToken] = useState<IResetTokenObj | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const {showErrorAlert, showSuccessAlert, showStyledAlert, alertConfig, closeAlert} = useAlert();
 
     const hasNumberOrSymbol = /[0-9!@#$%^&*]/.test(newPassword);
@@ -114,9 +117,18 @@ const FPReset = () => {
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Enter new password"
-                                        secureTextEntry
+                                        secureTextEntry={!showNewPassword}
                                         value={newPassword}
                                         onChangeText={setNewPassword}
+                                        right={
+                                            <TextInput.Icon
+                                                icon={showNewPassword ? 'eye-off' : 'eye'}
+                                                onPress={() => setShowNewPassword(!showNewPassword)}
+                                                color={'#D3D3D3'}
+                                                size={28}
+                                            />
+                                        }
+                                        underlineColor={"transparent"}
                                     />
                                 </View>
                                 {/* Confirm New Password Field */}
@@ -125,9 +137,18 @@ const FPReset = () => {
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Confirm new password"
-                                        secureTextEntry
+                                        secureTextEntry={!showConfirmPassword}
                                         value={confirmPassword}
                                         onChangeText={setConfirmPassword}
+                                        right={
+                                            <TextInput.Icon
+                                                icon={showConfirmPassword ? 'eye-off' : 'eye'}
+                                                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                color={'#D3D3D3'}
+                                                size={28}
+                                            />
+                                        }
+                                        underlineColor={"transparent"}
                                     />
                                 </View>
 
@@ -252,12 +273,16 @@ const styles = StyleSheet.create({
         fontWeight: "500",
     },
     input: {
-        borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 25, // Fully rounded input
-        paddingHorizontal: 15,
-        paddingVertical: 10,
+        backgroundColor: 'white',
+        height: 45,
         fontSize: 16,
+        marginTop: 5,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        borderBottomRightRadius: 20,
+        borderBottomLeftRadius: 20,
+        borderColor: '#ccc',
+        borderWidth: 1,
     },
     progressContainer: {
         width: "90%",

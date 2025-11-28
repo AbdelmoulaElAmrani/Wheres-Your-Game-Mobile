@@ -145,7 +145,10 @@ function TeamForm() {
                 }
                 setCreating(false);
                 showSuccessAlert('Team created successfully!', closeAlert);
-                router.replace('/(tabs)');
+                // Use back navigation to ensure useFocusEffect triggers properly
+                setTimeout(() => {
+                    router.back();
+                }, 500);
             } else {
                 setCreating(false);
                 showErrorAlert('Failed to create team', closeAlert);
@@ -272,32 +275,50 @@ function TeamForm() {
                                                    cursorColor={'black'} placeholderTextColor={'grey'}
                                                    editable={false}/>
                                     ) : (
-                                        <View style={[styles.inputStyle, {justifyContent: 'center'}]}>
+                                        <View style={styles.sportPickerContainer}>
                                             <RNPickerSelect
                                                 useNativeAndroidPickerStyle={false}
                                                 style={{
-                                                    inputIOS: {paddingLeft: 15, color: 'black', paddingVertical: 12},
-                                                    inputAndroid: {paddingLeft: 15, color: 'black', height: 45, paddingVertical: 12},
-                                                    placeholder: {color: 'grey'}
+                                                    inputIOS: {
+                                                        paddingLeft: 15,
+                                                        paddingRight: 45,
+                                                        color: '#333',
+                                                        paddingVertical: 14,
+                                                        fontSize: 16,
+                                                        fontWeight: '500'
+                                                    },
+                                                    inputAndroid: {
+                                                        paddingLeft: 15,
+                                                        paddingRight: 45,
+                                                        color: '#333',
+                                                        height: 50,
+                                                        fontSize: 16,
+                                                        fontWeight: '500'
+                                                    },
+                                                    placeholder: {
+                                                        color: '#999',
+                                                        fontSize: 16
+                                                    }
                                                 }}
                                                 items={allSports.map((sport: Sport) => ({
                                                     label: sport.name,
                                                     value: sport.id,
                                                     key: sport.id,
-                                                    color: '#000'
+                                                    color: '#333'
                                                 }))}
-                                                placeholder={{label: 'Select sport', value: null}}
+                                                placeholder={{label: 'Select sport type...', value: null}}
                                                 onValueChange={(value) =>
                                                     setSelectedSportId(value)
                                                 }
                                                 value={selectedSportId}
                                                 Icon={() => (
-                                                    <AntDesign
-                                                        name="down"
-                                                        size={20}
-                                                        color="grey"
-                                                        style={{ position: 'absolute', right: 10, top: 12 }}
-                                                    />
+                                                    <View style={styles.dropdownIconContainer}>
+                                                        <AntDesign
+                                                            name="down"
+                                                            size={18}
+                                                            color="#666"
+                                                        />
+                                                    </View>
                                                 )}
                                             />
                                         </View>
@@ -316,7 +337,7 @@ function TeamForm() {
                                 />
                                 <Text style={styles.textLabel}>Address</Text>
                                 <TextInput
-                                    style={styles.inputStyle}
+                                    style={[styles.inputStyle, styles.addressInputStyle]}
                                     placeholder={'Address'}
                                     cursorColor={'black'}
                                     placeholderTextColor={'grey'}
@@ -324,6 +345,9 @@ function TeamForm() {
                                     underlineColor="transparent"
                                     value={team?.address}
                                     onChangeText={(text) => setTeam({...team, address: text})}
+                                    multiline={true}
+                                    numberOfLines={2}
+                                    textAlignVertical="top"
                                 />
                                 <Text style={styles.textLabel}>Country</Text>
                                 <TextInput
@@ -493,6 +517,42 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 5,
         borderColor: '#D3D3D3',
         borderWidth: 1
+    },
+    addressInputStyle: {
+        height: undefined,
+        minHeight: 45,
+        maxHeight: 100,
+        paddingTop: 12,
+        paddingBottom: 12,
+        paddingRight: 15,
+    },
+    sportPickerContainer: {
+        backgroundColor: 'white',
+        height: 50,
+        marginTop: 5,
+        borderTopLeftRadius: 5,
+        borderTopRightRadius: 5,
+        borderBottomRightRadius: 5,
+        borderBottomLeftRadius: 5,
+        borderColor: '#D3D3D3',
+        borderWidth: 1,
+        justifyContent: 'center',
+        position: 'relative',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 1
+    },
+    dropdownIconContainer: {
+        position: 'absolute',
+        right: 15,
+        top: 16,
+        width: 30,
+        height: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1
     },
     placeholderStyle: {
         color: 'grey',

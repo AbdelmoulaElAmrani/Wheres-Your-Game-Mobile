@@ -29,6 +29,9 @@ const AccountSettings = () => {
         newPassword: '',
         confirmPassword: ''
     });
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const { showErrorAlert, showSuccessAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
 
     const _handleHelp = () => {
@@ -109,36 +112,60 @@ const AccountSettings = () => {
                                 <Text style={styles.textLabel}>Current Password</Text>
                                 <TextInput
                                     style={styles.inputPassword}
-                                    secureTextEntry
+                                    secureTextEntry={!showCurrentPassword}
                                     placeholder="Enter current password"
                                     value={passwordData.currentPassword}
                                     onChangeText={(text) => {
                                         setPasswordData(prev => ({...prev, currentPassword: text}));
                                     }}
+                                    right={
+                                        <TextInput.Icon
+                                            icon={showCurrentPassword ? 'eye-off' : 'eye'}
+                                            onPress={() => setShowCurrentPassword(!showCurrentPassword)}
+                                            color={'#D3D3D3'}
+                                            size={28}
+                                        />
+                                    }
                                     underlineStyle={{height: 0}}
                                 />
 
                                 <Text style={styles.textLabel}>New Password</Text>
                                 <TextInput
                                     style={styles.inputPassword}
-                                    secureTextEntry
+                                    secureTextEntry={!showNewPassword}
                                     placeholder="Enter new password"
                                     value={passwordData.newPassword}
                                     onChangeText={(text) => {
                                         setPasswordData(prev => ({...prev, newPassword: text}));
                                     }}
+                                    right={
+                                        <TextInput.Icon
+                                            icon={showNewPassword ? 'eye-off' : 'eye'}
+                                            onPress={() => setShowNewPassword(!showNewPassword)}
+                                            color={'#D3D3D3'}
+                                            size={28}
+                                        />
+                                    }
                                     underlineStyle={{height: 0}}
                                 />
 
                                 <Text style={styles.textLabel}>Confirm New Password</Text>
                                 <TextInput
                                     style={styles.inputPassword}
-                                    secureTextEntry
+                                    secureTextEntry={!showConfirmPassword}
                                     placeholder="Confirm new password"
                                     value={passwordData.confirmPassword}
                                     onChangeText={(text) => {
                                         setPasswordData(prev => ({...prev, confirmPassword: text}));
                                     }}
+                                    right={
+                                        <TextInput.Icon
+                                            icon={showConfirmPassword ? 'eye-off' : 'eye'}
+                                            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            color={'#D3D3D3'}
+                                            size={28}
+                                        />
+                                    }
                                     underlineStyle={{height: 0}}
                                 />
 

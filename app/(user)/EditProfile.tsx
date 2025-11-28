@@ -168,7 +168,7 @@ const EditProfile = () => {
     const dispatch = useDispatch();
     const userData = useSelector((state: any) => state.user.userData) as UserResponse;
     const userSport = useSelector((state: any) => state.user.userSport) as UserSportResponse[];
-    const { showErrorAlert, showAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
+    const { showErrorAlert, showSuccessAlert, showAlert, showStyledAlert, alertConfig, closeAlert } = useAlert();
 
     const _router = useRouter();
 
@@ -246,14 +246,16 @@ const EditProfile = () => {
         skillLevel?: any[];
         isCertified?: boolean;
         preferenceSport?: string;
-    }) => {
+    }, baseUser?: any, suppressErrors: boolean = false) => {
         try {
-            if (!user) {
+            // Use provided baseUser or fall back to user state
+            const userToUpdate = baseUser || user;
+            if (!userToUpdate) {
                 console.error('User is null, cannot update');
                 return;
             }
 
-            let updatedUser = {...user};
+            let updatedUser = {...userToUpdate};
             if (selectedGender !== null) {
                 updatedUser = {...updatedUser, gender: selectedGender};
             }
@@ -280,28 +282,52 @@ const EditProfile = () => {
             
             // Sanitize the user data before sending to backend
             const userRequest = sanitizeUserForBackend(updatedUser);
+            console.log('_handleUpdateUser: Sending userRequest:', JSON.stringify(userRequest, null, 2));
        
             try {
                 const result = await dispatch(updateUserProfile(userRequest) as any);
+                console.log('_handleUpdateUser: Redux result:', result);
                 
                 if (result.error) {
+                    console.log('_handleUpdateUser: Redux error, trying direct API call');
                     const directResult = await UserService.updateUser(userRequest);
                     if (directResult) {
                         setUser(directResult);
+                        console.log('_handleUpdateUser: Direct API call succeeded');
                     }
+                } else {
+                    console.log('_handleUpdateUser: Redux update succeeded');
                 }
-            } catch (reduxError) {
+            } catch (reduxError: any) {
+                console.error("_handleUpdateUser: Redux error:", reduxError);
+                console.error("_handleUpdateUser: Error response:", reduxError?.response?.data);
                 try {
+                    console.log('_handleUpdateUser: Trying direct API call after redux error');
                     const directResult = await UserService.updateUser(userRequest);
                     if (directResult) {
                         setUser(directResult);
+                        console.log('_handleUpdateUser: Direct API call succeeded after redux error');
                     }
-                } catch (apiError) {
-                    console.error("Direct API call error:", apiError);
+                } catch (apiError: any) {
+                    console.error("_handleUpdateUser: Direct API call error:", apiError);
+                    console.error("_handleUpdateUser: API error response:", apiError?.response?.data);
+                    console.error("_handleUpdateUser: API error status:", apiError?.response?.status);
+                    // Only re-throw if errors should not be suppressed (during registration, suppress them)
+                    if (!suppressErrors) {
+                        throw apiError;
+                    } else {
+                        console.warn("_handleUpdateUser: Error suppressed to prevent registration interruption");
+                    }
                 }
             }
         } catch (error) {
             console.error('Failed to update user:', error);
+            // Only re-throw if errors should not be suppressed
+            if (!suppressErrors) {
+                throw error;
+            } else {
+                console.warn("_handleUpdateUser: Error suppressed to prevent registration interruption");
+            }
         }
     };
 
@@ -311,19 +337,86 @@ const EditProfile = () => {
         skillLevel?: any[];
         isCertified?: boolean;
         preferenceSport?: string;
-    }) => {
+    }, userDataToUpdate?: any, sportsToRegister?: UserInterestedSport[]) => {
+        console.log('_handleContinue: Called with currentStep:', currentStep, 'userRole:', userData?.role);
+        
         if (userData?.role == UserType[UserType.COACH]) {
-            setCurrentStep(oldValue => Math.min(3, oldValue + 1));
-            if (currentStep >= 3) {
+            const newStep = Math.min(3, currentStep + 1);
+            console.log('_handleContinue: Setting step from', currentStep, 'to', newStep);
+            
+            // Only navigate away if we're ALREADY on step 3 (user clicked continue/save on step 3)
+            // If we're moving TO step 3, just advance the step and show step 3
+            if (currentStep === 3) {
+                console.log('_handleContinue: Already on step 3, completing sign up and navigating to tabs');
                 try {
+                    // Try to update user one more time with all fields
+                    console.log('_handleContinue: Updating user with coachFields:', coachFields);
                     await _handleUpdateUser(selectedGender, bio, coachFields);
-                    if (selectedSports.length > 0 && userSport.length === 0) {
-                        const response = await SportService.registerUserToSport(selectedSports, userData.id);
+                    // Register sports if provided or if they exist in state
+                    // Use sportsToRegister parameter first (from _handleCoachSportInfoEdit), then fall back to selectedSports state
+                    const sportsToSave = sportsToRegister || selectedSports;
+                    if (sportsToSave.length > 0 && userSport.length === 0) {
+                        console.log('_handleContinue: Registering sports:', JSON.stringify(sportsToSave, null, 2));
+                        try {
+                            const response = await SportService.registerUserToSport(sportsToSave, userData.id);
+                            console.log('_handleContinue: Sport registration response:', response);
+                            // Update state after successful registration
+                            setSelectedSports(sportsToSave);
+                        } catch (sportError: any) {
+                            console.error('_handleContinue: Sport registration failed:', sportError);
+                            console.error('Error details:', sportError?.response?.data);
+                            // Don't block sign up completion if sport registration fails
+                            console.warn('Continuing to complete sign up despite sport registration error');
+                        }
+                    } else {
+                        console.log('_handleContinue: Skipping sport registration - sportsToSave.length:', sportsToSave.length, 'userSport.length:', userSport.length);
                     }
+                } catch (e) {
+                    console.error('_handleContinue: Error in final update:', e);
+                    // Don't block - continue to navigate
+                    console.warn('Continuing to complete sign up despite error');
+                }
+                
+                // Always navigate to tabs to complete sign up
+                console.log('_handleContinue: Navigating to /(tabs)');
                     router.replace('/(tabs)');
                     return;
-                } catch (e) {
-                    console.log(e);
+            } else {
+                // Save user info when advancing from step 1 to step 2
+                // Check BEFORE updating step, since state updates are async
+                const wasOnStep1 = currentStep === 1;
+                
+                // Advance to the next step IMMEDIATELY (before any async operations)
+                // This ensures the UI updates right away
+                console.log('_handleContinue: Advancing to step', newStep, 'from step', currentStep);
+                setCurrentStep(newStep);
+                
+                // Run in background so it doesn't block step advancement
+                if (wasOnStep1) {
+                    console.log('_handleContinue: Saving user info from step 1 (non-blocking, after step advancement)');
+                    // Use IIFE to run async operation in background without blocking
+                    (async () => {
+                        try {
+                            // Use provided userDataToUpdate (editUser) or fall back to user state
+                            console.log('_handleContinue: Starting background save, userDataToUpdate:', userDataToUpdate ? 'provided' : 'not provided');
+                            // Suppress errors during registration to prevent redirects
+                            await _handleUpdateUser(null, bio, undefined, userDataToUpdate || user, true);
+                            console.log('_handleContinue: User info saved successfully');
+                        } catch (e: any) {
+                            console.error('_handleContinue: Error saving user info:', e);
+                            console.error('_handleContinue: Error status:', e?.response?.status);
+                            console.error('_handleContinue: Error details:', e?.response?.data);
+                            // Don't block step advancement if save fails - this is non-critical
+                            // During registration, errors should not redirect to login
+                            console.warn('User info save failed, but step already advanced (non-blocking)');
+                            console.warn('This error will not block registration flow');
+                        }
+                    })().catch(err => {
+                        // Catch any unhandled errors in the async IIFE
+                        // Prevent errors from bubbling up and causing redirects during registration
+                        console.error('_handleContinue: Unhandled error in background save:', err);
+                        console.warn('Error caught and suppressed to prevent registration interruption');
+                    });
                 }
             }
         } else if (userData?.role == UserType[UserType.ORGANIZATION]) {
@@ -642,28 +735,55 @@ const EditProfile = () => {
         );
 
         const _handleContinueUserInfo = async () => {
+            console.log('========================================');
+            console.log('_handleContinueUserInfo: FUNCTION CALLED');
+            console.log('_handleContinueUserInfo: editUser:', JSON.stringify(editUser, null, 2));
+            console.log('_handleContinueUserInfo: currentStep:', currentStep);
+            console.log('_handleContinueUserInfo: paramData?.data:', paramData?.data);
+            
             const errors = _verifyUserInfo(editUser);
+            console.log('_handleContinueUserInfo: Validation errors:', errors);
+            
             if (errors.length > 0) {
+                console.log('_handleContinueUserInfo: Validation failed, showing error');
                 showErrorAlert(errors.join('\n'), closeAlert);
                 setUser(oldValue => ({...editUser}));
                 return;
             }
+            
+            console.log('_handleContinueUserInfo: Validation passed');
             setUser(oldValue => ({...editUser}));
-            // Log the data being sent for update
-            console.log('EditProfile: Saving user info', editUser);
             
             // If editing from profile, save and continue to next step
             if (paramData?.data === 'profile') {
+                console.log('_handleContinueUserInfo: Profile edit mode');
                 try {
                     await _handleUpdateUser(null, editUser.bio || '');
+                    console.log('_handleContinueUserInfo: Setting step to 2');
                     setCurrentStep(2); // Continue to step 2
                 } catch (e) {
-                    console.log(e);
+                    console.log('_handleContinueUserInfo: Error in profile edit:', e);
                 }
             } else {
-                // Continue with registration flow
-                await _handleContinue(null, editUser.bio || '');
+                // Continue with registration flow - pass editUser so it can be saved
+                console.log('_handleContinueUserInfo: Registration flow, calling _handleContinue');
+                console.log('_handleContinueUserInfo: About to call _handleContinue with editUser');
+                // Advance step immediately as a safety measure, before calling _handleContinue
+                // This ensures step advances even if _handleContinue fails or redirects
+                if (currentStep === 1) {
+                    console.log('_handleContinueUserInfo: Advancing to step 2 immediately (safety measure)');
+                    setCurrentStep(2);
+                }
+                // Call _handleContinue - it will also advance the step, but we've already done it as a safety measure
+                try {
+                    await _handleContinue(null, editUser.bio || '', undefined, editUser);
+                    console.log('_handleContinueUserInfo: _handleContinue completed');
+                } catch (e: any) {
+                    console.error('_handleContinueUserInfo: _handleContinue error:', e);
+                    console.warn('_handleContinueUserInfo: Step already advanced, continuing despite error');
+                }
             }
+            console.log('========================================');
         }
 
         const _verifyUserInfo = (user: UserResponse): string[] => {
@@ -795,7 +915,7 @@ const EditProfile = () => {
                             />
                             <Text style={styles.textLabel}>Address</Text>
                             <TextInput
-                                style={styles.inputStyle}
+                                style={[styles.inputStyle, styles.addressInputStyle]}
                                 placeholder={'Address'}
                                 cursorColor='black'
                                 placeholderTextColor={'grey'}
@@ -803,6 +923,9 @@ const EditProfile = () => {
                                 value={editUser.address}
                                 onChangeText={(text) => setEditUser({...editUser, address: text})}
                                 underlineStyle={{height: 0}}
+                                multiline={true}
+                                numberOfLines={2}
+                                textAlignVertical="top"
                             />
 
                             <Text style={styles.textLabel}>Zip Code</Text>
@@ -1046,9 +1169,12 @@ const EditProfile = () => {
         }, [user?.skillLevel]);
 
         const _handleCoachSportInfoEdit = async () => {
+            console.log('_handleCoachSportInfoEdit: Starting, currentStep:', currentStep);
             // Check if user has existing sport data or has selected a new sport
             const hasExistingSport = userSport.length > 0;
             const hasSelectedSport = selectedSport !== null;
+            
+            console.log('_handleCoachSportInfoEdit: hasExistingSport:', hasExistingSport, 'hasSelectedSport:', hasSelectedSport);
             
             if (!hasExistingSport && !hasSelectedSport) {
                 showErrorAlert('Please select a sport', closeAlert);
@@ -1059,6 +1185,8 @@ const EditProfile = () => {
                 showErrorAlert('Please select skill level', closeAlert);
                 return;
             }
+            
+            console.log('_handleCoachSportInfoEdit: Validations passed, proceeding with save');
              
             setUser(({
                 ...editUser,
@@ -1079,29 +1207,97 @@ const EditProfile = () => {
                 preferenceSport: selectedSport?.name || ""
             });
              
-            if (userSport.length === 0) {
-                const convertedSportLevel = convertStringToEnumValue(SportLevel, sportLevel);
-                if (convertedSportLevel === null) return;
+            // Prepare the sport data for registration if this is the first time
+            let newSelectedSports = [...selectedSports];
+            if (userSport.length === 0 && selectedSport) {
+                // sportLevel is already a SportLevel enum, use it directly
+                if (!sportLevel) {
+                    showErrorAlert('Invalid skill level', closeAlert);
+                    return;
+                }
                 
-                setSelectedSports([...selectedSports,
-                    {
-                        sportId: selectedSport!.id,
-                        sportLevel: convertedSportLevel,
+                // Convert SportLevel enum value to string key for backend
+                // sportLevel is a number (0, 1, 2), we need the string key ("Beginner", "Intermediate", "Advance")
+                const sportLevelKeys = Object.keys(SportLevel).filter(key => isNaN(Number(key)));
+                const sportLevelString = sportLevelKeys.find(key => SportLevel[key as keyof typeof SportLevel] === sportLevel) || 'Beginner';
+                
+                newSelectedSports = [{
+                    sportId: selectedSport.id,
+                    sportLevel: sportLevelString as any, // Backend expects string like "Beginner", "Intermediate", "Advance"
                         createAt: new Date(),
-                        sportName: selectedSport!.name
-                    }]);
+                    sportName: selectedSport.name
+                }];
+                console.log('Prepared newSelectedSports:', JSON.stringify(newSelectedSports, null, 2));
+                setSelectedSports(newSelectedSports);
+            } else {
+                console.log('Not creating newSelectedSports - userSport.length:', userSport.length, 'selectedSport:', selectedSport?.name);
             }
             
-            if (selectedSports.length === 0 && userSport.length === 0)
-                return;
-       
-            await _handleContinue(null, editUser.bio || '', {
+            // Prepare coachFields for saving
+            const coachFieldsToSave = {
                 yearsOfExperience: yearsOfExperience,
                 positionCoached: positionCoach,
                 skillLevel: [sportLevel?.toString() || ""],
                 isCertified: isCertified,
                 preferenceSport: selectedSport?.name || ""
-            });
+            };
+            
+            // If editing from profile, save immediately
+            if (paramData?.data === 'profile') {
+                try {
+                    await _handleUpdateUser(null, editUser.bio || '', coachFieldsToSave);
+                    if (newSelectedSports.length > 0 && userSport.length === 0) {
+                        console.log('Registering sport for user (profile edit):', newSelectedSports, userData.id);
+                        const response = await SportService.registerUserToSport(newSelectedSports, userData.id);
+                        console.log('Sport registration response (profile edit):', response);
+                    }
+                    showSuccessAlert('Sport information saved successfully', closeAlert);
+                } catch (e) {
+                    console.error('Error saving coach sport info:', e);
+                    showErrorAlert('Failed to save sport information', closeAlert);
+                }
+            } else {
+                // For registration flow, ensure we save preferenceSport even if currentStep < 3
+                // Save preferenceSport immediately via _handleUpdateUser
+                // Use a separate try-catch to ensure _handleContinue is always called
+                (async () => {
+                    try {
+                        await _handleUpdateUser(null, editUser.bio || '', coachFieldsToSave);
+                        console.log('preferenceSport saved successfully');
+                    } catch (updateError: any) {
+                        console.error('Error saving preferenceSport:', updateError);
+                        console.error('Error details:', updateError?.response?.data || updateError?.message);
+                        // Don't block - continue anyway
+                        console.warn('Continuing sign up despite update error');
+                    }
+                    
+                    // Try to register sport, but don't block if it fails
+                    if (newSelectedSports.length > 0 && userSport.length === 0) {
+                        try {
+                            console.log('Registering sport for user:', JSON.stringify(newSelectedSports, null, 2), 'userId:', userData.id);
+                            const response = await SportService.registerUserToSport(newSelectedSports, userData.id);
+                            console.log('Sport registration response:', response);
+                            if (response) {
+                                setSelectedSports(newSelectedSports); // Update state for _handleContinue
+                            }
+                        } catch (sportError: any) {
+                            console.error('Sport registration error:', sportError);
+                            console.error('Error response:', sportError?.response?.data);
+                            console.error('Error status:', sportError?.response?.status);
+                            // Don't block the flow if sport registration fails - user can add sports later
+                            console.warn('Sport registration failed, but continuing with sign up');
+                        }
+                    }
+                })();
+                
+                // Always continue with registration flow - don't wait for async operations
+                // This ensures the step advances even if there are errors
+                // Pass newSelectedSports directly to _handleContinue so it can register the sport
+                console.log('_handleCoachSportInfoEdit: Calling _handleContinue, currentStep:', currentStep);
+                console.log('_handleCoachSportInfoEdit: Passing newSelectedSports to _handleContinue:', JSON.stringify(newSelectedSports, null, 2));
+                await _handleContinue(null, editUser.bio || '', coachFieldsToSave, undefined, newSelectedSports);
+                console.log('_handleCoachSportInfoEdit: _handleContinue completed');
+            }
         }
 
         const _generateSportLevelItems = (): { label: string; value: string; key: string }[] => {
@@ -1114,7 +1310,7 @@ const EditProfile = () => {
 
         return (
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <>
+                <View style={{flex: 1}}>
                     <KeyboardAwareScrollView style={{flex: 1}}>
                         <View style={styles.formContainer}>
                             <Text style={{color: 'black', fontSize: 20, fontWeight: 'bold', marginTop: 5}}>Sport
@@ -1123,7 +1319,7 @@ const EditProfile = () => {
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                     <View style={{ flex: 1, marginRight: 5 }}>
                                         <Text style={styles.textLabel}>Primary Sport</Text>
-                                        <View style={styles.inputStyle}>
+                                        <View style={styles.inputStyle} pointerEvents="box-none">
                                             <RNPickerSelect
                                                 style={pickerSelectStyle}
                                                 items={sports.map(sport => ({ label: sport.name, value: sport.id, key: sport.id }))}
@@ -1131,6 +1327,9 @@ const EditProfile = () => {
                                                 onValueChange={(value) => setSelectedSport(sports.find(sport => sport.id === value) || null)}
                                                 value={selectedSport?.id || null}
                                                 useNativeAndroidPickerStyle={false}
+                                                touchableWrapperProps={{
+                                                    style: { flex: 1, width: '100%', height: '100%' }
+                                                }}
                                                 Icon={() => (
                                                     <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
                                                 )}
@@ -1154,7 +1353,7 @@ const EditProfile = () => {
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                     <View style={{ flex: 1, marginRight: 5 }}>
                                         <Text style={styles.textLabel}>Skill Level</Text>
-                                        <View style={styles.inputStyle}>
+                                        <View style={styles.inputStyle} pointerEvents="box-none">
                                             <RNPickerSelect
                                                 style={pickerSelectStyle}
                                                 items={_generateSportLevelItems()}
@@ -1162,6 +1361,9 @@ const EditProfile = () => {
                                                 onValueChange={(value) => setSportLevel(value as SportLevel)}
                                                 value={sportLevel?.toString() || null}
                                                 useNativeAndroidPickerStyle={false}
+                                                touchableWrapperProps={{
+                                                    style: { flex: 1, width: '100%', height: '100%' }
+                                                }}
                                                 Icon={() => (
                                                     <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
                                                 )}
@@ -1218,7 +1420,7 @@ const EditProfile = () => {
                             </View>
                         </View>
                     </KeyboardAwareScrollView>
-                </>
+                </View>
             </TouchableWithoutFeedback>
         )
     }
@@ -1665,7 +1867,7 @@ const EditProfile = () => {
                                 />
                                 <Text style={styles.textLabel}>Address</Text>
                                 <TextInput
-                                    style={styles.inputStyle}
+                                    style={[styles.inputStyle, styles.addressInputStyle]}
                                     placeholder={'Address'}
                                     cursorColor='black'
                                     placeholderTextColor={'grey'}
@@ -1673,6 +1875,9 @@ const EditProfile = () => {
                                     value={editUser.address}
                                     onChangeText={(text) => setEditUser({...editUser, address: text})}
                                     underlineStyle={{height: 0}}
+                                    multiline={true}
+                                    numberOfLines={2}
+                                    textAlignVertical="top"
                                 />
                                 <Text style={styles.textLabel}>Zip Code</Text>
                                 <TextInput
@@ -1699,7 +1904,7 @@ const EditProfile = () => {
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                     <View style={{ flex: 1, marginRight: 5 }}>
                                         <Text style={styles.textLabel}>Primary Sport</Text>
-                                        <View style={styles.inputStyle}>
+                                        <View style={styles.inputStyle} pointerEvents="box-none">
                                             <RNPickerSelect
                                                 style={pickerSelectStyle}
                                                 items={sports.map(sport => ({ label: sport.name, value: sport.id, key: sport.id }))}
@@ -1707,6 +1912,9 @@ const EditProfile = () => {
                                                 onValueChange={(value) => setSelectedSport(sports.find(sport => sport.id === value) || null)}
                                                 value={selectedSport?.id || null}
                                                 useNativeAndroidPickerStyle={false}
+                                                touchableWrapperProps={{
+                                                    style: { flex: 1, width: '100%', height: '100%' }
+                                                }}
                                                 Icon={() => (
                                                     <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
                                                 )}
@@ -1730,7 +1938,7 @@ const EditProfile = () => {
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                     <View style={{ flex: 1, marginRight: 5 }}>
                                         <Text style={styles.textLabel}>Skill Level</Text>
-                                        <View style={styles.inputStyle}>
+                                        <View style={styles.inputStyle} pointerEvents="box-none">
                                             <RNPickerSelect
                                                 style={pickerSelectStyle}
                                                 items={_generateSportLevelItems()}
@@ -1738,6 +1946,9 @@ const EditProfile = () => {
                                                 onValueChange={(value) => setSportLevel(value as SportLevel)}
                                                 value={sportLevel?.toString() || null}
                                                 useNativeAndroidPickerStyle={false}
+                                                touchableWrapperProps={{
+                                                    style: { flex: 1, width: '100%', height: '100%' }
+                                                }}
                                                 Icon={() => (
                                                     <AntDesign name="down" size={20} color="grey" style={{ position: 'absolute', right: 10, top: 12 }} />
                                                 )}
@@ -1856,7 +2067,7 @@ const EditProfile = () => {
                                                                         paddingHorizontal: 15, 
                                                                         paddingVertical: 12, 
                                                                         borderRadius: 8, 
-                                                                        marginRight: 10, 
+                                                                        marginRight: 5, 
                                                                         marginBottom: 10,
                                                                         minHeight: 44, // Minimum touch target size
                                                                         justifyContent: 'center',
@@ -2406,6 +2617,14 @@ const styles = StyleSheet.create({
         borderColor: '#D3D3D3',
         borderWidth: 1,
         paddingLeft: 15
+    },
+    addressInputStyle: {
+        height: undefined,
+        minHeight: 45,
+        maxHeight: 100,
+        paddingTop: 12,
+        paddingBottom: 12,
+        paddingRight: 15,
     },
     mgTop: {
         marginTop: 5

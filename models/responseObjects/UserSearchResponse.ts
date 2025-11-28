@@ -1,4 +1,4 @@
-interface UserSearchResponse {
+export interface UserSearchResponse {
     id: string,
     firstName: string,
     lastName: string,

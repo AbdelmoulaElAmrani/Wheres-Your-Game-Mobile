@@ -58,7 +58,8 @@ const TikTokOEmbedComponent: React.FC<TikTokOEmbedComponentProps> = ({ url, onPr
                 setOembedData(response.data);
             }
         } catch (err: any) {
-            console.error('Error fetching TikTok oEmbed:', err);
+            // Silently handle errors - don't log to console to avoid cluttering logs
+            // The error is already handled gracefully by showing an error message to the user
             
             // Handle rate limiting specifically
             if (err.response?.status === 429) {

@@ -91,8 +91,8 @@ const Home = () => {
                         }
                     }
 
-                    // Conditionally load teams
-                    if (!teams?.length || selectedProfile.userId !== id) {
+                    // Always reload teams when viewing own profile, or if no teams exist, or if viewing different user
+                    if (id === userData?.id || !teams?.length || selectedProfile.userId !== id) {
                         teams = await TeamService.getUserTeams(id);
                     }
 
